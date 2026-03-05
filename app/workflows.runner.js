@@ -550,11 +550,53 @@ window.DPRWorkflowRunner = (function () {
       if (Object.keys(dispatchInputs).length > 0) {
         dispatchBody.inputs = dispatchInputs;
       }
-      const res = await ghFetch(token, dispatchUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dispatchBody),
-      });
+
+      const postDispatch = async (inputsBody) => {
+        const body = Object.keys(inputsBody).length ? { ...dispatchBody, inputs: inputsBody } : dispatchBody;
+        return ghFetch(token, dispatchUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+      };
+
+      let res = await postDispatch(dispatchInputs);
+      if (!res.ok) {
+        let bodyText = '';
+        try {
+          bodyText = await res.text();
+        } catch {
+          bodyText = '';
+        }
+        const unexpectedInputs = [];
+        try {
+          const errJson = JSON.parse(bodyText || '{}');
+          const message = typeof errJson.message === 'string' ? errJson.message : '';
+          const match = message.match(/Unexpected inputs provided:\s*\[([^\]]*)\]/);
+          if (match && match[1]) {
+            match[1].split(',').forEach((raw) => {
+              const n = raw.replace(/["'\\s]/g, '');
+              if (n) unexpectedInputs.push(n);
+            });
+          }
+        } catch {
+          // ignore parse error
+        }
+
+        // 兼容旧版 workflow：若出现输入不支持，剔除不支持字段后重试（例如 fetch_mode）
+        if (res.status === 422 && unexpectedInputs.length > 0) {
+          const fallbackInputs = { ...dispatchInputs };
+          unexpectedInputs.forEach((key) => {
+            delete fallbackInputs[key];
+          });
+          if (!res.ok && Object.keys(fallbackInputs).length < Object.keys(dispatchInputs).length) {
+            res = await postDispatch(fallbackInputs);
+            if (res.ok) {
+              setStatus(`当前工作流不支持部分输入参数，已自动去除: ${unexpectedInputs.join(', ')}，重试触发成功。`, '#666');
+            }
+          }
+        }
+      }
       if (!res.ok) {
         const txt = await res.text().catch(() => '');
         throw new Error(`触发失败：HTTP ${res.status} ${res.statusText} - ${txt}`);

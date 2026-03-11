@@ -5,6 +5,7 @@
 // - 修改面板：复用会话式流程，通过对话生成/更新词条
 
 window.SubscriptionsSmartQuery = (function () {
+  const MAX_INTENT_QUERIES_PER_PROFILE = 4;
   let displayListEl = null;
   let createBtn = null;
   let openChatBtn = null;
@@ -52,7 +53,7 @@ window.SubscriptionsSmartQuery = (function () {
     '2) keywords are used for recall and should be atomic phrases (prefer 1-3 core words).',
     '3) Keep keywords atomic and avoid packing multiple concepts into one phrase.',
     '4) Do not include concrete example topics in the prompt.',
-    '5) intent_queries: output 3-8 actionable intent queries. Each item should include query and optional query_cn.',
+    '5) intent_queries: output 1-4 actionable intent queries. Each item should include query and optional query_cn.',
     '6) Do not output extra fields like must_have / optional / exclude / rewrite_for_embedding.',
     '7) Return pure JSON only, no explanations.',
     '8) intent_queries should be concise, timeless, and must not include years or year-like tokens.',
@@ -61,6 +62,47 @@ window.SubscriptionsSmartQuery = (function () {
   ].join('\n');
 
   const normalizeText = (v) => String(v || '').trim();
+  const countSelectedIntentQueries = (items) =>
+    (Array.isArray(items) ? items : []).filter((item) => item && !item._isDraftSlot && item._selected).length;
+
+  const clampIntentSelections = (items) => {
+    let selectedCount = 0;
+    return (Array.isArray(items) ? items : []).map((item) => {
+      if (!item || item._isDraftSlot) return item;
+      const next = { ...item };
+      if (next._selected) {
+        selectedCount += 1;
+        if (selectedCount > MAX_INTENT_QUERIES_PER_PROFILE) {
+          next._selected = false;
+        }
+      }
+      return next;
+    });
+  };
+
+  const validateProfileSelection = (keywords, intentQueries) => {
+    const selectedKeywords = (Array.isArray(keywords) ? keywords : []).filter(
+      (item) => item && !item._isDraftSlot && item._selected,
+    );
+    const selectedIntentQueries = (Array.isArray(intentQueries) ? intentQueries : []).filter(
+      (item) => item && !item._isDraftSlot && item._selected,
+    );
+    if (!selectedKeywords.length) {
+      return '请至少保留 1 条关键词。';
+    }
+    if (!selectedIntentQueries.length) {
+      return '请至少保留 1 条意图Query。';
+    }
+    if (selectedIntentQueries.length > MAX_INTENT_QUERIES_PER_PROFILE) {
+      return `意图Query 最多只能保留 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`;
+    }
+    return '';
+  };
+
+  const canSelectMoreIntentQueries = (items, nextSelected) => {
+    if (!nextSelected) return true;
+    return countSelectedIntentQueries(items) < MAX_INTENT_QUERIES_PER_PROFILE;
+  };
 
   const sanitizeNoYear = (value) => {
     const base = normalizeText(value);
@@ -880,7 +922,9 @@ window.SubscriptionsSmartQuery = (function () {
   const parseCandidatesForState = (candidates, selected = true) => {
     return {
       keywords: (candidates.keywords || []).map((x) => ({ ...x, _selected: selected })),
-      intent_queries: (candidates.intent_queries || []).map((x) => ({ ...x, _selected: selected })),
+      intent_queries: clampIntentSelections(
+        (candidates.intent_queries || []).map((x) => ({ ...x, _selected: selected })),
+      ),
     };
   };
 
@@ -993,6 +1037,10 @@ window.SubscriptionsSmartQuery = (function () {
 
     const created = buildDraftItemFromSlot(realKind, slot);
     if (!created) return false;
+    if (realKind === 'intent' && !canSelectMoreIntentQueries(list, true)) {
+      setMessage(`意图Query 最多只能选择 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`, '#c00');
+      return false;
+    }
     const next = list.slice();
     next[0] = createDraftSlot(realKind);
     next.splice(1, 0, created);
@@ -1415,6 +1463,7 @@ window.SubscriptionsSmartQuery = (function () {
       customKeywordLogic: '',
       customQuery: '',
     };
+    modalState.intent_queries = clampIntentSelections(modalState.intent_queries);
     renderAddModal();
     openModal();
   };
@@ -1442,6 +1491,7 @@ window.SubscriptionsSmartQuery = (function () {
       pending: false,
       chatStatus: '',
     };
+    modalState.intent_queries = clampIntentSelections(modalState.intent_queries);
     renderChatModal();
     openModal();
   };
@@ -1459,7 +1509,7 @@ window.SubscriptionsSmartQuery = (function () {
       </div>`;
     const intentBlock =
       `<div class="dpr-combo-block">
-        <div class="dpr-modal-group-title">意图Query（用于意图召回与最终打分）</div>
+        <div class="dpr-modal-group-title">意图Query（必选，最多 4 条，用于意图召回与最终打分）</div>
         <div class="dpr-pick-grid">${intentHtml || '<div style="color:#999;">无意图查询候选</div>'}</div>
       </div>`;
     const divider = `<div class="dpr-modal-divider"></div>`;
@@ -1516,6 +1566,11 @@ window.SubscriptionsSmartQuery = (function () {
 
     const selectedKeywords = getSelectedItemsForSave(modalState.keywords || []);
     const selectedIntentQueries = getSelectedItemsForSave(modalState.intent_queries || []);
+    const validationError = validateProfileSelection(selectedKeywords, selectedIntentQueries);
+    if (validationError) {
+      setMessage(validationError, '#c00');
+      return;
+    }
     const isEditMode = !!(modalState && modalState.editProfileId);
     const ok = isEditMode
       ? replaceProfileFromSelection(
@@ -1535,7 +1590,7 @@ window.SubscriptionsSmartQuery = (function () {
         });
 
     if (!ok) {
-      setMessage('请至少选择一条候选。', '#c00');
+      setMessage('请至少选择 1 条关键词和 1 条意图Query。', '#c00');
       return;
     }
 
@@ -1588,7 +1643,7 @@ window.SubscriptionsSmartQuery = (function () {
       : '';
     const intentSection = hasIntentSection
       ? `<div class="dpr-chat-result-block">
-           <div class="dpr-modal-group-title">意图Query（用于意图召回与最终打分）</div>
+           <div class="dpr-modal-group-title">意图Query（必选，最多 4 条，用于意图召回与最终打分）</div>
            <div class="dpr-chat-slot-area ${hasIntentQueries ? 'has-candidates' : 'draft-only'}">
              <div class="dpr-chat-slot-scroll">
                <div class="dpr-cloud-grid dpr-cloud-grid-intent">${intentHtml}</div>
@@ -1666,6 +1721,7 @@ window.SubscriptionsSmartQuery = (function () {
     const selectedKeywords = getSelectedItemsForSave(modalState.keywords || []);
     const selectedIntentQueries = getSelectedItemsForSave(modalState.intent_queries || []);
     const hasItems = selectedKeywords.length || selectedIntentQueries.length;
+    const validationError = validateProfileSelection(selectedKeywords, selectedIntentQueries);
     const desc = normalizeText(document.getElementById('dpr-chat-required-desc')?.value || '');
     const tag = normalizeText(document.getElementById('dpr-chat-tag-input')?.value || modalState.inputTag || '');
 
@@ -1675,6 +1731,10 @@ window.SubscriptionsSmartQuery = (function () {
     }
     if (!desc) {
       setMessage('请先填写中文描述。', '#c00');
+      return;
+    }
+    if (validationError) {
+      setMessage(validationError, '#c00');
       return;
     }
     modalState.inputTag = tag;
@@ -1696,7 +1756,7 @@ window.SubscriptionsSmartQuery = (function () {
     }
 
     if (!hasSelection) {
-      setMessage(hasItems ? '应用失败，请重试。' : '请至少勾选一条候选后再应用。', '#c00');
+      setMessage(hasItems ? '应用失败，请重试。' : '请至少勾选 1 条关键词和 1 条意图Query 后再应用。', '#c00');
       return;
     }
     if (typeof reloadAll === 'function') reloadAll();
@@ -1869,7 +1929,12 @@ window.SubscriptionsSmartQuery = (function () {
           idx < (modalState.intent_queries || []).length &&
           !isDraftSlot(modalState.intent_queries[idx])
         ) {
-          modalState.intent_queries[idx]._selected = !modalState.intent_queries[idx]._selected;
+          const nextSelected = !modalState.intent_queries[idx]._selected;
+          if (!canSelectMoreIntentQueries(modalState.intent_queries, nextSelected)) {
+            setMessage(`意图Query 最多只能选择 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`, '#c00');
+            return;
+          }
+          modalState.intent_queries[idx]._selected = nextSelected;
           renderAddModal();
         }
         return;
@@ -1939,6 +2004,14 @@ window.SubscriptionsSmartQuery = (function () {
     }
     const selected = !!target.checked;
     const card = target.closest('.dpr-cloud-item');
+    if (kind === 'intent' && !canSelectMoreIntentQueries(list, selected)) {
+      target.checked = false;
+      if (card) {
+        card.classList.remove('selected');
+      }
+      setMessage(`意图Query 最多只能选择 ${MAX_INTENT_QUERIES_PER_PROFILE} 条。`, '#c00');
+      return;
+    }
     if (card) {
       card.classList.toggle('selected', selected);
     }

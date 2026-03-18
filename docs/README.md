@@ -6,101 +6,78 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-09 ~ 2026-03-18
-- 运行时间：2026-03-18 07:52:24 UTC
+- 最新运行日期：2026-03-18
+- 运行时间：2026-03-18 20:25:57 UTC
 - 运行状态：成功
-- 本次总论文数：26
-- 精读区：15
+- 本次总论文数：19
+- 精读区：8
 - 速读区：11
 
 ### 今日简报（AI）
-- 今日共生成 26 篇推荐（精读 15 篇，速读 11 篇）
-- 精读：《Composed Vision-Language Retrieval for Skin Cancer Case Search via Joint Alignment of Global and Local Representations》（10.0/10）, 《FBCIR: Balancing Cross-Modal Focuses in Composed Image Retrieval》（10.0/10）
-- 速读：《SGG-R$^{\rm 3}$: From Next-Token Prediction to End-to-End Unbiased Scene Graph Generation》（8.0/10）, 《SGG-R$^{\rm 3}$: From Next-Token Prediction to End-to-End Unbiased Scene Graph Generation》（8.0/10）, 《CMMR-VLN: Vision-and-Language Navigation via Continual Multimodal Memory Retrieval》（8.0/10）
-- 这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。
-- 详情：[/20260309-20260318/README](/20260309-20260318/README)
+今日精选 19 篇前沿论文，深度聚焦多模态大模型在 360° 全景感知与文本像素化模态鸿沟上的关键突破。
+重点关注 360° 图像感知的首个综合基准及免训练方法，并揭示了模型在处理“像素化文本
+- 详情：[/202603/18/README](/202603/18/README)
 
 ### 精读区论文标签
-1. [Composed Vision-Language Retrieval for Skin Cancer Case Search via Joint Alignment of Global and Local Representations](/20260309-20260318/2603.09108v1-composed-vision-language-retrieval-for-skin-cancer-case-search-via-joint-alignment-of-global-and-local-representations)  
+1. [360° Image Perception with MLLMs: A Comprehensive Benchmark and a Training-Free Method](/202603/18/2603.16179v1-360-image-perception-with-mllms-a-comprehensive-benchmark-and-a-training-free-method)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：用于皮肤癌病例搜索的组合视觉语言检索
-2. [FBCIR: Balancing Cross-Modal Focuses in Composed Image Retrieval](/20260309-20260318/2603.11520v1-fbcir-balancing-cross-modal-focuses-in-composed-image-retrieval)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：平衡组合图像检索（CIR）中的跨模态关注点
-3. [Retrieving Counterfactuals Improves Visual In-Context Learning](/20260309-20260318/2603.16737v1-retrieving-counterfactuals-improves-visual-in-context-learning)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：使用组合图像检索（CIR）进行因果学习样本选择
-4. [Toward Unified Multimodal Representation Learning for Autonomous Driving](/20260309-20260318/2603.07874v1-toward-unified-multimodal-representation-learning-for-autonomous-driving)  
+   evidence：多模态大模型对360度图像的感知
+2. [Reading, Not Thinking: Understanding and Bridging the Modality Gap When Text Becomes Pixels in Multimodal LLMs](/202603/18/2603.09095v1-reading-not-thinking-understanding-and-bridging-the-modality-gap-when-text-becomes-pixels-in-multimodal-llms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：统一多模态表示学习与视觉语言预训练技术
-5. [Granulon: Awakening Pixel-Level Visual Encoders with Adaptive Multi-Granularity Semantics for MLLM](/20260309-20260318/2603.08800v1-granulon-awakening-pixel-level-visual-encoders-with-adaptive-multi-granularity-semantics-for-mllm)  
+   evidence：评估多模态大模型（MLLM）中的模态间隙问题
+3. [MM-Zero: Self-Evolving Multi-Model Vision Language Models From Zero Data](/202603/18/2603.09206v1-mm-zero-self-evolving-multi-model-vision-language-models-from-zero-data)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：基于DINOv3的具有自适应粒度增强的多模态大模型
-6. [DEO: Training-Free Direct Embedding Optimization for Negation-Aware Retrieval](/20260309-20260318/2603.09185v1-deo-training-free-direct-embedding-optimization-for-negation-aware-retrieval)  
+   evidence：零数据下自进化的多模型视觉语言模型
+4. [OddGridBench: Exposing the Lack of Fine-Grained Visual Discrepancy Sensitivity in Multimodal Large Language Models](/202603/18/2603.09326v1-oddgridbench-exposing-the-lack-of-fine-grained-visual-discrepancy-sensitivity-in-multimodal-large-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：无需训练的否定感知多模态检索方法
-7. [EvoTok: A Unified Image Tokenizer via Residual Latent Evolution for Visual Understanding and Generation](/20260309-20260318/2603.12108v1-evotok-a-unified-image-tokenizer-via-residual-latent-evolution-for-visual-understanding-and-generation)  
+   evidence：评估多模态大模型中的细粒度视觉感知
+5. [UniCompress: Token Compression for Unified Vision-Language Understanding and Generation](/202603/18/2603.11320v1-unicompress-token-compression-for-unified-vision-language-understanding-and-generation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：统一多模态大语言模型与图像标记化
-8. [NanoVDR: Distilling a 2B Vision-Language Retriever into a 70M Text-Only Encoder for Visual Document Retrieval](/20260309-20260318/2603.12824v1-nanovdr-distilling-a-2b-vision-language-retriever-into-a-70m-text-only-encoder-for-visual-document-retrieval)  
+   evidence：统一视觉语言理解与生成
+6. [Explicit Logic Channel for Validation and Enhancement of MLLMs on Zero-Shot Tasks](/202603/18/2603.11689v1-explicit-logic-channel-for-validation-and-enhancement-of-mllms-on-zero-shot-tasks)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：将视觉语言模型蒸馏为高效的视觉文档检索器
-9. [Balancing Multimodal Domain Generalization via Gradient Modulation and Projection](/20260309-20260318/2603.14175v1-balancing-multimodal-domain-generalization-via-gradient-modulation-and-projection)  
+   evidence：增强多模态大模型在零样本视觉语言任务上的表现
+7. [Think While Watching: Online Streaming Segment-Level Memory for Multi-Turn Video Reasoning in Multimodal Large Language Models](/202603/18/2603.11896v1-think-while-watching-online-streaming-segment-level-memory-for-multi-turn-video-reasoning-in-multimodal-large-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态学习中的优化不平衡
-10. [Deeper Thought, Weaker Aim: Understanding and Mitigating Perceptual Impairment during Reasoning in Multimodal Large Language Models](/20260309-20260318/2603.14184v1-deeper-thought-weaker-aim-understanding-and-mitigating-perceptual-impairment-during-reasoning-in-multimodal-large-language-models)  
+   evidence：多模态大模型中的记忆锚定流式视频推理
+8. [MM-CondChain: A Programmatically Verified Benchmark for Visually Grounded Deep Compositional Reasoning](/202603/18/2603.12266v1-mm-condchain-a-programmatically-verified-benchmark-for-visually-grounded-deep-compositional-reasoning)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型 (MLLM) 中的感知受损问题
-11. [Fine-tuning MLLMs Without Forgetting Is Easier Than You Think](/20260309-20260318/2603.14493v1-fine-tuning-mllms-without-forgetting-is-easier-than-you-think)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型的微调策略
-12. [VTC-Bench: Evaluating Agentic Multimodal Models via Compositional Visual Tool Chaining](/20260309-20260318/2603.15030v1-vtc-bench-evaluating-agentic-multimodal-models-via-compositional-visual-tool-chaining)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：评估代理式多模态大语言模型（MLLM）
-13. [Parallel In-context Learning for Large Vision Language Models](/20260309-20260318/2603.16092v1-parallel-in-context-learning-for-large-vision-language-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：大型视觉语言模型 (LVLM) 和多模态上下文学习
-14. [Evo-Retriever: LLM-Guided Curriculum Evolution with Viewpoint-Pathway Collaboration for Multimodal Document Retrieval](/20260309-20260318/2603.16455v1-evo-retriever-llm-guided-curriculum-evolution-with-viewpoint-pathway-collaboration-for-multimodal-document-retrieval)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：LLM引导的课程演化用于多模态文档检索
-15. [FlowComposer: Composable Flows for Compositional Zero-Shot Learning](/20260309-20260318/2603.16641v1-flowcomposer-composable-flows-for-compositional-zero-shot-learning)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于组合零样本学习和图文组合的可组合流
+   evidence：多模态大模型中视觉接地深度组合推理的基准
 
 ### 速读区论文标签
-1. [SGG-R$^{\rm 3}$: From Next-Token Prediction to End-to-End Unbiased Scene Graph Generation](/20260309-20260318/2603.07961v1-sgg-rrm-3-from-next-token-prediction-to-end-to-end-unbiased-scene-graph-generation)  
+1. [RubiCap: Rubric-Guided Reinforcement Learning for Dense Image Captioning](/202603/18/2603.09160v1-rubicap-rubric-guided-reinforcement-learning-for-dense-image-captioning)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于场景图生成的多模态大语言模型
-2. [SGG-R$^{\rm 3}$: From Next-Token Prediction to End-to-End Unbiased Scene Graph Generation](/20260309-20260318/2603.07961v2-sgg-rrm-3-from-next-token-prediction-to-end-to-end-unbiased-scene-graph-generation)  
+   evidence：视觉语言预训练中的跨模态对齐
+2. [MORE-R1: Guiding LVLM for Multimodal Object-Entity Relation Extraction via Stepwise Reasoning with Reinforcement Learning](/202603/18/2603.09478v1-more-r1-guiding-lvlm-for-multimodal-object-entity-relation-extraction-via-stepwise-reasoning-with-reinforcement-learning)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：基于多模态大模型的场景图生成结构化推理
-3. [CMMR-VLN: Vision-and-Language Navigation via Continual Multimodal Memory Retrieval](/20260309-20260318/2603.07997v1-cmmr-vln-vision-and-language-navigation-via-continual-multimodal-memory-retrieval)  
+   evidence：通过强化学习引导大语言模型进行多模态对象实体关系抽取
+3. [Evolving Prompt Adaptation for Vision-Language Models](/202603/18/2603.09493v1-evolving-prompt-adaptation-for-vision-language-models)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：大语言模型在视觉语言导航与存储检索中的集成
-4. [Local-Global Prompt Learning via Sparse Optimal Transport](/20260309-20260318/2603.08347v1-local-global-prompt-learning-via-sparse-optimal-transport)  
+   evidence：视觉语言模型的适配与微调
+4. [Towards Unified Multimodal Interleaved Generation via Group Relative Policy Optimization](/202603/18/2603.09538v1-towards-unified-multimodal-interleaved-generation-via-group-relative-policy-optimization)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：CLIP等视觉语言模型的少样本自适应
-5. [Why Large Language Models can Secretly Outperform Embedding Similarity in Information Retrieval](/20260309-20260318/2603.08077v1-why-large-language-models-can-secretly-outperform-embedding-similarity-in-information-retrieval)  
+   evidence：在统一视觉语言模型中解锁多模态交错生成能力
+5. [GST-VLA: Structured Gaussian Spatial Tokens for 3D Depth-Aware Vision-Language-Action Models](/202603/18/2603.09079v1-gst-vla-structured-gaussian-spatial-tokens-for-3d-depth-aware-vision-language-action-models)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：信息检索中基于大模型的相关性判断
-6. [Seed2Scale: A Self-Evolving Data Engine for Embodied AI via Small to Large Model Synergy and Multimodal Evaluation](/20260309-20260318/2603.08260v1-seed2scale-a-self-evolving-data-engine-for-embodied-ai-via-small-to-large-model-synergy-and-multimodal-evaluation)  
+   evidence：具有高斯标记的3D深度感知视觉-语言-动作模型
+6. [Ego: Embedding-Guided Personalization of Vision-Language Models](/202603/18/2603.09771v2-ego-embedding-guided-personalization-of-vision-language-models)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：多模态评估与视觉-语言-动作模型
-7. [$Δ$VLA: Prior-Guided Vision-Language-Action Models via World Knowledge Variation](/20260309-20260318/2603.08361v1-vla-prior-guided-vision-language-action-models-via-world-knowledge-variation)  
+   evidence：利用内部注意力机制实现多模态语言模型的个性化
+7. [From Semantics to Pixels: Coarse-to-Fine Masked Autoencoders for Hierarchical Visual Understanding](/202603/18/2603.09955v1-from-semantics-to-pixels-coarse-to-fine-masked-autoencoders-for-hierarchical-visual-understanding)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：用于机器人操作的先验引导视觉语言动作模型
-8. [CAST: Modeling Visual State Transitions for Consistent Video Retrieval](/20260309-20260318/2603.08648v1-cast-modeling-visual-state-transitions-for-consistent-video-retrieval)  
+   evidence：自监督视觉预训练和表示学习的进展
+8. [Overcoming Visual Clutter in Vision Language Action Models via Concept-Gated Visual Distillation](/202603/18/2603.10340v1-overcoming-visual-clutter-in-vision-language-action-models-via-concept-gated-visual-distillation)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：利用视觉语言嵌入空间进行一致性视频检索
-9. [Concept-Guided Fine-Tuning: Steering ViTs away from Spurious Correlations to Improve Robustness](/20260309-20260318/2603.08309v1-concept-guided-fine-tuning-steering-vits-away-from-spurious-correlations-to-improve-robustness)  
+   evidence：视觉语言动作模型中的零样本泛化
+9. [Multimodal Graph Representation Learning with Dynamic Information Pathways](/202603/18/2603.09258v1-multimodal-graph-representation-learning-with-dynamic-information-pathways)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：通过语义概念对齐提高ViT的鲁棒性
-10. [AutoViVQA: A Large-Scale Automatically Constructed Dataset for Vietnamese Visual Question Answering](/20260309-20260318/2603.09689v1-autovivqa-a-large-scale-automatically-constructed-dataset-for-vietnamese-visual-question-answering)  
+   evidence：多模态图表示学习
+10. [Fine-grained Motion Retrieval via Joint-Angle Motion Images and Token-Patch Late Interaction](/202603/18/2603.09930v1-fine-grained-motion-retrieval-via-joint-angle-motion-images-and-token-patch-late-interaction)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：视觉问答中的多模态融合与图像表示学习
-11. [AutoViVQA: A Large-Scale Automatically Constructed Dataset for Vietnamese Visual Question Answering](/20260309-20260318/2603.09689v2-autovivqa-a-large-scale-automatically-constructed-dataset-for-vietnamese-visual-question-answering)  
+   evidence：利用视觉语言对齐进行文本动作检索
+11. [Catalogue Grounded Multimodal Attribution for Museum Video under Resource and Regulatory Constraints](/202603/18/2603.11147v1-catalogue-grounded-multimodal-attribution-for-museum-video-under-resource-and-regulatory-constraints)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：视觉问答中的多模态融合与表示学习
+   evidence：使用视频语言模型对博物馆视频进行多模态归因
 
 
 <div class="dpr-home-promo-card">

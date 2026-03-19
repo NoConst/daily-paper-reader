@@ -1,0 +1,1006 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-19T19:50:33.427206+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 59,
+    "deep_cap": 6,
+    "deep_selected": 14,
+    "quick_candidates": 89,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2603.17360v1",
+      "title": "MCoT-MVS: Multi-level Vision Selection by Multi-modal Chain-of-Thought Reasoning for Composed Image Retrieval",
+      "abstract": "Composed Image Retrieval (CIR) aims to retrieve target images based on a reference image and modified texts. However, existing methods often struggle to extract the correct semantic cues from the reference image that best reflect the user's intent under textual modification prompts, resulting in interference from irrelevant visual noise. In this paper, we propose a novel Multi-level Vision Selection by Multi-modal Chain-of-Thought Reasoning (MCoT-MVS) for CIR, integrating attention-aware multi-level vision features guided by reasoning cues from a multi-modal large language model (MLLM). Specifically, we leverage an MLLM to perform chain-of-thought reasoning on the multimodal composed input, generating the retained, removed, and target-inferred texts. These textual cues subsequently guide two reference visual attention selection modules to selectively extract discriminative patch-level and instance-level semantics from the reference image. Finally, to effectively fuse these multi-granular visual cues with the modified text and the imagined target description, we design a weighted hierarchical combination module to align the composed query with target images in a unified embedding space. Extensive experiments on two CIR benchmarks, namely CIRR and FashionIQ, demonstrate that our approach consistently outperforms existing methods and achieves new state-of-the-art performance. Code and trained models are publicly released.",
+      "authors": [
+        "Xuri Ge",
+        "Chunhao Wang",
+        "Xindi Wang",
+        "Zheyun Qin",
+        "Zhumin Chen",
+        "Xin Xin"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T04:49:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.17360v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "MLLM-guided reasoning for Composed Image Retrieval",
+      "llm_evidence_cn": "大模型引导推理的组合图像检索",
+      "llm_evidence": "大模型引导推理的组合图像检索",
+      "canonical_evidence": "大模型引导推理的组合图像检索",
+      "llm_tldr_en": "Integrates MLLM chain-of-thought reasoning to improve feature selection in composed image retrieval.",
+      "llm_tldr_cn": "结合多模态大模型的思维链推理，提升组合图像检索中的特征选择准确性。",
+      "llm_tldr": "结合多模态大模型的思维链推理，提升组合图像检索中的特征选择准确性。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、多模态大模型及多模态学习相关论文, especially work that connects or combines: Compositional Learning; visual prompting; Composed Image Retrieval (CIR) methods and benchmarks; Multimodal Large Language Models (MLLM) architecture and training; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; State of the art methods in composed image retrieval and multimodal learning; Integration of multimodal large language models in image retrieval tasks; Recent advances in vision language representation learning; Cross modal representation learning and fusion strategies.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.10702v1",
+      "title": "UniCom: Unified Multimodal Modeling via Compressed Continuous Semantic Representations",
+      "abstract": "Current unified multimodal models typically rely on discrete visual tokenizers to bridge the modality gap. However, discretization inevitably discards fine-grained semantic information, leading to suboptimal performance in visual understanding tasks. Conversely, directly modeling continuous semantic representations (e.g., CLIP, SigLIP) poses significant challenges in high-dimensional generative modeling, resulting in slow convergence and training instability. To resolve this dilemma, we introduce UniCom, a unified framework that harmonizes multimodal understanding and generation via compressed continuous representation. We empirically demonstrate that reducing channel dimension is significantly more effective than spatial downsampling for both reconstruction and generation. Accordingly, we design an attention-based semantic compressor to distill dense features into a compact unified representation. Furthermore, we validate that the transfusion architecture surpasses query-based designs in convergence and consistency. Experiments demonstrate that UniCom achieves state-of-the-art generation performance among unified models. Notably, by preserving rich semantic priors, it delivers exceptional controllability in image editing and maintains image consistency even without relying on VAE.",
+      "authors": [
+        "Yaqi Zhao",
+        "Wang Lin",
+        "Zijian Zhang",
+        "Miles Yang",
+        "Jingyuan Chen",
+        "Wentao Zhang",
+        "Zhao Zhong",
+        "Liefeng Bo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-11T12:14:26+00:00",
+      "link": "https://arxiv.org/pdf/2603.10702v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Unified multimodal modeling and representation fusion",
+      "llm_evidence_cn": "统一多模态建模与表示融合",
+      "llm_evidence": "统一多模态建模与表示融合",
+      "canonical_evidence": "统一多模态建模与表示融合",
+      "llm_tldr_en": "Introduces UniCom to bridge understanding and generation using compressed continuous semantic representations.",
+      "llm_tldr_cn": "提出 UniCom 框架，通过压缩的连续语义表示统一多模态理解与生成任务。",
+      "llm_tldr": "提出 UniCom 框架，通过压缩的连续语义表示统一多模态理解与生成任务。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Cross modal representation learning and fusion strategies",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.11220v1",
+      "title": "Frequency-Modulated Visual Restoration for Matryoshka Large Multimodal Models",
+      "abstract": "Large Multimodal Models (LMMs) struggle to adapt varying computational budgets due to numerous visual tokens. Previous methods attempted to reduce the number of visual tokens before or within LLMs. However, these strategies inevitably result in the loss of visual semantic. To address these issues, we introduce FMVR, a plug-and-play and extremely simple Frequency-Modulated Visual Restoration strategy to boost the reasoning ability of LMMs under visual token reduction. Specifically, FMVR disentangles the visual representation of fewer visual tokens into low- and high-frequency components through AvgPool and MaxPool. The derived frequencies are subsequently modulated using lightweight learnable parameters. The high-frequency from AvgPool acts as a saliency filter to enhance saliency visual semantics, while the low-frequency from MaxPool acts as an anti-saliency filter to strengthen weak visual semantics. It enables the preservation of visual semantics dominated by few visual tokens and the restoration of diluted visual semantics. Additionally, we inject FMVR into Matryoshka Representation Learning to learn coarse-to-fine visual token sets, thus enabling to elastically adjust the number of visual tokens during inference while maintaining comparable performance. Experiments across 10 image-based and 4 video-based bench marks demonstrate that FMVR-LLaVA reduce the FLOPs of LLaVA-1.5-7B by 89%, while maintaining almost 100% of the original accuracy. The code will be open.",
+      "authors": [
+        "Qingtao Pan",
+        "Zhihao Dou",
+        "Shuo Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-03-11T18:33:52+00:00",
+      "link": "https://arxiv.org/pdf/2603.11220v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "visual token reduction in Large Multimodal Models",
+      "llm_evidence_cn": "大型多模态模型中的视觉Token减少",
+      "llm_evidence": "大型多模态模型中的视觉Token减少",
+      "canonical_evidence": "大型多模态模型中的视觉Token减少",
+      "llm_tldr_en": "Introduces FMVR to restore visual semantics in LMMs when using reduced visual tokens.",
+      "llm_tldr_cn": "引入FMVR，旨在减少视觉Token时恢复大型多模态模型中的视觉语义。",
+      "llm_tldr": "引入FMVR，旨在减少视觉Token时恢复大型多模态模型中的视觉语义。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.11665v1",
+      "title": "Multi-Task Reinforcement Learning for Enhanced Multimodal LLM-as-a-Judge",
+      "abstract": "Multimodal Large Language Models (MLLMs) have been widely adopted as MLLM-as-a-Judges due to their strong alignment with human judgment across various visual tasks. However, most existing judge models are optimized for single-task scenarios and struggle to generalize to diverse contexts, which is a critical requirement for reliable evaluation. To address this limitation, we propose Multi-Task Reinforcement Learning for MLLM-as-a-Judge (MT-RL-Judge), a framework that jointly optimizes the judge model across multiple tasks, leveraging the generalization capabilities of RL. Experimental results against several strong baselines demonstrate that MT-RL-Judge outperforms strong baselines in both judgment consistency and correlation with human preferences. Furthermore, our approach exhibits robust generalization on out-of-distribution tasks, further validating its effectiveness.",
+      "authors": [
+        "Junjie Wu",
+        "Xuan Kan",
+        "Zihao He",
+        "Shunwen Tan",
+        "Bo Pan",
+        "Kaitai Zhang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-12T08:32:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.11665v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multimodal LLM optimization and evaluation",
+      "llm_evidence_cn": "多模态大语言模型优化与评估",
+      "llm_evidence": "多模态大语言模型优化与评估",
+      "canonical_evidence": "多模态大语言模型优化与评估",
+      "llm_tldr_en": "Proposes MT-RL-Judge to improve MLLM judgment consistency across multiple tasks using reinforcement learning.",
+      "llm_tldr_cn": "提出 MT-RL-Judge 框架，利用强化学习提升多模态大模型在多任务评测中的一致性。",
+      "llm_tldr": "提出 MT-RL-Judge 框架，利用强化学习提升多模态大模型在多任务评测中的一致性。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.11795v1",
+      "title": "Intrinsic Concept Extraction Based on Compositional Interpretability",
+      "abstract": "Unsupervised Concept Extraction aims to extract concepts from a single image; however, existing methods suffer from the inability to extract composable intrinsic concepts. To address this, this paper introduces a new task called Compositional and Interpretable Intrinsic Concept Extraction (CI-ICE). The CI-ICE task aims to leverage diffusion-based text-to-image models to extract composable object-level and attribute-level concepts from a single image, such that the original concept can be reconstructed through the combination of these concepts. To achieve this goal, we propose a method called HyperExpress, which addresses the CI-ICE task through two core aspects. Specifically, first, we propose a concept learning approach that leverages the inherent hierarchical modeling capability of hyperbolic space to achieve accurate concept disentanglement while preserving the hierarchical structure and relational dependencies among concepts; second, we introduce a concept-wise optimization method that maps the concept embedding space to maintain complex inter-concept relationships while ensuring concept composability. Our method demonstrates outstanding performance in extracting compositionally interpretable intrinsic concepts from a single image.",
+      "authors": [
+        "Hanyu Shi",
+        "Hong Tao",
+        "Guoheng Huang",
+        "Jianbin Jiang",
+        "Xuhang Chen",
+        "Chi-Man Pun",
+        "Shanhu Wang",
+        "Pan Pan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-12T10:56:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.11795v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Compositional and interpretable intrinsic concept extraction",
+      "llm_evidence_cn": "组合式且可解释的内在概念提取",
+      "llm_evidence": "组合式且可解释的内在概念提取",
+      "canonical_evidence": "组合式且可解释的内在概念提取",
+      "llm_tldr_en": "Defines a new task for extracting composable object and attribute concepts from single images.",
+      "llm_tldr_cn": "定义了一项新任务，旨在从单张图像中提取可组合的对象和属性概念。",
+      "llm_tldr": "定义了一项新任务，旨在从单张图像中提取可组合的对象和属性概念。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Compositional Learning",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.12382v1",
+      "title": "SPARROW: Learning Spatial Precision and Temporal Referential Consistency in Pixel-Grounded Video MLLMs",
+      "abstract": "Multimodal large language models (MLLMs) have advanced from image-level reasoning to pixel-level grounding, but extending these capabilities to videos remains challenging as models must achieve spatial precision and temporally consistent reference tracking. Existing video MLLMs often rely on a static segmentation token ([SEG]) for frame-wise grounding, which provides semantics but lacks temporal context, causing spatial drift, identity switches, and unstable initialization when objects move or reappear. We introduce SPARROW, a pixel-grounded video MLLM that unifies spatial accuracy and temporal stability through two key components: (i) Target-Specific Tracked Features (TSF), which inject temporally aligned referent cues during training, and (ii) a dual-prompt design that decodes box ([BOX]) and segmentation ([SEG]) tokens to fuse geometric priors with semantic grounding. SPARROW is supported by a curated referential video dataset of 30,646 videos and 45,231 Q&A pairs and operates end-to-end without external detectors via a class-agnostic SAM2-based proposer. Integrated into three recent open-source video MLLMs (UniPixel, GLUS, and VideoGLaMM), SPARROW delivers consistent gains across six benchmarks, improving up to +8.9 J&F on RVOS, +5 mIoU on visual grounding, and +5.4 CLAIR on GCG. These results demonstrate that SPARROW substantially improves referential stability, spatial precision, and temporal coherence in pixel-grounded video understanding. Project page: https://risys-lab.github.io/SPARROW",
+      "authors": [
+        "Mohamad Alansari",
+        "Naufal Suryanto",
+        "Divya Velayudhan",
+        "Sajid Javed",
+        "Naoufel Werghi",
+        "Muzammal Naseer"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-12T18:59:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.12382v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Pixel-grounded video MLLM architecture and temporal consistency",
+      "llm_evidence_cn": "像素级视频多模态大模型架构与时间一致性",
+      "llm_evidence": "像素级视频多模态大模型架构与时间一致性",
+      "canonical_evidence": "像素级视频多模态大模型架构与时间一致性",
+      "llm_tldr_en": "Introduces SPARROW, a video MLLM that improves spatial precision and temporal tracking in video grounding.",
+      "llm_tldr_cn": "引入SPARROW，一种提升视频定位空间精度和时间跟踪一致性的视频多模态大模型。",
+      "llm_tldr": "引入SPARROW，一种提升视频定位空间精度和时间跟踪一致性的视频多模态大模型。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.12659v1",
+      "title": "AVION: Aerial Vision-Language Instruction from Offline Teacher to Prompt-Tuned Network",
+      "abstract": "Adapting vision-language models to remote sensing imagery remains challenging due to two key factors: limited semantic coverage in textual representations and insufficient adaptability of visual features. These issues are particularly significant in aerial scenes, which involve various visual appearances and fine-grained object distinctions. We propose AVION, a knowledge distillation framework tailored for remote sensing adaptation of vision-language models. The teacher module constructs semantically rich textual prototypes by collecting descriptions from a large language model and verifying validity using remote sensing image features. The student module integrates lightweight and learnable prompts into both vision and language encoders, guided by the teacher to align embeddings and their cross-modal relationships. Once trained, the student operates independently during inference. Experiments on six optical remote sensing benchmarks show that AVION improves few-shot classification and base-class accuracy without degrading generalization to novel categories. It also enhances mean recall for cross-modal retrieval, with minimal additional trainable parameters.",
+      "authors": [
+        "Yu Hu",
+        "Jianyang Gu",
+        "Hao Liu",
+        "Yue Cao",
+        "Jozsef Hamari",
+        "Zheng Liu",
+        "Mohsen Zardadi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-13T05:02:01+00:00",
+      "link": "https://arxiv.org/pdf/2603.12659v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Prompt-tuned network for vision-language adaptation",
+      "llm_evidence_cn": "视觉语言适配的提示微调网络",
+      "llm_evidence": "视觉语言适配的提示微调网络",
+      "canonical_evidence": "视觉语言适配的提示微调网络",
+      "llm_tldr_en": "A knowledge distillation framework using prompt-tuning to adapt vision-language models to aerial imagery.",
+      "llm_tldr_cn": "一种利用提示微调将视觉语言模型适配到遥感图像的知识蒸馏框架。",
+      "llm_tldr": "一种利用提示微调将视觉语言模型适配到遥感图像的知识蒸馏框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Vision-Language Pre-training (VLP) techniques and models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.15228v1",
+      "title": "HYDRA: Unifying Multi-modal Generation and Understanding via Representation-Harmonized Tokenization",
+      "abstract": "Unified Multimodal Models struggle to bridge the fundamental gap between the abstract representations needed for visual understanding and the detailed primitives required for generation. Existing approaches typically compromise by employing decoupled encoders, stacking representation encoder atop VAEs, or utilizing discrete quantization. However, these methods often disrupt information coherence and lead to optimization conflicts. To this end, we introduce HYDRA-TOK, a representation-harmonized pure ViT in the insight that visual modeling should evolve from generation to understanding. HYDRA-TOK reformulates the standard backbone into a progressive learner that transitions from a Gen-ViT, which captures structure-preserving primitives, to a Sem-ViT for semantic encoding. Crucially, this transition is mediated by a Generation-Semantic Bottleneck (GSB), which compresses features into a low-dimensional space to filter noise for robust synthesis, then restores dimensionality to empower complex semantic comprehension. Built upon this foundation, we present HYDRA, a native unified framework integrating perception and generation within a single parameter space. Extensive experiments establish HYDRA as a new state-of-the-art. It sets a benchmark in visual reconstruction (rFID 0.08) and achieves top-tier generation performance on GenEval (0.86), DPG-Bench (86.4), and WISE (0.53), while simultaneously outperforming previous native UMMs by an average of 10.0 points across eight challenging understanding benchmarks.",
+      "authors": [
+        "Xuerui Qiu",
+        "Yutao Cui",
+        "Guozhen Zhang",
+        "Junzhe Li",
+        "JiaKui Hu",
+        "Xiao Zhang",
+        "Yang Li",
+        "Songtao Liu",
+        "Miles Yang",
+        "Yu Shi",
+        "Zhao Zhong",
+        "Liefeng Bo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-16T13:05:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.15228v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Unifying multimodal generation and understanding in MLLMs",
+      "llm_evidence_cn": "统一多模态大模型的生成与理解",
+      "llm_evidence": "统一多模态大模型的生成与理解",
+      "canonical_evidence": "统一多模态大模型的生成与理解",
+      "llm_tldr_en": "Introduces HYDRA-TOK to bridge the gap between visual understanding and generation in unified models.",
+      "llm_tldr_cn": "引入HYDRA-TOK以弥合统一模型中视觉理解与生成之间的差距。",
+      "llm_tldr": "引入HYDRA-TOK以弥合统一模型中视觉理解与生成之间的差距。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.15228v2",
+      "title": "HYDRA: Unifying Multi-modal Generation and Understanding via Representation-Harmonized Tokenization",
+      "abstract": "Unified Multimodal Models struggle to bridge the fundamental gap between the abstract representations needed for visual understanding and the detailed primitives required for generation. Existing approaches typically compromise by employing decoupled encoders, stacking representation encoder atop VAEs, or utilizing discrete quantization. However, these methods often disrupt information coherence and lead to optimization conflicts. To this end, we introduce HYDRA-TOK, a representation-harmonized pure ViT in the insight that visual modeling should evolve from generation to understanding. HYDRA-TOK reformulates the standard backbone into a progressive learner that transitions from a Gen-ViT, which captures structure-preserving primitives, to a Sem-ViT for semantic encoding. Crucially, this transition is mediated by a Generation-Semantic Bottleneck (GSB), which compresses features into a low-dimensional space to filter noise for robust synthesis, then restores dimensionality to empower complex semantic comprehension. Built upon this foundation, we present HYDRA, a native unified framework integrating perception and generation within a single parameter space. Extensive experiments establish HYDRA as a new state-of-the-art. It sets a benchmark in visual reconstruction (rFID 0.08) and achieves top-tier generation performance on GenEval (0.86), DPG-Bench (86.4), and WISE (0.53), while simultaneously outperforming previous native UMMs by an average of 10.0 points across eight challenging understanding benchmarks.",
+      "authors": [
+        "Xuerui Qiu",
+        "Yutao Cui",
+        "Guozhen Zhang",
+        "Junzhe Li",
+        "JiaKui Hu",
+        "Xiao Zhang",
+        "Yang Li",
+        "Songtao Liu",
+        "Miles Yang",
+        "Yu Shi",
+        "Zhao Zhong",
+        "Liefeng Bo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-16T13:05:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.15228v2",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Unifying multi-modal generation and understanding via harmonized tokenization",
+      "llm_evidence_cn": "通过协调标记化统一多模态生成与理解",
+      "llm_evidence": "通过协调标记化统一多模态生成与理解",
+      "canonical_evidence": "通过协调标记化统一多模态生成与理解",
+      "llm_tldr_en": "Introduces HYDRA-TOK to bridge the gap between visual understanding and generation in unified multimodal models.",
+      "llm_tldr_cn": "引入HYDRA-TOK，旨在弥合统一多模态模型中视觉理解与生成之间的表征差距。",
+      "llm_tldr": "引入HYDRA-TOK，旨在弥合统一多模态模型中视觉理解与生成之间的表征差距。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.16461v1",
+      "title": "GAP-MLLM: Geometry-Aligned Pre-training for Activating 3D Spatial Perception in Multimodal Large Language Models",
+      "abstract": "Multimodal Large Language Models (MLLMs) demonstrate exceptional semantic reasoning but struggle with 3D spatial perception when restricted to pure RGB inputs. Despite leveraging implicit geometric priors from 3D reconstruction models, image-based methods still exhibit a notable performance gap compared to methods using explicit 3D data. We argue that this gap does not arise from insufficient geometric priors, but from a misalignment in the training paradigm: text-dominated fine-tuning fails to activate geometric representations within MLLMs. Existing approaches typically resort to naive feature concatenation and optimize directly for downstream tasks without geometry-specific supervision, leading to suboptimal structural utilization. To address this limitation, we propose GAP-MLLM, a Geometry-Aligned Pre-training paradigm that explicitly activates structural perception before downstream adaptation. Specifically, we introduce a visual-prompted joint task that compels the MLLMs to predict sparse pointmaps alongside semantic labels, thereby enforcing geometric awareness. Furthermore, we design a multi-level progressive fusion module with a token-level gating mechanism, enabling adaptive integration of geometric priors without suppressing semantic reasoning. Extensive experiments demonstrate that GAP-MLLM significantly enhances geometric feature fusion and consistently enhances performance across 3D visual grounding, 3D dense captioning, and 3D video object detection tasks.",
+      "authors": [
+        "Jiaxin Zhang",
+        "Junjun Jiang",
+        "Haijie Li",
+        "Youyu Chen",
+        "Kui Jiang",
+        "Dave Zhenyu Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-17T12:43:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.16461v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Geometry-aligned pre-training for MLLMs",
+      "llm_evidence_cn": "多模态大模型的几何对齐预训练",
+      "llm_evidence": "多模态大模型的几何对齐预训练",
+      "canonical_evidence": "多模态大模型的几何对齐预训练",
+      "llm_tldr_en": "Proposes GAP-MLLM to activate 3D spatial perception in MLLMs through geometry-aligned pre-training.",
+      "llm_tldr_cn": "提出GAP-MLLM，通过几何对齐预训练激活多模态大模型的3D空间感知能力。",
+      "llm_tldr": "提出GAP-MLLM，通过几何对齐预训练激活多模态大模型的3D空间感知能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17326v1",
+      "title": "FineViT: Progressively Unlocking Fine-Grained Perception with Dense Recaptions",
+      "abstract": "While Multimodal Large Language Models (MLLMs) have experienced rapid advancements, their visual encoders frequently remain a performance bottleneck. Conventional CLIP-based encoders struggle with dense spatial tasks due to the loss of visual details caused by low-resolution pretraining and the reliance on noisy, coarse web-crawled image-text pairs. To overcome these limitations, we introduce FineViT, a novel vision encoder specifically designed to unlock fine-grained perception. By replacing coarse web data with dense recaptions, we systematically mitigate information loss through a progressive training paradigm.: first, the encoder is trained from scratch at a high native resolution on billions of global recaptioned image-text pairs, establishing a robust, detail rich semantic foundation. Subsequently, we further enhance its local perception through LLM alignment, utilizing our curated FineCap-450M dataset that comprises over $450$ million high quality local captions. Extensive experiments validate the effectiveness of the progressive strategy. FineViT achieves state-of-the-art zero-shot recognition and retrieval performance, especially in long-context retrieval, and consistently outperforms multimodal visual encoders such as SigLIP2 and Qwen-ViT when integrated into MLLMs. We hope FineViT could serve as a powerful new baseline for fine-grained visual perception.",
+      "authors": [
+        "Peisen Zhao",
+        "Xiaopeng Zhang",
+        "Mingxing Xu",
+        "Ruoyu Sun",
+        "Zewei Du",
+        "Dunzheng Wang",
+        "Guanghao Zheng",
+        "Haohang Xu",
+        "Zhibo Zhang",
+        "Yuhang Zhang",
+        "Yi Ai",
+        "Lin Liu",
+        "Qi Tian"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T03:39:04+00:00",
+      "link": "https://arxiv.org/pdf/2603.17326v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Visual encoder for Multimodal Large Language Models",
+      "llm_evidence_cn": "多模态大模型的视觉编码器",
+      "llm_evidence": "多模态大模型的视觉编码器",
+      "canonical_evidence": "多模态大模型的视觉编码器",
+      "llm_tldr_en": "Introduces FineViT, a vision encoder trained on dense recaptions to improve MLLM fine-grained perception.",
+      "llm_tldr_cn": "引入FineViT视觉编码器，通过稠密重描述训练提升MLLM的细粒度感知能力。",
+      "llm_tldr": "引入FineViT视觉编码器，通过稠密重描述训练提升MLLM的细粒度感知能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17450v1",
+      "title": "VLM2Rec: Resolving Modality Collapse in Vision-Language Model Embedders for Multimodal Sequential Recommendation",
+      "abstract": "Sequential Recommendation (SR) in multimodal settings typically relies on small frozen pretrained encoders, which limits semantic capacity and prevents Collaborative Filtering (CF) signals from being fully integrated into item representations. Inspired by the recent success of Large Language Models (LLMs) as high-capacity embedders, we investigate the use of Vision-Language Models (VLMs) as CF-aware multimodal encoders for SR. However, we find that standard contrastive supervised fine-tuning (SFT), which adapts VLMs for embedding generation and injects CF signals, can amplify its inherent modality collapse. In this state, optimization is dominated by a single modality while the other degrades, ultimately undermining recommendation accuracy. To address this, we propose VLM2Rec, a VLM embedder-based framework for multimodal sequential recommendation designed to ensure balanced modality utilization. Specifically, we introduce Weak-modality Penalized Contrastive Learning to rectify gradient imbalance during optimization and Cross-Modal Relational Topology Regularization to preserve geometric consistency between modalities. Extensive experiments demonstrate that VLM2Rec consistently outperforms state-of-the-art baselines in both accuracy and robustness across diverse scenarios.",
+      "authors": [
+        "Junyoung Kim",
+        "Woojoo Kim",
+        "Jaehyung Lim",
+        "Dongha Kim",
+        "Hwanjo Yu"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T07:46:30+00:00",
+      "link": "https://arxiv.org/pdf/2603.17450v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "VLMs as multimodal encoders for recommendation tasks",
+      "llm_evidence_cn": "VLM 作为推荐任务的多模态编码器",
+      "llm_evidence": "VLM 作为推荐任务的多模态编码器",
+      "canonical_evidence": "VLM 作为推荐任务的多模态编码器",
+      "llm_tldr_en": "Investigates resolving modality collapse when using VLMs for multimodal sequential recommendation.",
+      "llm_tldr_cn": "研究在使用 VLM 进行多模态序列推荐时如何解决模态崩溃问题。",
+      "llm_tldr": "研究在使用 VLM 进行多模态序列推荐时如何解决模态崩溃问题。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Integration of multimodal large language models in image retrieval tasks",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17541v1",
+      "title": "Temporal Gains, Spatial Costs: Revisiting Video Fine-Tuning in Multimodal Large Language Models",
+      "abstract": "Multimodal large language models (MLLMs) are typically trained in multiple stages, with video-based supervised fine-tuning (Video-SFT) serving as a key step for improving visual understanding. Yet its effect on the fine-grained evolution of visual capabilities, particularly the balance between spatial and temporal understanding, remains poorly understood. In this paper, we systematically study how Video-SFT reshapes visual capabilities in MLLMs. Across architectures, parameter scales, and frame sampling settings, we observe a consistent pattern: Video-SFT reliably improves video performance, but often yields limited gains or even degradation on static image benchmarks. We further show that this trade-off is closely tied to temporal budget: increasing the number of sampled frames generally improves video performance, but does not reliably improve static image performance. Motivated by this finding, we study an instruction-aware Hybrid-Frame strategy that adaptively allocates frame counts and partially mitigates the image-video trade-off. Our results indicate that Video-SFT is not a free lunch for MLLMs, and preserving spatial understanding remains a central challenge in joint image-video training.",
+      "authors": [
+        "Linghao Zhang",
+        "Jungang Li",
+        "Yonghua Hei",
+        "Sicheng Tao",
+        "Song Dai",
+        "Yibo Yan",
+        "Zihao Dongfang",
+        "Weiting Liu",
+        "Chenxi Qin",
+        "Hanqian Li",
+        "Xin Zou",
+        "Jiahao Zhang",
+        "Shuhang Xun",
+        "Haiyun Jiang",
+        "Xuming Hu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-18T09:46:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.17541v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "video supervised fine-tuning in MLLMs",
+      "llm_evidence_cn": "MLLM 中的视频监督微调研究",
+      "llm_evidence": "MLLM 中的视频监督微调研究",
+      "canonical_evidence": "MLLM 中的视频监督微调研究",
+      "llm_tldr_en": "Analyzes the trade-off between spatial and temporal understanding during video fine-tuning of MLLMs.",
+      "llm_tldr_cn": "系统研究了多模态大模型在视频微调过程中空间理解与时间理解能力的权衡关系。",
+      "llm_tldr": "系统研究了多模态大模型在视频微调过程中空间理解与时间理解能力的权衡关系。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.17662v1",
+      "title": "FINER: MLLMs Hallucinate under Fine-grained Negative Queries",
+      "abstract": "Multimodal large language models (MLLMs) struggle with hallucinations, particularly with fine-grained queries, a challenge underrepresented by existing benchmarks that focus on coarse image-related questions. We introduce FIne-grained NEgative queRies (FINER), alongside two benchmarks: FINER-CompreCap and FINER-DOCCI. Using FINER, we analyze hallucinations across four settings: multi-object, multi-attribute, multi-relation, and ``what'' questions. Our benchmarks reveal that MLLMs hallucinate when fine-grained mismatches co-occur with genuinely present elements in the image. To address this, we propose FINER-Tuning, leveraging Direct Preference Optimization (DPO) on FINER-inspired data. Finetuning four frontier MLLMs with FINER-Tuning yields up to 24.2\\% gains (InternVL3.5-14B) on hallucinations from our benchmarks, while simultaneously improving performance on eight existing hallucination suites, and enhancing general multimodal capabilities across six benchmarks. Code, benchmark, and models are available at \\href{https://explainableml.github.io/finer-project/}{https://explainableml.github.io/finer-project/}.",
+      "authors": [
+        "Rui Xiao",
+        "Sanghwan Kim",
+        "Yongqin Xian",
+        "Zeynep Akata",
+        "Stephan Alaniz"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-18T12:28:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.17662v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "MLLM hallucination analysis and fine-tuning",
+      "llm_evidence_cn": "MLLM 幻觉分析与微调优化",
+      "llm_evidence": "MLLM 幻觉分析与微调优化",
+      "canonical_evidence": "MLLM 幻觉分析与微调优化",
+      "llm_tldr_en": "Introduces FINER benchmark and DPO-based tuning to mitigate fine-grained hallucinations in MLLMs.",
+      "llm_tldr_cn": "引入 FINER 基准和基于 DPO 的微调方法，旨在减少多模态大模型在细粒度查询下的幻觉。",
+      "llm_tldr": "引入 FINER 基准和基于 DPO 的微调方法，旨在减少多模态大模型在细粒度查询下的幻觉。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.09566v1",
+      "title": "GeoAlignCLIP: Enhancing Fine-Grained Vision-Language Alignment in Remote Sensing via Multi-Granular Consistency Learning",
+      "abstract": "Vision-language pretraining models have made significant progress in bridging remote sensing imagery with natural language. However, existing approaches often fail to effectively integrate multi-granular visual and textual information, relying primarily on global image-text alignment. This limitation hinders the model's ability to accurately capture fine-grained details in images, thus restricting its performance in complex, fine-grained tasks. To address this, we propose GeoAlignCLIP, a unified framework that achieves fine-grained alignment in remote sensing tasks by learning multi-granular semantic alignments and incorporating intra-modal consistency, enabling more precise visual-semantic alignment between image regions and text concepts. Additionally, we construct RSFG-100k, a fine-granular remote sensing dataset containing scene descriptions, region-level annotations, and challenging hard-negative samples, providing hierarchical supervision for model training. Extensive experiments conducted on multiple public remote-sensing benchmarks demonstrate that GeoAlignCLIP consistently outperforms existing RS-specific methods across diverse tasks, exhibiting more robust and accurate fine-grained vision-language alignment.",
+      "authors": [
+        "Xiao Yang",
+        "Ronghao Fu",
+        "Zhuoran Duan",
+        "Zhiwen Lin",
+        "Xueyan Liu",
+        "Bo Yang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-10T12:12:11+00:00",
+      "link": "https://arxiv.org/pdf/2603.09566v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Fine-grained vision-language alignment in pre-training",
+      "llm_evidence_cn": "预训练中的细粒度视觉语言对齐",
+      "llm_evidence": "预训练中的细粒度视觉语言对齐",
+      "canonical_evidence": "预训练中的细粒度视觉语言对齐",
+      "llm_tldr_en": "Enhances CLIP-based pre-training with multi-granular consistency for remote sensing tasks.",
+      "llm_tldr_cn": "通过多粒度一致性增强基于 CLIP 的预训练，用于遥感任务。",
+      "llm_tldr": "通过多粒度一致性增强基于 CLIP 的预训练，用于遥感任务。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Vision-Language Pre-training (VLP) models and techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.09566v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.10877v1",
+      "title": "From Images to Words: Efficient Cross-Modal Knowledge Distillation to Language Models from Black-box Teachers",
+      "abstract": "Knowledge distillation (KD) methods are pivotal in compressing large pre-trained language models into smaller models, ensuring computational efficiency without significantly dropping performance. Traditional KD techniques assume homogeneity in modalities between the teacher (source) and the student (target) models. On the other hand, existing multimodal knowledge distillation methods require modality-specific pre-training of the teacher model, which is computationally infeasible in most cases. In this paper, we introduce ARMADA, an efficient cross-modal knowledge distillation framework designed to transfer knowledge from large vision-language models, including black-box models, to language-only models. Unlike existing KD techniques that rely on the internal structures of multimodal teachers or require computationally expensive pre-training, ARMADA leverages novel alignment techniques to distil knowledge without altering the teacher model, ensuring efficiency and scalability. We empirically validate ARMADA on twelve natural language understanding, eight complex generative reasoning and five instruction-tuning tasks, demonstrating consistent performance improvements in large models such as DeBERTa-v2-1.4B, OPT-1.3B, LLaMA-{3B, 7B, 8B}. ARMADA achieves up to 3.4% improvement on language understanding tasks and 2.6% boost in generative reasoning, all without requiring expensive multimodal pre-training or fine-tuning of the teacher model. Our findings challenge conventional knowledge distillation paradigms by demonstrating that even vision-language models, despite lacking direct textual understanding, can significantly enhance language models when distilled appropriately.",
+      "authors": [
+        "Ayan Sengupta",
+        "Shantanu Dixit",
+        "Md Shad Akhtar",
+        "Tanmoy Chakraborty"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-11T15:24:34+00:00",
+      "link": "https://arxiv.org/pdf/2603.10877v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Knowledge distillation from large vision-language models to language models",
+      "llm_evidence_cn": "从大视觉语言模型到语言模型的知识蒸馏",
+      "llm_evidence": "从大视觉语言模型到语言模型的知识蒸馏",
+      "canonical_evidence": "从大视觉语言模型到语言模型的知识蒸馏",
+      "llm_tldr_en": "Introduces ARMADA for efficient cross-modal knowledge distillation from black-box VLMs to language-only models.",
+      "llm_tldr_cn": "引入ARMADA框架，实现从黑盒视觉语言模型到纯语言模型的高效跨模态知识蒸馏。",
+      "llm_tldr": "引入ARMADA框架，实现从黑盒视觉语言模型到纯语言模型的高效跨模态知识蒸馏。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) architecture and training",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.11644v1",
+      "title": "IDRL: An Individual-Aware Multimodal Depression-Related Representation Learning Framework for Depression Diagnosis",
+      "abstract": "Depression is a severe mental disorder, and reliable identification plays a critical role in early intervention and treatment. Multimodal depression detection aims to improve diagnostic performance by jointly modeling complementary information from multiple modalities. Recently, numerous multimodal learning approaches have been proposed for depression analysis; however, these methods suffer from the following limitations: 1) inter-modal inconsistency and depression-unrelated interference, where depression-related cues may conflict across modalities while substantial irrelevant content obscures critical depressive signals, and 2) diverse individual depressive presentations, leading to individual differences in modality and cue importance that hinder reliable fusion. To address these issues, we propose Individual-aware Multimodal Depression-related Representation Learning Framework (IDRL) for robust depression diagnosis. Specifically, IDRL 1) disentangles multimodal representations into a modality-common depression space, a modality-specific depression space, and a depression-unrelated space to enhance modality alignment while suppressing irrelevant information, and 2) introduces an individual-aware modality-fusion module (IAF) that dynamically adjusts the weights of disentangled depression-related features based on their predictive significance, thereby achieving adaptive cross-modal fusion for different individuals. Extensive experiments demonstrate that IDRL achieves superior and robust performance for multimodal depression detection.",
+      "authors": [
+        "Chongxiao Wang",
+        "Junjie Liang",
+        "Peng Cao",
+        "Jinzhu Yang",
+        "Osmar R. Zaiane"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-12T08:12:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.11644v1",
+      "tags": [
+        "keyword:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Multimodal representation learning and inter-modal consistency modeling",
+      "llm_evidence_cn": "多模态表示学习与模态间一致性建模",
+      "llm_evidence": "多模态表示学习与模态间一致性建模",
+      "canonical_evidence": "多模态表示学习与模态间一致性建模",
+      "llm_tldr_en": "Develops IDRL to handle inter-modal inconsistency and individual differences in multimodal depression diagnosis.",
+      "llm_tldr_cn": "开发IDRL框架，解决多模态抑郁症诊断中的模态不一致性和个体差异问题。",
+      "llm_tldr": "开发IDRL框架，解决多模态抑郁症诊断中的模态不一致性和个体差异问题。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Cross modal representation learning and fusion strategies",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.09627v1",
+      "title": "Speech-Omni-Lite: Portable Speech Interfaces for Vision-Language Models",
+      "abstract": "While large-scale omni-models have demonstrated impressive capabilities across various modalities, their strong performance heavily relies on massive multimodal data and incurs substantial computational costs. This work introduces Speech-Omni-Lite, a cost-efficient framework for extending pre-trained Visual-Language (VL) backbones with speech understanding and generation capabilities, while fully preserving the backbones' vision-language performance. Specifically, the VL backbone is equipped with two lightweight, trainable plug-and-play modules, a speech projector and a speech token generator, while keeping the VL backbone fully frozen. To mitigate the scarcity of spoken QA corpora, a low-cost data construction strategy is proposed to generate Question-Text Answer-Text-Speech (QTATS) data from existing ASR speech-text pairs, facilitating effective speech generation training. Experimental results show that, even with only thousands of hours of speech training data, Speech-Omni-Lite achieves excellent spoken QA performance, which is comparable to omni-models trained on millions of hours of speech data. Furthermore, the learned speech modules exhibit strong transferability across VL backbones.",
+      "authors": [
+        "Dehua Tao",
+        "Xuan Luo",
+        "Daxin Tan",
+        "Kai Chen",
+        "Lanqing Hong",
+        "Jing Li",
+        "Ruifeng Xu",
+        "Xiao Chen"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-03-10T13:06:41+00:00",
+      "link": "https://arxiv.org/pdf/2603.09627v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Extending vision-language backbones with speech",
+      "llm_evidence_cn": "为视觉语言主干扩展语音功能",
+      "llm_evidence": "为视觉语言主干扩展语音功能",
+      "canonical_evidence": "为视觉语言主干扩展语音功能",
+      "llm_tldr_en": "A cost-efficient framework to add speech capabilities to pre-trained vision-language models.",
+      "llm_tldr_cn": "一种为预训练视觉语言模型添加语音能力的低成本框架。",
+      "llm_tldr": "一种为预训练视觉语言模型添加语音能力的低成本框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.09627v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.11095v1",
+      "title": "Multimodal Self-Attention Network with Temporal Alignment for Audio-Visual Emotion Recognition",
+      "abstract": "Audio-visual emotion recognition (AVER) methods typically fuse utterance-level features, and even frame-level attention models seldom address the frame-rate mismatch across modalities. In this paper, we propose a Transformer-based framework focusing on the temporal alignment of multimodal features. Our design employs a multimodal self-attention encoder that simultaneously captures intra- and inter-modal dependencies within a shared feature space. To address heterogeneous sampling rates, we incorporate Temporally-aligned Rotary Position Embeddings (TaRoPE), which implicitly synchronize audio and video tokens. Furthermore, we introduce a Cross-Temporal Matching (CTM) loss that enforces consistency among temporally proximate pairs, guiding the encoder toward better alignment. Experiments on CREMA-D and RAVDESS datasets demonstrate consistent improvements over recent baselines, suggesting that explicitly addressing frame-rate mismatch helps preserve temporal cues and enhances cross-modal fusion.",
+      "authors": [
+        "Inyong Koo",
+        "yeeun Seong",
+        "Minseok Son",
+        "Jaehyuk Jang",
+        "Changick Kim"
+      ],
+      "primary_category": "cs.MM",
+      "categories": [
+        "cs.MM",
+        "cs.SD",
+        "eess.SP"
+      ],
+      "published": "2026-03-11T07:46:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.11095v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Multimodal self-attention and temporal alignment",
+      "llm_evidence_cn": "多模态自注意力与时间对齐",
+      "llm_evidence": "多模态自注意力与时间对齐",
+      "canonical_evidence": "多模态自注意力与时间对齐",
+      "llm_tldr_en": "Proposes a Transformer framework for temporal alignment in audio-visual emotion recognition.",
+      "llm_tldr_cn": "提出一种用于视听情感识别中时间对齐的 Transformer 框架。",
+      "llm_tldr": "提出一种用于视听情感识别中时间对齐的 Transformer 框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Cross modal representation learning and fusion strategies",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.13728v1",
+      "title": "Bodhi VLM: Privacy-Alignment Modeling for Hierarchical Visual Representations in Vision Backbones and VLM Encoders via Bottom-Up and Top-Down Feature Search",
+      "abstract": "Learning systems that preserve privacy often inject noise into hierarchical visual representations; a central challenge is to \\emph{model} how such perturbations align with a declared privacy budget in a way that is interpretable and applicable across vision backbones and vision--language models (VLMs). We propose \\emph{Bodhi VLM}, a \\emph{privacy-alignment modeling} framework for \\emph{hierarchical neural representations}: it (1) links sensitive concepts to layer-wise grouping via NCP and MDAV-based clustering; (2) locates sensitive feature regions using bottom-up (BUA) and top-down (TDA) strategies over multi-scale representations (e.g., feature pyramids or vision-encoder layers); and (3) uses an Expectation-Maximization Privacy Assessment (EMPA) module to produce an interpretable \\emph{budget-alignment signal} by comparing the fitted sensitive-feature distribution to an evaluator-specified reference (e.g., Laplace or Gaussian with scale $c/ε$). The output is reference-relative and is \\emph{not} a formal differential-privacy estimator. We formalize BUA/TDA over hierarchical feature structures and validate the framework on object detectors (YOLO, PPDPTS, DETR) and on the \\emph{visual encoders} of VLMs (CLIP, LLaVA, BLIP). BUA and TDA yield comparable deviation trends; EMPA provides a stable alignment signal under the reported setups. We compare with generic discrepancy baselines (Chi-square, K-L, MMD) and with task-relevant baselines (MomentReg, NoiseMLE, Wass-1). Results are reported as mean$\\pm$std over multiple seeds with confidence intervals in the supplementary materials. This work contributes a learnable, interpretable modeling perspective for privacy-aligned hierarchical representations rather than a post hoc audit only. Source code: \\href{https://github.com/mabo1215/bodhi-vlm.git}{Bodhi-VLM GitHub repository}",
+      "authors": [
+        "Bo Ma",
+        "Jinsong Wu",
+        "Wei Qi Yan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CR"
+      ],
+      "published": "2026-03-14T03:11:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.13728v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Privacy-alignment modeling for VLM encoders",
+      "llm_evidence_cn": "VLM编码器的隐私对齐建模",
+      "llm_evidence": "VLM编码器的隐私对齐建模",
+      "canonical_evidence": "VLM编码器的隐私对齐建模",
+      "llm_tldr_en": "Proposes a framework to align privacy budgets with hierarchical visual representations in vision-language models.",
+      "llm_tldr_cn": "提出一种将隐私预算与视觉语言模型中的分层视觉表示相对齐的框架。",
+      "llm_tldr": "提出一种将隐私预算与视觉语言模型中的分层视觉表示相对齐的框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Vision-Language Pre-training (VLP) techniques and models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.09715v1",
+      "title": "Does the Question Really Matter? Training-Free Data Selection for Vision-Language SFT",
+      "abstract": "Visual instruction tuning is crucial for improving vision-language large models (VLLMs). However, many samples can be solved via linguistic patterns or common-sense shortcuts, without genuine cross-modal reasoning, limiting the effectiveness of multimodal learning. Prior data selection methods often rely on costly proxy model training and focus on difficulty or diversity, failing to capture a sample's true contribution to vision-language joint reasoning. In this paper, we propose CVS, a training-free data selection method based on the insight that, for high-quality multimodal samples, introducing the question should substantially alter the model's assessment of answer validity given an image. CVS leverages a frozen VLLM as an evaluator and measures the discrepancy in answer validity with and without conditioning on the question, enabling the identification of samples that require vision-language joint reasoning while filtering semantic-conflict noise. Experiments on Vision-Flan and The Cauldron show that CVS achieves solid performance across datasets. On Vision-Flan, CVS outperforms full-data training by 3.5% and 4.8% using only 10% and 15% of the data, respectively, and remains robust on the highly heterogeneous Cauldron dataset. Moreover, CVS reduces computational cost by 17.3% and 44.4% compared to COINCIDE and XMAS.",
+      "authors": [
+        "Peng Sun",
+        "Huawen Shen",
+        "Yi Ban",
+        "Tianfan Fu",
+        "Yanbo Wang",
+        "Yuqiang Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-10T14:23:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.09715v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Training-free data selection for improving vision-language large models (VLLMs)",
+      "llm_evidence_cn": "用于改进视觉语言大模型（VLLM）的免训练数据选择方法",
+      "llm_evidence": "用于改进视觉语言大模型（VLLM）的免训练数据选择方法",
+      "canonical_evidence": "用于改进视觉语言大模型（VLLM）的免训练数据选择方法",
+      "llm_tldr_en": "Proposes CVS, a training-free data selection method to improve cross-modal reasoning in VLLMs.",
+      "llm_tldr_cn": "提出CVS，一种免训练的数据选择方法，旨在提升视觉语言大模型的跨模态推理能力。",
+      "llm_tldr": "提出CVS，一种免训练的数据选择方法，旨在提升视觉语言大模型的跨模态推理能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.09715v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.11545v1",
+      "title": "One Supervisor, Many Modalities: Adaptive Tool Orchestration for Autonomous Queries",
+      "abstract": "We present an agentic AI framework for autonomous multimodal query processing that coordinates specialized tools across text, image, audio, video, and document modalities. A central Supervisor dynamically decomposes user queries, delegates subtasks to modality-appropriate tools (e.g., object detection, OCR, speech transcription), and synthesizes results through adaptive routing strategies rather than predetermined decision trees. For text-only queries, the framework uses learned routing via RouteLLM, while non-text paths use SLM-assisted modality decomposition. Evaluated on 2,847 queries across 15 task categories, our framework achieves 72% reduction in time-to-accurate-answer, 85% reduction in conversational rework, and 67% cost reduction compared to the matched hierarchical baseline while maintaining accuracy parity. These results demonstrate that intelligent centralized orchestration fundamentally improves multimodal AI deployment economics.",
+      "authors": [
+        "Mayank Saini Arit Kumar Bishwas"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-12T05:02:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.11545v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Autonomous multimodal query processing framework",
+      "llm_evidence_cn": "自主多模态查询处理框架",
+      "llm_evidence": "自主多模态查询处理框架",
+      "canonical_evidence": "自主多模态查询处理框架",
+      "llm_tldr_en": "An agentic framework for coordinating specialized tools to process complex multimodal queries.",
+      "llm_tldr_cn": "一种协调专门工具处理复杂多模态查询的智能体框架。",
+      "llm_tldr": "一种协调专门工具处理复杂多模态查询的智能体框架。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、多模态大模型及多模态学习相关论文, especially work that connects or combines: Compositional Learning; visual prompting; Composed Image Retrieval (CIR) methods and benchmarks; Multimodal Large Language Models (MLLM) architecture and training; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; State of the art methods in composed image retrieval and multimodal learning; Integration of multimodal large language models in image retrieval tasks; Recent advances in vision language representation learning; Cross modal representation learning and fusion strategies.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.13728v2",
+      "title": "Bodhi VLM: Privacy-Alignment Modeling for Hierarchical Visual Representations in Vision Backbones and VLM Encoders via Bottom-Up and Top-Down Feature Search",
+      "abstract": "Learning systems that preserve privacy often inject noise into hierarchical visual representations; a central challenge is to \\emph{model} how such perturbations align with a declared privacy budget in a way that is interpretable and applicable across vision backbones and vision--language models (VLMs). We propose \\emph{Bodhi VLM}, a \\emph{privacy-alignment modeling} framework for \\emph{hierarchical neural representations}: it (1) links sensitive concepts to layer-wise grouping via NCP and MDAV-based clustering; (2) locates sensitive feature regions using bottom-up (BUA) and top-down (TDA) strategies over multi-scale representations (e.g., feature pyramids or vision-encoder layers); and (3) uses an Expectation-Maximization Privacy Assessment (EMPA) module to produce an interpretable \\emph{budget-alignment signal} by comparing the fitted sensitive-feature distribution to an evaluator-specified reference (e.g., Laplace or Gaussian with scale $c/ε$). The output is reference-relative and is \\emph{not} a formal differential-privacy estimator. We formalize BUA/TDA over hierarchical feature structures and validate the framework on object detectors (YOLO, PPDPTS, DETR) and on the \\emph{visual encoders} of VLMs (CLIP, LLaVA, BLIP). BUA and TDA yield comparable deviation trends; EMPA provides a stable alignment signal under the reported setups. We compare with generic discrepancy baselines (Chi-square, K-L, MMD) and with task-relevant baselines (MomentReg, NoiseMLE, Wass-1). Results are reported as mean$\\pm$std over multiple seeds with confidence intervals in the supplementary materials. This work contributes a learnable, interpretable modeling perspective for privacy-aligned hierarchical representations rather than a post hoc audit only. Source code: \\href{https://github.com/mabo1215/bodhi-vlm.git}{Bodhi-VLM GitHub repository}",
+      "authors": [
+        "Bo Ma",
+        "Wei Qi Yan",
+        "Jinsong Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CR"
+      ],
+      "published": "2026-03-14T03:11:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.13728v2",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Privacy-alignment modeling for VLM encoders",
+      "llm_evidence_cn": "VLM编码器的隐私对齐建模",
+      "llm_evidence": "VLM编码器的隐私对齐建模",
+      "canonical_evidence": "VLM编码器的隐私对齐建模",
+      "llm_tldr_en": "Proposes a framework to align privacy budgets with hierarchical visual representations in vision-language models.",
+      "llm_tldr_cn": "提出一种将隐私预算与视觉语言模型中的分层视觉表示相对齐的框架。",
+      "llm_tldr": "提出一种将隐私预算与视觉语言模型中的分层视觉表示相对齐的框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Vision-Language Pre-training (VLP) techniques and models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.09771v1",
+      "title": "Ego: Embedding-Guided Personalization of Vision-Language Models",
+      "abstract": "AI assistants that support humans in daily life are becoming increasingly feasible, driven by the rapid advancements in multimodal language models. A key challenge lies in overcoming the generic nature of these models to deliver personalized experiences. Existing approaches to personalizing large vision language models often rely on additional training stages, which limit generality and scalability, or on engineered pipelines with external pre-trained modules, which hinder deployment efficiency. In this work, we propose an efficient personalization method that leverages the model's inherent ability to capture personalized concepts. Specifically, we extract visual tokens that predominantly represent the target concept by utilizing the model's internal attention mechanisms. These tokens serve as a memory of that specific concept, enabling the model to recall and describe it when it appears in test images. We conduct a comprehensive and unified evaluation of our approach and SOTA methods across various personalization settings including single-concept, multi-concept, and video personalization, demonstrating strong performance gains with minimal personalization overhead.",
+      "authors": [
+        "Soroush Seifi",
+        "Simon Gardier",
+        "Vaggelis Dorovatas",
+        "Daniel Olmeda Reino",
+        "Rahaf Aljundi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-10T15:10:41+00:00",
+      "link": "https://arxiv.org/pdf/2603.09771v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Personalization of vision-language models using internal attention",
+      "llm_evidence_cn": "利用内部注意力机制实现视觉语言模型的个性化",
+      "llm_evidence": "利用内部注意力机制实现视觉语言模型的个性化",
+      "canonical_evidence": "利用内部注意力机制实现视觉语言模型的个性化",
+      "llm_tldr_en": "Proposes Ego, an efficient method for personalizing MLLMs by leveraging their inherent concept-capturing abilities.",
+      "llm_tldr_cn": "提出Ego，一种通过利用模型固有概念捕获能力来实现多模态大模型个性化的有效方法。",
+      "llm_tldr": "提出Ego，一种通过利用模型固有概念捕获能力来实现多模态大模型个性化的有效方法。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.09771v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.11545v2",
+      "title": "One Supervisor, Many Modalities: Adaptive Tool Orchestration for Autonomous Queries",
+      "abstract": "We present an agentic AI framework for autonomous multimodal query processing that coordinates specialized tools across text, image, audio, video, and document modalities. A central Supervisor dynamically decomposes user queries, delegates subtasks to modality-appropriate tools (e.g., object detection, OCR, speech transcription), and synthesizes results through adaptive routing strategies rather than predetermined decision trees. For text-only queries, the framework uses learned routing via RouteLLM, while non-text paths use SLM-assisted modality decomposition. Evaluated on 2,847 queries across 15 task categories, our framework achieves 72% reduction in time-to-accurate-answer, 85% reduction in conversational rework, and 67% cost reduction compared to the matched hierarchical baseline while maintaining accuracy parity. These results demonstrate that intelligent centralized orchestration fundamentally improves multimodal AI deployment economics.",
+      "authors": [
+        "Mayank Saini",
+        "Arit Kumar Bishwas"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-12T05:02:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.11545v2",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "agentic AI framework for autonomous multimodal query processing",
+      "llm_evidence_cn": "自主多模态查询处理的智能体框架",
+      "llm_evidence": "自主多模态查询处理的智能体框架",
+      "canonical_evidence": "自主多模态查询处理的智能体框架",
+      "llm_tldr_en": "Presents an agentic framework that orchestrates specialized tools for complex multimodal query decomposition.",
+      "llm_tldr_cn": "提出一种智能体框架，通过协调专门工具实现复杂多模态查询的自主分解与处理。",
+      "llm_tldr": "提出一种智能体框架，通过协调专门工具实现复杂多模态查询的自主分解与处理。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、多模态大模型及多模态学习相关论文, especially work that connects or combines: Compositional Learning; visual prompting; Composed Image Retrieval (CIR) methods and benchmarks; Multimodal Large Language Models (MLLM) architecture and training; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; State of the art methods in composed image retrieval and multimodal learning; Integration of multimodal large language models in image retrieval tasks; Recent advances in vision language representation learning; Cross modal representation learning and fusion strategies.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

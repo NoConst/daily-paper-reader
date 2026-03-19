@@ -1,0 +1,761 @@
+Title: SPARROW: Learning Spatial Precision and Temporal Referential Consistency in Pixel-Grounded Video MLLMs
+
+URL Source: https://arxiv.org/pdf/2603.12382v1
+
+Published Time: Mon, 16 Mar 2026 00:09:33 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+# SPARROW : Learning Spatial Precision and Temporal Referential Consistency in Pixel-Grounded Video MLLMs 
+
+Mohamad Alansari ∗, Naufal Suryanto ∗, Divya Velayudhan , Sajid Javed ,
+
+Naoufel Werghi , Muzammal Naseer 
+
+Khalifa University, Abu Dhabi, UAE 
+
+> ∗
+
+Equal contributors 
+
+Multimodal large language models (MLLMs) have advanced from image-level reasoning to pixel-level grounding, but extending these capabilities to videos remains challenging as models must achieve spatial precision and tem-porally consistent reference tracking. Existing video MLLMs often rely on a static segmentation token ([SEG]) for frame-wise grounding, which provides semantics but lacks temporal context, causing spatial drift, identity switches, and unstable initialization when objects move or reappear. We introduce SPARROW , a pixel-grounded video MLLM that unifies spatial accuracy and temporal stability through two key components: (i) Target-Specific Tracked Features (TSF), which inject temporally aligned referent cues during training, and (ii) a dual-prompt design that decodes box ([BOX]) and segmentation ([SEG]) tokens to fuse geometric priors with semantic ground-ing. SPARROW is supported by a curated referential video dataset of 30,646 videos and 45,231 Q&A pairs and operates end-to-end without external detectors via a class-agnostic SAM2-based proposer. Integrated into three recent open-source video MLLMs (UniPixel, GLUS, and VideoGLaMM), SPARROW delivers consistent gains across six benchmarks, improving up to +8.9 J &F on RVOS, +5 mIoU on visual grounding, and +5.4 CLAIR on GCG. These results demonstrate that SPARROW substantially improves referential stability, spatial precision, and temporal coherence in pixel-grounded video understanding. Code, datasets, and models are released. 
+
+Project Page: https://risys-lab.github.io/SPARROW 
+
+Github Link: https://github.com/RISys-Lab/SPARROW 
+
+## 1. Introduction 
+
+Recent advances in Multimodal Large Language Models (MLLMs) have enabled remarkable progress in visual rea-soning across text and vision, ranging from visual ques-tion answering [22, 30] to pixel-level grounding in im-ages [5, 31, 39, 64]. These models bridge perception and language understanding by aligning visual entities with lin-guistic references. However, extending image-grounded MLLMs to the video domain remains challenging because videos introduce motion dynamics, occlusion, and the need for temporally coherent grounding. Despite progress in multimodal reasoning, Video MLLMs still struggle to maintain object identity and spa-tial coherence across frames (Fig. 1a). Most existing approaches rely on static textual grounding tokens (e.g., 
+
+[SEG] ) [1, 18, 28, 32, 38, 47, 59, 62], which indicate what to look for but provide no information about how an ob-ject’s position or appearance evolves over time. Because text prompts are static while videos are dynamic, the model must infer motion and appearance changes entirely from vi-sual cues, which often leading to spatial drift, inconsistent referent tracking, and unstable segmentation when the same entity moves or reappears. These issues are further empha-sized by unreliable first-frame initialization (Fig. 1b). Since the [SEG] token supplies only semantic cues without spa-tial priors, the initial mask may frequently misaligns with the target, and such errors accumulate as the sequence pro-gresses. Once this drift begins, object identity switches and referential incoherence follow, degrading temporal stabil-ity and limiting performance in complex video question an-swering and referring video segmentation. To address these challenges, we propose SPARROW 
+
+(Spatial Precision and Referential Reasoning in Object-centric WVideo grounding), a pixel-grounded, temporally consistent Video MLLM that enhances referential stability and first-frame robustness. As illustrated in Fig. 2, SPAR-ROW jointly learns temporal consistency and spatial preci-sion through two complementary components. 
+
+(1) Target-Specific Tracked Feature (TSF). To en-force temporal referential consistency, we introduce aTSF mechanism that tracks object instances across frames       
+
+> arXiv:2603.12382v1 [cs.CV] 12 Mar 2026 (a) Issue: Inconsistent Referencing (b) Issue: Noisy Initialization
+> (c) Our solution: Target-Specific Tracked Feature (TSF) (d) Our solution: Dual Prompt Initialization
+> Figure 1. Comparison of temporal consistency and initialization quality in video object segmentation. (a) The baseline method [38] suffers from temporal drift, leading to inconsistent segmentation of the same object across frames. (b) Noisy or unstable initialization propagates segmentation errors through subsequent frames. (c) Our proposed Target-Specific Tracked Feature mitigates drift by maintaining consistent object grounding over time. (d) The Dual-Prompt Initialization strategy improves segmentation precision and stability during early frames.
+
+and provides temporally aligned features during training (Fig. 1c). This design allows the model to maintain iden-tity and spatial coherence over time, enabling stable tem-poral representation learning directly from tracked visual signals. To support TSF supervision, we construct a new large-scale dataset, tailored for referential video un-derstanding and fine-grained segmentation. Unlike exist-ing video datasets [38, 66] that emphasize global com-prehension or scene-level captioning, our dataset provides object-centric, temporally consistent annotations essential for training target-specific tracking and grounding. It com-prises 30,646 video sequences and 45,231 Q&A pairs with high-quality bounding boxes, segmentation masks, and temporally aligned trajectories. 
+
+(2) Dual-Prompt Initialization. We further introduce a Dual-Prompt strategy that integrates [BOX] and [SEG] 
+
+tokens during both training and inference to stabilize ge-ometric and semantic grounding (Fig. 1d). The [BOX] 
+
+token provides a coarse spatial prior by conditioning a lightweight regression head on class-agnostic region pro-posals extracted from SAM2’s multi-scale features [43, 44], enabling geometry-aware localization without external de-tectors. The [SEG] token then refines these regions through language-conditioned semantics to produce precise masks. By jointly decoding the two prompts, the model learns to align spatial priors and semantic cues, improving convergence and reducing early-frame ambiguity. By combining temporally supervised training with dual-prompt grounding, SPARROW achieves stable, coherent video understanding running end-to-end without relying on external detectors/trackers. Its modular design seamlessly adapts to three state-of-the-art video MLLMs [28, 32, 38], yielding consistent gains across six benchmarks. 
+
+## 2. Related Work 
+
+2.1. From Language Models to Grounded MLLMs 
+
+Language and Multimodal Foundations. Large Lan-guage Models (LLMs) demonstrate strong reasoning and instruction-following abilities [4, 8–10, 49, 53, 60, 63]. Building on this foundation, MLLMs integrate visual and linguistic information through internal cross-attention [3] or adapters that connect frozen vision encoders to language models [11, 23, 30]. With high-capacity vision transform-ers [13, 20, 33, 41, 50, 51, 65], these models are able to per-ceive detailed visual information and support instruction-grounded perception [22, 30, 52, 64]. 
+
+Grounded and Referring Understanding in Images. 
+
+Grounded MLLMs extend beyond global QA to region-and pixel-level reasoning [5, 31, 39, 64]. Spatial cues are modeled explicitly with position tokens or coordinates [39, 55], or implicitly through language [6, 56, 58]. Recent models couple language reasoning with dense segmentation [22, 42], achieving fine-grained grounding on static content. However, these methods operate on images and therefore do not maintain object identity or coherence across time. 
+
+2.2. Video MLLMs for Grounded Segmentation 
+
+Video MLLMs. Extending grounded MLLMs from im-ages to videos introduces long-range temporal dynamics and occlusion [24, 27, 34, 36, 61, 67]. Early works em-phasize holistic comprehension or moment retrieval [26], and later systems compose tracking with grounding [37]. Recent pixel-grounded video MLLMs [1, 18, 28, 32, 38, 47, 59, 62] advance language-conditioned segmentation, yet most still rely on a static [SEG] token for frame-wise grounding. In particular, VideoGLaMM [38] prompts a Figure 2. SPARROW pipeline. Given a video and text prompt, spatial [41] and temporal [57] encoders feed V →L adapters and a LoRA-tuned LLM. The LLM emits [BOX] and [SEG] tokens which are projected (L →V) to condition a class-agnostic proposer and the SAM2 [43] pixel decoder. Dashed green modules (GroundingDINO [31], CLDTracker [2], target cropping, K-means) are pre-computed offline as pseudo-supervision, used only for target-specific information injection step , and are removed at test time by default. 
+
+SAM-style decoder via [SEG] without explicit temporal cues, UniPixel [32] unifies mask-grounded reasoning with an online memory seeded by first-frame masks, and GLUS [28] couples global context with dense query frames using a trainable memory. Despite strong results, these designs rely on per-frame semantics and propagated masks instead of sequence-level referential cues, making them prone to drift, identity switches, and fragile re-initialization. 
+
+Our Positioning. We address these limitations by in-troducing two complementary components that jointly model temporal and spatial grounding cues. First, inspired by Artemis [40], which shows that tracking object-specific features improves temporal coherence, we introduce target-specific tracked features (TSF) to main-tain referential consistency across frames. Second, building on localized box prompting from Groma [35], which en-hances fine-grained visual grounding in images, we design a dual-prompt mechanism for video understanding that uni-fies [BOX] and [SEG] within a coarse-to-fine framework, integrating spatial priors with semantic cues during both training and inference. Our framework is plug-and-play and attaches to video MLLMs through lightweight adapters without requiring backbone modification. To demonstrate its practicality and generality, we integrate SPARROW into three recent open-source Video MLLMs [28, 32, 38] and observe consistent improvements in temporal stability and spatial precision across grounded segmentation tasks. 
+
+## 3. Methodology 
+
+3.1. Framework Overview 
+
+We address two key limitations of pixel-grounded video MLLMs [1, 38, 59]: (i) temporal referential consistency 
+
+(identity switches), and (ii) error propagation from un-stable first-frame grounding (drift). SPARROW augments a baseline video MLLM with two complementary mod-ules (Fig. 2): (1) Target-Specific Features (TSF), which in-ject temporally aligned referent cues during training, and (2) Dual-Prompt Grounding, which decodes [BOX] and 
+
+[SEG] tokens to couple geometry with semantics. At a high level, [BOX] conditions a class-agnostic proposer built on SAM2/Hiera features [43, 44] to produce bound-ing boxes, while [SEG] provides language-conditioned se-mantics; together they guide SAM2’s decoder in a coarse-to-fine manner, stabilizing early frames and mitigating drift. 
+
+Architecture. The framework comprises: (i) a dual-branch visual encoder for spatial [41] and temporal [57] features, (ii) Visual-to-Language (V →L) adapters, (iii) a frozen LLM adapted via LoRA [16], (iv) Language-to-Visual (L →V) adapters that map grounding states back to pixels, and (v) a SAM2-based pixel segmentor [43]. All ad-ditional modules are plug-and-play and do not alter the base LLM or visual backbones. 
+
+Visual Feature Encoding. Given a video V ∈
+
+RTv ×H×W ×C , an image encoder Fg and a video encoder 
+
+Fh extract spatial and temporal features: 
+
+fg = Fg (V), fh = Fh(V). (1) These features are projected into the LLM embedding space via the V →L adapters: 
+
+Zg = Wg (fg ), Zh = Wh(fh). (2) Given a tokenized query Q ∈ RNt×D , the multimodal input is defined as: 
+
+I = [ Q; Zg ; Zh; ZTSF ], (3) where ZTSF (see Sec. 3.2) represents optional TSF tokens introduced during training. Grounding-related hidden states are projected back into the visual space through L →Vadapters Wb (for [BOX] ) and Ws (for [SEG] ), enabling the model to decode spatial and semantic prompts simulta-neously. Detailed mechanisms for dual-prompt grounding are presented in Sec. 3.3. 
+
+3.2. Target-Specific Features 
+
+Motivation. Video MLLMs often encode holistic scene semantics but struggle to maintain object identity across frames. TSF injects temporally aligned, referent-specific cues during training , enabling identity persistence without explicit tracking at inference. 
+
+Tracking and Selection. Given a textual query Q,GroundingDINO [31] detects the referent in one frame, and CLDTracker [2] propagates it across the sequence, produc-ing candidate boxes B′ = {B′
+
+> 1
+
+, . . . , B′ 
+
+> K′
+
+}, where K′ de-notes the total number of tracked boxes. To reduce redun-dancy and improve stability, we perform K-means cluster-ing in a joint visual–spatial feature space with K clusters and retain the samples nearest to each centroid, resulting in a compact subset B = {B1, . . . , BK } with K < K ′. Fol-lowing the insights of Artemis [40], this selection ensures that each Bj represents a diverse appearance of the same referent identity. 
+
+Feature Encoding and Integration. We encode tracked regions, select representatives via K-means (we set K = 4 ), and project the resulting features into the LLM space: 
+
+FTSF all = Fg (B′
+
+> i
+
+) K′
+
+> i=1
+
+| {z }
+
+> encode all tracked boxes K-means
+
+−−−−−→ FTSF = Fg (Bj ) Kj=1 
+
+| {z }
+
+> selected regions
+
+,
+
+(4) 
+
+ZTSF = Wg (f ) | f ∈ FTSF . (5) 
+
+ZTSF forms the TSF tokens appended to the input as in Eq. 3. This lightweight integration supplies temporally consistent referent cues while leaving the base architecture unchanged. 
+
+Offline Dataset Curation. To support TSF supervision, we curate a large-scale dataset tailored for referential video understanding and fine-grained segmentation. Existing datasets [38, 66] primarily focus on holistic scene com-prehension rather than object-centric temporal grounding. We therefore harmonize multiple publicly available sources, including HC-STVG [48], VID-Sentence [7], A2D Sen-tences [15], LaSOT [14], MeViS [12], GOT-10k [17], and Ref-SAV [43, 59], into a unified corpus. To enable efficient training, we precompute detections and trajectories, encode features, and prune them using K-means clustering [40], op-tionally generating dense masks with SAM2 [43]. The re-sulting dataset contains 30,646 video sequences and 45,231 question–answer pairs, providing temporally consistent tra-jectories, bounding boxes, and dense segmentation masks. This offline pipeline decouples heavy modules from the training loop while preserving temporal supervision bene-fits. Additional statistics and details are in Appendix A. 
+
+Inference. TSF tokens are optional at test time. By de-fault, we omit them (no external detector or tracker). When enabled, we execute GroundingDINO → CLDTracker →
+
+CLIP → K-means to inject referent cues for maximal tem-poral stability. We report the trade-off between using and omitting TSF in ablation studies (Sec. 4.4). 
+
+3.3. Dual-Prompt Grounding 
+
+Motivation. Early segmentation errors can cascade into drift and identity switches. We address this with dual prompts : [BOX] for spatial priors and [SEG] for semantic grounding. Together, they enable coarse-to-fine reasoning that stabilizes early frames and allows recovery from drift. 
+
+Bounding-box Prompt. The LLM emits a [BOX] to-ken with embedding eBOX ∈ Rd (projected by Wb)that conditions a lightweight regression head to predict 
+
+(x1, y 1, x 2, y 2). We build a class-agnostic proposer on frozen Hiera features from SAM2 [43, 44]. Following [25, 35], multi-scale Hiera maps are aligned into a feature pyramid and fed to a Deformable-DETR decoder [68], re-placing the classification branch with a single objectness head. This yields K=300 proposals per frame, filtered by objectness and NMS to retain high-confidence anchors. 
+
+Language-conditioned refinement. For each proposal bi, we pool Hiera features with ROIAlign and aggregate:         
+
+> {Fℓi}Lℓ=1 = ROIAlign
+> 
+> {Fℓ}Lℓ=1 , b i
+> 
+> ,Gi= Pool
+> 
+> {Fℓi}Lℓ=1
+> 
+> .
+> (6)
+
+We then fuse eBOX with per-proposal features by cross-attention: 
+
+Ai = softmax 
+
+ (Wq eBOX )( WkFi)⊤
+
+√d
+
+
+
+, Zi = Ai(Wv Fi).
+
+(7) Spatial pooling over Zi yields a compact cross-modal de-scriptor Zpool  
+
+> i
+
+. We fuse and score: 
+
+vi = [ Zpool  
+
+> i
+
+; Gi; eBOX ], si = σ W2 ReLU( W1vi).
+
+(8) For the top-M candidates, a text-conditioned regression head refines each box: 
+
+∆bi = fref 
+
+ [Zpool  
+
+> i
+
+; Gi; eBOX ], ˆbi = bi ⊕ ∆bi. (9) Final confidence combines language and visual cues: 
+
+sfinal  
+
+> i
+
+= σ α s i + β logit( pdet  
+
+> i
+
+), B⋆ = { ˆbi | sfinal  
+
+> i
+
+> τ }.
+
+(10) Each ˆbi ∈ B ⋆ provides a spatial prior that constrains subse-quent segmentation, and independent scoring naturally sup-ports multi-instance queries (e.g., “both players”) without explicit instance supervision. Figure 3. Illustrative process of the dual-prompt initialization. Given a query (e.g., “Can you segment the truck?”), our module first generates class-agnostic proposals, which are filtered by the [BOX] prompt and then refined by the [SEG] prompt to produce precise segmentation masks. The dual-prompt approach provides tighter localization and sharper boundaries compared with using [SEG] only. 
+
+Segmentation Prompt. The LLM also emits a [SEG] 
+
+embedding eSEG ∈ Rd (projected by Ws) to SAM2’s prompt encoder. For each ˆbi ∈ B ⋆, the pair (ˆbi, e SEG ) forms a mask query to SAM2, producing a segmentation ˆMi.When |B ⋆|>1, SAM2 returns instance masks for each spa-tial prior, naturally supporting multi-instance outputs. Re-emitting [BOX] and [SEG] at arbitrary frames enables drift correction without external detectors or trackers. 
+
+Illustrative Example. As illustrated in Fig. 3, combining 
+
+[BOX] and [SEG] prompts enables coarse-to-fine ground-ing that improves both spatial localization and mask preci-sion. The [BOX] prompt initializes geometric priors by se-lecting relevant proposals through the filtration head, while the [SEG] prompt refines these regions with language-conditioned semantics. Compared to using [SEG] alone, the dual-prompt initialization stabilizes first-frame ground-ing, reduces drift, and yields more precise segmentation. 
+
+3.4. Training Strategy 
+
+Stage 1: Target-Specific Information Injection. After constructing the TSF dataset in Sec. 3.2, we train the mul-timodal model to exploit temporally aligned referent cues. The goal is to teach the model identity persistence and refer-ential alignment across frames without requiring tracking at inference. We optimize only the multimodal adapters and lightweight language parameters while keeping the visual backbone and pixel decoders frozen. Specifically, we up-date the V →L adapters (Wg , Wh), the L →V SEG adapters 
+
+Ws, and the LoRA parameters [16] within the LLM. This isolates learning to cross-modal pathways and the language backbone, preserving pretrained visual features. To demonstrate the modularity of our approach, we adopt the training structures of two state-of-the-art video MLLMs [28, 38] and extend them with the TSF dataset for temporal referential supervision. Adapters are optimized with bidirectional alignment between video and language embeddings. For each video–text pair (v, q ), the model en-codes global representations (zv , zq ) that include TSF to-kens, and the total objective is 
+
+Ltotal = LCE + Lmask , Lmask = LBCE + LDICE , (11) where LCE enforces semantic alignment between vision and language tokens, and Lmask supervises pixel grounding through binary cross-entropy and Dice losses. Stage 1 is trained until convergence and then frozen in the next stage. 
+
+Stage 2: Bounding Box Prompt Learning. This stage focuses on the dual-prompt framework introduced in Sec. 3.3, combining an independently trained region pro-poser with filter head tuning. 
+
+Proposal Generator Pretraining. We first train a class-agnostic region proposer independent of the MLLM train-ing pipeline. It consists of a Deformable-DETR (D-DETR) [68] head operating on frozen Hiera features from SAM2. Following [35], the proposer is pretrained on a unified cor-pus of object detection datasets, including COCO [29], Ob-jects365 [46], OpenImages [21], and V3Det [54]. All cate-gory labels are discarded to enforce class-agnostic localiza-tion. The objective combines three terms: 
+
+Lprop = Lobj + λ1Lℓ1 + λ2LGIoU , (12) where Lobj is binary cross-entropy for objectness, Lℓ1 pe-nalizes coordinate errors, and LGIoU enforces geometric consistency. 
+
+Task Adaptation: Filter-Only Fine-Tuning. We adapt the model to task-specific grounding datasets by fine-tuning a lightweight filtration head Ffilter , together with the L →VBOX adapter Wb, while keeping all other modules frozen. The module Ffilter learns to score and refine region propos-als conditioned on textual queries, enabling efficient adap-tation while preserving the general objectness learned dur-ing pretraining. All remaining components, including the Hiera encoder, region proposer, adapters (Wg , Wh, Ws),the LLM backbone, and SAM2, are kept frozen to en-sure no catastrophic forgetting. Training uses datasets with paired textual queries and annotated boxes or masks (con-verted to boxes at this stage). Given a frozen proposal set 
+
+{(bi, p det  
+
+> i
+
+)}Ni=1 , where bi is the i-th box and pdet  
+
+> i
+
+its ob-jectness score, Ffilter predicts a language-conditioned con-fidence si ∈ [0 , 1] and a refined box ˆbi. Since the SAM2 de-coder is frozen, mask supervision does not backpropagate, and optimization is restricted to proposal-level losses: 
+
+Lfilter = λcls LBCE + λbox 
+
+ Lℓ1 + LGIoU 
+
+, (13) Figure 4. Qualitative comparison on the Referring Video Object Segmentation (RVOS) task. (Left) Dog scene: SPARROW accu-rately segments “dog . . . to the right,” “dog . . . to the left,” and “woman in a yellow jacket” from the first frame, preserving their identities across motion and overlap. (Right) Crowd scene: SPARROW cleanly separates “the woman in yellow,” “the woman in red,” and “the woman in black,” maintaining consistent masks and sharp boundaries under occlusion and scale variation. In contrast, UniPixel [32] and GLUS [28] exhibit early inaccuracies, mask swaps, and boundary artifacts across both scenes. The dual-prompt initialization enables precise first-frame grounding and referentially consistent segmentation, producing temporally stable masks throughout the sequence. 
+
+where LBCE supervises proposal–language alignment, and 
+
+Lℓ1 and LGIoU refine positive boxes. Proposals with IoU 
+
+> 0.5 are treated as positives and those with IoU < 0.2 as negatives. We set λcls = 1 .0 and λbox = 2 .0 as the default. 
+
+## 4. Experiments 
+
+Setup. We build SPARROW upon the baselines [28, 32, 38], following their released protocols, and evaluate on six datasets spanning three tasks: (i) MeViS [12] ( val 
+
+and val u) and (ii) Ref-YouTube-VOS (Ref-YTVOS) [45] and (iii) Ref-DAVIS17 [19] for Referring Video Object Segmentation (RVOS), (iv) VidSTG [66] for video visual grounding, and (v) Video Grounded Conversation Gener-ation (GCG) [38]. Unless stated, we follow each bench-mark’s official protocol and report J , F, and J &F for RVOS, mIoU for VidSTG, and mIoU/Recall plus ME-TEOR/CIDEr/CLAIR for GCG. Here, J measures region similarity (IoU), F evaluates contour accuracy (boundary quality), and J &F denotes their mean, which reflects over-all segmentation quality. We adopt the same prompt tem-plates across baselines and our method. Further details on datasets, evaluation setups, and additional qualitative eval-uations can be found in the Appendices A, B, and C. 
+
+4.1. Referring Video Object Segmentation (RVOS) 
+
+Protocol. The model receives a video and a referring ex-pression and outputs per-frame masks. We use the tem-plate such as: “What is {Phrase } in this video? Respond with segmentation masks.” The model responds by pro-ducing {[SEG] [BOX] }, where [SEG] seeds the mask decoder and our additional [BOX] conditions the class-agnostic proposer (Sec. 3.3). 
+
+Table 1. MeViS [12] results on val and val u, which assess seen and unseen motion-expression compositions, respectively.                                  
+
+> Method MeViS ( val )MeViS ( val u)
+> JFJ&FJFJ&F
+> UniPixel Neurips’25 [32] 50.4 55.7 53.1 56.1 63.2 59.7 + SPARROW 51.6
+> +1.2
+> 57.2
+> +1.5
+> 54.4
+> +1.3
+> 57.2
+> +1.1
+> 64.2
+> +1.0
+> 60.7
+> +1.0
+> GLUS CVPR’25 [28] 48.5 54.2 51.3 56.1 63.4 59.8 + SPARROW 50.4
+> +1.9
+> 56.0
+> +1.8
+> 53.2
+> +1.9
+> 57.0
+> +0.9
+> 66.8
+> +3.4
+> 61.9
+> +0.3
+> VideoGLaMM CVPR’24 [38] 42.1 48.2 45.2 44.0 52.9 48.5 + SPARROW 45.3
+> +3.2
+> 49.7
+> +1.5
+> 47.5
+> +2.3
+> 54.6
+> +10.6
+> 60.2
+> +7.3
+> 57.4
+> +8.9
+
+MeViS. MeViS evaluates RVOS with motion expressions, emphasizing temporal reasoning and motion-grounded lo-calization. As shown in Table 1, SPARROW consistently improves performance across all backbones and splits. When integrated into VideoGLaMM, it increases the unseen split ( val u) score by +8.9 in J &F, demonstrating stronger compositional generalization to unseen motion–language combinations. Similar improvements are observed on the stronger UniPixel and GLUS backbones, where gains range from +0.3 to +3.4 across both splits. Across all models, SPARROW achieves the best overall results on MeViS, showing that its temporally supervised training and dual-prompt grounding universally enhance motion-driven seg-mentation, regardless of backbone strength. 
+
+Ref-YTVOS & Ref-DAVIS17. Table 2 summarizes two complementary RVOS regimes. Ref-YTVOS focuses on large-scale linguistic diversity with shorter YouTube clips, while Ref-DAVIS17 emphasizes fine-grained contour ac-curacy and temporal stability across densely annotated se-quences. SPARROW improves all three backbones on both Table 2. Ref-YTVOS [45] and Ref-DAVIS17 [19] (val) results, where Ref-YTVOS emphasizes large-scale linguistic grounding and Ref-DAVIS17 focuses on fine-grained boundary accuracy.                                  
+
+> Method Ref-YTVOS Ref-DAVIS17
+> JFJ&FJFJ&F
+> UniPixel Neurips’25 [32] 68.6 72.3 70.5 70.7 77.8 74.2 + SPARROW 69.0
+> +0.4
+> 72.4
+> +0.1
+> 70.7
+> +0.2
+> 71.5
+> +0.8
+> 81.2
+> +3.4
+> 76.4
+> +2.2
+> GLUS CVPR’25 [28] 65.5 69.0 67.3 69.7 76.1 72.9 + SPARROW 67.3
+> +1.8
+> 70.9
+> +1.9
+> 69.1
+> +1.8
+> 70.6
+> +0.9
+> 80.3
+> +4.2
+> 75.5
+> +2.6
+> VideoGLaMM CVPR’24 [38] 65.4 68.2 66.8 73.3 65.6 69.5 + SPARROW 67.1
+> +1.7
+> 70.7
+> +2.5
+> 68.9
+> +2.1
+> 73.4
+> +0.1
+> 80.1
+> +14.5
+> 76.8
+> +7.3
+
+datasets. On Ref-YTVOS, gains are balanced across re-gion overlap ( J ) and boundary quality ( F), with the largest 
+
+J &F increase of about +2.1 on VideoGLaMM and con-sistent gains for GLUS and UniPixel in the +0.2 –+1.9 
+
+range. On Ref-DAVIS17, improvements are dominated by F, where boundary accuracy increases by up to +14.5 
+
+and leads to +7.3 in J &F on VideoGLaMM, while GLUS and UniPixel also show steady boosts of +2.6 and +2.2 in 
+
+J &F, with all the F surpassing 80 score. Qualitative ex-amples in Fig. 4 illustrate these trends, showing that SPAR-ROW delivers precise first-frame masks and maintains con-sistent boundaries under motion and occlusion. Across both datasets, SPARROW achieves the best overall performance across all metrics and backbones, demonstrating its robust-ness in improving temporal stability, spatial precision, and referential consistency under different RVOS settings. 
+
+4.2. Video Visual Grounding (VG) 
+
+Protocol. This task aims to localize and segment the re-gion in a video corresponding to a natural-language query, requiring models to align spatial cues with linguistic se-mantics under temporal variation. Using VidSTG [66], we query the model with an interrogative caption, for example: 
+
+“{caption } Please respond with a segmentation mask.” The model will predict language-conditioned masks for the re-ferred entity, similar to RVOS task (Sec. 4.1). 
+
+Results. Figure 5 shows that SPARROW achieves around a five-point mIoU improvement across UniPixel, GLUS, and VideoGLaMM, corresponding to roughly 13–18% rel-ative gain. The improvements are consistent across all backbones, with the largest relative increase on GLUS and comparable absolute gains on the stronger UniPixel and VideoGLaMM. Compared with RVOS, where improve-ments are split between region overlap and boundary accu-racy, VidSTG measures both aspects in a single mIoU score. The uniform gains confirm that SPARROW’s dual-prompt design enhances spatial precision and referential grounding in language-driven video understanding. Qualitative exam-ples illustrating these effects are provided in Appendix C. 
+
+Table 3. VideoGCG benchmark [38]. We report mask quality (mIoU, Recall) and caption quality (METEOR, CIDEr, CLAIR).                                 
+
+> Model mIoU Recall METEOR CIDEr CLAIR
+> UniPixel Neurips’25 [32] 52.0 0.311 0.095 0.55 26.0 + SPARROW 54.5
+> +2.5
+> 0.325
+> +0.01
+> 0.103
+> +0.01
+> 0.58
+> +0.03
+> 29.4
+> +3.4
+> GLUS CVPR’25 [28] 45.86 0.245 –––+ SPARROW 47.91
+> +2.05
+> 0.265
+> +0.02 –––VideoGLaMM CVPR’24 [38] 62.34 0.375 0.103 0.59 28.2 + SPARROW 65.59
+> +3.25
+> 0.383
+> +0.01
+> 0.112
+> +0.01
+> 0.63
+> +0.04
+> 33.6
+> +5.4
+> Note: GLUS emits only [SEG] tokens (no free text); language metrics are therefore not applicable.
+
+UniPixel GLUS VideoGLaMM 
+
+30 
+
+40 
+
+50 
+
+> 41 .25
+> 29 .92
+> 39 .66
+> 46 .74
+> 35 .17
+> 45 .06
+> VidSTG (I-mIoU)
+
+Baseline + SPARROW 
+
+Figure 5. Visual grounding on VidSTG (interrogative). 
+
+SPARROW boosts mIoU by +5.49 on UniPixel (41.25 →46.74), 
+
++5.25 on GLUS (29.92 →35.17), and +5.40 on VideoGLaMM (39.66 →45.06), consistently improving spatial and mask quality. 
+
+4.3. Video Grounded Conversation Generation 
+
+Protocol. This task requires a model to produce a natural-language description while grounding key phrases with pixel-level masks. We follow the VideoGLAMM [38] setup and use a fixed prompt: “Could you please give me a de-tailed description of the video? Please respond with inter-leaved segmentation masks for the corresponding parts of the answer.” For UniPixel and GLUS, which do not natively support this task, we fine-tuned them on the VideoGCG train dataset to enable interleaved text–mask generation. 
+
+Results. Table 3 shows that SPARROW consistently im-proves mask quality by +2–3.25 points in mIoU and slightly increases Recall across all backbones. For mod-els that generate text, language metrics also improve, with CLAIR showing the most significant gain (e.g., +5.4 on VideoGLaMM), indicating better alignment between gener-ated phrases and their corresponding visual regions. These results extend the trends observed in RVOS and VG tasks: TSF pretraining and dual-prompt design yield cleaner, more accurate masks and richer, more specific textual descrip-tions. Qualitative examples in Fig. 6 illustrate these im-provements with additional samples in Appendix C. Figure 6. Qualitative comparison on the Grounded Conversation Generation (GCG) task. (Left) Kitchen scene: SPARROW produces more detailed and semantically consistent descriptions (e.g., distinguishing cup , bottle , and mop ) compared to VideoGLaMM’s generic output. (Right) Fencing scene: SPARROW generates context-rich phrases differentiating individuals by appearance and action, while VideoGLaMM produces shorter, less informative text. These examples highlight that SPARROW not only achieves stronger temporal coherence and object grounding, but also narrative completeness across complex scenes. Table 4. TSF pretraining and [BOX] prompting on Ref-DAVIS17 (val). Values are J &F.              
+
+> TSF usage BOX OFF BOX ON
+> No TSF 69.5 (baseline) 72.5 (+3.0 )
+> Train only (our default) 72.4 (+2.9 )76.8 (+7.3 )
+> Train + Inference 75.3 (+5.8 )77.7 (+8.2 )
+
+4.4. Ablation Study 
+
+Ablations are performed on Ref-DAVIS17 (val) with VideoGLaMM [38] as the baseline trained on our corpus. 
+
+TSF pretraining and box prompting. Table 4 summa-rizes TSF usage modes (none / train only / train+inference) and the effect of enabling [BOX] prompting. Training with TSF (no test-time TSF) improves J &F by +2.9 over the baseline (69.5 →72.4), showing that pseudo-tracked cues teach identity persistence even when removed at infer-ence. Activating [BOX] adds +3.0 ∼+8.2 depending on TSF mode, reducing drift via geometric priors. The best score (77.7) occurs when both TSF and [BOX] are active at train and test, but the default configuration (TSF at train only, [BOX] on) already captures most gains without run-time tracking. Further trade-off analysis in Appendix D.2. 
+
+Selection supervision and prompt composition. Table 5 compares (i) supervision tokens for the Filtration Head, (ii) selection mechanisms, and (iii) inference prompt compo-sition. Using [SEG] features for supervision is less ef-fective than [BOX] (70.6 vs. 72.5 , −1.9), showing that spatially explicit cues are essential for proposal ranking. The detector-side Filtration Head also outperforms MLLM-side selection ( 72.5 vs. 70.4 , +2 .1). At inference, single-token prompts perform worse ( [SEG] : 69.5 , [BOX] : 68.2 ), 
+
+Table 5. Selection supervision and prompt composition on Ref-DAVIS17 (val). Values are J &F.                   
+
+> (A) Filtration Head supervision token
+> [SEG] features →Filtration Head 70.6
+> [BOX] features →Filtration Head (ours) 72.5 (+1.9 )
+> (B) Proposal selection mechanism
+> MLLM filtration (language-only) 70.4 Filtration Head (ours) 72.5 (+2.1 )
+> (C) Inference prompt composition
+> [SEG] only 69.5
+> [BOX] only 68.2
+> [BOX] +[SEG] (ours) 72.5 (+3.0 )
+
+whereas combining [BOX] +[SEG] reaches 72.5 (+3.0 
+
+over the best single), confirming the benefit of dual prompt. 
+
+TSF, proposal head design, and cost analysis. Addi-tional analyses of TSF overhead, inference guidance, ro-bustness, proposal head variants, and compute/inference overhead are provided in Appendices D, E, and F. 
+
+Discussion and Limitation. SPARROW improves tem-poral consistency and spatial precision but inherits limi-tations of proposal-based detection. Its performance de-pends on proposal recall: missed small, occluded, or un-seen objects cannot be recovered by downstream [BOX] or 
+
+[SEG] refinement. Early [BOX] errors may also accumu-late in long sequences, although dual prompting mitigates drift compared to [SEG] alone. Moreover, TSF relies on pseudo-tracks from GroundingDINO and CLDTracker; se-vere tracking noise or ID switches can bias temporal learn-ing, though robustness to such corruption is demonstrated in Appendix D.4. Future work includes higher-recall pro-posals, correction mechanisms, and stronger supervision. 5. Conclusion 
+
+We presented SPARROW , a pixel-grounded video MLLM that unifies spatial precision with temporally consistent ref-erence tracking. SPARROW introduces Target-Specific Tracked Features (TSF) for temporally aligned supervi-sion and a dual-prompt design combining [BOX] geomet-ric priors with [SEG] semantics through a class-agnostic SAM2-based proposer. We curate a large referential dataset (30,646 videos, 45,231 Q&A pairs) to enable scalable TSF training. Its modular design integrates seamlessly with baselines without modifying the backbone, yielding consis-tent gains across benchmarks. Ablations confirm that TSF and joint [BOX] +[SEG] prompting stabilize early ground-ing and reduce temporal drift while preserving flexibility. 
+
+## Acknowledgments 
+
+This research was funded by Khalifa University of Sci-ence and Technology through the Faculty Start-Ups under Project ID: KU-INT-FSU-2005-8474000775. 
+
+## References 
+
+[1] Ghazi Shazan Ahmad, Ahmed Heakl, Hanan Gani, Abdel-rahman Shaker, Zhiqiang Shen, Fahad Shahbaz Khan, and Salman Khan. Videomolmo: Spatio-temporal grounding meets pointing. arXiv preprint arXiv:2506.05336 , 2025. 1, 2, 3 [2] Mohamad Alansari, Sajid Javed, Iyyakutti Iyappan Ganap-athi, Sara Alansari, and Muzammal Naseer. Cldtracker: A comprehensive language description for visual tracking. In-formation Fusion , 124:103374, 2025. 3, 4, 1 [3] Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, Karel Lenc, Arthur Men-sch, Katherine Millican, Malcolm Reynolds, Roman Ring, Eliza Rutherford, Serkan Cabi, Tengda Han, Zhitao Gong, Sina Samangooei, Marianne Monteiro, Jacob L Menick, Sebastian Borgeaud, Andy Brock, Aida Nematzadeh, Sa-hand Sharifzadeh, Mikoł aj Bi´ nkowski, Ricardo Barreira, Oriol Vinyals, Andrew Zisserman, and Kar´ en Simonyan. Flamingo: a visual language model for few-shot learning. In 
+
+Advances in Neural Information Processing Systems , pages 23716–23736. Curran Associates, Inc., 2022. 2 [4] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Sub-biah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakan-tan, Pranav Shyam, Girish Sastry, Amanda Askell, Sand-hini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel Ziegler, Jeffrey Wu, Clemens Winter, Chris Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. Language models are few-shot learners. In Advances in Neural Information Pro-cessing Systems , pages 1877–1901. Curran Associates, Inc., 2020. 2 [5] Chi Chen, Ruoyu Qin, Fuwen Luo, Xiaoyue Mi, Peng Li, Maosong Sun, and Yang Liu. Position-enhanced visual instruction tuning for multimodal large language models. 
+
+arXiv preprint arXiv:2308.13437 , 2023. 1, 2 [6] Keqin Chen, Zhao Zhang, Weili Zeng, Richong Zhang, Feng Zhu, and Rui Zhao. Shikra: Unleashing multi-modal llm’s referential dialogue magic. arXiv preprint arXiv:2306.15195 , 2023. 2 [7] Zhenfang Chen, Lin Ma, Wenhan Luo, and Kwan-Yee K Wong. Weakly-supervised spatio-temporally grounding nat-ural sentence in video. arXiv preprint arXiv:1906.02549 ,2019. 4, 1, 2 [8] Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao Zhang, Lianmin Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E Gonzalez, et al. Vicuna: An open-source chatbot impressing gpt-4 with 90%* chatgpt quality. See https://vicuna. lmsys. org (accessed 14 April 2023) , 2023. 2[9] Aakanksha Chowdhery, Sharan Narang, Jacob Devlin, Maarten Bosma, Gaurav Mishra, Adam Roberts, Paul Barham, Hyung Won Chung, Charles Sutton, Sebas-tian Gehrmann, Parker Schuh, Kensen Shi, Sasha Tsvyashchenko, Joshua Maynez, Abhishek Rao, Parker Barnes, Yi Tay, Noam Shazeer, Vinodkumar Prabhakaran, Emily Reif, Nan Du, Ben Hutchinson, Reiner Pope, James Bradbury, Jacob Austin, Michael Isard, Guy Gur-Ari, Pengcheng Yin, Toju Duke, Anselm Levskaya, Sanjay Ghemawat, Sunipa Dev, Henryk Michalewski, Xavier Garcia, Vedant Misra, Kevin Robinson, Liam Fedus, Denny Zhou, Daphne Ippolito, David Luan, Hyeontaek Lim, Barret Zoph, Alexander Spiridonov, Ryan Sepassi, David Dohan, Shivani Agrawal, Mark Omernick, Andrew M. Dai, Thanumalayan Sankaranarayana Pillai, Marie Pellat, Aitor Lewkowycz, Erica Moreira, Rewon Child, Oleksandr Polozov, Katherine Lee, Zongwei Zhou, Xuezhi Wang, Brennan Saeta, Mark Diaz, Orhan Firat, Michele Catasta, Jason Wei, Kathy Meier-Hellstern, Douglas Eck, Jeff Dean, Slav Petrov, and Noah Fiedel. Palm: Scaling language modeling with pathways. Journal of Machine Learning Research , 24(240):1–113, 2023. [10] Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, Albert Webson, Shixiang Shane Gu, Zhuyun Dai, Mirac Suzgun, Xinyun Chen, Aakanksha Chowdhery, Alex Castro-Ros, Marie Pel-lat, Kevin Robinson, Dasha Valter, Sharan Narang, Gaurav Mishra, Adams Yu, Vincent Zhao, Yanping Huang, Andrew Dai, Hongkun Yu, Slav Petrov, Ed H. Chi, Jeff Dean, Jacob Devlin, Adam Roberts, Denny Zhou, Quoc V. Le, and Jason Wei. Scaling instruction-finetuned language models. Journal of Machine Learning Research , 25(70):1–53, 2024. 2 [11] Wenliang Dai, Junnan Li, DONGXU LI, Anthony Tiong, Junqi Zhao, Weisheng Wang, Boyang Li, Pascale N Fung, and Steven Hoi. Instructblip: Towards general-purpose vision-language models with instruction tuning. In Advances in Neural Information Processing Systems , pages 49250– 49267. Curran Associates, Inc., 2023. 2 [12] Henghui Ding, Chang Liu, Shuting He, Xudong Jiang, and Chen Change Loy. Mevis: A large-scale benchmark for video segmentation with motion expressions. In Proceedings of the IEEE/CVF International Conference on Computer Vi-sion (ICCV) , pages 2694–2703, 2023. 4, 6, 1, 2 [13] Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Syl-vain Gelly, Jakob Uszkoreit, and Neil Houlsby. An image is worth 16x16 words: Transformers for image recognition at scale. In International Conference on Learning Representa-tions , 2021. 2 [14] Heng Fan, Liting Lin, Fan Yang, Peng Chu, Ge Deng, Sijia Yu, Hexin Bai, Yong Xu, Chunyuan Liao, and Haibin Ling. Lasot: A high-quality benchmark for large-scale single ob-ject tracking. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2019. 4, 1, 2 [15] Kirill Gavrilyuk, Amir Ghodrati, Zhenyang Li, and Cees G. M. Snoek. Actor and action video segmentation from a sentence. In Proceedings of the IEEE Conference on Com-puter Vision and Pattern Recognition (CVPR) , 2018. 4, 1, 2[16] Edward J Hu, yelong shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. LoRA: Low-rank adaptation of large language models. In In-ternational Conference on Learning Representations , 2022. 3, 5 [17] Lianghua Huang, Xin Zhao, and Kaiqi Huang. Got-10k: A large high-diversity benchmark for generic object tracking in the wild. IEEE Transactions on Pattern Analysis and Ma-chine Intelligence , 43(5):1562–1577, 2021. 4, 1, 2 [18] Woojeong Jin, Seongchan Kim, Jaeho Lee, and Seungryong Kim. Interrvos: Interaction-aware referring video object seg-mentation. arXiv preprint arXiv:2506.02356 , 2025. 1, 2 [19] Anna Khoreva, Anna Rohrbach, and Bernt Schiele. Video object segmentation with language referring expressions. In 
+
+Computer Vision – ACCV 2018 , pages 123–141, Cham, 2019. Springer International Publishing. 6, 7 [20] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer White-head, Alexander C. Berg, Wan-Yen Lo, Piotr Dollar, and Ross Girshick. Segment anything. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pages 4015–4026, 2023. 2 [21] Alina Kuznetsova, Hassan Rom, Neil Alldrin, Jasper Ui-jlings, Ivan Krasin, Jordi Pont-Tuset, Shahab Kamali, Stefan Popov, Matteo Malloci, Alexander Kolesnikov, et al. The open images dataset v4: Unified image classification, object detection, and visual relationship detection at scale. Interna-tional journal of computer vision , 128(7):1956–1981, 2020. 5[22] Xin Lai, Zhuotao Tian, Yukang Chen, Yanwei Li, Yuhui Yuan, Shu Liu, and Jiaya Jia. Lisa: Reasoning segmentation via large language model. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 9579–9589, 2024. 1, 2 [23] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. BLIP-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In Pro-ceedings of the 40th International Conference on Machine Learning , pages 19730–19742. PMLR, 2023. 2 [24] KunChang Li, Yinan He, Yi Wang, Yizhuo Li, Wenhai Wang, Ping Luo, Yali Wang, Limin Wang, and Yu Qiao. Videochat: Chat-centric video understanding. arXiv preprint arXiv:2305.06355 , 2023. 2 [25] Yanghao Li, Hanzi Mao, Ross Girshick, and Kaiming He. Exploring plain vision transformer backbones for object de-tection. In Computer Vision – ECCV 2022 , pages 280–296, Cham, 2022. Springer Nature Switzerland. 4 [26] Zhaowei Li, Qi Xu, Dong Zhang, Hang Song, Yiqing Cai, Qi Qi, Ran Zhou, Junting Pan, Zefeng Li, Van Tu Vu, et al. Groundinggpt: Language enhanced multi-modal grounding model. arXiv preprint arXiv:2401.06071 , 2024. 2 [27] Bin Lin, Yang Ye, Bin Zhu, Jiaxi Cui, Munan Ning, Peng Jin, and Li Yuan. Video-llava: Learning united visual rep-resentation by alignment before projection. arXiv preprint arXiv:2311.10122 , 2023. 2 [28] Lang Lin, Xueyang Yu, Ziqi Pang, and Yu-Xiong Wang. Glus: Global-local reasoning unified into a single large lan-guage model for video segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 8658–8667, 2025. 1, 2, 3, 5, 6, 7[29] Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva Ramanan, Piotr Doll´ ar, and C. Lawrence Zitnick. Microsoft coco: Common objects in context. In 
+
+Computer Vision – ECCV 2014 , pages 740–755, Cham, 2014. Springer International Publishing. 5 [30] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. In Advances in Neural Information Processing Systems , pages 34892–34916. Curran Associates, Inc., 2023. 1, 2 [31] Shilong Liu, Zhaoyang Zeng, Tianhe Ren, Feng Li, Hao Zhang, Jie Yang, Qing Jiang, Chunyuan Li, Jianwei Yang, Hang Su, Jun Zhu, and Lei Zhang. Grounding dino: Marry-ing dino with grounded pre-training for open-set object de-tection. In Computer Vision – ECCV 2024 , pages 38–55, Cham, 2025. Springer Nature Switzerland. 1, 2, 3, 4 [32] Ye Liu, Zongyang Ma, Junfu Pu, Zhongang Qi, Yang Wu, Ying Shan, and Chang Wen Chen. Unipixel: Unified object referring and segmentation for pixel-level visual reasoning. 
+
+arXiv preprint arXiv:2509.18094 , 2025. 1, 2, 3, 6, 7 [33] Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. Swin transformer: Hierarchical vision transformer using shifted windows. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pages 10012–10022, 2021. 2 [34] Ruipu Luo, Ziwang Zhao, Min Yang, Junwei Dong, Da Li, Pengcheng Lu, Tao Wang, Linmei Hu, Minghui Qiu, and Zhongyu Wei. Valley: Video assistant with large language model enhanced ability. arXiv preprint arXiv:2306.07207 ,2023. 2 [35] Chuofan Ma, Yi Jiang, Jiannan Wu, Zehuan Yuan, and Xiao-juan Qi. Groma: Localized visual tokenization for ground-ing multimodal large language models. In Computer Vision – ECCV 2024 , pages 417–435, Cham, 2025. Springer Nature Switzerland. 3, 4, 5 [36] Muhammad Maaz, Hanoona Rasheed, Salman Khan, and Fa-had Shahbaz Khan. Video-chatgpt: Towards detailed video understanding via large vision and language models. arXiv preprint arXiv:2306.05424 , 2023. 2 [37] Shehan Munasinghe, Rusiru Thushara, Muhammad Maaz, Hanoona Abdul Rasheed, Salman Khan, Mubarak Shah, and Fahad Khan. Pg-video-llava: Pixel grounding large video-language models, 2023. 2 [38] Shehan Munasinghe, Hanan Gani, Wenqi Zhu, Jiale Cao, Eric Xing, Fahad Shahbaz Khan, and Salman Khan. Videoglamm : A large multimodal model for pixel-level vi-sual grounding in videos. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 19036–19046, 2025. 1, 2, 3, 4, 5, 6, 7, 8 [39] Zhiliang Peng, Wenhui Wang, Li Dong, Yaru Hao, Shaohan Huang, Shuming Ma, and Furu Wei. Kosmos-2: Ground-ing multimodal large language models to the world. arXiv preprint arXiv:2306.14824 , 2023. 1, 2 [40] Jihao Qiu, Yuan Zhang, Xi Tang, Lingxi Xie, Tianren Ma, Pengyu Yan, David Doermann, Qixiang Ye, and Yunjie Tian. Artemis: Towards referential understanding in com-plex videos. In Advances in Neural Information Process-ing Systems , pages 114321–114347. Curran Associates, Inc., 2024. 3, 4 [41] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. Learning transferable visual models from natural language supervision. In Proceedings of the 38th International Conference on Machine Learning ,pages 8748–8763. PMLR, 2021. 2, 3 [42] Hanoona Rasheed, Muhammad Maaz, Sahal Shaji, Abdel-rahman Shaker, Salman Khan, Hisham Cholakkal, Rao M. Anwer, Eric Xing, Ming-Hsuan Yang, and Fahad S. Khan. Glamm: Pixel grounding large multimodal model. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 13009–13018, 2024. 2[43] Nikhila Ravi, Valentin Gabeur, Yuan-Ting Hu, Ronghang Hu, Chaitanya Ryali, Tengyu Ma, Haitham Khedr, Roman R¨ adle, Chloe Rolland, Laura Gustafson, Eric Mintun, Junt-ing Pan, Kalyan Vasudev Alwala, Nicolas Carion, Chao-Yuan Wu, Ross Girshick, Piotr Doll´ ar, and Christoph Feicht-enhofer. Sam 2: Segment anything in images and videos, 2024. 2, 3, 4, 1 [44] Chaitanya Ryali, Yuan-Ting Hu, Daniel Bolya, Chen Wei, Haoqi Fan, Po-Yao Huang, Vaibhav Aggarwal, Arkabandhu Chowdhury, Omid Poursaeed, Judy Hoffman, Jitendra Ma-lik, Yanghao Li, and Christoph Feichtenhofer. Hiera: A hi-erarchical vision transformer without the bells-and-whistles. In Proceedings of the 40th International Conference on Ma-chine Learning , pages 29441–29454. PMLR, 2023. 2, 3, 4 [45] Seonguk Seo, Joon-Young Lee, and Bohyung Han. Urvos: Unified referring video object segmentation network with a large-scale benchmark. In Computer Vision – ECCV 2020 ,pages 208–223, Cham, 2020. Springer International Publish-ing. 6, 7 [46] Shuai Shao, Zeming Li, Tianyuan Zhang, Chao Peng, Gang Yu, Xiangyu Zhang, Jing Li, and Jian Sun. Objects365: A large-scale, high-quality dataset for object detection. In 
+
+2019 IEEE/CVF International Conference on Computer Vi-sion (ICCV) , pages 8429–8438, 2019. 5 [47] Ye Sun, Hao Zhang, Henghui Ding, Tiehua Zhang, Xingjun Ma, and Yu-Gang Jiang. Sama: Towards multi-turn referen-tial grounded video chat with large language models. arXiv preprint arXiv:2505.18812 , 2025. 1, 2 [48] Zongheng Tang, Yue Liao, Si Liu, Guanbin Li, Xiaojie Jin, Hongxu Jiang, Qian Yu, and Dong Xu. Human-centric spatio-temporal video grounding with visual transformers. 
+
+IEEE Transactions on Circuits and Systems for Video Tech-nology , 32(12):8238–8249, 2022. 4, 1, 2 [49] Romal Thoppilan, Daniel De Freitas, Jamie Hall, Noam Shazeer, Apoorv Kulshreshtha, Heng-Tze Cheng, Alicia Jin, Taylor Bos, Leslie Baker, Yu Du, et al. Lamda: Language models for dialog applications. arXiv preprint arXiv:2201.08239 , 2022. 2 [50] Yunjie Tian, Lingxi Xie, Xiaopeng Zhang, Jiemin Fang, Haohang Xu, Wei Huang, Jianbin Jiao, Qi Tian, and Qixiang Ye. Semantic-aware generation for self-supervised visual representation learning. arXiv preprint arXiv:2111.13163 ,2021. 2 [51] Yunjie Tian, Lingxi Xie, Zhaozhi Wang, Longhui Wei, Xi-aopeng Zhang, Jianbin Jiao, Yaowei Wang, Qi Tian, and Qixiang Ye. Integrally pre-trained transformer pyramid net-works. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 18610–18620, 2023. 2 [52] Yunjie Tian, Tianren Ma, Lingxi Xie, Jihao Qiu, Xi Tang, Yuan Zhang, Jianbin Jiao, Qi Tian, and Qixiang Ye. Chatter-box: Multi-round multimodal referring and grounding. arXiv preprint arXiv:2401.13307 , 2024. 2 [53] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timoth´ ee Lacroix, Baptiste Rozi` ere, Naman Goyal, Eric Hambro, Faisal Azhar, et al. Llama: Open and efficient foundation language models. 
+
+arXiv preprint arXiv:2302.13971 , 2023. 2 [54] Jiaqi Wang, Pan Zhang, Tao Chu, Yuhang Cao, Yujie Zhou, Tong Wu, Bin Wang, Conghui He, and Dahua Lin. V3det: Vast vocabulary visual detection dataset. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pages 19844–19854, 2023. 5 [55] Wenhai Wang, Zhe Chen, Xiaokang Chen, Jiannan Wu, Xizhou Zhu, Gang Zeng, Ping Luo, Tong Lu, Jie Zhou, Yu Qiao, and Jifeng Dai. Visionllm: Large language model is also an open-ended decoder for vision-centric tasks. In 
+
+Advances in Neural Information Processing Systems , pages 61501–61513. Curran Associates, Inc., 2023. 2 [56] Weihan Wang, Qingsong Lv, Wenmeng Yu, Wenyi Hong, Ji Qi, Yan Wang, Junhui Ji, Zhuoyi Yang, Lei Zhao, Xixuan Song, Jiazheng Xu, Keqin Chen, Bin Xu, Juanzi Li, Yuxiao Dong, Ming Ding, and Jie Tang. Cogvlm: Visual expert for pretrained language models. In Advances in Neural Infor-mation Processing Systems , pages 121475–121499. Curran Associates, Inc., 2024. 2 [57] Yi Wang, Kunchang Li, Xinhao Li, Jiashuo Yu, Yinan He, Guo Chen, Baoqi Pei, Rongkun Zheng, Zun Wang, Yansong Shi, Tianxiang Jiang, Songze Li, Jilan Xu, Hongjie Zhang, Yifei Huang, Yu Qiao, Yali Wang, and Limin Wang. Intern-video2: Scaling foundation models for multimodal video un-derstanding. In Computer Vision – ECCV 2024 , pages 396– 416, Cham, 2025. Springer Nature Switzerland. 3 [58] Shiyu Xuan, Qingpei Guo, Ming Yang, and Shiliang Zhang. Pink: Unveiling the power of referential comprehension for multi-modal llms. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition (CVPR) ,pages 13838–13848, 2024. 2 [59] Haobo Yuan, Xiangtai Li, Tao Zhang, Zilong Huang, Shilin Xu, Shunping Ji, Yunhai Tong, Lu Qi, Jiashi Feng, and Ming-Hsuan Yang. Sa2va: Marrying sam2 with llava for dense grounded understanding of images and videos. arXiv preprint arXiv:2501.04001 , 2025. 1, 2, 3, 4 [60] Aohan Zeng, Xiao Liu, Zhengxiao Du, Zihan Wang, Hanyu Lai, Ming Ding, Zhuoyi Yang, Yifan Xu, Wendi Zheng, Xiao Xia, et al. Glm-130b: An open bilingual pre-trained model. 
+
+arXiv preprint arXiv:2210.02414 , 2022. 2 [61] Hang Zhang, Xin Li, and Lidong Bing. Video-llama: An instruction-tuned audio-visual language model for video un-derstanding. arXiv preprint arXiv:2306.02858 , 2023. 2 [62] Li Zhang, Haoxiang Gao, Zhihao Zhang, Luoxiao Huang, and Tao Zhang. Svac: Scaling is all you need for referring video object segmentation. arXiv preprint arXiv:2509.24109 , 2025. 1, 2 [63] Susan Zhang, Stephen Roller, Naman Goyal, Mikel Artetxe, Moya Chen, Shuohui Chen, Christopher Dewan, Mona Diab, Xian Li, Xi Victoria Lin, et al. Opt: Open pre-trained trans-former language models. arXiv preprint arXiv:2205.01068 ,2022. 2 [64] Shilong Zhang, Peize Sun, Shoufa Chen, Min Xiao, Wenqi Shao, Wenwei Zhang, Yu Liu, Kai Chen, and Ping Luo. Gpt4roi: Instruction tuning large language model on region-of-interest. In Computer Vision – ECCV 2024 Workshops ,pages 52–70, Cham, 2025. Springer Nature Switzerland. 1, 2[65] Xiaosong Zhang, Yunjie Tian, Lingxi Xie, Wei Huang, Qi Dai, Qixiang Ye, and Qi Tian. Hivit: A simpler and more efficient design of hierarchical vision transformer. In The Eleventh International Conference on Learning Representa-tions , 2023. 2 [66] Zhu Zhang, Zhou Zhao, Yang Zhao, Qi Wang, Huasheng Liu, and Lianli Gao. Where does it exist: Spatio-temporal video grounding for multi-form sentences. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition (CVPR) , 2020. 2, 4, 6, 7 [67] Bin Zhu, Bin Lin, Munan Ning, Yang Yan, Jiaxi Cui, HongFa Wang, Yatian Pang, Wenhao Jiang, Junwu Zhang, Zongwei Li, et al. Languagebind: Extending video-language pretrain-ing to n-modality by language-based semantic alignment. 
+
+arXiv preprint arXiv:2310.01852 , 2023. 2 [68] Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai. Deformable detr: Deformable trans-formers for end-to-end object detection. arXiv preprint arXiv:2010.04159 , 2020. 4, 5 SPARROW : Learning Spatial Precision and Temporal Referential Consistency in Pixel-Grounded Video MLLMs 
+
+# Supplementary Material 
+
+• TSF Datasets (Appendix A) • Details on Evaluation Setup (Appendix B) • Qualitative Analysis (Appendix C) • TSF Usage, Tradeoff, and Design (Appendix D) • Comparison of Proposal Head Variants (Appendix E) • Compute, Training, and Overhead (Appendix F) 
+
+## A. TSF Datasets 
+
+To supervise TSF and dual-prompt grounding at scale, we curate a unified video benchmark tailored for referential un-derstanding and fine-grained segmentation. We aggregate seven publicly available datasets, HC-STVG [48], VID-Sentence [7], A2D Sentences [15], LaSOT [14], MeViS [12], GOT-10k [17], and Ref-SAV [43, 59], and process them with a common offline pipeline, yielding a corpus of 30,646 video sequences and 45,231 question–answer pairs. In all cases, we standardize annotations into (video, refer-ring text, trajectory, mask) tuples and precompute TSF to-kens for SPARROW. 
+
+HC-STVG. [48] contains movie clips with tracking se-quences and natural language descriptions of a person over specific temporal intervals. We use the official training split (∼10K clips) for TSF pretraining and the validation split for evaluation. The original tracking annotations are often noisy, so we regenerate trajectories using GroundingDINO [31] plus CLDTracker [2]. Specifically, we: (i) detect the referent in annotated key frames with GroundingDINO, (ii) track the detected region across the whole clip with CLD-Tracker to obtain dense trajectories, and (iii) compare re-generated boxes with the HC-STVG ground truth, discard-ing frames whose IoU falls below a threshold. The resulting cleaned tracks are then fed to SAM2 [43] to obtain dense masks and to our TSF pipeline (Sec. 3.2) to generate com-pact tracked tokens. 
+
+A2D Sentences. [15] provides short tracking sequences (often only a few frames) and textual descriptions for mul-tiple actors in each clip. To expose TSF to longer tempo-ral context, we start from the annotated boxes and re-track the referent using CLDTracker, extending trajectories to up to 20 frames where possible. As in HC-STVG, we filter low-IoU frames, convert masks from SAM2 into bounding boxes for box-level supervision, and keep the dense masks for segmentation and TSF supervision. 
+
+LaSOT. [14] offers long-term tracking sequences with a single caption describing the target object across the entire video. Since captions are generic and sequences are long, we sub-sample each video into three non-overlapping 10-second segments (fixed-length frame windows) anchored around the target trajectory. Each segment inherits the origi-nal caption but is paired with the segment-specific trajectory and masks (obtained via GroundingDINO + CLDTracker + SAM2). This turns each long sequence into several shorter, more focused referential clips. 
+
+MeViS. [12] provides videos with dense referring segmen-tation masks and language expressions. We directly use the official splits, convert the per-frame masks into bounding boxes for proposal-level supervision, and keep the original masks for TSF and dual-prompt training. Since trajectories are already stable, we only run CLDTracker when annota-tions are sparse or missing in intermediate frames, ensuring temporally continuous supervision. 
+
+VID-Sentence. [7] contains videos with sentence-level de-scriptions and sparse annotations. We keep the original tem-poral spans and regenerate trajectories from a single anno-tated frame per instance using GroundingDINO and CLD-Tracker. SAM2 is then applied to produce per-frame masks consistent with the tracked boxes. No additional temporal cropping is used beyond trimming to the annotated span. 
+
+GOT-10k. [17] is a tracking benchmark with category, mo-tion, and attribute labels for each tracked object. Following prior work, we convert these labels into natural language de-scriptions by concatenating them into short sentences (e.g., 
+
+“a bear is slowly walking” ). The provided trajectories are treated as initial boxes; we run SAM2 to obtain dense masks and apply our TSF pipeline to select a compact subset of representative regions via K-means clustering in the joint visual–spatial feature space. 
+
+Ref-SAV. [43, 59] offers long videos with referring expres-sions and high-quality SAM2-based masks. We treat Ref-SAV as a high-quality source of dense referential supervi-sion: masks are converted into bounding boxes, trajectories are inferred from mask centroids, and TSF tokens are gen-erated from cropped regions without additional tracking. 
+
+Offline TSF Pipeline. For all datasets, we run a unified of-fline pipeline that decouples heavy computation from train-ing. Given a video and its referring expression, we: (i) de-tect the referent in one or more key frames with Ground-ingDINO, (ii) track detections through the clip with CLD-Tracker to obtain dense trajectories, (iii) crop tracked re-gions and encode them with the spatial encoder, (iv) apply K-means clustering to select K diverse appearances per tra-jectory, and (v) project the selected features into the LLM space as TSF tokens ZTSF (Sec. 3.2). Optionally, we invoke SAM2 on the tracked boxes to generate per-frame masks, which are stored alongside trajectories for segmentation su-pervision. 
+
+Question–Answer Construction. To convert the cu-rated corpus into training samples suitable for SPAR-ROW, we transform each (video, trajectory, mask, de-scription) tuple into one or more question–answer pairs. We use a small pool of hand-crafted referential tem-plates, such as ‘‘What is the <region> doing during this video?’’ . For all datasets we use the caption or description directly as the answer, without modi-fication. During training, we randomly sample a referential template and fill in the region placeholder, producing di-verse yet standardized QA prompts. The final TSF dataset contains 30,646 video clips and 45,231 question–answer pairs. 
+
+> Table 6. Curated datasets used to construct our TSF dataset.
+
+Dataset Video Clips Q&A Pairs 
+
+HC-STVG [48] 10105 10105 MeViS [12] 1644 4489 A2D Sentences [15] 2508 5359 LaSOT [14] 2640 7920 VID-Sentence [7] 4045 7654 GOT-10k [17] 8195 8195 Ref-SAV [43, 59] 1509 1509 TSF Dataset 30646 45231 
+
+## B. Evaluation Setup 
+
+VideoGLaMM. VideoGLaMM [38] is a video-centric MLLM designed for dense pixel-level grounding. It em-ploys a dual spatio-temporal vision encoder consisting of (i) a CLIP ViT-L/14 image backbone for high-resolution spatial features and (ii) an InternVideo2-based temporal en-coder for long-range motion modeling. Both streams are projected into the LLM token space via learnable V →Ladapters and fused with text tokens in a Phi-3 Mini LLM (LoRA-tuned). Grounding is triggered using a special 
+
+<SEG> token. For mask prediction, VideoGLaMM uses a SAM2-based spatio-temporal decoder that consumes L →V-transformed LLM embeddings along with multi-scale fea-tures from a frozen ViT encoder. Training is end-to-end, combining LLM cross-entropy on grounded captions with IoU-based mask losses. 
+
+GLUS. GLUS [28] is an MLLM-based RVOS framework that integrates global and local temporal reasoning. Built on LISA-7B with a SAM2 mask decoder, GLUS divides the video into context frames (uniformly sampled to capture global semantics) and query frames (short temporal win-dows used for mask prediction). The LLM autoregressively outputs frame-wise [SEG] tokens conditioned on the text query, context frames, and prior query frames. These tokens are decoded into masks using a SAM2 decoder enhanced with an end-to-end learnable memory bank, enabling long-term temporal modeling without an external VOS propaga-tor. GLUS further improves language–object alignment via an object-level contrastive loss over [SEG] tokens and em-ploys a self-refined key-frame selector trained from its own pseudo-IoU confidence. 
+
+UniPixel. UniPixel [32] is a unified pixel-grounded MLLM that couples Qwen2.5-VL with a ViT-based visual en-coder and a SAM2.1 segmentation head. It encodes vi-sual prompts (points, boxes, masks) into single tokens via Fourier positional encodings combined with temporal em-beddings, allowing the LLM to reason over structured vi-sual cues. A central component is the object memory bank, a hashmap storing spatio-temporal object masks. Upon encountering <REF> tokens, the model performs memory pre-fill, segmenting all referenced objects and writing them to memory. During subsequent turns, <MEM> tokens in-ject object-level features back into the LLM, enabling ro-bust multi-turn and multi-object reasoning. Segmentation is produced via a SAM2 decoder conditioned on downsam-pled <SEG> token embeddings. UniPixel is trained through a three-stage alignment pipeline over 851k regional cap-tioning, 87k referring segmentation, and 1M mixed pixel-level reasoning samples, using a combination of LM loss, focal/dice loss, MAE, and objectness supervision. 
+
+## C. Qualitative Analysis 
+
+C.1. Referring Video Object Segmentation (RVOS) 
+
+MeViS. Fig. 7 shows a case where the motion-centric query “rabbit moving from middle to left” requires distinguish-ing between two nearly identical rabbits in the same scene. VideoGLaMM, GLUS, and UniPixel often drift onto the stationary rabbit or partially fuse both instances, indicating difficulty maintaining identity under appearance similarity and occlusion. Our SPARROW isolates the correct rabbit throughout the sequence, preserving mask continuity even when the target moves through clutter. This demonstrates the benefit of our dual-prompt grounding and motion-aware temporal cues for queries that hinge on fine motion differ-ences. Fig. 8 presents a multi-object scenario with the expres-sion “the three horses are moving in the water.” The meth-ods compared struggle to maintain three distinct trajecto-ries: VideoGLaMM and GLUS frequently merge adjacent horses, while UniPixel intermittently loses instances during overlap or viewpoint changes. Our SPARROW keeps all three horses separated and stable across the entire clip, even during heavy interaction. This indicates that our grounding mechanism handles coordinated multi-object motion more reliably than prior pixel-grounding models. Fig. 9 highlights a more dynamic interaction: “the two zebras playfully chasing each other.” The fast motion, re-What is "rabbit moving from middle to left" in this video? Respond with segmentation masks. 
+
+> VideoGLaMM Ours  UniPixel  GLUS  Groundtruth
+
+Figure 7. Qualitative comparison on the MeViS RVOS task. Given the motion-centric query “rabbit moving from middle to left,” our method correctly grounds the intended rabbit from the first frame and maintains its identity throughout the entire sequence, despite the presence of multiple appearance-similar distractors. It produces temporally stable masks with clean boundaries and consistent spatial localization even under close interactions between the rabbits. In contrast, VideoGLaMM, UniPixel, and GLUS frequently drift between rabbits, mix identities, or generate unstable masks across frames. The strong referential grounding of our approach enables precise, distraction-robust tracking and segmentation of the queried rabbit across all frames. What is "the three horses are moving in the water" in this video? Respond with segmentation masks. 
+
+> VideoGLaMM Ours  UniPixel  GLUS  Groundtruth
+
+Figure 8. Qualitative comparison on the MeViS RVOS task. For the query “the three horses are moving in the water,” our method accurately grounds all three horses from the first frame and preserves their individual identities throughout the entire sequence. It maintains clean instance separation, stable temporal masks, and sharp boundaries even as the horses move closely, interact, and occlude one another. In contrast, VideoGLaMM, UniPixel, and GLUS frequently merge instances, lose one or more horses across frames, or produce inconsistent and drifting masks. The strong multi-instance grounding of our approach enables reliable segmentation and tracking of all three horses as distinct, temporally consistent targets. What is "the two zebras playfully chasing each other" in this video? Respond with segmentation masks. 
+
+> VideoGLaMM Ours  UniPixel  GLUS  Groundtruth
+
+Figure 9. Qualitative comparison on the MeViS RVOS task. For the query “the two zebras playfully chasing each other,” our method accurately grounds both zebras from the first frame and preserves their identities throughout the sequence, despite rapid motion, tight interaction, and repeated occlusions. It maintains clear instance separation, stable temporal masks, and precise spatial localization under fast, dynamic behavior. In contrast, VideoGLaMM, UniPixel, and GLUS frequently merge the two zebras, lose one during high-motion frames, or produce unstable and drifting masks. Our approach delivers robust multi-instance grounding and consistent segmentation of both zebras as distinct targets across the entire video. What is "a black bird flying highest to the left" in this video? Respond with segmentation masks. 
+
+> VideoGLaMM Ours  UniPixel  GLUS  Groundtruth
+
+Figure 10. Qualitative comparison on the Ref-YTVOS RVOS task. For the query “a black bird flying highest to the left,” our method reliably grounds the correct bird from the first frame and maintains accurate tracking throughout the sequence, despite the densely packed flock and rapid aerial motion. It preserves clean spatial localization and stable masks even when multiple birds share nearly identical appearances and flight patterns. In contrast, VideoGLaMM, GLUS, and UniPixel frequently drift to neighboring birds, lose the target under fast movement, or produce inconsistent and flickering masks. Our approach demonstrates strong referential grounding and robust temporal consistency in challenging multi-instance, motion-heavy scenarios. Can you segment "a largest orange goldfish" , "an orange goldfish in the center next to 
+
+## the largest fish" , "a smallest goldfish" , "a goldfish at the end" , and "a goldfish at the 
+
+## bottom" ?   
+
+> VideoGLaMM Ours  Groundtruth Figure 11. Qualitative comparison on the Ref-DAVIS17 RVOS task. Given multiple appearance-based prompts targeting distinct goldfish (“largest,” “smallest,” “center,” “end,” “bottom”), our method accurately grounds each described instance from the first frame and maintains clear separation throughout the sequence. It preserves stable masks, fine-grained localization, and consistent identities even when the fish exhibit similar colors, overlapping motion, and close interactions. In contrast, VideoGLaMM frequently merges instances, confuses similarly colored fish, or produces unstable and drifting segmentations. Our approach demonstrates strong referential grounding under simultaneous multi-query conditions, delivering reliable instance-specific masks across the entire sequence.
+
+peated occlusions, and near-identical appearance make this a failure point for existing methods. VideoGLaMM tends to focus on a single zebra; UniPixel shows unstable bound-aries and occasional identity swaps; GLUS often collapses both zebras into one mask. Our SPARROW keeps the two zebras separated throughout, even as they cross paths. This example underscores the advantage of our instance-aware temporal modeling in scenes where motion and appearance cues are both ambiguous. 
+
+Ref-YTVOS. Fig. 10 features a dense flock scenario with the query “a black bird flying highest to the left.” The scene contains many visually similar birds with overlapping mo-tion and strong blur, making appearance-based discrimina-tion unreliable. VideoGLaMM and GLUS frequently jump to nearby birds with similar trajectories, and their masks destabilize as the flock spreads. UniPixel occasionally iden-tifies the correct target but struggles to maintain identity during fast movement, often switching to birds at compa-rable heights. SPARROW consistently isolates the correct bird across the entire sequence. It maintains identity despite intersecting flight paths and brief occlusions, showing that the model can track a specific target even when spatial cues are subtle and temporal ambiguity is high. This example highlights SPARROW’s advantage in large, multi-instance scenes where appearance similarity and rapid motion typi-cally cause grounding failures. 
+
+Ref-DAVIS17. Fig. 11 shows a multi-query example in-volving several goldfish described by appearance and posi-tion (largest, smallest, center, end, bottom). VideoGLaMM produces overlapping masks and inconsistent instance sep-aration, struggling to honor size- and location-based cues when the fish cluster tightly or share similar color. SPAR-ROW cleanly distinguishes all five targets, maintaining boundaries even under occlusion and subtle pose changes. This demonstrates the model’s ability to resolve fine-grained appearance references without collapsing instances. Fig. 12 presents another multi-object case with three ex-pressions: “a back shooting gun,” “a black man,” and “a rope.” GLUS frequently produces masks that bleed across object boundaries, especially for thin structures such as the gun barrel and rope, and it occasionally merges the person with surrounding objects. SPARROW delivers sharp, stable masks for all three referents. The gun remains well-defined even during muzzle-flash frames, the person is consistently localized through large pose changes, and the rope retains its structure without fragmentation. This example high-lights SPARROW’s improved precision on small or elon-gated objects. Fig. 13 shows an example with two linked appearance-based queries: “a man in a suit riding a scooter” and “a black scooter ridden by a man.” UniPixel often produces fragmented masks, struggles to capture the full geometry Can you segment "a back shooting gun" , "a black man" , and "a rope" ?
+
+> GLUS Ours  Groundtruth
+
+Figure 12. Qualitative comparison on the Ref-DAVIS17 RVOS task. For the queries “a back shooting gun,” “a black man,” and “a rope,” our method cleanly grounds all three described targets from the first frame and maintains precise, instance-specific masks throughout the sequence. It preserves accurate boundaries and stable localization even on thin or small objects such as the gun barrel and rope. In contrast, GLUS produces unstable, overlapping masks, frequently blending instances or losing fine structural details under motion and occlusion. Our approach demonstrates stronger fine-grained appearance grounding and consistent multi-object separation across all frames. Can you segment "a man in a suit riding a scooter" , and "a black scooter ridden by a 
+
+## man" ?
+
+> UniPixel Ours  Groundtruth
+
+Figure 13. Qualitative comparison on Ref-DAVIS17 (RVOS). For the expressions “a man in a suit riding a scooter” and “a black scooter ridden by a man,” our method accurately grounds both the rider and scooter from the first frame and maintains stable, instance-consistent masks throughout the sequence, preserving sharp boundaries despite significant motion and viewpoint changes. In contrast, UniPixel produces fragmented masks, inconsistent localization, and frequent structural loss. Our approach demonstrates stronger appearance-based grounding and greater robustness to multi-object consistency across frames. 
+
+of the scooter, and inconsistently localizes the rider during viewpoint changes. SPARROW maintains coherent masks for both the rider and the scooter across the entire clip, pre-serving structural details such as the rear wheel and handle-bar region. The model consistently assigns each query to the correct instance despite motion, partial occlusion, and background variation, illustrating stronger appearance con-sistency and temporal stability. What is the adult in pink wear hold? Please respond with segmentation masks. 
+
+> VideoGLaMM Ours  Groundtruth
+
+Figure 14. Qualitative comparison on the VidSTG VG task. For the query “What is the adult in pink wear hold?,” our method consistently grounds the correct object—the orange cup—from the first frame and maintains accurate, stable masks despite hand motion, partial occlusions, and frequent interaction among multiple people. It preserves precise spatial extent and clean boundaries across the entire sequence. In contrast, VideoGLaMM produces drifting or incomplete masks and struggles to maintain consistent localization of the held object during motion. Our approach demonstrates strong spatio-temporal grounding and reliable object tracking on VidSTG. Can you segment the child in pink in this video? 
+
+> GLUS Ours  Groundtruth
+
+Figure 15. Qualitative comparison on the VidSTG VG task. For the query “the child in pink,” our method accurately segments the correct child from the first frame and maintains stable masks throughout the sequence, preserving clean boundaries and consistent localization despite rapid motion, occlusions, and nearby interactions. In contrast, GLUS often drifts to other people or yields incomplete, unstable masks under motion, whereas our approach remains robust to distractors and maintains stronger temporal consistency. 
+
+C.2. Visual Grounding 
+
+Fig. 14 illustrates a grounding query from VidSTG: “What is the adult in pink wear hold?” The task requires identify-ing the adult in pink and localizing the object she is holding across the sequence. VideoGLaMM frequently produces in-complete or drifting masks, especially when the hands par-tially occlude the object or the viewpoint shifts. SPAR-ROW consistently identifies the correct object, an orange cup, with clear boundaries and stable localization through-out the clip, demonstrating reliable spatio-temporal ground-ing under subtle hand–object interactions. Fig. 15 presents a second grounding scenario involving the referent “the child in pink.” The scene includes multi-ple interacting children and adults, frequent occlusions, and rapid motion. GLUS exhibits noticeable drift, intermittently switching to nearby individuals or failing to capture the full extent of the target during pose changes. SPARROW main-Who is the man on the far left? Please respond with segmentation masks.   
+
+> UniPixel Ours  Groundtruth Figure 16. Qualitative comparison on the VidSTG VG task. For the query “Who is the man on the far left?,” our method accurately grounds the correct individual from the first frame and preserves consistent identity assignments throughout the sequence, even during dense group interactions and frequent occlusions. It maintains stable masks and precise spatial localization across all frames. In contrast, UniPixel exhibits identity drift and inconsistent mask assignment, especially in cluttered moments with overlapping people. Our approach demonstrates stronger temporal grounding and robust identity preservation in challenging crowd scenarios.
+
+tains a stable, identity-consistent mask across the entire se-quence, tracking the correct child even during occlusion and close-proximity interactions. This example highlights SPARROW’s robustness to distractors and improved tem-poral coherence in cluttered environments. Finally, Fig. 16 illustrates the query “Who is the man on the far left?” , which requires maintaining identity un-der subtle pose changes in a crowded scene. UniPixel of-ten shifts to adjacent individuals when poses or gestures are similar, causing identity switches and unstable bound-aries. In contrast, SPARROW maintains the correct ref-erent throughout, producing clean masks anchored to the intended individual despite crowd motion and visual ambi-guity. This example highlights its robustness in identity-sensitive grounding with multiple similar candidates. 
+
+C.3. Video Grounded Conversation Generation (Video GCG) 
+
+Fig. 17 shows a clip where a woman in an orange shirt prepares ingredients by placing a potato in water, chop-ping more potatoes, and transferring them into a pot. VideoGLaMM generates a fluent narrative but frequently attributes actions that are not supported by the visual evi-dence, and its grounding does not reliably match the ma-nipulated objects. GLUS fails to produce any grounded re-sponse, returning only [SEG] . UniPixel provides a coarse description but overlooks several action transitions and under-segments tool–hand interactions. In contrast, SPAR-ROW accurately follows the sequence, generating grounded text aligned with each sub-action and maintaining precise masks on hands, utensils, and ingredients. This example highlights SPARROW’s ability to couple fine-grained tem-poral actions with pixel-level grounding for grounded con-versation generation. 
+
+## D. TSF Usage, Tradeoff, and Design 
+
+D.1. TSF Test-time Overhead 
+
+Relative to the baselines, enabling TSF adds (1) a single GroundingDINO pass on the first frame (batched multi-prompt inference), (2) a CLDTracker pass per frame per target, (3) CLIP ViT-L/14@336 crop-feature extraction per frame per target (batched on GPU), (4) lightweight K-means clustering per target ( K=4 centroids), (5) a V →Lprojection generating four TSF tokens per target, and (6) four additional LLM tokens per target. On an A100, the empirical latency is well approximated by ∆tTSF (n, T ) ≈
+
+0.093 + 0 .020 n T s, where n and T denote the num-ber of tracked targets and frames, respectively. The de-tailed component-wise breakdown is summarized in Ta-ble 7. The cost scales linearly with both n and T , domi-nated by CLDTracker and CLIP crops, while all other com-ponents are negligible ( < 5 ms total). For n=3 , T =300 
+
+(10 s at 30 FPS), the added time is ≈ 18 .1 s ( ∼60 ms/frame, or 20 ms/target/frame). 
+
+D.2. Accuracy–Latency Tradeoff (Train-only vs. Train+Inference) 
+
+The quantitative comparison of TSF usage modes is re-ported in the main paper. Training-only TSF improves VideoGLaMM Ours  UniPixel  GLUS     
+
+> In this video, a woman wearing apronis observed placing a potato in water, cutting several potatoes on a cutting board, and putting them in a pot
+> filled with water. The woman is standing behind a table where she is displaying the ingredients and performing these tasks.
+
+[SEG] 
+
+A woman in orange standing at a table. She puts a potato in water, cuts more potatoes, and then puts the pieces into a pot of water. 
+
+A woman in an orange shirt cuts potatoes into pieces, puts them in a pot of water, and covers it with a lid .Figure 17. Qualitative comparison on the Video GCG task. In a cooking sequence where a woman places a potato in water, chops additional potatoes, and transfers the pieces into a pot, our method maintains accurate pixel-level grounding of all manipulated objects across the full series of actions. It produces a coherent, temporally aligned description that faithfully reflects each step of the manipulation process. In contrast, VideoGLaMM generates fluent but loosely grounded narratives, GLUS fails to produce a meaningful grounded response, and UniPixel captures only coarse actions while struggling with temporal transitions and hand–object interactions. Our approach demonstrates robust spatio-temporal grounding and precise correspondence between language and visual evidence throughout the sequence. Table 7. Component-wise analysis: TSF overhead at test time on A100. 
+
+Component Per-unit latency Count Added time (s) Vision + Tracking 
+
+GroundingDINO (first frame) 90 ms 1 0.090 
+
+CLDTracker 18 ms / frame / target nT 0.018 nT 
+
+CLIP ViT-L/14@336 (crops) 2 ms / crop (batched) nT 0.002 nT 
+
+Token construction + LLM 
+
+K-means clustering ( K=4 ) < 1 ms / target n ≈ 0
+
+V→L projection (4 n tok.) 0.1 ms / token 4n 0.0004 n
+
+LLM extra sequence (+4 n tok.) 0.5–1 ms / token 4n 0.003 n
+
+Total ∆tTSF (n, T ) ≈ 0.093 + 0 .020 nT 
+
+J &F by +2.9 without any inference-time tracking, indi-cating that pseudo-tracked supervision teaches target per-sistence and reduces identity switches; when combined with [BOX] , the gain increases to +7.3 while remaining overhead-free. Train+inference TSF achieves the high-est score (77.7, +8.2) but incurs the additional tracking and token-construction overhead summarized in Table 7. The extra gain reflects the benefit of supplying temporally grounded identity cues directly during decoding, especially for longer sequences where geometric drift accumulates. In practice, Train-only TSF is the default choice for latency-sensitive settings, while inference-time TSF can be enabled when maximum temporal stability outweighs the overhead. 
+
+When to Enable TSF at Inference By default we use 
+
+Train-only TSF , i.e., TSF is used during training but omit-ted at inference. TSF-at-inference is most beneficial un-der challenging temporal conditions: (i) occlusion and re-appearance, (ii) fast motion or motion blur, (iii) small or fragile targets, and (iv) crowded scenes with similar dis-tractors. Fig. 18 shows a representative example where inference-time TSF reduces target dropout and drift. When Can you segment the "red bmx bike" , and the "boy" ?
+
+> W/O TSF W/ TSF  Groundtruth
+
+Figure 18. When to enable TSF at inference (qualitative). Query: segment the “red bmx bike” and the “boy”. TSF Off (default) : the small/fragile referent (bike) is prone to target dropout and drift/false positives as the target becomes small or partially occluded. TSF On (optional max-stability): TSF provides a tracked, target-specific identity cue at inference, preserving consistent referent segmentation. Table 8. When to enable TSF at inference.       
+
+> Scenario Recommendation
+> Short/simple clips, limited motion Keep TSF off Fast motion or motion blur Enable TSF if accuracy is critical Occlusion and re-appearance Enable TSF Small or fragile targets Enable TSF if target dropout is likely Crowded scenes with similar distractors Enable TSF
+
+enabled, the added cost is approximately ∼20 ms per target per frame on A100 (Table 7). Practical guidance is summa-rized in Table 8. This provides a simple accuracy–latency knob: keep TSF off at inference by default and enable it only when additional stability is critical. 
+
+D.3. TSF Injection Path Ablation 
+
+In SPARROW, TSF tokens are extracted from tracked re-gion crops, encoded by the spatial visual encoder, and pro-jected into the LLM space through the spatial V–L projec-tor. This design is intentional: TSF is intended to serve as an object-centric appearance and identity cue, and its feature distribution is therefore naturally aligned with the spatial stream. By contrast, the temporal V–L projector is optimized for global spatio-temporal video features rather than crop-level appearance features. To validate this design choice, we compare several TSF injection variants while keeping the rest of the pipeline unchanged: (i) No TSF ,where no TSF tokens are injected; (ii) spatial-only , where TSF is projected only through the spatial V–L projector; (iii) 
+
+temporal-only , where the same crop-based TSF features are projected through the temporal V–L projector; and (iv) 
+
+dual-path variants, which combine both projectors either by concatenation or summation. Table 9 shows that spatial-only performs best. Project-ing crop-based TSF features through the temporal projector 
+
+Table 9. TSF injection path ablation on Ref-DAVIS17 (val). We vary only the TSF projection path. “tok.” denotes the number of additional TSF tokens per target.                           
+
+> TSF projection design Extra tok. J&F ↑
+> No TSF 072.5 Temporal-only: Wh(Fg(Bj)) +4 72.5 Dual-path (concat): [Wg(·); Wh(·)] +8 74.9 Dual-path (sum): Wg(·) + Wh(·)+4 74.7
+> Spatial-only (ours) :Wg(Fg(Bj)) +4 76.8
+
+alone does not improve over the no-TSF baseline, suggest-ing that the temporal projection space is not well matched to object-centric supervision. Dual-path variants provide mod-erate gains, but remain below the spatial-only design, indi-cating that mixing projection spaces can introduce redun-dant or mismatched cues that weaken the identity signal. 
+
+D.4. Robustness to Noisy TSF Supervision 
+
+Since TSF supervision is constructed from pseudo-trajectories produced by GroundingDINO and CLDTracker, its quality may be affected by localization noise or occa-sional identity switches. We therefore stress-test robust-ness by corrupting only the training-time trajectories used for TSF extraction while keeping the model architecture, training schedules, and inference settings fixed. 
+
+Protocol. We evaluate on Ref-DAVIS17 (val) under the default Train-only TSF setting with [BOX] enabled. Only the teacher trajectories used to construct TSF tokens during training are corrupted; inference remains unchanged and does not use TSF tokens. 
+
+Corruption types. We consider three forms of corrup-tion: (1) Box jitter: per frame, the box center is randomly shifted and its width/height are randomly rescaled by a fac-Table 10. Robustness of SPARROW to noisy TSF supervision on Ref-DAVIS17 (val). We corrupt only the training-time teacher trajectories before TSF token extraction; the model architecture, training schedule, and inference setting remain unchanged. All re-sults use the default Train-only TSF setting with [BOX] enabled.                     
+
+> Corruption applied to training trajectories Level J&F ↑
+> None (clean TSF) –76.8 Box jitter (random shift/scale) ±5% 76.5
+> ±10% 76.0
+> ±20% 75.2 ID-switch injection (contiguous segments) 5% frames 76.1 10% frames 75.4 20% frames 74.3 Trajectory dropout (remove TSF tokens) 10% 76.6 30% 76.0 50% 75.0 No TSF baseline ( [BOX] on) –72.5
+
+tor controlled by p ∈ {5% , 10% , 20% }. (2) ID-switch injection: per trajectory, we replace contiguous trajectory segments whose total length is p% of frames with another trajectory from the same video, simulating identity mis-matches. (3) Trajectory dropout: TSF tokens are removed for a fraction p% of frames prior to TSF token construction. 
+
+Results. Table 10 shows that performance degrades gracefully as training-time TSF supervision becomes nois-ier. Under moderate corruption, SPARROW remains con-sistently above the No-TSF baseline, indicating that TSF does not require perfectly accurate teacher trajectories to be beneficial. For example, with 10% ID-switch injection, SPARROW achieves 75.4 J&F, which remains +2.9 above the No-TSF baseline (72.5). These results suggest that the TSF mechanism is robust to realistic supervision noise. 
+
+## E. Comparison of Proposal Head Variants 
+
+To justify our Transformer-based proposal module, we compare it with simpler alternatives under the same frozen-feature setting, where all methods operate on frozen SAM2 Hiera-L features. We evaluate: (i) Direct LLM coordi-nates , a proposer-free variant that predicts boxes directly from language outputs (Shikra-style); (ii) a single-box MLP regressor on pooled frozen visual features; and (iii) an anchor-free dense convolutional head (FCOS-style) with objectness, box offsets, and top-K selection. For com-pleteness, we also include DETR and Deformable-DETR 
+
+decoder heads. 
+
+Performance and efficiency. Table 11 shows that direct regression and shallow heads underperform under frozen vi-sual features, suggesting that this regime requires stronger proposal reasoning than a lightweight box predictor can provide. The anchor-free dense head improves over di-rect regression but remains below Transformer decoders 
+
+Table 11. Proposal generation variants (frozen SAM2 Hiera-L features). Performance on Ref-DAVIS17 (val) measured by 
+
+J &F. Latency is the incremental overhead of the proposal head only (feature extraction shared).                    
+
+> Method +Params (M) ↓+Latency (ms) ↓J&F ↑
+> Direct LLM coords (single box) 0.00 0.0 67.8 MLP regressor (single box) 0.35 0.4 68.5 Anchor-free conv head 1.90 1.2 70.4 DETR decoder head 12.33 6.2 71.2 Deformable-DETR decoder head (ours) 11.38 5.6 72.5
+
+in J &F. DETR-style proposers perform best overall, consistent with stronger class-agnostic objectness model-ing and improved proposal coverage. Among all variants, 
+
+Deformable-DETR achieves the best accuracy–efficiency tradeoff, improving over DETR while slightly reducing pa-rameters and latency. Notably, the added parameters remain negligible compared to the MLLM’s billion-param scale. 
+
+Proposal-set recall analysis. Because the language-conditioned filtering stage can only select from the avail-able proposals, any ground-truth object missed at this stage is unrecoverable. We therefore evaluate oracle recall, de-fined as whether any of the top-K predicted boxes overlap a ground-truth box above an IoU threshold. 
+
+Table 12. Proposal-set oracle recall under frozen SAM2 Hiera-L features. Recall@IoU measures whether any of the top-K boxes overlaps a GT box above the threshold.                   
+
+> Method KRecall@0.5 ↑Recall@0.75 ↑
+> Direct LLM coords (single box) 150.0 20.0 MLP regressor (single box) 155.0 28.0 Anchor-free conv head 300 86.0 60.0 DETR decoder head 300 90.0 65.0 Deformable-DETR decoder head (ours) 300 93.0 70.0
+
+As shown in Table 12, Transformer-based proposers achieve higher oracle recall than regression or dense pre-diction heads, yielding a higher-coverage candidate set for language-conditioned selection and refinement. This matches our design goal: the proposer maximizes candidate coverage, while the language module focuses on selecting and refining the correct region rather than compensating for missed detections. 
+
+## F. Compute, Training, and Overhead 
+
+F.1. Stage-wise Cost Analysis 
+
+SPARROW introduces two additional components relative to baseline video-MLLM pipelines: (i) a one-time offline TSF supervision generation stage and (ii) a short two-stage fine-tuning procedure. Using the latency model in Ap-pendix D.1, processing a typical clip ( n=1 , T =300 ) for TSF generation requires approximately ∼ 6.1 s (Table 7). This preprocessing step is executed once, is not part of the training loop, and does not affect default inference. Training proceeds in two stages: Stage 1 (TSF injection) ,where only multimodal adapters and LoRA parameters are optimized while the visual encoders and SAM2 decoder re-main frozen; and Stage 2 (Dual-prompt box grounding) ,where the proposal generator is frozen and only the [BOX ]
+
+adapter and filtration head are updated. 
+
+Table 13. Training cost breakdown for SPARROW. Offline TSF generation is one-time preprocessing and is not part of the training loop or default inference pipeline.                      
+
+> Component Wall-clock GPU-hours A100 GPU-days
+> Offline TSF precomputation (30,646 clips) 51.9 h (1 ×A100) 51.9 2.16 Baseline fine-tuning (per backbone) 10 h (8 ×A100) 80 3.33 Stage 1: TSF injection 12 h (8 ×A100) 96 4.00 Stage 2: Dual-prompt box learning 2 h (8 ×A100) 16 0.67
+> SPARROW training (S1 + S2) 14 h 112 4.67 Increment over baseline –+32 +1.34
+
+As shown in Table 13, the combined SPARROW train-ing (Stages 1+2) requires 112 GPU-hours (4.67 A100 GPU-days), corresponding to a modest +32 GPU-hours over baseline fine-tuning. To facilitate reproducibility, we re-lease precomputed TSF trajectories and tokens, eliminating the need to rerun detection and tracking. 
+
+Table 14. Execution summary across preprocessing, training, and inference.                      
+
+> Component Stage When executed Runtime cost
+> GroundingDINO + CLDTracker TSF generation Offline (one-time) ∼6.1 s / clip Crop encoding + K-means TSF generation Offline (one-time) included in total TSF cost TSF Injection (Stage 1) Training Per backbone ∼4.0 GPU-days Dual-Prompt Learning (Stage 2) Training Per backbone ∼0.67 GPU-days SPARROW inference (default) Inference Per video no external detector/tracker TSF-enabled inference (optional) Inference Per frame ∼20 ms / target / frame
+
+Table 14 clarifies when each component is executed. Heavy tracking modules (GroundingDINO and CLD-Tracker) are confined to the one-time TSF generation stage and are never invoked during default inference, preserv-ing the deployment characteristics of the underlying back-bone. TSF-at-inference remains an optional mode that adds 
+
+∼20 ms per target per frame (Table 7). 
+
+F.2. Inference Overhead 
+
+We evaluate the inference overhead of SPARROW under identical evaluation settings for each backbone. Unless oth-erwise stated, all measurements are obtained on a single A100 GPU with batch size 1, using the same input reso-lution, frame sampling strategy, clip length, decoding set-tings, and evaluation pipeline as in the main experiments. 
+
+Inference setting. By default, SPARROW does not use TSF during inference. Accordingly, GroundingDINO, CLDTracker, CLIP-based crop processing, and K-means selection are not executed at test time. The resulting runtime overhead comes only from the added dual-prompt modules and the class-agnostic proposal head. 
+
+Reported metrics. We report three quantities: (i) end-to-end throughput in frames per second (FPS), (ii) vision GFLOPs per frame for the modules executed at inference, and (iii) total parameter count. GFLOPs/frame includes the visual backbone/encoder, mask decoder, and SPAR-ROW heads/proposer, but excludes autoregressive LLM to-ken generation, as its cost depends on the output length. End-to-end FPS captures the full runtime impact, includ-ing decoding, and is measured by averaging over the Ref-DAVIS17 (val) evaluation pipeline. 
+
+Table 15. Inference overhead of SPARROW under identical evaluation settings. We report total parameters (in Billion), end-to-end FPS, and vision GFLOPs per frame. +SP denotes the back-bone augmented with SPARROW modules.                         
+
+> Backbone Params FPS GFLOPs/f +SP Params +SP FPS +SP GFLOPs/f
+> VideoGLaMM 5.435 2.40 38927 5.452 2.40 38962 UniPixel 3.881 15.38 1530 3.898 15.04 1565 GLUS 7.288 6.374 2680 7.305 6.29 2715
+
+Results. Table 15 shows that SPARROW introduces only modest inference overhead across all three backbones. The parameter increase is limited to +0.017B, while the through-put reduction is minor: VideoGLaMM is unchanged within measurement noise (2.40 →2.40 FPS), UniPixel drops from 15.38 to 15.04 FPS, and GLUS drops from 6.374 to 6.29 FPS. The increase in GFLOPs/frame is similarly small, in-dicating that the performance gains are not driven by sub-stantial additional test-time computation.

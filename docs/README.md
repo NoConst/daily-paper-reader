@@ -6,95 +6,73 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-19
-- 运行时间：2026-03-19 20:01:16 UTC
+- 最新运行日期：2026-03-20
+- 运行时间：2026-03-20 19:32:51 UTC
 - 运行状态：成功
-- 本次总论文数：25
-- 精读区：14
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日精选 25 篇前沿成果，深度解析多模态思维链（CoT）推理与统一语义建模的最新
-- 详情：[/202603/19/README](/202603/19/README)
+今日深度解析 17 篇多模态前沿论文，重点聚焦智能体工具链评估及农业、建筑等垂直领域的模型应用。
+VTC-Bench 填补了多模态工具链评估的空白，而 AgriChat 与建筑平面图生成研究展示了 MLLM 在专业场景的落地潜力。
+建议关注多模态模型如何通过思维分解（VisDoT）与工具化调用，从通用对话迈向解决复杂现实任务。
+- 详情：[/202603/20/README](/202603/20/README)
 
 ### 精读区论文标签
-1. [MCoT-MVS: Multi-level Vision Selection by Multi-modal Chain-of-Thought Reasoning for Composed Image Retrieval](/202603/19/2603.17360v1-mcot-mvs-multi-level-vision-selection-by-multi-modal-chain-of-thought-reasoning-for-composed-image-retrieval)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：大模型引导推理的组合图像检索
-2. [UniCom: Unified Multimodal Modeling via Compressed Continuous Semantic Representations](/202603/19/2603.10702v1-unicom-unified-multimodal-modeling-via-compressed-continuous-semantic-representations)  
+1. [VTC-Bench: Evaluating Agentic Multimodal Models via Compositional Visual Tool Chaining](/202603/20/2603.15030v2-vtc-bench-evaluating-agentic-multimodal-models-via-compositional-visual-tool-chaining)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：统一多模态建模与表示融合
-3. [Frequency-Modulated Visual Restoration for Matryoshka Large Multimodal Models](/202603/19/2603.11220v1-frequency-modulated-visual-restoration-for-matryoshka-large-multimodal-models)  
+   evidence：多模态大模型的组合视觉工具链
+2. [AgriChat: A Multimodal Large Language Model for Agriculture Image Understanding](/202603/20/2603.16934v1-agrichat-a-multimodal-large-language-model-for-agriculture-image-understanding)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：大型多模态模型中的视觉Token减少
-4. [Multi-Task Reinforcement Learning for Enhanced Multimodal LLM-as-a-Judge](/202603/19/2603.11665v1-multi-task-reinforcement-learning-for-enhanced-multimodal-llm-as-a-judge)  
+   evidence：用于农业图像理解的多模态大语言模型
+3. [From Drop-off to Recovery: A Mechanistic Analysis of Segmentation in MLLMs](/202603/20/2603.17228v1-from-drop-off-to-recovery-a-mechanistic-analysis-of-segmentation-in-mllms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型优化与评估
-5. [Intrinsic Concept Extraction Based on Compositional Interpretability](/202603/19/2603.11795v1-intrinsic-concept-extraction-based-on-compositional-interpretability)  
+   evidence：多模态大模型架构中空间理解的机制分析
+4. [PromptHub: Enhancing Multi-Prompt Visual In-Context Learning with Locality-Aware Fusion, Concentration and Alignment](/202603/20/2603.18891v1-prompthub-enhancing-multi-prompt-visual-in-context-learning-with-locality-aware-fusion-concentration-and-alignment)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：组合式且可解释的内在概念提取
-6. [SPARROW: Learning Spatial Precision and Temporal Referential Consistency in Pixel-Grounded Video MLLMs](/202603/19/2603.12382v1-sparrow-learning-spatial-precision-and-temporal-referential-consistency-in-pixel-grounded-video-mllms)  
+   evidence：多提示视觉上下文学习
+5. [MultihopSpatial: Multi-hop Compositional Spatial Reasoning Benchmark for Vision-Language Model](/202603/20/2603.18892v1-multihopspatial-multi-hop-compositional-spatial-reasoning-benchmark-for-vision-language-model)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：像素级视频多模态大模型架构与时间一致性
-7. [AVION: Aerial Vision-Language Instruction from Offline Teacher to Prompt-Tuned Network](/202603/19/2603.12659v1-avion-aerial-vision-language-instruction-from-offline-teacher-to-prompt-tuned-network)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：视觉语言适配的提示微调网络
-8. [HYDRA: Unifying Multi-modal Generation and Understanding via Representation-Harmonized Tokenization](/202603/19/2603.15228v1-hydra-unifying-multi-modal-generation-and-understanding-via-representation-harmonized-tokenization)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：统一多模态大模型的生成与理解
-9. [HYDRA: Unifying Multi-modal Generation and Understanding via Representation-Harmonized Tokenization](/202603/19/2603.15228v2-hydra-unifying-multi-modal-generation-and-understanding-via-representation-harmonized-tokenization)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：通过协调标记化统一多模态生成与理解
-10. [GAP-MLLM: Geometry-Aligned Pre-training for Activating 3D Spatial Perception in Multimodal Large Language Models](/202603/19/2603.16461v1-gap-mllm-geometry-aligned-pre-training-for-activating-3d-spatial-perception-in-multimodal-large-language-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型的几何对齐预训练
-11. [FineViT: Progressively Unlocking Fine-Grained Perception with Dense Recaptions](/202603/19/2603.17326v1-finevit-progressively-unlocking-fine-grained-perception-with-dense-recaptions)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型的视觉编码器
-12. [VLM2Rec: Resolving Modality Collapse in Vision-Language Model Embedders for Multimodal Sequential Recommendation](/202603/19/2603.17450v1-vlm2rec-resolving-modality-collapse-in-vision-language-model-embedders-for-multimodal-sequential-recommendation)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：VLM 作为推荐任务的多模态编码器
-13. [Temporal Gains, Spatial Costs: Revisiting Video Fine-Tuning in Multimodal Large Language Models](/202603/19/2603.17541v1-temporal-gains-spatial-costs-revisiting-video-fine-tuning-in-multimodal-large-language-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：MLLM 中的视频监督微调研究
-14. [FINER: MLLMs Hallucinate under Fine-grained Negative Queries](/202603/19/2603.17662v1-finer-mllms-hallucinate-under-fine-grained-negative-queries)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：MLLM 幻觉分析与微调优化
+   evidence：视觉语言模型的多跳组合空间推理基准
+6. [Noise-aware few-shot learning through bi-directional multi-view prompt alignment](/202603/20/2603.11617v1-noise-aware-few-shot-learning-through-bi-directional-multi-view-prompt-alignment)  
+   标签：评分：8.0/10、query:cir-ml
+   evidence：视觉语言模型中的提示微调与多视图提示对齐
 
 ### 速读区论文标签
-1. [GeoAlignCLIP: Enhancing Fine-Grained Vision-Language Alignment in Remote Sensing via Multi-Granular Consistency Learning](/202603/19/2603.09566v1-geoalignclip-enhancing-fine-grained-vision-language-alignment-in-remote-sensing-via-multi-granular-consistency-learning)  
+1. [A Simple Efficiency Incremental Learning Framework via Vision-Language Model with Nonlinear Multi-Adapters](/202603/20/2603.11211v1-a-simple-efficiency-incremental-learning-framework-via-vision-language-model-with-nonlinear-multi-adapters)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：预训练中的细粒度视觉语言对齐
-2. [Speech-Omni-Lite: Portable Speech Interfaces for Vision-Language Models](/202603/19/2603.09627v1-speech-omni-lite-portable-speech-interfaces-for-vision-language-models)  
+   evidence：通过带适配器的视觉语言模型进行增量学习
+2. [VisDoT : Enhancing Visual Reasoning through Human-Like Interpretation Grounding and Decomposition of Thought](/202603/20/2603.11631v1-visdot--enhancing-visual-reasoning-through-human-like-interpretation-grounding-and-decomposition-of-thought)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：为视觉语言主干扩展语音功能
-3. [Does the Question Really Matter? Training-Free Data Selection for Vision-Language SFT](/202603/19/2603.09715v1-does-the-question-really-matter-training-free-data-selection-for-vision-language-sft)  
+   evidence：用于视觉推理的思想分解提示词
+3. [Tokenization Allows Multimodal Large Language Models to Understand, Generate and Edit Architectural Floor Plans](/202603/20/2603.11640v1-tokenization-allows-multimodal-large-language-models-to-understand-generate-and-edit-architectural-floor-plans)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于改进视觉语言大模型（VLLM）的免训练数据选择方法
-4. [Ego: Embedding-Guided Personalization of Vision-Language Models](/202603/19/2603.09771v1-ego-embedding-guided-personalization-of-vision-language-models)  
+   evidence：用于视觉语言推理任务的多模态大语言模型
+4. [Continual Learning with Vision-Language Models via Semantic-Geometry Preservation](/202603/20/2603.12055v1-continual-learning-with-vision-language-models-via-semantic-geometry-preservation)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：利用内部注意力机制实现视觉语言模型的个性化
-5. [From Images to Words: Efficient Cross-Modal Knowledge Distillation to Language Models from Black-box Teachers](/202603/19/2603.10877v1-from-images-to-words-efficient-cross-modal-knowledge-distillation-to-language-models-from-black-box-teachers)  
+   evidence：保留视觉语言模型中的跨模态语义几何
+5. [ZeroSense:How Vision matters in Long Context Compression](/202603/20/2603.11846v1-zerosensehow-vision-matters-in-long-context-compression)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：从大视觉语言模型到语言模型的知识蒸馏
-6. [Multimodal Self-Attention Network with Temporal Alignment for Audio-Visual Emotion Recognition](/202603/19/2603.11095v1-multimodal-self-attention-network-with-temporal-alignment-for-audio-visual-emotion-recognition)  
+   evidence：评估多模态大模型在长上下文压缩中的表现
+6. [Learning Transferable Sensor Models via Language-Informed Pretraining](/202603/20/2603.11950v1-learning-transferable-sensor-models-via-language-informed-pretraining)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：多模态自注意力与时间对齐
-7. [One Supervisor, Many Modalities: Adaptive Tool Orchestration for Autonomous Queries](/202603/19/2603.11545v1-one-supervisor-many-modalities-adaptive-tool-orchestration-for-autonomous-queries)  
+   evidence：基于语言信息的预训练用于传感器-语言对齐
+7. [Multimodal Emotion Recognition via Bi-directional Cross-Attention and Temporal Modeling](/202603/20/2603.11971v1-multimodal-emotion-recognition-via-bi-directional-cross-attention-and-temporal-modeling)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：自主多模态查询处理框架
-8. [One Supervisor, Many Modalities: Adaptive Tool Orchestration for Autonomous Queries](/202603/19/2603.11545v2-one-supervisor-many-modalities-adaptive-tool-orchestration-for-autonomous-queries)  
+   evidence：使用 CLIP 和 Wav2Vec 的多模态表示学习
+8. [Spatio-Semantic Expert Routing Architecture with Mixture-of-Experts for Referring Image Segmentation](/202603/20/2603.12538v1-spatio-semantic-expert-routing-architecture-with-mixture-of-experts-for-referring-image-segmentation)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：自主多模态查询处理的智能体框架
-9. [IDRL: An Individual-Aware Multimodal Depression-Related Representation Learning Framework for Depression Diagnosis](/202603/19/2603.11644v1-idrl-an-individual-aware-multimodal-depression-related-representation-learning-framework-for-depression-diagnosis)  
+   evidence：用于分割任务中多模态融合的空间语义专家路由架构
+9. [Multimodal Emotion Recognition via Bi-directional Cross-Attention and Temporal Modeling](/202603/20/2603.11971v2-multimodal-emotion-recognition-via-bi-directional-cross-attention-and-temporal-modeling)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：多模态表示学习与模态间一致性建模
-10. [Bodhi VLM: Privacy-Alignment Modeling for Hierarchical Visual Representations in Vision Backbones and VLM Encoders via Bottom-Up and Top-Down Feature Search](/202603/19/2603.13728v1-bodhi-vlm-privacy-alignment-modeling-for-hierarchical-visual-representations-in-vision-backbones-and-vlm-encoders-via-bottom-up-and-top-down-feature-search)  
+   evidence：用于多模态表征学习的双向交叉注意力
+10. [Modality-free Graph In-context Alignment](/202603/20/2603.13434v1-modality-free-graph-in-context-alignment)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：VLM编码器的隐私对齐建模
-11. [Bodhi VLM: Privacy-Alignment Modeling for Hierarchical Visual Representations in Vision Backbones and VLM Encoders via Bottom-Up and Top-Down Feature Search](/202603/19/2603.13728v2-bodhi-vlm-privacy-alignment-modeling-for-hierarchical-visual-representations-in-vision-backbones-and-vlm-encoders-via-bottom-up-and-top-down-feature-search)  
+   evidence：图基础模型的跨域对齐
+11. [Localizing and Editing Knowledge in Large Audio-Language Models](/202603/20/2603.14343v1-localizing-and-editing-knowledge-in-large-audio-language-models)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：VLM编码器的隐私对齐建模
+   evidence：音频语言模型中跨模态模块的知识定位
 
 
 <div class="dpr-home-promo-card">

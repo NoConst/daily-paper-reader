@@ -1,0 +1,649 @@
+Title: AgriChat: A Multimodal Large Language Model for Agriculture Image Understanding
+
+URL Source: https://arxiv.org/pdf/2603.16934v1
+
+Published Time: Thu, 19 Mar 2026 00:04:48 GMT
+
+Number of Pages: 46
+
+Markdown Content:
+# AgriChat: A Multimodal Large Language Model for Agriculture Image Understanding 
+
+Abderrahmene Boudiaf a, ∗, Irfan Hussain a, Sajid Javed a
+
+> aDepartment of Computer Science, Khalifa University of Science and Technology, Abu Dhabi, United Arab Emirates
+
+Abstract 
+
+The deployment of Multimodal Large Language Models (MLLMs) in agriculture is currently stalled by a critical trade-o ff : the existing literature lacks the large-scale agricultural datasets required for robust model development and evaluation, while current state-of-the-art models lack the verified domain expertise necessary to reason across diverse taxonomies. To address these challenges, we propose the Vision-to-Verified-Knowledge (V2VK) pipeline, a novel generative AI-driven annotation framework that integrates visual captioning with web-augmented sci-entific retrieval to autonomously generate the AgriMM benchmark, e ff ectively eliminating biological hallucinations by grounding training data in verified phy-topathological literature. The AgriMM benchmark contains over 3,000 agricul-tural classes and more than 607k VQAs spanning multiple tasks, including fine-grained plant species identification, plant disease symptom recognition, crop count-ing, and ripeness assessment. Leveraging this verifiable data, we present AgriChat ,a specialized MLLM that presents broad knowledge across thousands of agricul-tural classes and provides detailed agricultural assessments with extensive expla-nations. Extensive evaluation across diverse tasks, datasets, and evaluation condi-tions reveals both the capabilities and limitations of current agricultural MLLMs, while demonstrating AgriChat’s superior performance over other open-source mod-els, including internal and external benchmarks. The results validate that pre-serving visual detail combined with web-verified knowledge constitutes a reliable pathway toward robust and trustworthy agricultural AI. The code and dataset are publicly available at https://github.com/boudiafA/AgriChat .  
+
+> ∗Corresponding author
+> Email address: 100058322@ku.ac.ae (Abderrahmene Boudiaf)
+> arXiv:2603.16934v1 [cs.CV] 14 Mar 2026
+
+Keywords: Multimodal Large Language Models, Foundation models, Agricultural, Plant Identification, Plant Disease Analysis, Crop counting. 
+
+1. Introduction       
+
+> Figure 1: Illustrative examples of AgriChat’s conversational diagnostic capabilities across three core agricultural tasks. Left: Fine-grained plant species identification with follow-up knowledge queries. Center: Plant disease symptom recognition, correctly diagnosing Sigatoka disease from visible leaf lesions. Right: Fruit counting and ripeness assessment from a single field image. These examples highlight AgriChat’s ability to support interactive, expert-level agricultural rea-soning beyond simple classification.
+
+Agriculture remains the cornerstone of global economic stability and food se-curity, sustaining approximately 80% of the world’s rural poor and serving as the primary instrument for poverty alleviation [6, 7]. As the global population is projected to approach 10 billion by 2050, the agriculture sector faces mounting pressure to increase production by an estimated 70% while simultaneously navi-gating the existential threats of climate change, soil degradation, and diminishing arable land [8]. Artificial Intelligence (AI) has emerged as a transformative force, shifting traditional farming paradigms toward data-driven precision agriculture [9]. Recent studies indicate that AI-integrated systems ranging from predictive analytics for yield optimization to computer vision for early disease detection en-hance crop productivity by up to 20% while reducing water and fertilizer inputs by nearly 30% [10, 11]. Consequently, the integration of AI tools is no longer merely advantageous but essential for fostering resilient agricultural systems capable of meeting future nutritional demands within planetary boundaries [12]. 2Figure 2: (a) Comparison between existing foundation models (Llama-3.2 [1], LLava-OneVision [2], Qwen-2.5 [3]) and our proposed agriculture-focused AgriChat model which achieved su-perior performance across four agriculture benchmarks. In comparison to existing agriculture benchmark datasets (PlantVillageVQA [4], AGMMU [5]), our proposed large-scale benchmark 
+
+AgriMM exceeds the state-of-the-art benchmarks in terms of (b) number of images, (c) number of classes, and (d) number of VQA pairs. 
+
+3In the literature, the Convolutional Neural Networks (CNNs) have driven much of this progress, they typically function as “black boxes,” providing classification labels without the explanatory reasoning required for e ff ective decision support [13]. This limitation has catalyzed interest in Multimodal Large Language Mod-els (MLLMs), which o ff er the ability to reason over visual inputs and provide interactive diagnostics [14]. However, the e ffi cacy of MLLMs is strictly bound by the quality of the data upon which they are trained [15]. Existing agricultural Visual Question Answering (VQA) datasets su ff er from a fundamental trade-o ff :they either rely on expensive human annotation that limits scale and taxonomic diversity (e.g., PlantVillage with only 38 diseases [16], CDDM with 60 disease types biased toward commodity crops [17]), or they employ synthetic generation using frozen LLMs that may introduce incorrect hallucinated information without real-time verification. Historical expert logs like AgMMU, while factually ac-curate at creation, su ff er from knowledge staleness as agricultural best practices, pesticide regulations, and pathogen management protocols continuously evolve [5]. To address this gap, we introduce the Agriculture Multi-Modal dataset (AgriMM), which resolves both limitations simultaneously through a novel approach to data curation. Unlike previous benchmarks, AgriMM was created by systematically aggregating and filtering 63 distinct agricultural datasets to ensure broad taxo-nomic coverage, spanning more than 3,000 classes and 121,000 images, con-taining questions related to fine-grained species identification, disease recogni-tion, and crop counting tasks. The core novelty lies in our Vision-to-Verified-Knowledge (V2VK) pipeline, a three-stage synthesis process designed to achieve diverse, accurate, and verifiably grounded knowledge. First, we employ Gemma 3 [18] to generate detailed visual captions for each agricultural image, captur-ing key visual attributes such as plant morphology, growth stage, visible symp-toms of disease when present, and other agronomically relevant features. Sec-ond, utilizing a Retrieval-Augmented Generation (RAG) framework, we leverage Gemini 3 Pro [19] with real-time web access to produce a comprehensive class-level description covering taxonomy, biology, and known diseases, drawing from authoritative sources to filter out hallucinations and ensure factual accuracy. Fi-nally, LLaMA 3.1 [1] synthesizes both the image caption and the class description into 607,000 diverse instruction-tuning question-answer pairs. This rigorous cura-tion ensures that the ground truth textual descriptions are not merely linguistically plausible, but scientifically current. Despite the availability of such data, current model architectures present a secondary bottleneck. Existing agricultural MLLMs including Agri-LLaVA [20], 4AgroGPT [14], and LLaVA-PlantDiag [21] universally su ff er from limited and narrow fine-tuning data: they are trained on small-scale, task-specific corpora that cover only a handful of crops and diseases, restricting their ability to generalize across the vast taxonomic and pathological diversity encountered in real-world agricultural settings [14, 20]. For instance, models fine-tuned on fewer than 200 classes inevitably fail when confronted with underrepresented regional cultivars, emerging pathogens, or multi-task scenarios requiring simultaneous species iden-tification, disease diagnosis, and yield estimation [22]. In this work, we propose 
+
+AgriChat , an MLLM framework that fundamentally overcomes this data bottle-neck. AgriChat is fine-tuned on our large-scale AgriMM dataset comprising over 121k images and over 607k QA pairs spanning more than 3,000 classes, repre-senting the widest and most diverse agricultural fine-tuning corpus to date. To e ff ectively adapt the base architecture to the agricultural domain while pre-serving its general-purpose reasoning capabilities, AgriChat employs a parameter-effi cient fine-tuning strategy using Low-Rank Adaptation (LoRA) [23]. Lightweight trainable adapters are injected into both the vision encoder and the language model decoder, while all pre-trained weights remain frozen. The model undergoes su-pervised fine-tuning on the AgriMM corpus, optimizing an autoregressive objec-tive with role-aware masking. This training paradigm allows AgriChat to acquire expert-level agricultural diagnostic knowledge, covering fine-grained species iden-tification, disease recognition, and crop counting, while retaining the vast world knowledge inherent in the base model, all within a computationally e ffi cient foot-print (inference in ∼2.3 seconds on consumer hardware). We validate the e ffi cacy of our approach through rigorous experiments across four diverse benchmarks, including AgriMM, CDDM [17], PlantVillageVQA [4], and AGMMU [5]. Our results demonstrate that AgriChat not only achieves state-of-the-art performance on in-domain tasks but also exhibits superior zero-shot generalization to unseen datasets compared to larger open-source models. The main contributions of this paper are summarized as follows: 1. Agriculture Multimodal Dataset (AgriMM): We introduce a high-quality instruction-tuning dataset comprising over 121k images and 607k expert-aligned QA pairs. By employing a web-search augmented generation pipeline, we solve the issue of knowledge staleness and hallucination, ensuring taxo-nomic diversity across 3,000 + agricultural classes. 2. AgriChat MLLM: We introduce the first multimodal large language model (MLLM) purpose-built for agriculture and fine-tuned on the widest and 5most diverse range of agricultural species to date, enabling state-of-the-art performance on fine-grained species identification, disease classification and crop counting tasks. 3. Comprehensive Benchmarking: Extensive evaluation on four agriculture benchmarks demonstrates that our proposed AgriChat achieves superior performance in both in-domain tasks and zero-shot generalization, outper-forming state-of-the-art generalist baselines. The rest of this paper is organized as follows: Section 2 reviews the evolution of agricultural AI and analyzes the limitations of current VQA datasets. Section 3 details the construction of the AgriMM dataset through our Vision-to-Verified-Knowledge pipeline and presents the AgriChat architecture. Section 4 presents the experimental setup, quantitative comparisons, and qualitative analysis. Finally, Section 5 concludes the paper and outlines future directions. 
+
+2. Related Work 
+
+2.1. Existing Agriculture Datasets and Tasks 
+
+The development of robust agricultural AI has been historically constrained by the availability and quality of training data. Early benchmarks like PlantVillage [24] provided a foundational resource with 54,306 images covering 38 disease classes. However, its reliance on laboratory-controlled imaging limits its applica-bility to complex field environments. More recent e ff orts have attempted to scale up visual diversity. The CDDM (Crop Disease Diagnosis Multimodal) bench-mark [17] expanded the scope to 137,000 images and 1 million QA pairs. Yet, as noted in recent critiques, its taxonomic scope remains constrained to 60 dis-ease types across 16 major crop categories, reflecting a fundamental bias toward economically significant commodity crops (e.g., maize, rice, wheat) while leaving regional heirlooms and emerging pathogens underrepresented [22]. To address the prohibitive cost of manual annotation, researchers have turned to synthetic gen-eration and historical log mining. AgroInstruct [14] utilized diverse vision-only datasets to synthesize 70,000 instructions. While scalable, this approach relies on frozen language models that su ff er from hallucination, generating plausible but factually incorrect statements about disease etiology or management proto-cols that were never true [25]. Conversely, the AGMMU benchmark [5] curated 57,079 expert-farmer dialogues from historical extension logs. While factually accurate at the time of creation, these datasets su ff er from “knowledge staleness”: 6agricultural best practices evolve continuously as pesticide regulations change and new pathogen strains appear. Expert dialogues from 2020 may no longer reflect current recommendations in 2026 [26]. Furthermore, a critical barrier to advanc-ing agricultural AI is the reproducibility crisis . As detailed in Table 1, the largest corpus, Agri-3M-VL, remains unpublished. This prevents independent verifica-tion of reported performance and hinders regional adaptation, where researchers might otherwise fine-tune models for local crops. To bridge these gaps, we intro-duce AgriMM. Unlike prior datasets, AgriMM is a Multi-Source dataset consol-idating 63 data sources into 121,425 images and 607,125 QA pairs. It integrates three critical tasks: fine-grained species identification, disease diagnosis, and crop counting spanning 3,099 classes. 
+
+2.2. Vision Models in Agriculture 
+
+Deep learning in agriculture initially focused on pure visual classification us-ing Convolutional Neural Networks (CNNs). Architectures such as ResNet [27], DenseNet [28], and E ffi cientNet [29] established the dominant paradigm, achiev-ing impressive accuracy rates exceeding 95% on controlled datasets. Recent ad-vancements have introduced hybrid CNN-Transformer architectures to capture global context. Notable examples include LGNet [30], which employs dual-branch adaptive feature fusion, and ST-CFI [31], which implements bidirectional fusion of CNN spatial features with Swin Transformer [32] tokens. However, despite their superior classification performance, all such systems fundamentally operate as black-box discriminative models. They accept an image as input and return only a categorical label (e.g., “Tomato Late Blight”) without explanatory reasoning, contextual information, or interactive diagnostic capabilities. This lack of interpretability limits their utility in decision support systems, where farmers require not just a diagnosis, but an understanding of the cause and appropriate management strategies. 
+
+2.3. Vision Language Models in Agriculture 
+
+To overcome the limitations of closed-set classification, researchers began ex-ploring Vision-Language Models (VLMs) that align image features with natural language representations. Early attempts such as PlantVillageVQA [4] introduced question-answer pairs but su ff ered from rigid templates (e.g., “What disease does this plant have?”), resulting in limited linguistic diversity and shallow reason-ing depth. More recent work has leveraged large-scale pretraining. ALive [33] provides approximately 600,000 image-text pairs covering crops and livestock to train AgriCLIP. By aligning visual encoders with agricultural text, AgriCLIP 7demonstrated significant gains (9.07%) in zero-shot classification over standard CLIP models. However, these models are primarily designed for retrieval and matching tasks. While they can associate an image of a leaf with the text “boron deficiency,” they lack the generative capacity to engage in multi-turn dialogue or provide nuanced reasoning about symptom progression required for interactive agricultural decision support. 
+
+2.4. MLLMs in Agriculture 
+
+The most recent paradigm shift involves Multimodal Large Language Models (MLLMs), which integrate visual encoders with Large Language Models (LLMs) to enable conversational diagnostics. Agri-LLaVA [20] pioneered knowledge-infused training by incorporating agricultural domain expertise into the LLaVA architecture. Similarly, AgroGPT [14] and LLaVA-PlantDiag [21] have pushed the boundaries of interactive diagnosis, with the latter achieving BLEU-4 scores of 48.7% on conversational diagnostic tasks. However, a critical limitation shared by all existing agricultural MLLMs is their reliance on narrow, small-scale fine-tuning datasets that cover only a limited number of crops and disease classes. This data bottleneck constrains their capacity to generalize across the vast taxo-nomic and pathological diversity encountered in real-world agricultural deploy-ments, particularly for underrepresented regional cultivars, emerging pathogens, and multi-task scenarios requiring simultaneous species identification, disease di-agnosis, and quantitative yield estimation. In this work, we propose AgriChat to address this data bottleneck. As illustrated in Figure 1, AgriChat supports interactive, expert-level diagnostic reasoning across a diverse range of agricul-tural tasks from fine-grained plant species identification and multi-turn knowl-edge queries, to pathogen-level disease diagnosis and fruit counting with ripeness assessment. AgriChat is fine-tuned via Low-Rank Adaptation (LoRA) [23] on our proposed AgriMM dataset. This parameter-e ffi cient adaptation strategy in-jects domain-specific agricultural knowledge into both the vision encoder and the language backbone while preserving the general-purpose reasoning capabilities of the base model. 
+
+3. Methodology 
+
+3.1. AgriMM Dataset 
+
+To address the scarcity of high-quality, verifiable agricultural data, we in-troduce AgriMM, a large-scale visual benchmark that represents a robust con-solidation of diverse agricultural environments. AgriMM aggregates 63 source 8datasets, comprising 1 fine-grained taxonomic dataset (iNatAg subset [34]), 33 counting /detection datasets, and 29 disease classification datasets (see Appendix A for complete source list), to create a total of 121,425 images annotated with 607,125 Visual Question Answering (VQA) pairs, covering over 3,000 distinct classes. The dataset architecture is built upon three complementary components, ensuring coverage across species-level identification, pathological diagnosis, and quantitative crop monitoring. Unlike existing datasets that often su ff er from label noise and taxonomic inconsistencies, AgriMM is created through a rigorous cu-ration pipeline that balances broad taxonomic coverage with specific, high-value agronomic tasks. To contextualize the contribution of AgriMM, Table 1 com-pares it against prominent agricultural VQA benchmarks. Existing datasets such as CDDM [17] and PlantVillageVQA [4] are limited by narrow task definitions (lacking counting or fine-grained classification) or rely on static, potentially out-dated knowledge bases. While Agri-3M-VL [35] o ff ers scale, it remains unavail-able to the research community. AgriMM addresses these limitations by o ff ering the first publicly available, multi-source benchmark that integrates fine-grained taxonomy, counting capabilities, and a dynamic Web-RAG verification pipeline. 
+
+Table 1: Comparison of Agricultural VQA Datasets. AgriMM stands out by integrating 63 data sources and utilizing a Web-RAG pipeline to ensure knowledge is factual and up-to-date, unlike static or hallucination-prone alternatives.                                                         
+
+> Dataset Name # Images # QA Pairs # Classes Multi-Source Fine-Grained Counting Web-Verified Available CDDM [17] 137,000 1,000,000 76 ✗✗✗✗✓
+> PlantVillageVQA [4] 55,448 193,609 52 ✗✗✗✓∗✓
+> Agri-3M-VL [35] ∼1.0M ∼3.0M 42,253 ✓✓✗✗✗
+> AgroInstruct [14] 108,701 70,000 202 ✓✗✗✗✗
+> AGMMU [5] 57,079 58,571 5✗✗✗✓∗✓
+> AgriMM (Ours) 121,425 607,125 3,099 ✓✓✓✓✓
+> ∗Verified by humans but static /outdated (no live web retrieval).
+
+3.1.1. Dataset Statistics 
+
+Component Distribution: The dataset is stratified into three major subsets: 1. Fine-Grained Identification: The largest component, comprising 48,580 images spanning 2,956 distinct species. This subset is organized into nine categories (e.g., Cereals , Legumes , Medicinal ) to ensure taxonomic breadth. 2. Disease Classification: Consisting of 49,348 images, this subset targets 110 specific disease conditions across 33 major crops (averaging ∼1,701 images per crop). It covers critical staples such as Wheat , Rice , and Corn ,alongside cash crops like Co ff ee and Sugarcane .93. Crop Counting & Detection: A specialized set of 23,497 images across 33 crops (averaging ∼712 images per crop), designed for spatial reasoning tasks. 
+
+Categorical Aggregation: By integrating these three sources, AgriMM achieves a robust distribution across nine agricultural categories. The aggregated totals re-veal a focus on high-economic value and high-biodiversity segments: Ornamen-tal /Other (48,112 images), Fruits (25,710), Vegetables & Tubers (19,317), and In-dustrial Crops (14,954). The remaining distribution ensures ecological complete-ness with Cereals & Grasses (13,528), Weeds /Wild (10,902), Medicinal & Spices (5,195), Forestry & Timber (4,723), and Legumes /Pulses (3,572). This distribu-tion (visualized in Figure 3) prevents the common bias towards solely commercial crops by maintaining significant representation of wild and forestry species. 
+
+3.1.2. Dataset Tasks 
+
+AgriMM is designed to train models capable of addressing three critical agri-cultural AI capabilities, each reflecting real-world deployment requirements: 
+
+1. Di ff erential Pathology Diagnosis. Moving beyond binary healthy /sick clas-sification, this task requires models to distinguish between visually similar con-ditions across 29 geographically diverse disease datasets. The collection spans multiple continents, from bean rust in Uganda to guava canker in Pakistan to vine viruses in Europe, ensuring models learn to generalize across environmental and cultivar variations. Critical diagnostic challenges include di ff erentiating between overlapping symptomatology (e.g., Bacterial Spot vs. Fungal Blight in tomatoes), identifying co-occurring stresses (e.g., nutritional deficiency vs. pathogen infec-tion in chilli), and classifying physical damage distinct from biological stress (e.g., ’crushed’ vs. ’cracked’ sugarcane stalks). This capability is essential for preci-sion agriculture decision support systems where misdiagnosis can lead to incorrect treatment protocols. 
+
+2. Species-Level Taxonomic Recognition. The fine-grained identification task challenges models to perform botanical discrimination using standardized scien-tific nomenclature rather than common names. Sourced from iNaturalist Agricul-ture (iNatAg), this subset includes observations from every continent, reflecting real-world environmental variability, from Abies balsamea (balsam fir) in North American boreal forests to Acacia erioloba (camelthorn) in African savannas. The task requires distinguishing between morphologically similar species within eco-nomically important genera ( Acacia , Eucalyptus ) and identifying invasive or nox-ious weeds in complex field backgrounds (e.g., Abutilon theophrasti among cash 10 (a) Hierarchical composition of AgriMM. 
+
+> (b) Quantitative distribution across categories.
+
+Figure 3: AgriMM dataset statistics showing (a) taxonomic hierarchy and (b) class balance across functional categories. 
+
+11 crops). This capability supports biodiversity monitoring, invasive species detec-tion, and regulatory compliance in agricultural trade. 
+
+3. Quantitative Spatial Reasoning for Yield Estimation. Unlike classification tasks, counting and detection require models to perform spatial analysis under highly variable field conditions. The detection subset includes annotations for fruits and crops captured at di ff erent times of day (morning /night illumination), maturity stages (unripe /ripe /occluded strawberries), and density levels (sparse to heavily overlapping). Models must detect and count individual agricultural units, wheat heads in dense canopies, apples with varying occlusion, tomatoes at mixed ripeness, while reasoning about spatial relationships and yield potential. This capability directly supports automated harvest planning, quality grading systems, and economic forecasting for growers. 
+
+3.1.3. Vision-to-Verified-Knowledge Synthesis 
+
+Generating high-quality instruction-following data at scale requires overcom-ing the biological hallucinations common in frozen language models. We intro-duce a three-stage Vision-to-Verified-Knowledge (V2VK) pipeline (Figure 4) that grounds visual observations in scientifically verified literature (full prompts provided in Appendix B). 
+
+Stage I: Visual Grounding via Image Captioning. We employ Gemma 3 (12B) [18] to generate structured natural language descriptions. To prevent label drift, we condition the generation on the ground-truth labels from AgriMM (e.g., injecting “ Solanum lycopersicum ”). The prompt enforces the extraction of agri-cultural metadata, including growth stage, planting density, and environmental context. 
+
+Stage II: Knowledge Retrieval and Verification. Visual captions lack deep botanical knowledge. We address this using Gemini 3 Pro [19] with a Retrieval-Augmented Generation (RAG) approach. The model retrieves contemporary sci-entific descriptions, management protocols, and phenological data from trusted databases. 
+
+Stage III: Instruction Synthesis. The final stage synthesizes the visual cap-tions (Stage I) and verified knowledge (Stage II) into 607,125 diverse QA pairs using LLaMA-3.1-8B-Instruct [1]. We utilize a constrained prompting strategy that mandates five distinct question types per image: Identification, Visual Rea-soning, Health Condition, Cultivation Knowledge, and Quantification. For images belonging to the Crop Counting & Detection subset, the ground-truth crop count is derived by tallying the number of bounding box annotations per image and in-jected directly into the generation prompt. This ensures that Quantification QA 12 Figure 4: Overview of the Vision-to-Verified-Knowledge Synthesis Pipeline. Visual features are grounded in verified scientific literature through a three-stage generation and verification process. 
+
+13 pairs reflect verifiable, annotation-grounded values rather than model estimates, preventing the hallucination of incorrect counts. 
+
+3.1.4. Pipeline Verification and Quality Assurance 
+
+To guarantee the biological validity and semantic accuracy of the generated instructions, we implemented a rigorous human-in-the-loop verification protocol. While the pipeline automates the synthesis of scale, manual oversight is critical to prevent the propagation of hallucinations common in Large Language Models. 
+
+Manual Knowledge verification: We conducted a comprehensive review of the scientific knowledge retrieved in Stage II. Expert annotators manually fact-checked the detailed class descriptions against established agricultural taxonomies and phytopathology literature. This process ensured that the retrieved biological traits, disease symptoms, and phenological data accurately corresponded to the visual evidence (Stage I). 
+
+3.2. AgriChat Architecture 
+
+As illustrated in Figure 5, AgriChat is a domain-specialized Multimodal Large Language Model (MLLM) tailored for high-precision agricultural diagnostics. The architecture is composed of four primary modules: a high-resolution vi-sion encoder, a cross-modal projection network, a Large Language Model (LLM) decoder, and a parameter-e ffi cient adaptation mechanism. In contrast to broad-scope MLLMs that prioritize conversational versatility, AgriChat focuses on fine-grained visual discrimination, a prerequisite for detecting minute pest damage, early-onset pathologies, and subtle phenotypic traits. 
+
+3.2.1. Vision Encoder: SigLIP-SO400M 
+
+For visual feature extraction, we utilize SigLIP-SO400M (Sigmoid Loss for Language-Image Pre-training) [36]. This contrastive model was chosen over stan-dard CLIP variants for its superior ability to preserve spatial details essential for agricultural tasks. Formally, let T ∈ RHv×Wv×3 be an input image tile, where the native resolution is fixed at Hv = Wv = 384. The encoder, denoted as Eω+∆ ω, retains its pre-trained base parameters ω in a frozen state while introducing a set of trainable LoRA parameters ∆ω to adapt the encoder to agricultural visual features. It processes the tile to produce a spatial feature map Fsp , defined as: 
+
+Fsp = Eω+∆ ω(T ) ∈ Rh×w×dv (1) 14 Figure 5: Overview of the AgriChat Architecture. The model utilizes an adaptive resolution strategy to process high-quality agricultural imagery. Input images are split into local patches and a resized global thumbnail, encoded by SigLIP equipped with LoRA adapters, and aligned via a projection layer. The visual tokens are concatenated with text instructions and processed by LLM backbone equipped with LoRA adapters (SwiGLU + Multi-Head Self-Attention) to generate verifiable diagnostic responses. 
+
+15 where h = w = 27 represents the spatial grid size, and dv = 1152 is the visual hidden dimension. Flattening this map yields a sequence of Nv = h × w = 729 tokens per tile. 
+
+3.2.2. High-Resolution Visual Encoding 
+
+To mitigate the resolution loss common in standard resizing, we adopt the adaptive resolution strategy [2]. This allows the model to process high-resolution field photography by decomposing images into native-resolution patches. 
+
+Stage 1: Adaptive Grid Generation. Given a high-resolution input image I ∈ 
+
+RH×W×3, we calculate a grid configuration ( nh, nw) that best approximates the orig-inal aspect ratio. This grid is constrained by a pre-defined token budget Nmax . In our implementation, we set Nmax = 8748, allowing the processing of images up to 1344 × 1344 resolution. 
+
+Stage 2: Dual-Path Feature Extraction. The encoding process operates on two parallel tracks: 
+
+• Local Path: The image is divided into nh × nw non-overlapping patches 
+
+{T i, j}. Each patch is encoded individually and flattened to extract local de-tails: Hi, j = Flatten( Eω+∆ ω(Ti, j)) ∈ RNv×dv .
+
+• Global Path: A downsampled thumbnail Tglobal is encoded to capture holis-tic context: Hglobal = Flatten( Eω+∆ ω(Tglobal )) ∈ RNv×dv .
+
+Stage 3: Adaptive Pooling. Let L denote the total number of visual tokens gen-erated by the dual paths, calculated as L = (nh · nw + 1) · Nv. To handle variable resolutions e ffi ciently, if L exceeds the sequence limit Nmax , we apply bilinear in-terpolation, denoted as Interp( ·), in the feature space. Let Fi, j ∈ Rh×w×dv be the unflattened feature map of a specific tile. The final local features ˜ Hi, j are com-puted as: ˜Hi, j =
+
+
+
+Flatten Interp( Fi, j, size = (h′, w′))  if L > Nmax 
+
+Hi, j otherwise (2) where ( h′, w′) represents the reduced spatial dimensions calculated to satisfy the condition that the new total token count ˜ L ≤ Nmax .
+
+3.2.3. Cross-Modal Projection Network 
+
+To bridge the modality gap between the visual encoder ( dv = 1152) and the language model ( dllm = 3584), we employ a Multi-Layer Perceptron (MLP) pro-jector Pψ. We use the bracket notation [ ·, ·] to denote tensor concatenation along the sequence dimension. 16 The complete sequence of visual features is formed by concatenating the global thumbnail features with the processed local patch features ˜ Hi, j:
+
+Hvisual = [Hglobal , ˜H1,1, . . . , ˜Hnh,nw ] ∈ R ˜L×dv (3) Let ψ = {W1, b1, W2, b2} be the trainable projection weights, and GELU( ·) be the Gaussian Error Linear Unit activation function. The projected visual tokens Zv
+
+are obtained via: 
+
+Zv = Pψ(Hvisual ) = GELU( Hvisual W1 + b1)W2 + b2 (4) This results in Zv ∈ R ˜L×dllm , aligning the visual representations with the LLM’s embedding space. 
+
+3.2.4. Language Model Decoder 
+
+The core reasoning engine is Qwen-2-7B [3], a transformer-based decoder 
+
+Dϕ+∆ ϕ whose pre-trained weights ϕ are kept frozen while trainable LoRA param-eters ∆ϕ are injected to enable domain adaptation. 
+
+Multimodal Fusion: Fusion is achieved through early embedding integration [2]. Let Etext (·) denote the word embedding layer of the LLM which maps discrete tokens to Rdllm . For a tokenized instruction sequence Xtext = {x1, . . . , xn} contain-ing a special placeholder token xk = <image> , the input embeddings S are created by replacing the placeholder with the visual sequence: 
+
+S = [Etext (x1), . . . , Etext (xk−1), Zv, Etext (xk+1), . . . , Etext (xn)] (5) This unified sequence S serves as the input to the decoder. 
+
+3.3. Training Strategy 3.3.1. Parameter-E ffi cient Domain Adaptation (LoRA) 
+
+To adapt the model to the agricultural domain, we utilize Low-Rank Adap-tation (LoRA) [23] across both the vision encoder and the language model de-coder. This strategy keeps all pre-trained base parameters frozen while injecting lightweight, trainable low-rank adapters, enabling e ffi cient domain specialization with minimal computational overhead. 17 Vision Encoder Adaptation.. The pre-trained SigLIP-SO400M [36] parameters 
+
+ω are frozen, and trainable LoRA adapters ∆ω are injected into the linear lay-ers of the vision encoder. For a frozen linear layer defined by weights W(vis) 0 ∈
+
+RD(vis)   
+
+> in ×D(vis)
+> out
+
+, we define adapter matrices A(vis) ∈ RD(vis)   
+
+> in ×rv
+
+and B(vis) ∈ Rrv×D(vis)  
+
+> out
+
+, where 
+
+rv = 32 is the low-rank dimension for the vision encoder. The forward pass for an input x ∈ R1×D(vis)  
+
+> in
+
+is modified as: 
+
+h(vis) = xW (vis) 0 + xA (vis) B(vis) · αv
+
+rv
+
+(6) where αv is the scaling factor for the vision encoder adapters. 
+
+Language Model Adaptation.. We inject trainable Low-Rank Adapters into the linear layers of the decoder (specifically the Attention and SwiGLU projection layers). The base LLM parameters ϕ are kept frozen in their native precision. Let 
+
+D = 3584 be the hidden dimension of the Qwen-2-7B backbone. For a frozen linear layer defined by weights W0 ∈ RDin ×Dout , we define adapter matrices A ∈
+
+RDin ×r and B ∈ Rr×Dout , where r = 128 is the low-rank dimension. The forward pass for an input x ∈ R1×Din is modified as follows: 
+
+h = xW 0 + xAB · α
+
+r (7) where α = 256 is the scaling factor. For both components, A matrices are ini-tialized from a Gaussian distribution, while B matrices are initialized to zero to ensure training starts from the identity function. 
+
+3.3.2. Optimization Objective 
+
+The model is optimized using the standard autoregressive cross-entropy loss. Let Θ = ψ ∪ { A(vis)  
+
+> l
+
+, B(vis)  
+
+> l
+
+}∀l ∪ { Al, Bl}∀l represent the union of all trainable param-eters (projector weights and LoRA adapters across both the vision encoder and language model decoder). Given a ground-truth response sequence Y of length T , we apply a mask Mt ∈{0, 1} to exclude instruction tokens from the loss calculation. The optimization objective is defined as: 
+
+L(Θ) = −
+
+> T
+
+X
+
+> t=1
+
+Mt log P(yt | Y<t, S; Θ) (8) This ensures the gradients are backpropagated only through Θ based on the like-lihood of the correct agricultural diagnostic tokens yt.18 4. Experimental Evaluations 
+
+4.1. Training and Implementation Details 
+
+AgriChat was fine-tuned exclusively on the AgriMM dataset using a consumer-grade NVIDIA RTX 3090 GPU (24GB VRAM). The AgriMM dataset was par-titioned using an 80:20 train /test split, with no overlap between the training and evaluation subsets. Fine-tuning was performed for 1 epoch with a per-device batch size of 1 and gradient accumulation steps of 16, yielding an e ff ective batch size of 16. A learning rate of 2 × 10 −4 was used with bfloat16 mixed precision. LoRA adapters were applied to both the Qwen2 LLM backbone (rank r = 128, α = 256) and the SigLIP vision encoder (rank r = 32, α = 64), targeting the attention pro-jections ( q_proj , k_proj , v_proj ) in both components, the LLM-specific lay-ers ( o_proj , gate_proj , up_proj , down_proj ), and the vision encoder-specific layers ( out_proj , fc1 , fc2 ). Inference benchmarks were conducted using 4-bit quantization, a batch size of 1, and a standardized test image (1,328 KB) with the prompt “What is the name of the plant in the image?” repeated across 100 infer-ence cycles. Given that comparable domain-specific models such as Agri-LLaVA and AgroGPT are not publicly released as of this writing, AgriChat (7B) was evaluated against three state-of-the-art generalist multimodal models: LLaVA-OneVision (7B) [2], Llama-3.2 (Vision-11B) [1], and Qwen-2.5 (VL-7B) [3]. These baselines were selected as representative of the current frontier in open-weight vision-language models across a range of parameter scales. 
+
+4.2. Evaluation Metrics 
+
+Evaluating generative conversational agents requires a multi-faceted frame-work, as no single metric captures all dimensions of response quality [37, 38]. We therefore combine lexical overlap metrics, semantic similarity measures, and a multimodal alignment score. 
+
+4.2.1. Lexical and N-Gram Metrics 
+
+Lexical metrics measure surface-level textual overlap and provide a standard baseline for text generation evaluation: 
+
+• BLEU-4: Measures n-gram precision (unigrams through 4-grams) against the reference, with a brevity penalty [39]. 
+
+• ROUGE-2: Measures bigram overlap between system output and refer-ence, capturing basic phrasal coherence [40]. 19 • METEOR: Extends exact matching with stemming and synonymy via Word-Net, and penalizes word order violations [41]. These metrics are nonetheless limited by their semantic blindness: a model generating a paraphrase of the correct answer is penalized despite factual equiva-lence [42]. This motivates the semantic and judge-based metrics below. 
+
+4.2.2. Semantic and Embedding-Based Metrics 
+
+• BERTScore (F1): Computes token-level cosine similarity between candi-date and reference using contextual BERT embeddings [43]. 
+
+• Long-CLIP Cosine Similarity: Evaluates semantic alignment between generated text and reference text within CLIP’s shared embedding space [44], providing a text-to-text similarity measure that captures conceptual and se-mantic relationships beyond simple lexical overlap. 
+
+• T5 Cosine Similarity (T5 Cos): Measures semantic similarity using the T5 encoder’s latent representations [45]. 
+
+• SBERT Similarity: Computes cosine similarity between sentence-level dense embeddings from a Siamese BERT architecture [46]. 
+
+4.2.3. LLM-as-a-Judge 
+
+Our analysis reveals a critical limitation of the lexical and embedding-based metrics described above, particularly salient for conversational diagnostic agents: a systematic bias toward brevity, which we term the verbosity penalty . This phe-nomenon results in misleadingly low scores for models providing deeper reason-ing, even when diagnostic accuracy remains correct. This issue arises from a mis-match between reference formatting and assistant-optimized generation. Ground truth annotations in standard diagnostic datasets typically provide minimal, bi-nary responses (e.g., “No”), whereas models trained for conversational assistance generate contextual explanations. 
+
+Example of Metric Misalignment: 
+
+Prompt: “Can you detect signs indicating absence of pathogens?” 
+
+Ground Truth: “No” 
+
+Concise Prediction: “No” → BERTScore: 1.0 
+
+Verbose Prediction: “No, the image does not provide information about the presence or absence of pathogens.” → BERTScore: ≈ 0.50 
+
+20 Both predictions are factually correct and clinically equivalent, yet surface-level metrics heavily penalize the more informative response. This is not an iso-lated observation: [38] have formally demonstrated that conventional reference-based metrics such as BLEU and ROUGE exhibit relatively low correlation with human judgments, particularly on tasks requiring contextual, open-ended gener-ation—precisely the setting of our diagnostic assistant. This limitation is further corroborated by [47], who identify verbosity bias as a documented failure mode in automated evaluation, wherein longer but substantively equivalent responses receive systematically lower scores despite no loss in factual accuracy. More broadly, [48] highlight in their comprehensive survey that traditional metrics fail to capture key aspects such as logical coherence and semantic correctness in gen-erative tasks, motivating a paradigm shift toward LLM-based evaluation. These converging findings motivate the adoption of the LLM-as-a-Judge paradigm [49], which enables evaluation based on semantic intent rather than surface form and correlates more strongly with human judgment than n-gram matching. We em-ploy Qwen3-30B-A3B-Instruct as our evaluator. Our selection is grounded in the “Judge’s Verdict Benchmark” recently introduced by NVIDIA [50]. In their extensive analysis of 54 LLM judges, Qwen3-30B was identified as a Tier 1 eval-uator, demonstrating exceptional alignment with human annotators. Specifically, it achieved a Z-score of |z| = 0.04 in the “Turing Test for Judges,” classifying it as a Human-Like Judge capable of preserving the nuances of expert evaluation, outperforming larger proprietary models in agreement stability. Following the prompt design strategies outlined in [49] regarding Criteria Decomposition , our evaluation prompt separates assessment into four distinct axes: Correctness, Com-pleteness, Clarity, and Conciseness (full prompt can be found in Appendix C). We utilize a 4-point Likert scale (1–4) rather than the traditional 5-point scale. This design choice draws upon the methodology in [50], which emphasizes the utility of discrete, normalized scoring to improve reliability. A 4-point scale forces the evaluator to make a definitive decision (positive vs. negative) by removing the neutral middle option, thereby reducing the central tendency bias often observed in automated judges. By leveraging a model proven to exhibit human-like agree-ment patterns [50] and a constrained scoring rubric, we ensure that higher scores reflect genuine diagnostic utility rather than stochastic generative fluency. 
+
+4.3. Evaluation Datasets 
+
+Our experimental framework evaluates performance across a diverse set of agricultural benchmarks, ranging from controlled laboratory settings to complex field environments. 21 1. AgriMM (Ours): The primary training and in-domain evaluation set. It consolidates 63 distinct data sources into 121,425 images and 607,125 QA pairs, verified via a Vision-to-Verified-Knowledge pipeline. It covers fine-grained species identification, disease diagnosis, and crop counting. 2. PlantVillage [24]: A foundational dataset comprising 54,306 images of 38 disease classes. We use this as a zero-shot transfer benchmark to evaluate performance on laboratory-controlled imagery. 3. CDDM (Crop Disease Diagnosis Multimodal) [17]: A large-scale dataset focusing on 16 major crop categories. We utilize this to test generalization on web-crawled field images. 4. AGMMU [5]: A benchmark derived from 58,571 expert-farmer dialogues. We utilize both the Multiple Choice Question (MCQ) and Open-Ended sub-sets to evaluate conversational reasoning and management advice capabili-ties. 
+
+4.4. Qualitative Analysis 
+
+To complement the quantitative evaluation, we present representative exam-ples that illustrate the strengths and limitations of AgriChat relative to generalist baselines. These cases were selected to demonstrate key findings across a variety of agricultural vision-language tasks, including counting, species identification, open-ended decision-making, multiple-choice reasoning, and disease diagnosis. It is important to note that AgriChat was fine-tuned exclusively on the AgriMM dataset; all remaining examples reflect zero-shot generalization to unseen bench-marks. 
+
+4.4.1. Example 1: Precise Agricultural Counting (AgriMM) 
+
+As shown in Figure 6, AgriChat is the only model to produce the exact nu-merical answer, correctly identifying 61 wheat heads in the image. This reflects the direct benefit of fine-tuning on AgriMM, which exposes the model to pre-cise, count-oriented agricultural queries. The generalist baselines fail substan-tially: LLaVA-OneVision resorts to a vague quantifier ("numerous"), while both Llama-3.2 and Qwen-2.5 incorrectly assert that no wheat heads are present at all, misidentifying the crop entirely. This stark contrast highlights how domain-specific fine-tuning equips AgriChat with the visual grounding necessary for fine-grained agricultural counting, a task that generalist models, trained without such priors, are ill-equipped to handle. 22 Figure 6: Qualitative comparison on an AgriMM wheat-head counting task. 
+
+4.4.2. Example 2: Zero-Shot Species Identification (PlantVillageVQA) 
+
+Figure 7 illustrates a zero-shot species identification task in which AgriChat correctly identifies the specimen as Malus domestica and situates it within the appropriate taxonomic family. The generalist baselines, by contrast, uniformly fixate on the visible pathology and treat the query as a disease diagnosis task rather than a species identification task. This reflects a fundamental misalign-ment between generalist model behavior and agricultural workflows, where cor-rectly identifying “what plant” must logically precede determining “what ails it.” AgriChat’s agricultural fine-tuning appears to instil the correct task prioritization even in zero-shot settings. 
+
+4.4.3. Example 3: Open-Ended Management Reasoning (AGMMU) 
+
+The open-ended management scenario presented in Figure 8 tests the mod-els’ ability to provide contextually appropriate, cautious advice under uncertainty. AgriChat’s response aligns closely with the ground truth by recommending moni-toring and watchful observation rather than immediate intervention, appropriately acknowledging the risk to neighboring trees. The generalist baselines lean in op-posite directions: LLaVA-OneVision produces a generic horticultural checklist that ignores the specific decision context, while Llama-3.2 recommends immedi-ate removal of the tree, a drastic and potentially unnecessary intervention. Qwen-2.5 similarly defaults to aggressive pruning and remediation steps. AgriChat’s measured, context-sensitive response suggests that domain fine-tuning fosters a 23 Figure 7: Qualitative comparison on a PlantVillageVQA plant identification task. 
+
+Figure 8: Qualitative comparison on an AGMMU open-ended tree management task. 
+
+24 more calibrated reasoning style aligned with real-world agricultural decision-making. 
+
+4.4.4. Example 4: Multiple-Choice Visual Reasoning (AGMMU) 
+
+> Figure 9: Qualitative comparison on an AGMMU multiple-choice visual reasoning task.
+
+In the zero-shot multiple-choice task depicted in Figure 9, AgriChat selects the correct answer (A) while all three generalist baselines fail. LLaVA-OneVision selects option D without justification, Llama-3.2 cites low image resolution as an excuse before incorrectly choosing C, and Qwen-2.5 constructs a plausible-sounding but factually incorrect rationale in favour of D. AgriChat, despite not being trained on AGMMU, correctly interprets the visual relationship between the vine and the wisteria as detrimental, demonstrating that its agricultural priors transfer to structured reasoning tasks. The pattern of confident but incorrect re-sponses from the baselines underscores the risk of deploying generalist models in agricultural advisory contexts without domain adaptation. 
+
+4.4.5. Example 5: Disease Diagnosis (CDDM) 
+
+As illustrated in Figure 10, AgriChat correctly identifies Tomato Yellow Leaf Curl Virus (TYLCV) in this zero-shot scenario, matching the ground truth pre-cisely. The generalist baselines each propose di ff erent, incorrect diagnoses: LLaVA-OneVision names Early Blight, Llama-3.2 suggests Bacterial Leaf Spot, and Qwen-2.5 declines to commit to any diagnosis at all. The divergence in the baselines’ 25 Figure 10: Qualitative comparison on a CDDM tomato disease diagnosis task. 
+
+outputs, confidently wrong or deliberately evasive, illustrates the lack of reliable plant pathology knowledge in generalist models. AgriChat’s correct identification, achieved without any CDDM training data, suggests that agricultural fine-tuning cultivates transferable visual–semantic associations for disease recognition that extend well beyond the training distribution. 
+
+4.5. Quantitative Results 
+
+Given that comparable domain-specific models (e.g., Agri-LLaVA, AgroGPT) are not publicly released as of this writing, we compared AgriChat (7B) against state-of-the-art generalist multimodal models: LLaVA-OneVision (7B), Llama-3.2 (Vision-11B), and Qwen-2.5 (VL-7B). 
+
+4.5.1. Benchmark Performance 
+
+Table 2 and Figure 11 summarize the results. AgriChat demonstrates dominant performance on the in-domain AgriMM dataset (LLM Judge: 77.43%) and strong zero-shot transfer to PlantVillage (74.26%) and CDDM Diagnosis (69.94%). 26 Figure 11: Radar chart evaluation of AgriChat against baselines. AgriChat shows distinct advan-tages in diagnostic tasks (AgriMM, CDDM, PlantVillage) while generalist models remain com-petitive in open-ended reasoning. 
+
+27 Table 2: Comprehensive benchmark on multiple datasets. All metrics are scaled to 0–100 for clarity. Bold indicates the best performance; underline indicates the second best. Di ff reports the absolute di ff erence in percentage points between AgriChat and the best-performing baseline. 
+
+Dataset Metric LLaVA-OneVision Llama-3.2 Qwen-2.5 AgriChat Di ff 
+
+(7B) (11B) (7B) (7B) (vs Best) 
+
+AGMMU (MCQs) 
+
+Lexical / Math Metrics 
+
+BLEU-4 4.20 2.49 3.29 64.94 +60.7 ↑
+
+ROUGE-2 7.81 9.73 15.36 50.98 +35.6 ↑
+
+METEOR 8.88 28.06 31.70 63.87 +32.2 ↑
+
+Semantic Metrics 
+
+BERTScore 84.57 83.89 84.53 91.22 +6.7 ↑
+
+LongCLIP 71.66 79.24 79.98 87.38 +7.4 ↑
+
+T5 Cos 25.81 51.32 53.83 72.61 +18.8 ↑
+
+SBERT 20.25 53.01 56.90 73.92 +17.0 ↑
+
+Accuracy Percentage 
+
+Accuracy 70.13 65.73 70.94 70.19 −0.8 ↓
+
+AGMMU (Open-Ended) 
+
+Lexical / Math Metrics 
+
+BLEU-4 0.35 0.11 0.09 0.43 +0.1 ↑
+
+ROUGE-2 2.60 1.04 0.76 2.83 +0.2 ↑
+
+METEOR 12.45 7.69 6.62 13.44 +1.0 ↑
+
+Semantic Metrics 
+
+BERTScore 83.74 80.24 80.07 82.81 −0.9 ↓
+
+LongCLIP 75.91 75.68 75.72 75.08 −0.8 ↓
+
+T5 Cos 47.17 44.40 43.47 49.95 +2.8 ↑
+
+SBERT 39.65 36.30 36.82 39.23 −0.4 ↓
+
+LLM-based 
+
+LLM Judge (%) 52.49 55.70 59.93 46.93 −13.0 ↓
+
+PlantVillage-VQA 
+
+Lexical / Math Metrics 
+
+BLEU-4 0.14 0.08 0.03 2.00 +1.9 ↑
+
+ROUGE-2 0.65 0.50 0.22 3.18 +2.5 ↑
+
+METEOR 17.25 6.72 3.43 19.52 +2.3 ↑
+
+Semantic Metrics 
+
+BERTScore 86.02 80.37 79.12 83.58 −2.4 ↓
+
+LongCLIP 80.65 79.11 79.89 75.20 −5.5 ↓
+
+T5 Cos 51.65 37.85 28.20 44.80 −6.9 ↓
+
+SBERT 41.64 20.95 10.90 32.13 −9.5 ↓
+
+LLM-based 
+
+LLM Judge (%) 57.41 54.44 53.21 74.26 +16.9 ↑
+
+CDDM (Diagnosis) 
+
+Lexical / Math Metrics 
+
+BLEU-4 0.45 0.56 0.57 6.42 +5.9 ↑
+
+ROUGE-2 2.28 2.62 2.52 17.16 +14.5 ↑
+
+METEOR 17.17 18.63 18.11 39.59 +21.0 ↑
+
+Semantic Metrics 
+
+BERTScore 84.91 85.06 84.82 89.60 +4.5 ↑
+
+LongCLIP 76.30 76.03 77.21 84.50 +7.3 ↑
+
+T5 Cos 54.47 57.21 55.13 69.50 +12.3 ↑
+
+SBERT 52.06 52.52 52.92 67.92 +15.0 ↑
+
+LLM-based 
+
+LLM Judge (%) 55.53 53.03 59.51 69.94 +10.4 ↑
+
+AgriMM 
+
+Lexical / Math Metrics 
+
+BLEU-4 14.13 4.24 2.29 49.34 +35.2 ↑
+
+ROUGE-2 24.61 11.84 9.24 57.29 +32.7 ↑
+
+METEOR 37.89 32.43 29.11 66.70 +28.8 ↑
+
+Semantic Metrics 
+
+BERTScore 88.52 87.02 85.83 94.71 +6.2 ↑
+
+Continued on next page . . . 
+
+28 Dataset Metric LLaVA-OneVision Llama-3.2 Qwen-2.5 AgriChat Di ff                             
+
+> (7B) (11B) (7B) (7B) (vs Best)
+> LongCLIP 87.05 86.10 0.00 93.97 +6.9 ↑
+> T5 Cos 77.23 74.58 74.02 90.68 +13.5 ↑
+> SBERT 67.79 66.41 65.47 83.60 +15.8 ↑
+> LLM-based
+> LLM Judge (%) 55.12 57.18 65.77 77.43 +11.7 ↑
+
+4.5.2. Inference Performance 
+
+To assess real-world deployment viability, we benchmarked AgriChat on a consumer-grade NVIDIA RTX 3090 GPU (24GB VRAM), representative of hard-ware accessible to agricultural research institutions and extension services. All models were evaluated using 4-bit quantization, batch size of 1, and a standard-ized test image (1328 KB) with the prompt “What is the name of the plant in the image?” repeated across 100 inference cycles. 
+
+Table 3: Inference performance benchmarks on NVIDIA RTX 3090 (24GB VRAM). All models evaluated at 4-bit precision with batch size 1 on a 1328 KB agricultural field image. Metrics averaged over 100 repetitions. Bold indicates best performance; Underline indicates second best.                               
+
+> Model Load Time (s) Avg Inf Time (s) It /sec Tokens /sec Mem Load (GB) Mem Peak (GB)
+> Llama-3.2 (Vision-11B) 29.05 9.938 0.101 25.86 7.18 8.16
+> Qwen-2.5 (VL-7B) 22.45 29.769 0.034 8.60 11.33 11.76 LLaVA-OneVision (7B) 9.98 1.546 0.647 12.94 9.99 10.99 AgriChat (7B) 9.27 2.315 0.432 9.50 10.71 12.32
+
+As shown in Table 3, AgriChat achieves an average inference time of 2.315 seconds per query, enabling real-time diagnostic applications while remaining 4.3 × faster than Llama-3.2-11B and 12.9 × faster than Qwen-2.5-7B. The model’s throughput of 0.432 iterations per second translates to approximately 1,555 diag-nostic queries per hour, su ffi cient for field deployment via mobile applications. With a memory footprint of 10.71–12.32 GB and rapid load time of 9.27 seconds, AgriChat runs comfortably on mid-range GPUs (RTX 4060 Ti, A4000) without requiring specialized data center hardware. While the 50% latency increase rela-tive to base LLaVA-OneVision reflects the additional computational cost of spe-cialized adapters, this trade-o ff delivers a 21.4 percentage point improvement in diagnostic accuracy on AgriMM (Table 2), making it acceptable for agricultural applications where misdiagnosis carries significant economic consequences. 
+
+4.6. Discussion 4.6.1. Generalization to Unseen Domains 
+
+A critical finding is the model’s ability to generalize to datasets not seen dur-ing fine-tuning. Despite being trained exclusively on AgriMM, AgriChat achieved 29 strong performance on CDDM (Diagnosis), leading all baselines across both lex-ical and semantic metrics by substantial margins (e.g., BLEU-4: +5.9%, LLM Judge: +10.4%). On PlantVillageVQA, AgriChat led on lexical metrics and LLM-judged quality ( +16.9%), though it trailed LLaVA-OneVision on semantic similarity metrics (BERTScore, SBERT), suggesting its outputs are structurally well-formed but phrased di ff erently from reference answers. Together, these re-sults suggest that training on AgriMM’s diverse 63-source corpus helps prevent overfitting to specific visual conditions, enabling the model to learn robust repre-sentations of crop pathology features across di ff erent data distributions. 
+
+4.6.2. The Specialist-Generalist Trade-o ff 
+
+The results highlight an inherent trade-o ff . While AgriChat excels in visual diagnosis, generalist baselines retained an advantage in tasks requiring broad, open-ended knowledge retrieval, such as AGMMU (Open-Ended). AgriMM’s training pipeline prioritizes “Vision-to-Verified-Knowledge,” creating a specialist diagnostician . Consequently, the model is highly accurate at identification but conservative in generating treatment protocols where its training data did not pro-vide verified advice. This behavior acts as a safety mechanism, reducing the risk of hallucinating management strategies in high-stakes agricultural contexts. 
+
+4.6.3. Metric Sensitivity and Alignment 
+
+The discrepancy between lexical and semantic metrics in Table 2 validates our multi-faceted evaluation approach. Generalist models achieved near-zero BLEU-4 scores on structured tasks such as AGMMU (MCQs) (e.g., LLaVA-OneVision: 0.0420, Llama-3.2: 0.0249), reflecting verbose or ill-formatted outputs, despite maintaining moderate BERTScore values. On structured diagnostic datasets (AG-MMU MCQs, CDDM, AgriMM), AgriChat achieves consistently high scores across both lexical and semantic metrics, demonstrating that domain-specific fine-tuning successfully aligns both output content and format .
+
+4.7. Ablation Studies 
+
+We conduct a series of controlled ablation experiments to isolate the contribu-tion of each design decision in our fine-tuning framework. Specifically, we exam-ine three axes of variation: (i) the rank of the LoRA adapter matrices, (ii) whether the vision encoder benefits from lightweight adaptation alongside the language de-coder, and (iii) single-stage versus two-stage curriculum training. All fine-tuning runs and evaluations are carried out on our dataset AgriMM. Unless otherwise 30 stated, each experiment varies a single factor while holding all remaining hyperpa-rameters at their baseline values. Results are reported across three complementary evaluation dimensions: lexical overlap (BLEU-4, ROUGE-2, METEOR), seman-tic similarity (BERTScore, LongCLIP, T5 Cosine, SBERT), and holistic judge-ment quality (LLM Judge). 
+
+4.7.1. E ff ect of LoRA Rank 
+
+The rank r of the low-rank adapter matrices governs the capacity available for domain adaptation: an insu ffi ciently low rank risks underfitting the special-ized vocabulary and reasoning patterns of agricultural advisory dialogue, whereas an excessively high rank invites overfitting given the limited size of the train-ing corpus. We evaluate r ∈ { 32 , 64 , 128 }, maintaining the relationship α = 2r
+
+throughout so that the e ff ective learning-rate scaling remains constant across con-figurations. As shown in Table 4, increasing the rank from 32 to 64 yields sub-stantial gains across all metrics, with BLEU-4 improving by roughly 10% relative and LLM Judge accuracy rising by over 3 percentage points. Further doubling the rank to 128 produces marginal additional improvements on the semantic metrics while leaving LLM Judge essentially unchanged (76.39% vs. 76.54%). These re-sults suggest that r=64 captures the bulk of the adaptation benefit; nonetheless, we adopt r=128 for subsequent experiments to maximise headroom for the more challenging ablation conditions that follow.                              
+
+> Table 4: E ff ect of LLM LoRA rank on AgriMM. Bold denotes the best result per metric; underline denotes the second best.
+> Metric Rank 32 Rank 64 Rank 128
+> Lexical
+> BLEU-4 0.4422 0.4860 0.4860
+> ROUGE-2 0.5146 0.5598 0.5663
+> METEOR 0.6172 0.6599 0.6588
+> Semantic
+> BERTScore 0.9377 0.9447 0.9461
+> LongCLIP 0.9258 0.9365 0.9378
+> T5 Cos 0.8850 0.9027 0.9035
+> SBERT 0.8064 0.8302 0.8317
+> LLM-based
+> LLM Judge (%) 73.46 76.54 76.39
+
+31 4.7.2. E ff ect of Vision Encoder Adaptation 
+
+In the default configuration the SigLIP vision encoder remains fully frozen and LoRA adapters are injected exclusively into the Qwen-2 language decoder. This design assumes that the general-purpose visual features learned during large-scale pre-training transfer adequately to the agricultural domain. To test this assump-tion, we introduce an additional set of rank-32 LoRA adapters into the vision encoder’s linear projection layers and retrain under otherwise identical condi-tions (LLM rank 128, single-stage training). Table 5 reports the results. Adapt-ing the vision encoder yields consistent improvements across every metric, with the largest relative gains observed on the lexical measures (BLEU-4: +1.52%; ROUGE-2: +1.17%) and on the LLM Judge score ( +1.36%). The semantic simi-larity metrics also improve, albeit more modestly (BERTScore: +0.11%; SBERT: 
+
++0.52%). These findings indicate that domain-specific visual representations con-stitute a meaningful, if secondary, performance bottleneck: fine-grained agri-cultural features such as lesion morphology, growth-stage appearance, and plant anatomical detail benefit from lightweight encoder adaptation beyond what frozen pre-trained features provide.                    
+
+> Table 5: E ff ect of vision encoder adaptation on AgriMM. Both configurations use LLM rank 128 with single-stage training.
+> Metric w/o Vision LoRA w/Vision LoRA
+> Lexical
+> BLEU-4 0.4860 0.4934
+> ROUGE-2 0.5663 0.5729
+> METEOR 0.6588 0.6670
+> Semantic
+> BERTScore 0.9461 0.9471
+> LongCLIP 0.9378 0.9397
+> T5 Cos 0.9035 0.9068
+> SBERT 0.8317 0.8360
+> LLM-based
+> LLM Judge (%) 76.39 77.43
+
+4.7.3. E ff ect of Training Strategy 
+
+Our default protocol trains the model in a single stage on the full multimodal dataset. We compare this against a two-stage curriculum motivated by the hy-32 pothesis that establishing linguistic grounding before introducing visual alignment may yield more stable optimisation. In Stage 1, LoRA adapters are applied solely to the language decoder and trained on text-only agricultural QA pairs, allowing the model to internalise domain terminology, disease nomenclature, and advisory reasoning patterns. In Stage 2, adapters are additionally introduced into the vi-sion encoder and training proceeds on the complete multimodal corpus. Contrary to expectation, the two-stage curriculum substantially underperforms the single-stage baseline across all evaluation axes (Table 6). The degradation is particu-larly pronounced on lexical metrics, where BLEU-4 drops by 15.12% relative and ROUGE-2 by 16.32%. Semantic scores and the LLM Judge similarly decline. We attribute this to catastrophic forgetting during the stage transition: the adapter weights optimised for text-only supervision in Stage 1 provide a suboptimal ini-tialisation for the multimodal objective in Stage 2, e ff ectively undoing a portion of the linguistic adaptation. These results firmly justify the simpler single-stage pro-tocol, which benefits from joint vision–language optimisation from the outset.                   
+
+> Table 6: E ff ect of training strategy on AgriMM. Both configurations use LLM rank 128 and vision rank 32.
+> Metric Single-stage Two-stage
+> Lexical
+> BLEU-4 0.4934 0.4286 ROUGE-2 0.5729 0.4925 METEOR 0.6670 0.6103
+> Semantic
+> BERTScore 0.9471 0.9364 LongCLIP 0.9397 0.9274 T5 Cos 0.9068 0.8869 SBERT 0.8360 0.8057
+> LLM-based
+> LLM Judge (%) 77.43 73.26
+
+5. Conclusion 
+
+This work addressed two fundamental bottlenecks limiting the deployment of MLLMs in agriculture: the scarcity of scientifically verified training data and the lack of domain-specialized models capable of fine-grained agricultural reasoning. 33 To overcome the first, we introduced the Vision-to-Verified-Knowledge (V2VK) 
+
+pipeline, which synthesizes high-quality VQA pairs by grounding the outputs of multiple generative models in verified phytopathological literature. This produced AgriMM, a publicly available benchmark of 121,425 images and 607,125 VQA pairs spanning more than 3,000 agricultural classes across 63 source datasets, val-idated through a rigorous human-in-the-loop protocol. To overcome the second, we presented AgriChat, a domain-specialized MLLM built on LLaVA-OneVision and adapted through parameter-e ffi cient fine-tuning of both the vision encoder and language decoder. AgriChat achieves state-of-the-art in-domain performance in both internal and external benchmarks and strong zero-shot generalization, outper-forming open-source models, while working on consumer-grade hardware. Future work will focus on three directions: expanding AgriMM to cover pest identifica-tion, increasing per-class image representation to support more robust learning, and incorporating more recent generative models into both the V2VK pipeline and the AgriChat architecture. All data, code, and model weights are publicly released to support reproducibility and to serve as a foundation for future research in agricultural multimodal intelligence. 34 Appendix A. Dataset Composition 
+
+This section details the specific source datasets aggregated to construct AgriMM. To ensure reproducibility, we list the exact dataset identifiers used in our aggrega-tion pipeline. 
+
+Appendix A.1. Crop Counting and Spatial Reasoning Sources 
+
+The 33 object detection datasets used to construct the quantitative reasoning component of AgriMM are listed below. These datasets were processed to gener-ate ground-truth counts for instruction tuning. 
+
+• Fruit & Nut Detection: almond_bloom_2023 [34], almond_harvest_2021 [34], apple_detection_drone_brazil [34], apple_detection_spain [34], apple_detection_usa [34], embrapa_wgisd_grape_detection [34], fruit_detection_worldwide [34], grape_detection_california [34], grape_detection_californianight [34], grape_detection_syntheticday [34], mango_detection_australia [34], Orange_dataset, strawberry_detection_2022 [34], strawberry_detection_2023 [34], tomato_ripeness_detection [34], wGrapeUNIPD-DL [51]. 
+
+• Field Crops & Vegetables: ghai_broccoli_detection [34], ghai_green_cabbage_detection [34], ghai_iceberg_lettuce_detection [34], ghai_romaine_detection [34], GWHD2021 (Global Wheat Head Detection) [52], wheat_head_counting [34]. 
+
+• Specialized & General Agriculture: CBDA [53, 54], DRPD [55], gemini_flower_detection_2022 [34], gemini_leaf_detection_2022 [34], gemini_plant_detection_2022 [34], gem-ini_pod_detection_2022 [34], MTDC [56], plant_doc_detection [34], SHC [57], WEDD [58], YOLOPOD [59]. 
+
+Appendix A.2. Disease and Stress Classification Sources 
+
+The 29 classification datasets comprising the pathological component of the benchmark are listed below. Each dataset includes a “Healthy” baseline class alongside specific biotic and abiotic stress classes. arabica_co ff ee_leaf_disease_classification [34], banana_leaf_disease_classification [34], bean_disease_uganda [34], betel_leaf_disease_classification [34], blackgram_plant_leaf_disease_classification [34], chilli_leaf_classification [34], coconut_tree_disease_classification [34], corn_maize_leaf_disease [34], crop_weeds_greece [34], cucumber_disease_classification [34], guava_disease_pakistan [34], java_plum_leaf_disease_classifi [34], leaf_counting_denmark [34], onion_leaf_classification [34], orange_leaf_disease_classification [34], paddy_disease_classification [34], papaya_leaf_disease_classification [34], plant_doc_classification [34], plant_seedlings_aarhus [34], plant_village_classification 35 [34], rangeland_weeds_australia [34], rice_leaf_disease_classification [34], rise-holme_strawberry_classification_2021 [34], soybean_weed_uav_brazil [34], sug-arcane_damage_usa [34], sunflower_disease_classification [34], tea_leaf_disease_classification [34], tomato_leaf_disease [34], vine_virus_photo_dataset [34]. 
+
+Appendix B. Synthesis Pipeline Prompt Templates 
+
+We provide the exact system prompts used in our Vision-to-Verified-Knowledge 
+
+pipeline. These prompts were designed to minimize hallucination by enforcing strict constraints on the language models. 
+
+Appendix B.1. Stage 1: Visual Grounding (Image Captioning) 
+
+Model: Gemma 3 (12B) 
+
+Purpose: To generate structured visual metadata rather than generic captions. 
+
+> Write a descriptive caption of about 3-5 sentences given that the image contains {extra_details}. Include these aspects if clearly visible: - Crop name and type - Growth stage (seedling/vegetative/flowering/fruiting/harvest) - Ground cover and plant density - Image perspective (top-down/oblique/side/macro/unknown) - Environmental conditions (field/greenhouse/laboratory) - Plant health indicators Rules for caption: - Use clear, neutral language - No speculation - only describe what is visible - If something cannot be determined, use ’unknown’ - Write as natural sentences
+
+Appendix B.2. Stage 2: Knowledge Retrieval 
+
+Model: Gemini 3 Pro (Web Search Enabled) 
+
+Purpose: To retrieve verified botanical and phytopathological knowledge. 
+
+Appendix B.2.1. Species Identification Prompt 
+
+> For the class name {class_names}, generate a detailed botanical description paragraph (~300 words) covering: - Taxonomic classification (family, genus, species) - Morphological characteristics (leaf shape, stem structure,
+
+36 inflorescence, fruit morphology) - Native habitat and biogeographic distribution - Cultivation requirements (soil, climate, water) - Ecological significance and agricultural use Format your output as {"class_name":"detailed discription"} 
+
+Appendix B.2.2. Disease Classification Prompt 
+
+For each class name in {disease_class_names}, generate a detailed paragraph (~300 words) providing an integrated account of: - Plant taxonomy, morphology, and natural habitat - Disease etiology (causal agent, pathogen taxonomy) - Visible symptoms (lesion morphology, discoloration patterns, necrosis, wilting) - Affected plant organs (leaves, stems, fruits, roots) - Pathogen biology and infection cycle - Environmental factors influencing disease development - Comparison with healthy plant phenotype When the class represents "Healthy", describe the ideal botanical state emphasizing vigor, normal morphology, and optimal appearance. 
+
+Appendix B.3. Stage 3: Instruction Generation 
+
+Model: LLaMA 3.1 8B Instruct 
+
+Purpose: To synthesize visual captions and retrieved knowledge into QA pairs. 
+
+You are an expert agricultural AI trainer. Generate exactly 5 high-quality, diverse QA pairs. **SOURCE DATA:** - Additional Info: {class_info} - Image Caption: {caption} **STRICT RULES:** 1. GROUNDING: Use ONLY provided info. If the image/info doesn’t mention a disease, don’t invent one. 2. FORMAT: Output a single JSON array of 5 objects. 3. ANSWER STYLE: Use full, professional sentences. Instead of "okra," say "The image shows an okra plant (Abelmoschus esculentus)." 
+
+37 **REQUIRED QUESTION CATEGORIES (One per slot):** 1. Identification: Identify the plant and its variety. 2. Visual Reasoning: Ask HOW the plant can be identified (e.g., "What visual features distinguish this species?"). 3. Condition & Health: Ask about leaf/fruit/stem state (color, spots, growth stage). 4. Cultivation Knowledge: Connect visuals to agronomic requirements (e.g., "What are this plant’s soil pH needs?"). 5. Anatomy/Detail: Ask about a specific visible part (flower, fruit, leaf structure). 
+
+Appendix C. Evaluation Prompts 
+
+Appendix C.1. LLM-as-a-Judge Prompt 
+
+Model: Qwen3-30B-A3B-Instruct-2507 
+
+Purpose: To evaluate response quality while penalizing verbosity and hallucina-tion. 
+
+You are an expert evaluator assessing an AI model’s response. Evaluate systematically and objectively. **QUESTION**: {question} **GROUND TRUTH (Correct Answer)**: {ground_truth} **MODEL OUTPUT (To Evaluate)**: {model_output} ---**EVALUATION CRITERIA** 1. **Correctness**: Does the output contain the correct information from the Ground Truth? 2. **Completeness**: Does the output include all important information from Ground Truth? 3. **Clarity**: Is the output clear, well-organized, and easy to understand? 4. **Conciseness**: Is the output appropriately concise without unnecessary content? ---
+
+38 **SCORING RUBRIC** (1-4 scale) **Score 1 (Poor)**: Major deficiencies. Factually incorrect or missing multiple key facts. **Score 2 (Fair)**: Significant issues. Missing 1-2 important facts or minor inaccuracies. **Score 3 (Good)**: Solid with minor issues only. Factually accurate but maybe slightly verbose or misses tiny details. **Score 4 (Excellent)**: Outstanding quality. Perfectly accurate, complete, clear, and concise. ---**OUTPUT**: Provide evaluation in this EXACT JSON format: {{ "score": <integer 1-4>, "justification": "1-2 sentence summary" }} Begin evaluation: 
+
+References 
+
+[1] A. Dubey, A. Jauhri, A. Pandey, A. Kadian, A. Al-Dahle, A. Letman, A. Mathur, A. Schelten, A. Yang, A. Fan, et al., The llama 3 herd of models, arXiv e-prints (2024) arXiv–2407. [2] B. Li, Y. Zhang, D. Guo, R. Zhang, F. Li, H. Zhang, K. Zhang, P. Zhang, Y. Li, Z. Liu, et al., Llava-onevision: Easy visual task transfer, arXiv preprint arXiv:2408.03326 (2024). [3] A. Yang, et al., Qwen2 technical report, arXiv preprint arXiv:2407.10671 (2024). [4] S. N. Sakib, N. Haque, M. Z. Hossain, S. E. Arman, Plantvillagevqa: A visual question answering dataset for benchmarking vision-language models in plant science, arXiv preprint arXiv:2508.17117 (2025). [5] A. Gauba, I. Pi, Y. Man, Z. Pang, V. S. Adve, Y.-X. Wang, Agmmu: A comprehensive agricultural multimodal understanding benchmark, 2025. 39 arXiv:2504.10568 .URL https://arxiv.org/abs/2504.10568 
+
+[6] World Bank, Agriculture and food: Overview, accessed: 2024-10-24 (2024). URL https://www.worldbank.org/en/topic/agriculture/ overview 
+
+[7] International Fund for Agricultural Development, Ifad annual report 2024 (2024). URL https://www.ifad.org/en/annual-report-2024 
+
+[8] FAO, The State of Food Security and Nutrition in the World 2024: Financing to End Hunger, Food Insecurity and Malnutrition in All Its Forms, Food and Agriculture Organization of the United Nations, Rome, 2024. [9] A. O. Adewusi, O. F. Asuzu, T. Olorunsogo, C. Iwuanyanwu, E. Adaga, D. O. Daraojimba, Ai in precision agriculture: A review of technologies for sustainable farming practices, World Journal of Advanced Research and Re-views 21 (1) (2024) 2276–2285. doi:10.30574/wjarr.2024.21.1.0314 .[10] L. Zhang, H. Wang, Y. Li, Advanced artificial intelligence: A revolution for sustainable agriculture, Nature Sustainability 8 (2) (2025) 112–125. [11] P. Kumar, R. Singh, Ai-driven support tools for crop yield optimization: A review, Smart Agricultural Technology 7 (2024) 100391. [12] M. El Jarroudi, L. Kouadio, B. Mercatoris, et al., Leveraging edge artificial intelligence for sustainable agriculture, Nature Sustainability 7 (2024) 846– 854. doi:10.1038/s41893-024-01352-4 .[13] L. Nieradzik, H. Stephani, J. Sieburg-Rockel, S. Helmling, A. Olbrich, J. Ke-uper, Challenging the black box: A comprehensive evaluation of attribu-tion maps of cnn applications in agriculture and forestry, arXiv preprint arXiv:2402.11670 (2024). [14] M. Awais, A. H. S. A. Alharthi, A. Kumar, H. Cholakkal, R. M. Anwer, Agrogpt: E ffi cient agricultural vision-language model with expert tuning, in: 2025 IEEE /CVF Winter Conference on Applications of Computer Vision (WACV), IEEE, 2025, pp. 5687–5696. 40 [15] S. Yin, Y. Xi, X. Zhang, C. Sun, Q. Mao, Foundation models in agriculture: A comprehensive review, Agriculture 15 (8) (2025) 847. doi:10.3390/ agriculture15080847 .[16] D. P. Hughes, M. Salathé, An open access repository of images on plant health to enable the development of mobile disease diagnostics, arXiv preprint arXiv:1511.08060 (2015). [17] X. Liu, Z. Liu, H. Hu, Z. Chen, K. Wang, K. Wang, S. Lian, A multi-modal benchmark dataset and model for crop disease diagnosis, in: Com-puter Vision – ECCV 2024, Springer Nature Switzerland, 2024, p. 157–170. 
+
+doi:10.1007/978-3-031-73016-0_10 .URL http://dx.doi.org/10.1007/978-3-031-73016-0_10 
+
+[18] G. Team, A. Kamath, J. Ferret, S. Pathak, N. Vieillard, R. Merhej, S. Perrin, T. Matejovicova, A. Ramé, M. Rivière, et al., Gemma 3 technical report, arXiv preprint arXiv:2503.19786 (2025). [19] Gemini Team, Google, Gemini 3: Frontier multimodal intelligence, Techni-cal report, Google DeepMind (2025). URL https://deepmind.google/technologies/gemini/ 
+
+[20] L. Wang, T. Jin, J. Yang, A. Leonardis, F. Wang, F. Zheng, Agri-llava: Knowledge-infused large multimodal assistant on agricultural pests and dis-eases, arXiv preprint arXiv:2412.02158 (2024). [21] K. Sharma, V. Vats, A. Singh, R. Sahani, D. Rai, A. Sharma, Llava-plantdiag: Integrating large-scale vision-language abilities for conversa-tional plant pathology diagnosis, in: 2024 International Joint Conference on Neural Networks (IJCNN), IEEE, 2024, pp. 1–7. [22] Y. Lu, S. Young, A survey of public datasets for computer vision tasks in precision agriculture, Computers and Electronics in Agriculture 178 (2020) 105760. [23] E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, W. Chen, LoRA: Low-rank adaptation of large language models, in: International Conference on Learning Representations, 2022. URL https://openreview.net/forum?id=nZeVKeeFYf9 
+
+41 [24] D. Hughes, M. Salathé, et al., An open access repository of images on plant health to enable the development of mobile disease diagnostics, arXiv preprint arXiv:1511.08060 (2015). [25] Y. Zhang, Y. Li, L. Cui, D. Cai, L. Liu, T. Fu, X. Huang, E. Zhao, Y. Zhang, Y. Chen, et al., Siren’s song in the ai ocean: A survey on hallucination in large language models, Computational Linguistics 51 (4) (2025) 1373–1418. [26] M. L. Gullino, R. Albajes, I. Al-Jboory, F. Angelotti, S. Chakraborty, K. Gar-rett, B. Hurley, P. Juroszek, K. Makkouk, X. Pan, et al., Scientific review of the impact of climate change on plant pests: A global challenge to prevent and mitigate plant-pest risks in agriculture, forestry and ecosystems, Tech. rep. (2021). [27] K. He, X. Zhang, S. Ren, J. Sun, Deep residual learning for image recogni-tion, in: Proceedings of the IEEE conference on computer vision and pattern recognition, 2016, pp. 770–778. [28] G. Huang, Z. Liu, L. Van Der Maaten, K. Q. Weinberger, Densely connected convolutional networks, in: Proceedings of the IEEE conference on com-puter vision and pattern recognition, 2017, pp. 4700–4708. [29] M. Tan, Q. Le, E ffi cientnet: Rethinking model scaling for convolutional neural networks, in: International conference on machine learning, PMLR, 2019, pp. 6105–6114. [30] J. Lin, X. Zhang, Y. Qin, S. Yang, X. Wen, T. Cernava, Q. Migheli, X. Chen, Local and global feature-aware dual-branch networks for plant dis-ease recognition, Plant Phenomics 6 (2024) 0208. [31] S. Yu, L. Xie, L. Dai, St-cfi: Swin transformer with convolutional feature interactions for identifying plant diseases, Scientific Reports 15 (1) (2025) 25000. [32] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, B. Guo, Swin trans-former: Hierarchical vision transformer using shifted windows, in: Proceed-ings of the IEEE /CVF international conference on computer vision, 2021, pp. 10012–10022. 42 [33] U. Nawaz, A. Muhammad, H. Gani, M. Naseer, F. S. Khan, S. Khan, R. Anwer, Agriclip: Adapting clip for agriculture and livestock via domain-specialized cross-model alignment, in: Proceedings of the 31st International Conference on Computational Linguistics, 2025, pp. 9630–9639. [34] A. Joshi, D. Guevara, M. Earles, Standardizing and centralizing datasets for effi cient training of agricultural deep learning models, Plant Phenomics 5 (2023) 0084. doi:https://doi.org/10.34133/plantphenomics.0084 .URL https://www.sciencedirect.com/science/article/pii/ S2643651524001432 
+
+[35] B. Yang, Y. Chen, L. Feng, Y. Zhang, X. Xu, J. Zhang, N. Aierken, R. Huang, H. Lin, Y. Ying, S. Li, Agrigpt-vl: Agricultural vision-language understand-ing suite (2025). arXiv:2510.04002 .URL https://arxiv.org/abs/2510.04002 
+
+[36] X. Zhai, B. Mustafa, A. Kolesnikov, L. Beyer, Sigmoid loss for language im-age pre-training, in: Proceedings of the IEEE /CVF International Conference on Computer Vision, 2023, pp. 11975–11986. [37] E. Reiter, A structured review of the validity of bleu, Computational Lin-guistics 44 (3) (2018) 393–401. [38] Y. Liu, D. Iter, Y. Xu, S. Wang, R. Xu, C. Zhu, G-eval: Nlg evaluation using gpt-4 with better human alignment, in: Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP), 2023, pp. 2511–2522. [39] K. Papineni, S. Roukos, T. Ward, W.-J. Zhu, Bleu: A method for automatic evaluation of machine translation, in: Proceedings of the 40th Annual Meet-ing of the Association for Computational Linguistics, Association for Com-putational Linguistics, 2002, pp. 311–318. [40] C.-Y. Lin, Rouge: A package for automatic evaluation of summaries, in: Text summarization branches out, 2004, pp. 74–81. [41] S. Banerjee, A. Lavie, Meteor: An automatic metric for mt evaluation with improved correlation with human judgments, in: Proceedings of the ACL Workshop on Intrinsic and Extrinsic Evaluation Measures for Machine Translation and /or Summarization, 2005, pp. 65–72. 43 [42] A. Nainia, Llm evaluation is broken: Why bleu and rouge don’t measure real understanding, Medium (2024). URL https://medium.com/@nainia_ayoub/ llm-evaluation-is-broken 
+
+[43] T. Zhang, V. Kishore, F. Wu, K. Q. Weinberger, Y. Artzi, Bertscore: Evalu-ating text generation with bert, 2020. arXiv:1904.09675 .URL https://arxiv.org/abs/1904.09675 
+
+[44] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sas-try, A. Askell, P. Mishkin, J. Clark, et al., Learning transferable visual mod-els from natural language supervision, in: International conference on ma-chine learning, PMLR, 2021, pp. 8748–8763. [45] C. Ra ff el, N. Shazeer, A. Roberts, K. Lee, S. Narang, M. Matena, Y. Zhou, W. Li, P. J. Liu, Exploring the limits of transfer learning with a unified text-to-text transformer (2023). arXiv:1910.10683 .URL https://arxiv.org/abs/1910.10683 
+
+[46] N. Reimers, I. Gurevych, Sentence-bert: Sentence embeddings using siamese bert-networks, 2019. arXiv:1908.10084 .URL https://arxiv.org/abs/1908.10084 
+
+[47] L. Zheng, W.-L. Chiang, Y. Sheng, S. Zhuang, Z. Wu, Y. Zhuang, Z. Lin, Z. Li, D. Li, E. P. Xing, H. Zhang, J. E. Gonzalez, I. Stoica, Judging llm-as-a-judge with mt-bench and chatbot arena, 2023. arXiv:2306.05685 .URL https://arxiv.org/abs/2306.05685 
+
+[48] H. Li, Q. Dong, J. Chen, H. Su, Y. Zhou, Q. Ai, Z. Ye, Y. Liu, Llms-as-judges: A comprehensive survey on llm-based evaluation methods (2024). 
+
+arXiv:2412.05579 .URL https://arxiv.org/abs/2412.05579 
+
+[49] J. Gu, X. Jiang, Z. Shi, H. Tan, X. Zhai, C. Xu, W. Li, Y. Shen, S. Ma, H. Liu, S. Wang, K. Zhang, Y. Wang, W. Gao, L. Ni, J. Guo, A survey on llm-as-a-judge (2025). arXiv:2411.15594 .URL https://arxiv.org/abs/2411.15594 
+
+[50] S. Han, G. T. Junior, T. Balough, W. Zhou, Judge’s verdict: A comprehensive analysis of llm judge capability through human agreement, arXiv preprint arXiv:2510.09738 (2025). 44 [51] M. Sozzi, S. Cantalamessa, A. Cogato, A. Kayad, F. Marinello, wGrapeUNIPD-DL: an open dataset for white grape bunch detection (2022). 
+
+doi:10.5281/zenodo.4066730 .URL https://doi.org/10.5281/zenodo.4066730 
+
+[52] E. David, M. Serouart, D. Smith, S. Madec, K. Velumani, S. Liu, X. Wang, F. Pinto, S. Shafiee, I. S. Tahir, H. Tsujimoto, S. Nasuda, B. Zheng, N. Kirchgessner, H. Aasen, A. Hund, P. Sadhegi-Tehran, K. Nagasawa, G. Ishikawa, S. Dandrifosse, A. Carlier, B. Dumont, B. Mercatoris, B. Evers, K. Kuroki, H. Wang, M. Ishii, M. A. Badhon, C. Pozniak, D. S. LeBauer, M. Lillemo, J. Poland, S. Chapman, B. de Solan, F. Baret, I. Stavness, W. Guo, Global wheat head detection 2021: An improved dataset for benchmarking wheat head detection methods, Plant Phenomics 2021 (2021) 9846158. doi:https://doi.org/10.34133/2021/9846158 .URL https://www.sciencedirect.com/science/article/pii/ S2643651524000591 
+
+[53] D. Lu, J. Ye, Y. Wang, Z. Yu, Plant detection and counting: Enhancing preci-sion agriculture in uav and general scenes, IEEE Access 11 (2023) 116196– 116205. doi:10.1109/ACCESS.2023.3325747 .[54] J. Ye, Z. Yu, Y. Wang, D. Lu, H. Zhou, Wheatlfanet: In-field detection and counting of wheat heads with high-real-time global regression network, Plant Methods 19 (103) (2023). doi:10.1186/s13007-023-01079-x .[55] Z. Teng, J. Chen, J. Wang, S. Wu, R. Chen, Y. Lin, L. Shen, R. Jackson, J. Zhou, C. Yang, Panicle-cloud: An open and ai-powered cloud computing platform for quantifying rice panicles from drone-collected imagery to en-able the classification of yield production in rice, Plant Phenomics 5 (2023) 0105. doi:10.34133/plantphenomics.0105 .URL https://doi.org/10.34133/plantphenomics.0105 
+
+[56] H. Zou, H. Lu, Y. Li, L. Liu, Z. Cao, Maize tassels detection: a benchmark of the state of the art, Plant Methods 16 (1) (2020) 1–15. [57] H. Lu, Z. Cao, Tasselnetv2 +: A fast implementation for high-throughput plant counting from high-resolution rgb imagery, Frontiers in Plant Science Volume 11 - 2020 (2020). doi:10.3389/fpls.2020.541960 .URL https://www.frontiersin.org/journals/plant-science/ articles/10.3389/fpls.2020.541960 
+
+45 [58] S. Madec, X. Jin, H. Lu, B. De Solan, S. Liu, F. Duyme, E. Heritier, F. Baret, Ear density estimation from high resolution RGB imagery using deep learn-ing technique, Agricultural and Forest Meteorology 264 (2019) 225–234. 
+
+doi:10.1016/j.agrformet.2018.10.013 .[59] S. Xiang, S. Wang, M. Xu, W. Wang, W. Liu, Yolo pod: a fast and accu-rate multi-task model for dense soybean pod counting, Plant methods 19 (1) (2023) 8. 46

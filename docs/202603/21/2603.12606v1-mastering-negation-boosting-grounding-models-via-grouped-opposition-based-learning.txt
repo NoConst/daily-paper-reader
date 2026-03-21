@@ -1,0 +1,689 @@
+Title: Mastering Negation: Boosting Grounding Models via Grouped Opposition-Based Learning
+
+URL Source: https://arxiv.org/pdf/2603.12606v1
+
+Published Time: Mon, 16 Mar 2026 00:33:01 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 1
+
+# Mastering Negation: Boosting Grounding Models via Grouped Opposition-Based Learning 
+
+Zesheng Yang, Xi Jiang, Bingzhang Hu, Weili Guan, Runmin Cong, Guo-Jun Qi, Fellow, IEEE ,and Feng Zheng, Member, IEEE 
+
+Abstract —Current vision-language detection and grounding models predominantly focus on processing prompts with positive-semantics and often struggle to understand and ground complex prompts accurately, particularly when these prompts contain negative-semantics. A significant reason for this limitation is the lack of training on high-quality, discriminative negative samples and negative-semantics samples. To efficiently enhance the precise visual localization capabilities of vision-language models, we first introduce D-Negation , a new dataset containing objects with both positive and negative semantic descriptions. Due to the widespread nature of negative logic, we propose a novel grouped opposition-based learning mechanism that extracts comprehensive negation reasoning patterns from limited samples. This learning strategy organizes opposing semantics from D-Negation to establish two loss functions that enable the model to understand negation and qualifiers. We apply our dataset and approach to the state-of-the-art language-based grounding model. With tuning less than 10% of the parameters, we observe a maximum increase of 4.4 and 5.7 mAP in positive and negative semantic evaluations, respectively. 
+
+Index Terms —Visual Grounding, Negative Semantics Opposition-based Learning, Prompt Understanding 
+
+I. Introduction 
+
+Visual Grounding (VG) [1, 2, 3, 4, 5] is a fundamental task within the Vision-Language domain aimed at accurately identifying and locating objects in an image based on natural language descriptions. This capability is essential for a wide range of applications, such as robot navigation [6], where precise object localization is crucial for interaction with the environment, and visual question answering [7], which relies on understanding and linking visual content with textual queries. A robust model must be capable of understanding various forms of expressions, integrating this understanding 
+
+Zesheng Yang, Xi Jiang, and Feng Zheng are with the De-partment of Computer Science, Southern University of Science and Technology, Shenzhen, China (e-mail: 12231140@mail.sustech.edu.cn; jiangx2020@mail.sustech.edu.cn; f.zheng@ieee.org). Bingzhang Hu is with the Vision Intelligence Center, Hefei CAS Dihuge Automation Co., LTD, Hefei, China (e-mail: hubingzhang@dihuge.com). Weili Guan is with the School of Information Science and Technol-ogy, Harbin Institute of Technology (Shenzhen), China (e-mail: guan-weili@hit.edu.cn). Runmin Cong is with the School of Control Science and Engineering, Shandong University, Jinan, China, and also with the Key Laboratory of Machine Intelligence and System Control, Ministry of Education, China (e-mail: rmcong@sdu.edu.cn). Guo-Jun Qi is with the Research Center for Industries of the Future and the School of Engineering, Westlake University, Hangzhou, China, and also with OPPO Research, Seattle, WA, USA (e-mail: guojunq@gmail.com). Corresponding authors: Feng Zheng (zhengf@sustech.edu.cn) and Bingzhang Hu (hubingzhang@dihuge.com). 
+
+with the image content, and ultimately providing the precise location of the described object within the image. In addition to directly specifying the category of an object, humans often use detailed descriptions when referring to objects [8]. This leads to two key tasks commonly addressed in VG: Open-Vocabulary Object Detection (OVD) and Referring Expression Comprehension (REC). As illustrated in Fig.1, humans can describe the same object using not only positive but also negative-semantics when humans need to refer to a specific object in an image. Conventional methodologies [9, 10, 11, 12] for VG typically employ Vision-Language alignment techniques to detect and ground objects. While these methods have demonstrated success in standard scenarios, they frequently overlook more complex aspects of natural language, particularly negative-semantics. We have observed that existing VG models [9, 10, 11] may ignore negation words, resulting in completely erroneous outputs. Cat in front     
+
+> A cat without stripes
+> The cat not in black
+> The orange and white cat
+> Cat
+> Cat ...
+
+：
+
+Previous Grounding Model 
+
+> (Grounding -DINO/APE)
+
+After tuning on D-Negation 
+
+(Ours)                 
+
+> Cat in front
+> A cat without stripes
+> The cat not in black
+> The orange and white cat
+> Cat 0.7 0.7
+> 0.6
+> 0.7 0.3
+> 0.3
+> 0.4
+> 0.7
+> 0.4
+> 0.3
+> 0.7 0.7
+> 0.6
+> 0.7 0.1
+> 0.1
+> 0.7
+> 0.2
+> 0.1
+> 0. 6
+> Positive Semantic Referring
+> Object Detection
+> Negative Semantic Referring
+> The black -striped cat
+
+Fig. 1. Intuition of positive and negative semantic referring. Besides object names and positive logic descriptions, humans can refer to objects with negative-semantic. For instance, when unsure how to describe the color of the calico cat, one might say, “the cat not in black.” Existing grounding models struggle to understand such referring and may even provide opposite localization results. By further fine-tuning, our method can efficiently enhance the grounding ability to complex referring. 
+
+Negative-semantic is a fundamental aspect of natural lan-guage that enables more nuanced and precise communication [13, 14]. It allows for expressing contrasts, exclusions, and  
+
+> arXiv:2603.12606v1 [cs.CV] 13 Mar 2026 IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 2
+
+conditions that are not straightforwardly positive [15]. Essentially, grounding negative-semantics descriptions poses two key challenges: 1) Qualifier Comprehension: Prompts often involve com-plex qualifiers such as color, spatial position, quantity, or physical state. Accurately resolving these fine-grained attributes requires the model to capture subtle semantic distinctions and align them with precise visual cues. However, current models frequently conflate similar attributes or overlook contextual modifiers, leading to ambiguous or incorrect grounding. 2) Negation Comprehension: Prompts may explicitly in-clude negative semantics, expressed through terms such as not , no , or without . Understanding negation is in-herently difficult because it requires reasoning over the absence or exclusion of visual evidence, rather than its presence. Most existing methods, trained predominantly on positive descriptions, fail to generalize under such settings and often misinterpret negated instructions, re-sulting in false grounding. The model needs first to understand the meaning of the modifiers and then their negation. Enhancing the ability of existing REC models to handle negative semantics efficiently is therefore a significant research problem. Moreover, as previously discussed, strengthening negation understanding also improves comprehension of modifiers, thereby benefiting positive semantics as well. To address these challenges, we introduce both a novel dataset and an efficient fine-tuning mechanism tailored to negative semantics, as detailed below. 
+
+a) D-Negation Dataset.: We propose the first visual grounding dataset that contains both positive and negative semantic descriptions with multiple attributes. Existing vi-sual grounding (VG) datasets [16, 17, 18], textual labels typically correspond to individual words or simple phrases within images. These labels often provide only the names of objects, as seen in LVIS [19] and Object365 [20], or describe objects exclusively with affirmative descriptions, as seen in Flickr30K [21] and GQA [22]. We contend that enhancing grounding models’ understanding of negation requires a spe-cialized dataset, so we developed a pipeline that utilizes the advanced language capabilities of the contemporary multi-modal large language model (MLLM) [23, 24, 25] to generate both negative and positive referring expressions for various attributes based on existing object detection annotations. We consider expressing negation to be a straightforward task for MLLM (e.g., GPT-4V)[23], and this has proven to be true. After filtering, we have developed a dataset with opposite referring expressions incorporating negative semantics, which serves as the foundation for our proposed fine-tuning strategy. 
+
+b) GOBL Fine-tuning Mechanism.: Humans often inter-pret negative semantics by implicitly contrasting them with their positive counterparts. For instance, when encountering “a cat without stripes,” one naturally thinks of “a cat with stripes” before locating other cats in the image. Inspired by this reasoning process, we propose a fine-tuning mechanism called Grouped Opposition-Based Learning (GOBL) , which enhances a model’s ability to comprehend and ground negative semantics through opposition-based learning. Considering that existing grounding models are trained on large-scale datasets (∼20M), while D-Negation is relatively small ( ∼14k), we design an efficient fine-tuning strategy that focuses on the language–vision fusion module, where models often struggle to associate negative expressions with image objects. Our training mechanism’s effectiveness was validated on two state-of-the-art grounding models. With less than 10% of parameters tuned, our approach achieves up to a 5.7 mAP improvement on the dataset [26] with negation semantics, along with consistent gains on other test sets with positive semantics. These results empirically support our hypothesis that improving negation comprehension also enhances the overall understanding of modifiers. In summary, our work can be summarized through the following three contributions: 1) We construct D-Negation , the first visual grounding dataset with paired positive and negative semantic de-scriptions across multiple attributes. 2) We introduce Grouped Opposition-Based Learning (GOBL) , an efficient fine-tuning mechanism that explicitly leverages opposition pairs to strengthen negation compre-hension. 3) We empirically demonstrate that enhancing negation un-derstanding not only improves performance on negation-related tasks but also boosts general grounding ability on standard benchmarks. 
+
+II. Related Work 
+
+A. Visual Grounding. 
+
+Visual Grounding (VG) [1, 2, 3, 27, 28] aims to localize image regions corresponding to natural language expressions, serving as a core capability for multimodal understanding and reasoning. Early approaches often decoupled visual detection and language grounding, limiting their ability to handle complex linguistic structures and diverse visual scenes. Recent advances have increasingly unified object detec-tion and language grounding within a single framework. MDETR [9], built upon DETR [29], explicitly aligns visual tokens with linguistic tokens, enabling fine-grained region–word correspondence. GLIP [10] reformulates object detection as a grounding problem through language-aware feature fusion, substantially improving instance-level semantic alignment. UNINEXT [11] introduces a prompt-based formulation that uni-fies multiple vision–language tasks and enhances generalization to unseen settings. Grounding DINO [12] further strengthens cross-modal interaction by injecting language guidance through-out transformer layers, leading to robust and scalable grounding performance. APE [30] extends this paradigm by proposing an all-in-one alignment and prompting mechanism that bridges object detection and segmentation under a unified grounding framework. More recent studies have explored complementary direc-tions. HiVG [5] focuses on hierarchical reasoning to address compositional referring expressions, MaPPER [31] improves grounding robustness through multi-positive prompt learning, and Ferret [32] leverages instruction-following and large-scale vision–language pretraining to enhance interactive grounding capabilities. Despite their strong performance on standard IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 3Please generate phrase labels that meet the following requirements for the objects in the bbox in               
+
+> the figure…
+> Generate phrase labels based on the following attribute categories:
+> -Color_P +: Describing objects or characters based on the color of the object or the color of the
+> clothing worn by the person in bbox , using positive logic language and describing the color
+> attribute that are consistent with the actual attribute of the object.
+> -Color_P -:Describing objects or characters based on the color of the object or the color of the
+> clothing worn by the character in bbox . Note that the modifier used for the color attribute is
+> inconsistent with the actual attribute.
+> -Color_N +: Apply negative logic to the color attributes of " Color_P -" samples (using words
+> like 'without', 'no', or 'not' to implement).
+> -Color_N -:Apply negation logic to the color attributes of " Color_P +" samples (using words
+> like 'without', 'no', or 'not' to implement).
+> -Position_P +: Describing …position …
+> …
+
+Manual Filtering 
+
+Object Detection Dataset (MS COCO )
+
+Image Annotations             
+
+> "Color_P +" :"The black and white cat" ,
+> "Color_P -":"The orange cat" ,
+> "Color_N +" :"The cat not in orange" ,
+> "Color_N -":"The cat not in black and white" ,
+> "Position_P +" :"The cat sitting on the toy" ,
+> "Position_P -":"The cat beside the toy" ,
+> "Position_N +" :"The cat not beside the toy" ,
+> "Position_N -":"The cat not sitting on the toy" ,
+> "State_P +" :"The alert cat" ,
+> "State_P -":"The relaxed cat" ,
+> "State_N +" :"The cat not relaxed" ,
+> "State_N -":"The cat not alert"
+
+“cat” ‘bbox ’: [86.9, 88.9, 150.3, 226.2] ,
+
+‘area ’: 23011.21 
+
+‘bbox ’: [77.4, 94.6, 203.1, 248.5], 
+
+‘area ’: 31545.54 
+
+“toy” 
+
+Prompts Design 
+
+Rule 
+
+Filtering 
+
+MLLM 
+
++
+
+> ×86
+> ×120
+
+(c) Words Frequency of Different Datasets (a) Pipeline for Generating the D-Negation Dataset 
+
+(b) Image Count of Every Category in D-Negation 
+
+‘bbox ’: [86.9, 88.9, 
+
+150.3, 226.2] ,
+
+‘area ’: 23011.21 
+
+D-Negation 
+
+Fig. 2. (a) We use the advanced MLLM, GPT-4V, to generate 6 positive semantic and six negative semantic referrings for every selected image. (b) The proposed D-Negation dataset contains a total of 13,893 images across 80 categories. (c) The proposed D-Negation dataset contains 139,980 text annotations. What sets it apart from existing datasets is the significantly higher frequency of negation words, as well as a greater tendency to use modifiers to describe objects. 
+
+VG benchmarks, these methods primarily target affirmative referring expressions and do not explicitly model negation or exclusion semantics. 
+
+B. Hard Negatives and Negative-Semantics. 
+
+Hard negatives have long been recognized as a valuable tool in machine learning for enhancing model discriminability and robustness [33, 34, 35]. In the context of vision-language grounding, hard negatives are particularly useful for testing and improving a model’s ability to distinguish between visually and semantically similar entities. For example, contrasting phrases like “ the red ball in the corner ” versus “ the blue ball in the center ” forces the model to consider fine-grained visual attributes such as color, position, and context. Recent works such as CREPE [36] and NegCLIP [37] incorporate hard negatives during training to emphasize contextual and relational cues, leading to stronger representations and better generalization in grounding tasks. In parallel, negative semantics introduces prompts that ex-plicitly include negation constructs such as “not”, “no”, or “without”. These prompts are essential for evaluating whether models can correctly understand the absence of a concept, rather than its presence. For instance, the phrase “ the person not wearing a hat ” requires the model to reason about the negated condition, which is cognitively more challenging. Methods such as CLIPN [38] utilize such constructs to improve out-of-distribution detection by focusing on what is deliberately excluded from the scene. CoN-CLIP [33] goes a step further by using large language models to automatically generate a rich set of negative prompts, forming the CC-Neg dataset and demonstrating notable improvements in image classification. However, these approaches remain largely confined to classi-fication or coarse-grained recognition tasks. Few methods have effectively integrated hard negatives and negative semantics into the spatially grounded, instance-level setting of visual grounding. Our work addresses this gap by embedding both types of negative signals directly into the grounding process. By jointly modeling what is present and what is explicitly negated, our framework significantly enhances the model’s discrimination capacity, particularly in cluttered scenes or under ambiguous linguistic expressions. This integration enables more precise localization and deeper semantic alignment between language and vision. 
+
+C. Opposition-Based Learning. 
+
+Opposition-Based Learning (OBL) [39] is a principled learn-ing framework that leverages the inherent oppositional relation-ships between concepts to improve learning efficiency. Inspired by early cognitive theories and optimization strategies [40], OBL differs from conventional contrastive learning [41] by enforcing stricter semantic oppositions rather than loosely defined negative samples. In contrastive learning, negative examples are often semantically distant or arbitrarily selected, which may dilute the signal necessary for high-fidelity discrimination. OBL, by contrast, pairs each training sample with a carefully crafted 
+
+opposite example, thereby intensifying the learning signal and accelerating convergence. While OBL has shown promise in various machine learn-ing domains [42, 43, 44], its application to vision-language tasks remains underexplored—particularly in settings requiring spatial reasoning, such as detection and localization. This is a missed opportunity, as many grounding scenarios naturally lend IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 4Attr : State                      
+
+> Attr :Color
+> The blue umbrella P+:
+> The umbrella not in red
+> P-:
+> N-:
+> N+ :
+> The red umbrella
+> The umbrella not in blue
+> Text
+> Encoder
+> Image
+> Backbone
+> Fusion
+> Module
+> P+:
+> P-:
+> N-:
+> N+ :
+> Aggregation
+> Text Embedding
+> Image Feature
+> TSO Loss
+> Detection
+> Decoder Class &BBox
+> Last Embedding Average Embedding
+> PNC Loss
+> The umbrella not in blue
+> The blue umbrella
+> Class/ BBox Loss
+> Opposite
+> Distance-based
+> Exclusion Constraintt
+> P+
+> N-
+> P-
+> N+
+> PNC Loss
+> Semantic
+> Exclusion Constraint
+> TSO Loss
+
+Fig. 3. Overview of the proposed fine-tuning framework with explicit semantic-opposition constraints. The framework is designed for the D-Negation dataset and is compatible with visual grounding models that incorporate a vision–language fusion module. Given an image and semantically opposed textual descriptions (e.g., positive vs. negative attributes), text embeddings interact with visual features in the fusion module and are decoded into grounding predictions. Beyond standard grounding losses, we introduce two complementary objectives. The TSO loss imposes a distance-based exclusion constraint in the text embedding space, explicitly pushing semantically opposed descriptions (e.g., “red” vs. “not red”) apart. The PNC loss enforces a semantic exclusion constraint , ensuring that a visual region cannot be simultaneously aligned with both polarities of the same attribute. Together, these constraints address negation-induced grounding ambiguity by enforcing semantic opposition at both the linguistic and cross-modal fusion levels. 
+
+themselves to opposition-based structures, e.g., “ the cat on the left ” versus “ the cat on the right ”, or “ the person wearing a mask ” versus “ the person not wearing a mask ”. To address this gap, we propose extending the OBL frame-work to incorporate both positive and negative semantics within visual grounding models. Specifically, we construct semantically opposed prompt pairs—composed of affirmations and their negations—and use them to guide the learning process. By forming such oppositional pairs, the model is encouraged to learn not just what a phrase describes, but also what it explicitly excludes. This dual learning signal leads to richer, more nuanced representations and enables the model to handle a broader range of natural language inputs with higher precision. Our proposed framework represents the first systematic effort to integrate opposition-based learning with multimodal grounding, paving the way for more cognitively inspired and semantically aware vision-language systems. 
+
+III. Methodology 
+
+In this section, we present our method in four parts. First, we introduce the preliminaries of vision grounding models. Second, we describe the prompting strategy used in constructing the D-Negation dataset. Third, we explain the acquisition process of the 
+
+D-Negation dataset. Finally, we detail the efficient fine-tuning mechanism that leverages the constructed dataset. 
+
+A. Preliminaries of Vision Grounding Models 
+
+A typical vision grounding model, like GLIP [10], Grounding-DINO [12], and APE [30], consists of four key components: image encoder, language encoder, fusion module, and detection decoder. These components align visual and textual information to perform tasks such as object detection and grounding. The image is first processed by a visual encoder Enc 𝐼 ,utilizing either a Convolutional Neural Network (CNN) [45] or a Transformer [46, 47] as its backbone, to extract regional or box features 𝑂 . Concurrently, every textual prompt is processed by a pre-trained language encoder Enc 𝐿 to generate token features and then aggregate to the text feature 𝑃 :
+
+𝑂 = Enc 𝐼 (Img ), 𝑃 = Enc 𝐿 (Prompt ), (1) A fusion module then processes the features: 
+
+𝑓 𝑞 , 𝑓 𝑙 = Fusion (𝑂, 𝑃 ). (2) This module optimizes the synchronization of visual and linguistic elements, enhancing interpretive capabilities. The variables 𝑓 𝑞 and 𝑓 𝑙 represent the fused feature vectors from the visual and textual data, respectively. The alignment scores 𝑆 cls between image regions and corre-sponding words in the prompt are computed as: 
+
+𝑆 cls = 𝑓 ⊤ 
+
+> 𝑙
+
+𝑓 𝑞 . (3) These scores are used to train the model by minimizing the combined classification and localization loss: 
+
+𝐿 = 𝐿 cls + 𝐿 loc . (4) 
+
+𝐿 cls focuses on aligning visual regions with textual classes using methods like many-to-one or Hungarian matching [48, 49], often optimized with focal loss. 𝐿 loc ensures accurate bounding box predictions. The aforementioned content provides an overview of the fundamental architecture of a vision-language grounding model, which typically fuses the visual and linguistic features only at the final stage to compute alignment scores. In practical implementations, different implementations enhance integration through various detection decoders and vision-language fusion modules. IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 5
+
+B. Prompting Strategy 
+
+The primary objective is to obtain high-quality hard negative and negative-semantics samples. Manual annotation is both costly and time-consuming; therefore, leveraging the capabil-ities of advanced vision-language models, we employ GPT-4V as an annotation tool. By designing a carefully crafted set of prompts, we guide GPT-4V to generate labels that meet our requirements. The detailed workflow is described below. We first filter out easily annotatable objects in the COCO dataset using a simple rule. Since current MLLMs tend to become confused and hallucinate when annotating multiple objects, we restrict our selection to single-annotated objects, as shown in Algorithm 1. This also mitigates issues with objects that are too small and reduces the risk of generating inaccurate labels. After filtering, we visualize the bounding boxes on the images and provide them, along with the designed instructions, as input to the MLLM for annotation. 
+
+Algorithm 1 Rule Filtering 
+
+for each image, anns in coco annotations do if the number of annotations for this image is equal to 1 
+
+then 
+
+ann ← anns[0] annoted image ← visualize( ann , image )
+
+input annoted image , Instruction to GPT-4V new ann ← output from GPT-4V 
+
+Add ( image , new ann ) to dataset 
+
+end if end for 
+
+After several trials, we found that providing GPT-4V with a template in a strict dictionary format yields the best results. This approach helps in generating phrase labels that are sys-tematically structured, improving consistency and accuracy in attribute description. In addition, the prompting instructions and formatting details are provided in the supplementary material. 
+
+C. Acquisition of the D-Negation Dataset 
+
+To systematically capture both positive and negative seman-tics, we employ GPT-4V with carefully designed prompts to generate diverse object descriptions, including true and hard-negative samples. The complete dataset generation process is outlined below. The overall workflow is illustrated in Figure 2. Specifically, Figure 2(a) shows the data filtering process and the design of prompts. Figure 2(b) presents the image count for each category in D-Negation , and Figure 2(c) depicts the frequency of negation words across different datasets. We selected three commonly occurring attributes—“color”, “position”, and “state” as object descriptors. Appropriate prompts were designed to enable GPT-4V to generate four distinct labels for each object:  
+
+> •
+
+True Description with Positive Semantics (P+) : A description using positive logic that accurately reflects the object’s actual state.  
+
+> •
+
+False Description with Positive Semantics (P-) : Adescription using positive logic that inaccurately reflects the object’s actual state.  
+
+> •
+
+True Description with Negative Semantics (N+) : A description using negative logic that accurately reflects the object’s actual state.  
+
+> •
+
+False Description with Negative Semantics (N-) : A description using negative logic that inaccurately reflects the object’s actual state. In this context, Positive-Semantic refers to affirmative logic descriptions, while Negative-Semantic refers to negated logic descriptions. The symbols “+” and “-” denote whether the description is true or false. For each object, considering the three attributes, a total of 12 describes are generated. The generated describes exhibit strong interrelationships while remaining independent, each serving a distinct purpose. ‘P+’, described with positive-semantic language, enhances the model’s understanding of specific attributes. ‘P-’, functioning as a hard negative for P+, strengthens the model’s attribute differ-entiation capabilities. ‘N+,’ described with negative-semantic language, is logically opposed to ‘P-,’ thereby reinforcing the model’s comprehension of negated logic. Similarly, ‘N-,’ serving as a hard negative for ‘N+,’ enhances both the model’s differentiation ability and understanding of negative logic. The rich semantics and balanced distribution of these four sample types significantly contribute to improving the model’s learning efficiency. 
+
+D. Efficient Fine-tuning with GOBL 
+
+In the previous discussion of D-Negation , it was established that a key feature of the dataset is the presence of corresponding labels with negation semantic logic, which provides additional information that can be leveraged by the model. We posit that the grounding model’s limited sensitivity to negative semantics stems not from the text encoder or detection decoder, but from the fusion module. While the pre-trained text encoder has already been exposed to negative semantic texts, and the decoder can effectively detect objects with positive semantic references, the fusion module often confuses positive and negative features. This observation suggests that improving the model’s comprehension of negation semantics requires targeted intervention at the fusion stage. Although the model can be trained using only the standard loss (Eq. 4), this approach fails to fully exploit the logical relationships between positive and negative descriptions. To address this limitation, we propose two additional grouped loss functions designed to enhance model performance. Both loss functions operate on a triplet consisting of an image, a correct description, and an incorrect description. As illustrated in Figure 3, we group up to 12 semantic annotations per image from the D-Negation dataset, forming six pairs of opposing references. Descriptions sharing the same attribute are paired as opposites: ‘P+’ with ‘N-’ and ‘P-’ with ‘N+’. Within these six groups, ‘P+’ and ‘N+’ are treated as positive samples, while ‘P-’ and ‘N-’ are treated as negative samples. This structured pairing enables the model to explicitly learn the contrasts between positive and negative semantics, addressing the fusion module’s confusion and improving overall grounding performance. 
+
+1) Positive-Negation Constraint (PNC) Loss: The Positive-Negative Constraint (PNC) loss is introduced to capitalize on IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 6
+
+the semantic opposition between positive and negative prompts. First, similarity scores are calculated as follows: 
+
+𝑠 𝑖 = ⟨ 𝑓 𝑞 , 𝑓 𝑡 𝑖 ⟩∥ 𝑓 𝑞 ∥ · ∥ 𝑓 𝑡 𝑖 ∥ , 𝑖 ∈ { 𝑃, 𝑁 }, (5) where 𝑓 𝑞 represents processed region features, and 𝑓 𝑡 𝑖 denotes text features after image-language fusion. The normalized similarity score for each prompt is computed as: ¯𝑆 cls = 𝑒 𝜎𝑠 1
+
+𝑒 𝜎𝑠 1 + 𝑒 𝜎𝑠 2 . (6) Here, 𝜎 is a control factor that adjusts sensitivity to semantic variations. Finally, the loss function is defined as: 
+
+𝐿 PNC = loss ( ¯𝑆 cls ; 𝑇 ). (7) In this equation, 𝑇 represents the target matching between regions and the target prompt, computed using methods such as many-to-one or bipartite Hungarian matching [48, 49]. The PNC loss compels the model to differentiate between opposing prompts, thereby enhancing its understanding of positive and negative logic. 
+
+2) Text Semantic-Opposite (TSO) Loss: Previous work on CLIPN [38] has shown that models often struggle with positive-negative logic due to the high similarity in feature vectors extracted from prompts 𝑃 and 𝑁 . Inspired by this, we introduce the Text Semantic-Opposite (TSO) loss, which ensures that fea-ture vectors corresponding to opposing prompts are positioned distantly in the feature space. The TSO loss is defined as: 
+
+𝐿 TSO = 1
+
+𝑁 2 −
+
+> 𝑁
+
+∑︁ 
+
+> 𝑖 =1
+
+∥ 𝑓 𝑝 − 𝑓 𝑛 ∥2
+
+!
+
+, (8) where ∥ · ∥ 2 denotes the L2 distance function, and 𝑓 𝑝 and 
+
+𝑓 𝑛 represent the feature vectors of the positive and negative-semantics prompts, respectively. This loss reinforces the model’s ability to distinguish between semantically opposite prompts. The overall loss function is defined as: 
+
+𝐿 total = 𝐿 cls + 𝐿 loc + 𝛼𝐿 PNC + 𝛽𝐿 TSO , (9) where 𝛼 and 𝛽 are weighting factors, 𝐿 cls and 𝐿 loc correspond to the standard loss components defined in (4). This integrated loss formulation not only improves the model’s ability to distinguish between positive and negative-semantics but also preserves its effectiveness in classification and localization tasks. 
+
+IV. Experiments 
+
+A. Experimental Setup and Training Details 
+
+All experiments related to APE were conducted on a single NVIDIA A6000 GPU, while experiments involving Grounding-DINO were performed on a single NVIDIA V100 GPU. The specific parameter settings employed were 𝜎 = 5, 𝛼 = 0.5, and 
+
+𝛽 = 0.3. The weights for 𝐿 cls , 𝐿 loc , and 𝐿 giou were set to 1, 5, and 2, respectively. As illustrated in Table I, our proposed method achieves a sub-stantial reduction in both data consumption and computational overhead compared to the original training paradigms. Specif-ically, our method requires only 13K training images—several             
+
+> TABLE I
+> Comparison of Training Configurations
+> Method Image Consumption Batch Size Epochs
+> Grounding-DINO ∼6.8M 64 18 APE 17.28M 16 1Ours 13K 11
+
+orders of magnitude fewer than Grounding-DINO ( ∼6.8M) and APE (17.28M). All models using our approach are trained for a single epoch with a batch size of 1. The typical training duration per epoch is approximately 10 hours. Notably, even for the largest model (APE-D), which contains the most parameters among the compared models, training completes within 14 hours per epoch. This is considerably more efficient than the full-scale training procedure originally adopted by APE, which involves processing over 17 million images. These results underscore the efficiency of our method, which achieves competitive—and in many cases supe-rior—performance while operating under significantly reduced computational and data requirements. This highlights the prac-tical value of our framework in scenarios with limited resources or where rapid adaptation is essential. 
+
+B. Combination with State-of-the-art methods 1) Methods and Procedure: In recent years, numerous methods have exhibited strong performance. To assess the effectiveness of our approach, we selected two state-of-the-art methods, Grounding-DINO [12] and APE [30], as baselines. For APE, we consider four different settings: APE-A, based on DETA [50] and ViTL [51], is trained solely on detection and segmentation data, including COCO, LVIS, Objects365, OpenImages, and Visual Genome. APE-B is enhanced with Visual Genome region descriptions and RefCOCO [52]. APE-C incorporates class-agnostic data from SA-1B [53] for training. APE-D further integrates GQA [22], PhraseCut [18], and 
+
+Flickr30k [21]. We utilized the official APE code and released checkpoints as our starting point. Since the training code for Grounding-DINO is unavailable, we opted to use MM-Grounding-DINO [54] as an alternative. ‘Grounding-DINO-Base’ refers to the MM-Grounding-DINO-T model trained on the O365 and GoldG datasets [10], while ‘Grounding-DINO-Full’ refers to the MM-Grounding-DINO-T model trained on the full training set (O365, GoldG, GRIT, V3Det). The majority of hyperparameters were retained from the original methods, with any exceptions documented in the supplementary materials. 
+
+2) Evaluation Benchmarks: To the best of our knowledge, the description detection dataset ( 𝐷 3) [26] is the only resource specifically designed for evaluating grounding models on negative-semantics prompts. Consequently, 𝐷 3 was selected as our primary evaluation benchmark. Additionally, we constructed a test set within D-Negation to serve as a supplementary benchmark. In the 𝐷 3 dataset [26], we use the terms Full ,
+
+Presence , and Absence to denote evaluations on all descriptions, presence descriptions only, and absence descriptions only, respectively. The Absence metric is particularly indicative of IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 7                                                                                                                                 
+
+> TABLE II
+> Performance comparison on 𝐷 3dataset.
+> Method Intra-scenario Inter-scenario
+> Full Presence Absence Full Presence Absence
+> SPHINX-7B [56] 10.6 11.4 7.9 ---GLIP-T [10] 19.1 18.3 21.5 ---OFA-DOD [26] 21.6 23.7 15.4 5.7 6.9 2.3 FIBER-B [57] 22.7 21.5 26.0 ---MLLM with a larger parameter scale InternVL2-8B [58] 9.8 11.0 6.2 ---InternVL2-76B [59] 25.3 25.7 23.5 ---Griffon(13B) [60] 12.3 12.4 12.2 ---Groma(7B) [61] 16.0 15.9 16.3 ---Grounding-DINO-Base 15.6 16.4 13.4 ---Grounding-DINO-Full 17.5 18.0 15.9 ---Grounding-DINO-Base(+Ours) 17.8 (+2.2) 17.4 (+1.0) 19.0 (+5.6) ---Grounding-DINO-Full(+Ours) 19.0 (+1.5) 18.5 (+0.5) 20.9 (+5.0) ---APE-A 25.1 24.5 26.9 16.4 15.9 17.9 APE-B 30.0 29.9 30.3 20.0 20.5 18.6 APE-C 27.8 27.9 27.3 20.4 21.2 18.1 APE-D 37.5 38.8 33.9 21.0 22.0 17.9 APE-A(+Ours) 27.1 (+2.0) 26.7 (+2.2) 27.8 (+0.9) 17.8 (+1.4 )17.2 (+1.3 )18.8 (+0.9)
+> APE-B(+Ours) 32.4 (+2.4) 32.2 (+2.3) 32.9 (+2.6) 20.9 (+0.9) 21.0 (+0.5) 19.0 (+0.4)
+> APE-C(+Ours) 32.5 (+4.7 )32.3 (+4.4 )33.0 (+5.7 )21.2 (+0.8) 21.8 (+0.6) 19.3 (+1.2 )
+> APE-D(+Ours) 38.6 (+1.1) 39.8 (+1.0) 35.0 (+1.1) 22.4 (+1.4 )23.2 (+1.2) 19.0 (+1.1)
+
+a model’s capability to detect negative-semantics prompts. The evaluation metrics for 𝐷 3 include both intra-scenario and inter-scenario evaluations, with detailed configurations available in the DOD [26] study. Intra-scenario evaluation is more commonly utilized in typical scenarios and, therefore, serves as the primary performance indicator in our experiments. For the D-Negation dataset, we split 2,000 images to form the test set with uniform distribution. The evaluation procedures applied to 
+
+D-Negation are identical to those used for the 𝐷 3, which uses standard mAP for evaluation. Besides, we use RefCOCO [55] as an additional positive-semantics test benchmark. 
+
+C. Main Results   
+
+> TABLE III
+> Performance comparison on D-Negation test set.
+
+Grounding Models Original +Flickr30k +Ours 
+
+Grounding-DINO-Base 71.1 72.6 (+1.5) 75.3 (+4.2) 
+
+Grounding-DINO-Full 74.2 74.0 (-0.2) 77.0 (+2.8) 
+
+APE-A 76.8 75.0 (-1.8) 78.9 (+2.1) 
+
+APE-B 80.5 78.9 (-1.6) 83.7 (+3.2) 
+
+APE-C 78.6 80.1 (+1.4) 82.8 (+4.2) 
+
+APE-D 78.9 80.2 (+1.3) 84.1 (+5.2) 
+
+We summarize the performance gains achieved by our pro-posed method in Table II. For the Grounding-DINO framework, our approach consistently improves the results across both model variants, with the most notable gain observed in the 
+
+Absence metric under negative-semantic scenarios, reaching an improvement of +5.6. These results highlight the effectiveness of our method in handling negation-based referring expressions. Our approach also leads to consistent and substantial im-provements across all four APE model variants, with the most significant gains observed in APE-C. Specifically, we observe improvements of +4.7 in the Full metric, +4.4 in Presence ,and +5.7 in Absence . These metrics collectively measure model performance under different semantic conditions: full-spectrum evaluation, referring expressions with only positively stated objects, and referring expressions involving object absence, respectively. Remarkably, even in the Presence setting—where the input only contains affirmatively stated referring expres-sions—our method still yields performance improvements. This suggests that the proposed opposite supervision strategy not only enables the model to comprehend negation more effectively, but also enhances its overall understanding of linguistic modifiers, such as adjectives and qualifiers, leading to a more precise semantic alignment between vision and language. It is worth noting that the observed improvements on APE-D are relatively modest compared to other variants. This may be attributed to its significantly larger parameter count, which could potentially lead to a saturation effect or require additional tuning strategies to fully leverage the benefits of our method. Considering both the amount of training data and the computational cost typically required to achieve comparable improvements, our method demonstrates a favorable trade-off between effectiveness and efficiency. Table III presents a targeted evaluation of model performance on the Negation Test benchmark. The Original column reports the average precision (AP) scores of the baseline models, while the Flickr30K column represents models trained with an equivalent quantity of data randomly sampled from the 
+
+Flickr30K dataset. These results reveal a critical insight: simply increasing the volume of training data does not necessarily enhance the model’s ability to handle negative semantics; in IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 8                                               
+
+> TABLE IV
+> Performance comparison of different methods on RefCOCO val, testA, and testB datasets.
+> Method val testA testB @1 @5 @10 @1 @5 @10 @1 @5 @10
+> Grounding-DINO-Full 53.1 89.7 95.1 59.2 91.0 95.5 46.7 87.8 93.6 Grounding-DINO-Full(+Ours) 51.6 87.2 93.3 60.3 92.6 96.8 48.4 88.2 95.0
+> APE-C 79.8 --86.8 --76.2 --APE-C(+Ours) 80.5 --87.8 --77.1 --TABLE V
+> The impact of positive and negative semantic samples in
+> D-Negation
+
+Method Full Presence Absence 
+
+Baseline(APE-C) 27.8 27.9 27.3 +Positive Only 28.1 (+0.3) 28.8 (+0.9) 27.0 (-0.3) 
+
++Negative Only 27.4 (-0.4) 27.2 (-0.7) 27.9 (+0.6) 
+
++Full D-Negation 28.7 (+0.9) 28.5 (+0.6) 29.1 (+1.8) 
+
++D-Negation + GOBL 32.5 (+4.7) 32.3 (+4.4) 33.0 (+5.7)                            
+
+> TABLE VI
+> The impact of the proposed loss functions. Performance comparison on Intra-scenario settings of 𝐷 3dataset. Baseline: APE-C.
+> D-Negation TSO Loss PNC Loss Full Presence Absence
+> 27.8 27.9 27.3
+> ✓28.7 (+0.9) 28.5 (+0.6) 29.1 (+1.8)
+> ✓✓29.2 (+1.4) 29.1 (+1.2) 29.5 (+2.2)
+> ✓✓32.1 (+4.3) 31.0 (+3.2) 32.5 (+5.2)
+> ✓✓✓32.5 (+4.7) 32.3 (+4.4) 33.0 (+5.7)
+
+certain cases, it may even lead to a degradation in performance. In contrast, our method produces substantial and consistent gains across all evaluated metrics. These improvements clearly demonstrate that our targeted opposite learning strategy is more effective than na¨ ıvely scaling up training data, particularly in equipping models with a nuanced understanding of negation and absence-related linguistic constructs. 
+
+D. Domain Generalization 
+
+In this section, we evaluate the ability of our approach to generalize across domains, particularly in scenarios not seen during training. Our goal is to ensure that improvements in handling negative semantics do not come at the cost of reduced robustness in out-of-distribution (OOD) settings. 
+
+1) Generalization to RefCOCO Variants: Table IV reports the performance of our method on different splits of the RefCOCO dataset. To examine the trade-off between semantic precision and generalization, we evaluate two representative models, Grounding-DINO and APE, which exhibit the strongest baseline performance. Overall, our fine-tuned models achieve consistent, albeit modest, improvements on the RefCOCO test splits, indicating that the proposed semantic alignment does not harm cross-domain generalization. Notably, our method improves performance on RefCOCO testA and testB by +1.1 and +1.7 at @1, respectively, while exhibiting a small decrease on the val split ( −1.5 at @1). We attribute this behavior to the characteristics of RefCOCO, which predominantly contains affirmative referring expressions and offers limited supervision for negation semantics. Grounding-DINO-Full is fully fine-tuned on large-scale grounding data and is already close to performance saturation in such affirmative-only settings, particularly on the val split that closely matches the training distribution. In contrast, our method introduces explicit opposition-based supervision to enhance sensitivity to negative semantics. This targeted supervision acts as a form of structured regularization, which may slightly affect performance in purely affirmative scenarios, while improving generalization on more diverse test distributions. Importantly, this effect is limited in magnitude and does not impact test performance. More critically, it enables substantial gains on negation- and absence-oriented benchmarks, which are the primary focus of this work. 
+
+2) Scalability with Heterogeneous Data Sources: To evalu-ate the extensibility of our learning mechanism, we experiment with combining datasets of differing semantic structure. Specifi-cally, Table VII demonstrates the performance of a model trained with a 1:1 mixture of the Flickr30k dataset and our proposed 
+
+D-Negation , augmented with the GOBL mechanism. The combination results in the most substantial performance gains across both evaluation settings, affirming the scalabil-ity and adaptability of our method. However, this training configuration requires approximately double the computational cost compared to using D-Negation alone. As such, while it highlights the potential of our method under larger data regimes, we do not position this setup as our primary contribution. Across these experiments, we demonstrate that our approach improves semantic robustness without degrading domain gener-alization. Furthermore, its effectiveness persists across diverse datasets and semantic attribute compositions, underscoring the practicality of our method in real-world multimodal applica-tions. 
+
+E. Ablation Experiments 
+
+We conducted a comprehensive study in this section to validate the effectiveness of the D-Negation dataset and the proposed GOBL fine-tuning mechanism. Given the notable impact of our method on the APE-C model, it was chosen as the experimental model for this analysis. We also examined the effects of training our method in conjunction with other datasets. 
+
+1) Ablation on the D-Negation Dataset: Table V presents the impact of using different sample types from the D-Negation 
+
+dataset. “+Positive Only” denotes training with only positive IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 9APE     
+
+> Ours
+> Prompt The girl on the right The girl on the right
+> APE
+> Ours
+> Prompt The man without a hat The person waving the bat A dog without a leash
+> The dog in fronts
+> That black dog
+> The man without a hat
+
+Fig. 4. Qualitative Comparison of Model Outputs. Visualization of the APE model’s outputs on representative examples after fine-tuning with our proposed method. For clarity, the prompt tokens within bounding boxes are displayed beneath each image. TABLE VII 
+
+Performance comparison on Intra-scenario of 𝐷 3 and D-Negation test datasets. Our method also performs better when using flick30k as an additional training set. 
+
+Method Full Presence Absence D-Negation 
+
+Baseline(APE-C) 27.8 27.9 27.3 78.6 +D-Negation +GOBL 32.5 (+4.7) 32.3 (+4.4) 33.0 (+5.7) 82.8 (+3.2) 
+
++Flick30k+ D-Negation +GOBL 32.9 (+5.1) 32.7 (+4.8) 33.5 (+6.2) 84.1 (+5.5) 
+
+semantic samples, while “+Negative Only” refers to training with solely negative semantic samples. Other rows follow similar interpretations. The results reveal that training with only positive samples brings limited improvement, while using only negative samples even degrades the model’s performance. In contrast, combining both types of semantics yields the most substantial performance gain. This clearly demonstrates the necessity of incorporating semantic opposition during training, highlighting the comple-mentarity between positive and negative semantics. 
+
+2) Ablations of Tuning Module: To rigorously test this hypothesis, we conduct a controlled comparison of tuning locations under identical training budgets, using APE-C as the base model. Negation supervision is applied to only one module at a time—namely the text encoder, image backbone, decoder, or fusion module—while all other factors, including training data, loss functions, and optimization schedules, are held constant. In addition, we perform complementary experiments by fine-tuning different modules of the Grounding-DINO-Base model; detailed results and analyses are provided in the supplementary material. 
+
+TABLE VIII 
+
+Relative performance gains (%) obtained by applying negation supervision to different modules under identical training budgets. 
+
+Editing Location Full Presence Absence 
+
+Text Encoder +0.7 +0.5 +1.1 Image Backbone -0.3 -0.1 -0.7 Decoder +1.2 +0.6 +1.3 Fusion Module +4.7 +4.4 +5.7 
+
+As shown in Table VIII, tuning the fusion module yields substantially larger gains than all other locations. Text encoder tuning provides only marginal improvement, indicating that linguistic polarity alone is insufficient without visual ground-ing. Image backbone tuning degrades performance, suggesting incompatibility between negation supervision and low-level perceptual learning. Decoder-level tuning offers limited benefits, consistent with late-stage correction rather than addressing the root cause. Notably, the fusion module delivers the largest improvements on the absence subset, where exclusion reasoning is critical. These results demonstrate that negation-related IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 10                                                    
+
+> TABLE IX
+> Sensitivity analysis of hyperparameters 𝜎 ,𝛼 , and 𝛽 . All experiments are conducted on APE-C with other parameters fixed to default values.
+> Setting Full Presence Absence
+> 𝜎 =3+4.3 +4.0 +5.2
+> 𝜎 =5+4.7 +4.4 +5.7
+> 𝜎 =7+4.4 +4.1 +5.4
+> 𝛼 =0.3+4.1 +3.8 +5.0
+> 𝛼 =0.5+4.7 +4.4 +5.7
+> 𝛼 =0.7+4.2 +3.9 +5.1
+> 𝛽 =0.1+4.3 +4.1 +5.3
+> 𝛽 =0.3+4.7 +4.4 +5.7
+> 𝛽 =0.5+4.2 +3.9 +5.0
+
+grounding errors primarily emerge during cross-modal fusion, establishing the fusion module as the key structural bottleneck for learning logical exclusion. 
+
+3) Ablations of Proposed Loss Functions and Hyperpa-rameter Sensitivity: Table VI examines the contribution of individual components in the proposed GOBL loss. Training with the D-Negation dataset alone already improves ground-ing performance, indicating the benefit of explicit negation supervision. Introducing the proposed TSO and PNC losses yields further substantial gains. In particular, the PNC loss alone provides a significant improvement of +4.3, highlighting its strong alignment with the structured semantic opposition encoded in D-Negation . These results suggest that effective negation grounding requires not only contrastive alignment, but also explicit structural constraints on semantic exclusion. We further analyze the sensitivity of the proposed method to key hyperparameters 𝜎 , 𝛼 , and 𝛽 . As summarized in Table IX, performance remains stable across a broad range of values. The default configuration ( 𝜎 = 5, 𝛼 = 0.5, 𝛽 = 0.3) consistently achieves the best or near-best results, while deviations from these settings result in only minor performance fluctuations. Notably, the absence subset exhibits slightly higher sensitivity, which is expected given its stronger dependence on precise semantic opposition. In addition, we report the corresponding ablation results on APE-B in the supplementary material. Overall, these results demonstrate that the proposed method is robust and does not rely on careful hyperparameter tuning. 
+
+4) Attribute Contribution and Transferability: We evaluated the impact of individual attributes and their combinations on model performance by incrementally increasing the number of attributes from 0 to 3 and averaging results across combinations. As shown in Figure 5, each attribute enhances performance, with diminishing returns as more attributes are added. Figure 6 demonstrates the influence of attributes in the D-Negation . Each attribute significantly improves performance within its domain while also positively impacting other domains, indicating trans-ferability. The best performance is achieved when all attributes are combined. 
+
+V. Limitations and Future Work 
+
+As illustrated in Figure 4, fine-tuning on the D-Negation 
+
+dataset substantially improves the model’s ability to reason    
+
+> Fig. 5. Performance gain of single and combined attributes on the 𝐷 3dataset. Each attribute enhances the model’s performance, and combining multiple attributes leads to even greater improvements. As more attributes are added, the performance gain gradually decreases and eventually stabilizes.
+> Fig. 6. Heatmap of gains across different attributes. Each attribute enhances performance in its domain and benefits others, demonstrating transferability. The best results occur when all attributes are combined. Every attribute significantly boosts performance within its own domain, while also positively influencing the performance in other domains, demonstrating some degree of transferability. The best performance is achieved when all attributes are combined.
+
+about attributes and negation semantics; however, several limitations remain. Due to the limited scale of negation-focused training data, the model still struggles with challenging attribute-level ambiguities, particularly when visual distinctions are subtle (e.g., differentiating a black object from a black-and-white one), where multiple candidate regions may be incorrectly activated. Moreover, our current approach primarily enhances negation reasoning at the fusion stage, while leaving the backbone visual representations unchanged, which constrains the model’s ability to resolve fine-grained attribute conflicts under weak or ambiguous visual cues. Future work will explore extending opposition-based learning to the visual backbone itself, enabling more discriminative attribute representations, and expanding negation-aware training data to further improve robustness in complex attribute and negation scenarios. 
+
+VI. Conclusion 
+
+This research introduces innovative methods to enhance grounding models in handling negation by utilizing the D-Negation dataset and the GOBL mechanism. Our findings IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 11 
+
+confirm that targeted fine-tuning with specialized contrastive loss significantly improves the models’ capability to ground complex prompts involving negation. The D-Negation dataset, enriched with discriminative samples embodying both positive and negative semantics, enables vision-language models to overcome traditional training constraints, fostering a deeper understanding of linguistic semantics within visual contexts. The GOBL approach prioritizes efficiency, yielding substantial performance gains with minimal modifications to model pa-rameters crucial for scenarios with limited resources or where data acquisition and processing costs are excessive. The current limitation lies in the scale and diversity of the dataset. Due to constraints in data sources and the difficulty of annotation, our images rarely contain multiple instances of the same class simultaneously. This necessitates further research to better align with real-world scenarios. 
+
+References 
+
+[1] Yanyuan Qiao, Chaorui Deng, and Qi Wu. “Referring Expression Comprehension: A Survey of Methods and Datasets”. en-US. In: IEEE Transactions on Multimedia 
+
+(Jan. 2021), pp. 4426–4440. doi : 10.1109/ tmm.2020. 3042066. url : http://dx.doi.org/10.1109/tmm.2020. 3042066. [2] Jiajun Deng et al. “TransVG: End-to-End Visual Ground-ing with Transformers”. en-US. In: International Confer-ence on Computer Vision,International Conference on Computer Vision (Apr. 2021). [3] Licheng Yu et al. “Modeling context in referring expres-sions”. In: Computer Vision–ECCV 2016: 14th Euro-pean Conference, Amsterdam, The Netherlands, October 11-14, 2016, Proceedings, Part II 14 . Springer. 2016, pp. 69–85. [4] Zhong-Qiu Zhao et al. “Object detection with deep learn-ing: A review”. In: IEEE transactions on neural networks and learning systems 30.11 (2019), pp. 3212–3232. [5] Linhui Xiao et al. “Hivg: Hierarchical multimodal fine-grained modulation for visual grounding”. In: Proceed-ings of the 32nd ACM International Conference on Multimedia . 2024, pp. 5460–5469. [6] Zipeng Fu et al. “Coupling vision and proprioception for navigation of legged robots”. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 2022, pp. 17273–17283. [7] Kaili Sun et al. “HVLM: Exploring Human-Like Visual Cognition and Language-Memory Network for Visual Dialog”. en-US. In: Information Processing Manage-ment (Sept. 2022), p. 103008. doi : 10.1016/j.ipm.2022. 103008. url : http:// dx.doi.org/ 10.1016/ j.ipm.2022. 103008. [8] Hedde Zeijlstra. “Negation in natural language: On the form and meaning of negative elements”. In: Language and Linguistics Compass 1.5 (2007), pp. 498–518. [9] Aishwarya Kamath et al. “MDETR - Modulated Detec-tion for End-to-End Multi-Modal Understanding”. en-US. In: 2021 IEEE/CVF International Conference on Computer Vision (ICCV) . Oct. 2021. doi : 10 . 1109 / iccv48922 . 2021 . 00180. url : http : / / dx . doi . org / 10 . 1109/iccv48922.2021.00180. [10] Liunian Harold Li et al. “Grounded language-image pre-training”. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 2022, pp. 10965–10975. [11] Bin Yan et al. “Universal instance perception as ob-ject discovery and retrieval”. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 2023, pp. 15325–15336. [12] Shilong Liu et al. “Grounding dino: Marrying dino with grounded pre-training for open-set object detection”. In: European conference on computer vision . Springer. 2024, pp. 38–55. [13] Kenneth Kunen. “Negation in logic programming”. en-US. In: The Journal of Logic Programming 4.4 (Dec. 1987), pp. 289–308. doi : 10.1016/0743-1066(87)90007-0. url : http://dx.doi.org/10.1016/0743-1066(87)90007-0. [14] Krzysztof R Apt and Roland N Bol. “Logic programming and negation: A survey”. In: The Journal of Logic Programming 19 (1994), pp. 9–71. [15] Jaakko Hintikka. “Negation in logic and in natural language”. In: Linguistics and Philosophy 25 (2002), pp. 585–600. [16] Ranjay Krishna et al. “Visual genome: Connecting language and vision using crowdsourced dense image an-notations”. In: International journal of computer vision 
+
+123 (2017), pp. 32–73. [17] Junhua Mao et al. “Generation and comprehension of unambiguous object descriptions”. In: Proceedings of the IEEE conference on computer vision and pattern recognition . 2016, pp. 11–20. [18] Chenyun Wu et al. “PhraseCut: Language-Based Image Segmentation in the Wild”. en-US. In: 2020 IEEE/CVF Conference on Computer Vision and Pattern Recogni-tion (CVPR) . June 2020. doi : 10.1109/cvpr42600.2020. 01023. url : http://dx.doi.org/10.1109/cvpr42600.2020. 01023. [19] Agrim Gupta, Piotr Dollar, and Ross Girshick. “Lvis: A dataset for large vocabulary instance segmentation”. In: 
+
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition . 2019, pp. 5356–5364. [20] Shuai Shao et al. “Objects365: A large-scale, high-quality dataset for object detection”. In: Proceedings of the IEEE/CVF international conference on computer vision .2019, pp. 8430–8439. [21] Bryan A. Plummer et al. “Flickr30k Entities: Collecting Region-to-Phrase Correspondences for Richer Image-to-Sentence Models”. en-US. In: International Journal of Computer Vision (May 2017), pp. 74–93. doi : 10.1007/ s11263- 016- 0965- 7. url : http://dx.doi.org/10.1007/ s11263-016-0965-7. [22] Drew A Hudson and Christopher D Manning. “Gqa: A new dataset for real-world visual reasoning and com-positional question answering”. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition . 2019, pp. 6700–6709. IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 12 
+
+[23] Jiayang Wu et al. “Multimodal large language models: A survey”. In: 2023 IEEE International Conference on Big Data (BigData) . IEEE. 2023, pp. 2247–2256. [24] Daheng Wang et al. “Deep multimodal complementarity learning”. In: IEEE Transactions on Neural Networks and Learning Systems 34.12 (2022), pp. 10213–10224. [25] Xue Qiao et al. “Fine-Grained Entity Recognition via Large Language Models”. In: IEEE Transactions on Neural Networks and Learning Systems (2025). [26] Chi Xie et al. “Described object detection: Liberating object detection with flexible expressions”. In: Advances in Neural Information Processing Systems 36 (2023), pp. 79095–79107. [27] Xizi Wang et al. “Timerefine: Temporal grounding with time refining video llm”. In: arXiv preprint arXiv:2412.09601 (2024). [28] Sitong Gong et al. “The devil is in temporal token: High quality video reasoning segmentation”. In: Proceedings of the Computer Vision and Pattern Recognition Con-ference . 2025, pp. 29183–29192. [29] Nicolas Carion et al. “End-to-end object detection with transformers”. In: European conference on computer vision . Springer. 2020, pp. 213–229. [30] Yunhang Shen et al. “Aligning and prompting everything all at once for universal visual perception”. In: Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 2024, pp. 13193–13203. [31] Ziqi Wang et al. “Granular Entity Mapper: Advancing Fine-grained Multimodal Named Entity Recognition and Grounding”. In: Findings of the Association for Com-putational Linguistics: EMNLP 2024 . 2024, pp. 3211– 3226. [32] Haotian Zhang et al. “Ferret-v2: An improved baseline for referring and grounding with large language models”. In: arXiv preprint arXiv:2404.07973 (2024). [33] Jaisidh Singh et al. “Learn” No” to Say” Yes” Better: Improving Vision-Language Models via Negations”. In: 
+
+arXiv preprint arXiv:2403.20312 (2024). [34] Yang Lou et al. “Network robustness prediction: Influ-ence of training data distributions”. In: IEEE Transac-tions on Neural Networks and Learning Systems 35.10 (2023), pp. 13496–13507. [35] Zhiyong Zheng et al. “Highly robust vehicle lateral localization using multilevel robust network”. In: IEEE Transactions on Neural Networks and Learning Systems 
+
+34.7 (2021), pp. 3527–3537. [36] Zixian Ma et al. “Crepe: Can vision-language foundation models reason compositionally?” In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 2023, pp. 10910–10921. [37] Mert Yuksekgonul et al. “When and why vision-language models behave like bags-of-words, and what to do about it?” In: The Eleventh International Conference on Learning Representations . 2023. [38] Hualiang Wang et al. “Clipn for zero-shot ood de-tection: Teaching clip to say no”. In: Proceedings of the IEEE/CVF International Conference on Computer Vision . 2023, pp. 1802–1812. [39] Sedigheh Mahdavi, Shahryar Rahnamayan, and Kalyan-moy Deb. “Opposition based learning: A literature review”. In: Swarm and evolutionary computation 39 (2018), pp. 1–23. [40] Hamid R Tizhoosh. “Opposition-based learning: a new scheme for machine intelligence”. In: International con-ference on computational intelligence for modelling, control and automation and international conference on intelligent agents, web technologies and internet commerce (CIMCA-IAWTIC’06) . Vol. 1. IEEE. 2005, pp. 695–701. [41] Florian Schroff, Dmitry Kalenichenko, and James Philbin. “Facenet: A unified embedding for face recog-nition and clustering”. In: Proceedings of the IEEE conference on computer vision and pattern recognition .2015, pp. 815–823. [42] John J Grefenstette. “Genetic algorithms and machine learning”. In: Proceedings of the sixth annual conference on Computational learning theory . 1993, pp. 3–4. [43] Zong Woo Geem, Joong Hoon Kim, and Gobichet-tipalayam Vasudevan Loganathan. “A new heuristic optimization algorithm: harmony search”. In: simulation 
+
+76.2 (2001), pp. 60–68. [44] Mohammad Khajehzadeh, Mohd Raihan Taha, and Mahdiyeh Eslami. “Opposition-based firefly algorithm for earth slope stability evaluation”. In: China Ocean Engineering 28 (2014), pp. 713–724. [45] Kaiming He et al. “Deep residual learning for image recognition”. In: Proceedings of the IEEE conference on computer vision and pattern recognition . 2016, pp. 770– 778. [46] Pengchuan Zhang et al. “Multi-scale vision longformer: A new vision transformer for high-resolution image en-coding”. In: Proceedings of the IEEE/CVF international conference on computer vision . 2021, pp. 2998–3008. [47] Ze Liu et al. “Swin transformer: Hierarchical vision transformer using shifted windows”. In: Proceedings of the IEEE/CVF international conference on computer vision . 2021, pp. 10012–10022. [48] Nicolas Carion et al. “End-to-end object detection with transformers”. In: European conference on computer vision . Springer. 2020, pp. 213–229. [49] Xizhou Zhu et al. “Deformable DETR: Deformable Transformers for End-to-End Object Detection”. In: 
+
+International Conference on Learning Representations .2020. [50] Jeffrey Ouyang-Zhang et al. “Nms strikes back”. In: arXiv preprint arXiv:2212.06137 (2022). [51] Alexey Dosovitskiy et al. “An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale”. In: 
+
+International Conference on Learning Representations .2020. [52] Licheng Yu et al. “Modeling context in referring expres-sions”. In: Computer Vision–ECCV 2016: 14th Euro-pean Conference, Amsterdam, The Netherlands, October 11-14, 2016, Proceedings, Part II 14 . Springer. 2016, pp. 69–85. IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 13 
+
+[53] Alexander Kirillov et al. “Segment anything”. In: Pro-ceedings of the IEEE/CVF International Conference on Computer Vision . 2023, pp. 4015–4026. [54] Xiangyu Zhao et al. “An Open and Comprehensive Pipeline for Unified Object Grounding and Detection”. In: arXiv preprint arXiv:2401.02361 (2024). [55] Sahar Kazemzadeh et al. “Referitgame: Referring to ob-jects in photographs of natural scenes”. In: Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP) . 2014, pp. 787–798. [56] Ziyi Lin et al. “Sphinx: The joint mixing of weights, tasks, and visual embeddings for multi-modal large language models”. In: arXiv preprint arXiv:2311.07575 (2023). [57] Zi-Yi* Dou et al. “Coarse-to-Fine Vision-Language Pre-training with Fusion in the Backbone”. In: NeurIPS . 2022. [58] Zhe Chen et al. “How Far Are We to GPT-4V? Closing the Gap to Commercial Multimodal Models with Open-Source Suites”. In: arXiv preprint arXiv:2404.16821 
+
+(2024). [59] Zhe Chen et al. “Internvl: Scaling up vision founda-tion models and aligning for generic visual-linguistic tasks”. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 2024, pp. 24185–24198. [60] Yufei Zhan et al. “Griffon: Spelling out all object locations at any granularity with large language models”. In: European Conference on Computer Vision . Springer. 2025, pp. 405–422. [61] Chuofan Ma et al. “Groma: Localized visual tokenization for grounding multimodal large language models”. In: 
+
+European Conference on Computer Vision . Springer. 2024, pp. 417–435. 
+
+VII. Supplementary Material 
+
+A. Prompting Strategy 
+
+We construct the negation-aware annotation data from the COCO dataset using a rule-based filtering and prompting pipeline. To reduce annotation ambiguity and hallucination from multi-modal large language models (MLLMs), we first filter out images that contain multiple annotated objects. Specifically, we retain only images with a single annotated instance, which simplifies object attribution and avoids issues caused by small or overlapping objects. Given the filtered annotations, we visualize the bounding box on the corresponding image and feed the annotated image into the MLLM together with carefully designed prompting instructions. This procedure ensures that the model focuses on a single target object with explicit spatial grounding. Through empirical exploration, we find that enforcing a strict dictionary-style output format leads to more consistent and accurate attribute descriptions. This structured prompting strategy constrains the generation space of GPT-4V, thereby reducing noise and improving the reliability of the generated phrase labels. Algorithm 2 presents the complete prompting instructions and the expected output format used in our experi-ments. This structured prompting strategy facilitates the generation of precise and contextually relevant descriptions, enhancing the model’s understanding and interpretative capabilities within specified scenarios. 
+
+B. Ablations of Tuning Module               
+
+> TABLE X
+> Comparison of different tuning modules. Base on Grounding-DINO-Base. Performance on Intra-scenario of 𝐷 3dataset.
+> Tuning Module Params(M) Proportion(%) Full/Presence/Absence
+> Fusion Only 15.7 9.0 17.8 / 17.4 / 19.0
+> +Decoder 26.7 15.5 15.4 / 15.9 / 16.9 +Decoder +Neck 36.6 21.1 13.4 / 13.6 / 12.9
+
+Table X compares the effect of fine-tuning different modules in Grounding-DINO-Base. We observe that tuning additional components does not necessarily improve performance and can even be detrimental, likely due to interference with pre-trained representations. The best results are obtained when only the fusion module is tuned, providing initial evidence that semantic polarity errors mainly arise during vision–language interaction. 
+
+C. Comparative Analysis of Visual-Language Models 
+
+The D-Negation dataset is designed based on the ways in which humans perceive and comprehend entities in the world. In this framework, GPT-4V functions as a tool for the bulk generation of labels that meet specific criteria. To mitigate concerns regarding potential over-reliance on GPT-4V within the dataset, we also explore the performance of other visual-language models through comparative analysis. The methodology employed involves utilizing the same image and prompt across different visual-language models to generate labels, thus enabling a systematic comparison of their respective outputs. 
+
+D. Comparison Between GOBL and Standard Contrastive Learning 
+
+To evaluate the effectiveness of the proposed Efficient Fine-tuning strategy with the GOBL mechanism, we conduct a comparative study against standard contrastive-learning-based fine-tuning. We adopt APE-B and APE-C as baseline models and apply two fine-tuning strategies: (i) the original contrastive learning objective used in prior work, and (ii) our proposed GOBL-based fine-tuning. All models are trained under identical settings, including training data, optimization schedules, and evaluation protocols. Performance is reported on the intra-scenario split of the 𝐷 3
+
+dataset, with results summarized in Table XI. As shown in Table XI, both fine-tuning strategies lead to performance gains over the APE baselines, indicating that contrastive supervision is beneficial for grounding under seman-tic polarity. However, the improvements achieved by standard contrastive learning remain limited, particularly on the absence subset. In contrast, the proposed GOBL mechanism consistently delivers substantially larger gains across all evaluation settings. This suggests that explicitly modeling semantic opposition IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 14 
+
+Algorithm 2 Instruction of MLLM 
+
+Please generate phrase labels that meet the following requirements for the objects in the bbox in the figure. Note: The format should strictly be a dictionary where each key corresponds to a specific attribute category, and the values should be appropriate descriptive phrases. 1. Format: Use dictionary format to return. 2. Example of expected format:  
+
+> •
+
+Color P+: “The man in a red shirt”  
+
+> •
+
+Color P-: “The man in a blue shirt”  
+
+> •
+
+Color N+: “The man not in a blue shirt”  
+
+> •
+
+Color N-: “The man not in a red shirt”  
+
+> •
+
+Position P+: “The man holding the child”  
+
+> •
+
+Position P-: “The man beside the child”  
+
+> •
+
+Position N+: “The man not beside the child”  
+
+> •
+
+Position N-: “The man not holding the child”  
+
+> •
+
+State P+: “The standing man”  
+
+> •
+
+State P-: “The sitting man”  
+
+> •
+
+State N+: “The man not sitting”  
+
+> •
+
+State N-: “The man not standing” Now, please generate phrase labels based on the following attribute categories:  
+
+> •
+
+Color P+: Describes objects or characters based on the actual color attribute using positive logic.  
+
+> •
+
+Color P-: Describes objects or characters using a color attribute that is inconsistent with the actual attribute.  
+
+> •
+
+Color N+: Applies negation to the color attributes described in “Color P-”.  
+
+> •
+
+Color N-: Applies negation to the color attributes described in “Color P+”.  
+
+> •
+
+Position P+: Describes the position of objects or characters in bbox, ensuring the description matches the actual position attribute.  
+
+> •
+
+Position P-: Describes the position using modifiers that are inconsistent with the actual position attribute.  
+
+> •
+
+Position N+: Applies negation to the position attributes in “Position P-”.  
+
+> •
+
+Position N-: Applies negation to the position attributes in “Position P+”.  
+
+> •
+
+State P+: Describes objects or characters based on their actual state using positive logic.  
+
+> •
+
+State P-: Describes the state using modifiers that are inconsistent with the actual state attribute.  
+
+> •
+
+State N+: Applies negation to the state attributes described in “State P-”.  
+
+> •
+
+State N-: Applies negation to the state attributes described in “State P+”.  
+
+> TABLE XI
+> Performance comparison on the intra-scenario split of the 𝐷 3
+> dataset. Numbers in parentheses denote absolute improvements over the corresponding APE baseline.
+
+Model Full Presence Absence 
+
+APE-B 30.0 29.9 30.3 + Standard CL 30.9 (+0.9) 30.2 (+0.3) 31.3 (+0.8) + GOBL (Ours) 32.4 (+2.4) 32.2 (+2.3) 32.9 (+2.6) APE-C 27.8 27.9 27.3 + Standard CL 28.7 (+0.9) 28.5 (+0.6) 29.1 (+1.8) + GOBL (Ours) 32.5 (+4.7) 32.3 (+4.4) 33.0 (+5.7) 
+
+and exclusion provides more informative supervision than conventional contrastive objectives, which primarily encourage similarity without enforcing logical negation. Overall, these results demonstrate that GOBL is more effective than standard contrastive learning for grounding tasks involving negation and absence reasoning. 
+
+E. Effect of Individual Attributes on Model Performance 
+
+To investigate the impact of individual attributes, we analyze the model performance on the 𝐷 3 dataset using either single attributes or combinations of multiple attributes. The results are summarized in Table XII. Our findings indicate that the color attribute contributes the most to performance improvement, achieving an increase of +3.0 when used alone. Moreover, combining multiple attributes enhances the overall model performance, with a cumulative effect reaching a maximum improvement of +4.7 when all three attributes (color, position, and state) are used together.                                                                                                              
+
+> TABLE XII
+> Performance improvement with single and combined attributes.
+> Attribute Full Presence Absence
+> APE-C 27.8 27.9 27.3 Color 30.8 (+3.0) 31.2 (+3.3) 30.2 (+2.9) Position 30.2 (+2.4) 30.3 (+2.4) 29.2 (+1.9) State 29.6 (+1.8) 29.9 (+2.0) 29.1 (+1.8) Color + Position 32.1 (+4.3) 32.2 (+4.3) 31.9 (+4.6) Position + State 30.4 (+2.6) 30.8 (+2.9) 30.0 (+2.7) Color + State 31.9 (+4.1) 31.6 (+3.7) 32.2 (+4.9) Color + Position + State 32.5 (+4.7) 32.3 (+4.4) 33.0 (+5.7) IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS 15
+> TABLE XIII
+> Extended sensitivity analysis of hyperparameters 𝜎 ,𝛼 , and 𝛽 . All experiments are conducted on APE-B with other parameters fixed to default values. Results are reported as relative improvements over the APE-B baseline.
+> Setting Full Presence Absence
+> 𝜎 =2+1.9 +1.8 +2.2
+> 𝜎 =3+2.1 +2.0 +2.4
+> 𝜎 =5+2.4 +2.3 +2.6
+> 𝜎 =7+2.2 +2.1 +2.5
+> 𝜎 =9+2.0 +1.9 +2.3
+> 𝛼 =0.2+1.8 +1.7 +2.1
+> 𝛼 =0.3+2.0 +1.9 +2.3
+> 𝛼 =0.5+2.4 +2.3 +2.6
+> 𝛼 =0.7+2.1 +2.0 +2.4
+> 𝛼 =0.9+1.9 +1.8 +2.2
+> 𝛽 =0.05 +2.0 +1.9 +2.3
+> 𝛽 =0.1+2.2 +2.1 +2.5
+> 𝛽 =0.3+2.4 +2.3 +2.6
+> 𝛽 =0.5+2.1 +2.0 +2.3
+> 𝛽 =0.7+1.9 +1.8 +2.1
+
+F. Hyperparameter Sensitivity. 
+
+We analyze the sensitivity of the proposed method to key hyperparameters 𝜎 , 𝛼 , and 𝛽 on the APE-B baseline. As shown in Table XIII, the performance improvements remain stable across a broad range of values. Moderate settings ( 𝜎 = 5, 
+
+𝛼 = 0.5, 𝛽 = 0.3) consistently yield the strongest results, while deviations from these defaults result in only minor performance variations. Across all three hyperparameters, we observe a clear uni-modal trend, where performance gradually improves toward the default configuration and degrades mildly when moving away from it. Importantly, the overall variance is limited (within 
+
+±0.6), indicating that the proposed method does not rely on precise hyperparameter tuning. The absence subset consistently exhibits slightly higher gains and marginally higher sensitivity, reflecting its stronger dependence on accurate modeling of semantic opposition. Overall, these results demonstrate that the proposed loss formulation is robust under different hyperparameter choices and generalizes well even on the relatively weaker APE-B baseline, further supporting its practical applicability.

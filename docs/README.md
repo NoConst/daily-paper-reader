@@ -6,73 +6,73 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-21
-- 运行时间：2026-03-21 19:58:08 UTC
+- 最新运行日期：2026-03-22
+- 运行时间：2026-03-22 19:21:06 UTC
 - 运行状态：成功
 - 本次总论文数：17
 - 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日精选 17 篇前沿论文，深度聚焦多模态大模型在图像文本匹配与高效推理上的核心突破。
-重点关注利用最优局部传输（OPT）提升匹配精度，以及通过覆盖感知解码（CAMD）优化多模态推理效率的新范式。
-建议关注多模态技术在取证、视频理解及推荐系统中的落地应用，探索更轻量且精准的行业解决方案。
-- 详情：[/202603/21/README](/202603/21/README)
+今日聚焦视觉提示（Visual Prompt）的深度进化，从语义探索到化学图谱解析，全方位展示多模态大模型的推理新高度。
+满分论文揭示了视觉提示发现的语义奥秘，而强化学习与分子识别的结合则为复杂图表解析提供了可验证的新方案。
+建议优先研读 VLM 鲁棒性与证据精炼技术，掌握提升模型逻辑严密性与多模态感知精度的前沿路径。
+- 详情：[/202603/22/README](/202603/22/README)
 
 ### 精读区论文标签
-1. [Learning Image-Text Matching with Optimal Partial Transport](/202603/21/2603.14349v1-learning-image-text-matching-with-optimal-partial-transport)  
+1. [Visual Prompt Discovery via Semantic Exploration](/202603/22/2603.16250v1-visual-prompt-discovery-via-semantic-exploration)  
+   标签：评分：10.0/10、query:cir-ml
+   evidence：用于发现视觉提示的自动化语义探索框架
+2. [Molecular Identifier Visual Prompt and Verifiable Reinforcement Learning for Chemical Reaction Diagram Parsing](/202603/22/2603.15011v2-molecular-identifier-visual-prompt-and-verifiable-reinforcement-learning-for-chemical-reaction-diagram-parsing)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：跨模态匹配以及视觉和文本片段之间的相似性
-2. [CAMD: Coverage-Aware Multimodal Decoding for Efficient Reasoning of Multimodal Large Language Models](/202603/21/2603.14745v1-camd-coverage-aware-multimodal-decoding-for-efficient-reasoning-of-multimodal-large-language-models)  
+   evidence：将标识符作为视觉提示用于基于VLM的图表解析
+3. [HeBA: Heterogeneous Bottleneck Adapters for Robust Vision-Language Models](/202603/22/2603.16653v1-heba-heterogeneous-bottleneck-adapters-for-robust-vision-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型的高效推理
-3. [Beyond Forced Modality Balance: Intrinsic Information Budgets for Multimodal Learning](/202603/21/2603.17347v1-beyond-forced-modality-balance-intrinsic-information-budgets-for-multimodal-learning)  
+   evidence：利用模态特定结构偏差适配类CLIP视觉语言模型
+4. [Cognitive Mismatch in Multimodal Large Language Models for Discrete Symbol Understanding](/202603/22/2603.18472v1-cognitive-mismatch-in-multimodal-large-language-models-for-discrete-symbol-understanding)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态学习基础与模态不平衡
-4. [Insight-V++: Towards Advanced Long-Chain Visual Reasoning with Multimodal Large Language Models](/202603/21/2603.18118v1-insight-v-towards-advanced-long-chain-visual-reasoning-with-multimodal-large-language-models)  
+   evidence：评估多模态大模型在离散语义空间和符号理解方面的表现
+5. [Do VLMs Need Vision Transformers? Evaluating State Space Models as Vision Encoders](/202603/22/2603.19209v1-do-vlms-need-vision-transformers-evaluating-state-space-models-as-vision-encoders)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型（MLLM）的高级视觉推理
-5. [CycleCap: Improving VLMs Captioning Performance via Self-Supervised Cycle Consistency Fine-Tuning](/202603/21/2603.18282v1-cyclecap-improving-vlms-captioning-performance-via-self-supervised-cycle-consistency-fine-tuning)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于VLM图文对齐的自监督循环一致性微调
-6. [Rethinking MLLM Itself as a Segmenter with a Single Segmentation Token](/202603/21/2603.19026v1-rethinking-mllm-itself-as-a-segmenter-with-a-single-segmentation-token)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：通过单个嵌入从多模态大模型本身解锁分割功能
+   evidence：评估用于多模态大模型架构的SSM视觉编码器
+6. [SCoCCA: Multi-modal Sparse Concept Decomposition via Canonical Correlation Analysis](/202603/22/2603.13884v1-scocca-multi-modal-sparse-concept-decomposition-via-canonical-correlation-analysis)  
+   标签：评分：8.0/10、query:cir-ml
+   evidence：跨模态对齐与概念级分析
 
 ### 速读区论文标签
-1. [ForensicZip: More Tokens are Better but Not Necessary in Forensic Vision-Language Models](/202603/21/2603.12208v1-forensiczip-more-tokens-are-better-but-not-necessary-in-forensic-vision-language-models)  
+1. [What Makes VLMs Robust? Towards Reconciling Robustness and Accuracy in Vision-Language Models](/202603/22/2603.12799v1-what-makes-vlms-robust-towards-reconciling-robustness-and-accuracy-in-vision-language-models)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于多媒体取证的多模态大语言模型 (MLLM)
-2. [Attend Before Attention: Efficient and Scalable Video Understanding via Autoregressive Gazing](/202603/21/2603.12254v1-attend-before-attention-efficient-and-scalable-video-understanding-via-autoregressive-gazing)  
+   evidence：视觉语言模型中鲁棒性与准确性权衡的分析
+2. [Distance-aware Soft Prompt Learning for Multimodal Valence-Arousal Estimation](/202603/22/2603.13415v1-distance-aware-soft-prompt-learning-for-multimodal-valence-arousal-estimation)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：通过Token减少实现多模态大模型的高效视频理解
-3. [VLM4Rec: Multimodal Semantic Representation for Recommendation with Large Vision-Language Models](/202603/21/2603.12625v1-vlm4rec-multimodal-semantic-representation-for-recommendation-with-large-vision-language-models)  
+   evidence：用于多模态估计的距离感知软提示学习
+3. [Improving Visual Reasoning with Iterative Evidence Refinement](/202603/22/2603.14117v1-improving-visual-reasoning-with-iterative-evidence-refinement)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：利用大型视觉语言模型进行多模态语义表示
-4. [Text-Phase Synergy Network with Dual Priors for Unsupervised Cross-Domain Image Retrieval](/202603/21/2603.12711v1-text-phase-synergy-network-with-dual-priors-for-unsupervised-cross-domain-image-retrieval)  
+   evidence：视觉语言模型 (VLM) 在图像上的推理
+4. [Zoom to Essence: Trainless GUI Grounding by Inferring upon Interface Elements](/202603/22/2603.14448v1-zoom-to-essence-trainless-gui-grounding-by-inferring-upon-interface-elements)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：无监督跨域图像检索与语义对齐
-5. [Mastering Negation: Boosting Grounding Models via Grouped Opposition-Based Learning](/202603/21/2603.12606v1-mastering-negation-boosting-grounding-models-via-grouped-opposition-based-learning)  
+   evidence：基于多模态大模型的GUI定位和推理缩放
+5. [Sparse-Dense Mixture of Experts Adapter for Multi-Modal Tracking](/202603/22/2603.13719v1-sparse-dense-mixture-of-experts-adapter-for-multi-modal-tracking)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：视觉语言定位中的否定感知表示
-6. [Anchored Alignment: Preventing Positional Collapse in Multimodal Recommender Systems](/202603/21/2603.12726v1-anchored-alignment-preventing-positional-collapse-in-multimodal-recommender-systems)  
+   evidence：使用适配器进行跨模态特征表示与融合
+6. [Beyond Medical Diagnostics: How Medical Multimodal Large Language Models Think in Space](/202603/22/2603.13800v1-beyond-medical-diagnostics-how-medical-multimodal-large-language-models-think-in-space)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：跨模态一致性与基于锚点的对齐
-7. [TerraFlow: Multimodal, Multitemporal Representation Learning for Earth Observation](/202603/21/2603.12762v1-terraflow-multimodal-multitemporal-representation-learning-for-earth-observation)  
+   evidence：医疗多模态大模型中的3D空间智能评估
+7. [UVLM: A Universal Vision-Language Model Loader for Reproducible Multimodal Benchmarking](/202603/22/2603.13893v1-uvlm-a-universal-vision-language-model-loader-for-reproducible-multimodal-benchmarking)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：地球观测的多模态表示学习
-8. [Towards Faithful Multimodal Concept Bottleneck Models](/202603/21/2603.13163v1-towards-faithful-multimodal-concept-bottleneck-models)  
+   evidence：用于基准测试多种视觉语言模型架构的统一接口
+8. [Evaluation of Visual Place Recognition Methods for Image Pair Retrieval in 3D Vision and Robotics](/202603/22/2603.13917v1-evaluation-of-visual-place-recognition-methods-for-image-pair-retrieval-in-3d-vision-and-robotics)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：多模态概念瓶颈模型与表示泄漏
-9. [Maximizing Incremental Information Entropy for Contrastive Learning](/202603/21/2603.12594v1-maximizing-incremental-information-entropy-for-contrastive-learning)  
+   evidence：将视觉地点识别作为图像检索任务进行评估
+9. [When Visual Privacy Protection Meets Multimodal Large Language Models](/202603/22/2603.13978v1-when-visual-privacy-protection-meets-multimodal-large-language-models)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：对比学习和表示学习的进展
-10. [A Closed-Form Solution for Debiasing Vision-Language Models with Utility Guarantees Across Modalities and Tasks](/202603/21/2603.12998v1-a-closed-form-solution-for-debiasing-vision-language-models-with-utility-guarantees-across-modalities-and-tasks)  
+   evidence：多模态大语言模型 (MLLM) 中的隐私保护
+10. [Membership Inference for Contrastive Pre-training Models with Text-only PII Queries](/202603/22/2603.14222v1-membership-inference-for-contrastive-pre-training-models-with-text-only-pii-queries)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：在跨模态空间中对视觉语言模型进行去偏
-11. [Mitigating Memorization in Text-to-Image Diffusion via Region-Aware Prompt Augmentation and Multimodal Copy Detection](/202603/21/2603.13070v1-mitigating-memorization-in-text-to-image-diffusion-via-region-aware-prompt-augmentation-and-multimodal-copy-detection)  
+   evidence：审计像CLIP这样的对比预训练模型
+11. [Make it SING: Analyzing Semantic Invariants in Classifiers](/202603/22/2603.14610v1-make-it-sing-analyzing-semantic-invariants-in-classifiers)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：扩散模型中的多模态复制检测与提示词增强
+   evidence：将网络特征映射到多模态视觉语言模型
 
 
 <div class="dpr-home-promo-card">

@@ -1,0 +1,1050 @@
+Title: AgroNVILA: Perception-Reasoning Decoupling for Multi-view Agricultural Multimodal Large Language Models
+
+URL Source: https://arxiv.org/pdf/2603.14342v1
+
+Published Time: Tue, 17 Mar 2026 03:38:52 GMT
+
+Number of Pages: 37
+
+Markdown Content:
+# AgroNVILA: Perception-Reasoning Decoupling for Multi-view Agricultural Multimodal Large Language Models 
+
+Jiarui Zhang 1∗, Junqi Hu 1∗, Zurong Mai 1∗, Yuhang Chen 1, Shuohong Lou 1,Henglian Huang 1, Lingyuan Zhao 4, Jianxi Huang 5,6, Yutong Lu 1, Haohuan Fu 2,7, and Juepeng Zheng 1,7†
+
+> 1
+
+Sun Yat-sen University 2Tsinghua University 3Southwest University 
+
+> 4
+
+HuanTian Wisdom Technology Co., Ltd. 5China Agricultural University 
+
+> 6
+
+Southwest Jiaotong University 7National Supercomputing Center in Shenzhen 
+
+Abstract. Agricultural multimodal reasoning requires robust spatial understanding across varying scales, from Ground close-ups to top-down UAV and Satellite imagery. Existing Multi-modal Large Language Mod-els (MLLMs) suffer from a significant “terrestrial-centric” bias, causing scale confusion and logic drift during complex agricultural planning. To address this, we introduce AgroOmni (288K), the first large-scale multi-view training corpus designed to capture diverse spatial topologies and scales in modern precision agriculture. Built on this dataset, we propose 
+
+AgroNVILA , an MLLM that utilizes a novel Perception-Reasoning Decoupling (PRD) architecture. On the perception side, we incorporate a View-Conditioned Meta-Net (VCMN), which injects macroscopic spa-tial context into visual tokens, resolving scale ambiguities with minimal computational overhead. On the reasoning side, Agriculture-aware Rel-ative Policy Optimization (ARPO) leverages reinforcement learning to align the model’s decision-making with expert agricultural logic, pre-venting statistical shortcuts. Extensive experiments demonstrate that AgroNVILA outperforms state-of-the-art MLLMs, achieving significant improvements( +15.18% ) in multi-altitude agricultural reasoning, reflect-ing its robust capability for holistic agricultural spatial planning. 
+
+Keywords: AgroNVILA · Multi-view · Agricultural · Multimodal large language models · Reinforcement learning 
+
+1 Introduction 
+
+Agriculture serves as the foundational cornerstone of global food security and economic stability. In recent years, the rapid evolution of artificial intelligence  
+
+> ∗
+
+Equal Contribution  
+
+> †
+
+Corresponding Author 
+
+> arXiv:2603.14342v1 [cs.CV] 15 Mar 2026
+
+2 J. Zhang et al. GPT-5.2 DeepSeek-VL2-Small GeoChat         
+
+> Gemini-1.5-Pro InternVL-2-4B NVILA-Lite-8B
+> Claude-4.6-Sonnet LLaVA-NeXT-8B AgroNVILA
+> CTR
+> 70.4
+> PL
+> AR
+> VPR
+> AS
+> CO SC
+> GSR
+> PDD
+> OC
+> OC
+> SR
+> SL
+> 43.1
+> 50.7
+> 30.8
+> 59.3
+> 84.8
+> 90.6
+> 84.2
+> 45.1 46.8
+> 70.2
+> 55.1
+> 78.3
+> Human-Annotated
+> Existing Work Our Work
+> Ground
+> AgriGPT-VL AgroNVILA
+> AgroOmni Training Data
+> Multi-View
+> Ground
+> UAV
+> Satellite
+> Synthetic Data
+
+Fig. 1: Overview of AgroNVILA. Comparison of our framework with existing paradigms, and its comprehensive performance radar on the AgroMind benchmark 
+
+has introduced a promising paradigm shift toward autonomous precision farming [3, 18, 27, 41 –43, 45, 47, 50]. Recent pioneering works have significantly expanded the technological ecosystem: foundational architectures have rapidly evolved from language-centric agricultural assistants [27, 43, 44] to specialized multimodal and remote-sensing foundation models [18, 39, 41, 42], and even sophisticated agentic execution environments [47]. Concurrently, to evaluate and fuel these advanced reasoning engines, the community has made initial strides in constructing domain-specific training corpora (e.g., the vision-synthesized AgroInstruct [4] and the expert-verified AGBASE [11]) and establishing rigorous evaluation benchmarks (e.g. AgroMind [17], AgMMU [11], AgroBench [30]). Together, these synergistic advancements in model architectures, datasets, and evaluation protocols highlight a vibrant and rapidly expanding frontier in AI-driven agriculture. Despite this rapid progress, a critical limitation persists: existing agricultural MLLMs [4,41] are predominantly “terrestrial-centric”. They rely almost exclusively on close-up, Ground imagery designed for micro-level diagnostics. However, modern precision agriculture operates fundamentally on a macro scale, requiring multi-altitude observations from Unmanned Aerial Vehicle (UAV) and Satellite to capture plot-level crop dynamics, irrigation patterns, and large-scale field layouts. Current agricultural MLLMs [4, 41] generally overlook these multi-view requirements, leaving a significant void in holistic agricultural intelligence. Developing a multi-view agricultural MLLM presents two primary challenges. First, from a data perspective, there is an acute scarcity of multi-view instruction-tuning corpora. While pioneering benchmarks like AgroMind [17] have established rigorous multi-view evaluation protocols, the community lacks the corresponding training fuel. Existing training datasets are fundamentally focusing on ground level. For instance, massive vision-language datasets (e.g., the 3M+ Agri-3M-VL [41]) and expert-tuned instruction sets (e.g., the 70K AgroInstruct [4], the AgroNVILA: Perception-Reasoning Decoupling 3
+
+50K AGBASE [11]) are predominantly anchored in Ground observations. A unified corpus that explicitly aligns cross-scale observations (Ground, UAV, Satellite) for conversational intelligence remains conspicuously absent. Second, from a methodological perspective, simply feeding multi-view data into standard MLLMs leads to severe architectural bottlenecks. On the perception side, models suffer from scale and perspective confusion, erroneously interpreting macro-level field textures as micro-level leaf structures due to their inherent terrestrial bias. On the reasoning side, the extreme task heterogeneity causes logic drift, where models rely on statistical shortcuts rather than genuine agronomic reasoning. To overcome the data bottleneck, we introduce AgroOmni , a pioneering, large-scale multi-modal instruction-tuning dataset. AgroOmni seamlessly inte-grates Ground, UAV, and Satellite perspectives, providing a comprehensive “multi-altitude” context. It comprises over 288K professionally curated QA pairs spanning 56 specialized task categories. By expanding beyond simple identifica-tion to encompass complex top-down spatial reasoning and planning, AgroOmni serves as the essential domain-specific fuel for multi-view agricultural intelligence. Concurrently, we propose AgroNVILA , a MLLM built upon a perception-reasoning decoupling architecture. AgroNVILA tackles the multi-view learning challenges through two core innovations: (1) At the perception level, we introduce the View-Conditioned Meta-Net ( VCMN ), a lightweight module that explicitly injects altitude and perspective priors into the visual tokens, effectively anchoring spatial representations and enhancing cross-scale spatial perception. (2) At the reasoning level, we propose Agricultural-aware Relative Policy Optimization (ARPO ), a specialized reinforcement learning alignment strategy. By employing hierarchical advantage scaling, ARPO dynamically balances gradient signals across highly heterogeneous agricultural tasks, effectively preventing statistical shortcuts and aligning the model’s decision-making with stringent expert logic. In summary, our key contributions are as follows: 
+
+– We curate AgroOmni , the first large-scale (288K), multi-view agricultural instruction-tuning dataset covering Ground, UAV, and Satellite views across 56 expert-level task categories. 
+
+– We propose AgroNVILA , an innovative MLLM architecture featuring VCMN, which enhances cross-view perception by explicitly injecting macro-scopic altitude priors into visual tokens, and ARPO, which prevents statistical shortcut learning through hierarchical advantage scaling across highly het-erogeneous agricultural tasks. 
+
+– Experiments demonstrate that AgroNVILA significantly outperforms state-of-the-art MLLMs. Notably, on the comprehensive AgroMind benchmark, AgroNVILA (62.47%) achieves an absolute average improvement of +15.18% 
+
+over the GPT-5.2 ( 47.29%), establishing a new state-of-the-art in agricultural multi-modal reasoning. 4 J. Zhang et al. 
+
+2 Related Work 
+
+2.1 Multi-modal Large Language Models in Agriculture. 
+
+Multi-modal Large Language Models (MLLMs) signify a paradigm shift in agri-cultural AI, transitioning from isolated visual recognition to complex agronomic reasoning [4, 36, 41, 50]. Early foundational datasets primarily targeted narrow perception tasks, such as pest and disease identification [15,38]. Recently, domain-specific training corpora (e.g., AgroInstruct [4], AGBASE [11], Agri-3M-VL [41]) and rigorous benchmarks (e.g., AgMMU [11], AgroBench [30], AgroMind [17]) have emerged to cultivate broader vision-language capabilities. Consequently, generic architectures (e.g., LLaVA-OneVision [16], Qwen-VL [5], NVILA [23]) have been adapted into specialized MLLMs, such as AgriGPT-VL [41] and Agri-LLaVA [36], excelling in fine-grained diagnosis and visual question answering. However, despite this expansion, existing resources remain predominantly re-stricted to ground-level perception. They lack the large-scale multi-view coverage (e.g., UAV and Satellite view) required for holistic top-down planning, resulting in fragmented, terrestrial-centric efforts rather than a cohesive, cross-scale spatial foundation. 
+
+2.2 Reinforcement Learning for Alignment 
+
+Model alignment has transitioned from PPO-based RLHF toward more efficient, critic-free preference optimization paradigms [2, 14, 19, 24, 26]. Early approaches like InstructGPT [25] employ PPO [28] to optimize policies against reward models; however, these incur substantial costs due to explicit value networks and complex KL tuning. DPO [26] reformulates alignment as supervised preference learning, whereas GRPO [29] further eliminates critics via group-relative advantages—a strategy adopted by recent systems such as DeepSeek-R1 [13] and Qwen3 [40]. To address domain imbalance, DRPO [9] extends GRPO with hierarchical ad-vantage scaling. However, these methods primarily target general object-level hallucinations. In agricultural Direct QA, errors often stem from dataset short-cuts (e.g., majority-class priors) rather than visual evidence, rendering standard hallucination-oriented objectives insufficient. 
+
+3 AgroOmni 
+
+To dismantle the terrestrial-centric bias inherent in existing agricultural models, we introduce AgroOmni , a comprehensive, multi-view instruction-tuning corpus. 
+
+3.1 Data Construction Data Collection. As illustrated in Fig. 2, we aggregate data from three hetero-geneous sensor modalities (Ground, UAV, and Satellite) to encompass the full spatial scale of agricultural production. Our corpus, AgroOmni , consolidates AgroNVILA: Perception-Reasoning Decoupling 5Question Generation Quality Control Data Collection & Pre-processing 
+
+Data Source 
+
+Data Pre-processing 
+
+Format Conversion 
+
+Data Re-annotation 
+
+Raw Data 
+
+> Segmentation
+> Mask
+
+Question Types     
+
+> Q: Find the corner coordinates of the
+> square that can enclose all the
+> cultivated areas in the image.
+> A: [0.0, 0.6142, 0.5249, 1.0]
+> Spatial Perception Object Understanding
+> Q: What is the growth stage of the
+> wheat in this image? (Filling, Ripening,
+> Filling - Ripening, Post-flowering?)
+> A:Post-flowering
+> Scen e Understanding
+> Q: What is the percentage of the
+> changed farmland area in the entire
+> image?
+> A: 5%-10% VS
+> Scen e Reasoning
+> Q: Based on the image characteristics,
+> what is the primary vegetation type of
+> the ecosystem?
+> A:East European forest steppe
+
+Question Generation 
+
+Rule-based Question 
+
+Human-based Question   
+
+> (lat, lon)
+> JSON Metadata
+> “image_id”: xxx_007;
+> “polygon”:[0.66,...,0.95]
+> “bio_name”:”Coniferous
+> forest”;
+> “crs”: "EPSG:3395";
+> “longitude ”: ...
+> ......
+> Arctic Zone
+> Northern Temperate Zone
+> Tropical Zone
+> Southern Temperate Zone
+> Antarctic Zone
+> Vision Evidence 1
+> The main crops are growing healthily and
+> weed clusters are sparse and small in size ...
+> Vision Evidence 2
+> There are notable individual weed seedlings ...
+> Global Method
+> Preventive weeding
+
+LMMs Inference 
+
+Input: Image & Question 
+
+Output: Answer & Analysis 
+
+QAs Filtering  
+
+> Domain-Specific Accuracy
+> Verifying the correctness of crop species, pest
+> categories, and agronomic reasoning to prevent expert-
+> level hallucinations.
+> Spatial Consistency
+> Ensuring bounding boxes and spatial relations (e.g.,
+> left/right) strictly align with the specific view.
+> Instruction Format
+> Checking for formatting errors, incomplete choices, or
+> grammatical mistakes to ensure robust tuning.
+> “question ”: what
+> is the disease ?
+> ”answer “: center
+> “level_id” :...
+> ......
+> JSON
+> Instruction
+> Ready
+
+AgroOmni 
+
+(Train) 
+
+Anomaly Tree Disease Crop Parcel 
+
+Diverse scenarios 
+
+> Satellite
+> UAV
+> Ground
+
+Multi-View 
+
+Rigorous 
+
+Deduplication 
+
+Multi-level Annotation 
+
+> Raw Image
+> Bounding Box
+
+Fig. 2: The curation pipeline of AgroOmni training set contains three stages, i.e., data collection and pre-processing, question generation, and quality control. 
+
+107,488 images from a proprietary remote sensing parcel collection and 12 public datasets, including CLCD [22], EarthVQA [35], GWHD [10], OAM-TCD [34], OilPalmUAV [48], AVC [8], PhenoBench [37], Maize Tassel Identification Dataset (Iflytek AI Competition 2024), IP102 [38], ACFR [6], Tomato Dataset [46], 2018 AI Challenge Dataset, and CropHarvest [33] (full details and origins in Suppl. 4). As summarized in Tab. 1, AgroOmni advances the state-of-the-art by uniquely integrating multi-view perspectives and spatial grounding into instruction-tuning. To prevent data leakage, we enforce strict physical separation from AgroMind [17] with zero image-level overlap. Furthermore, our proprietary parcel collection and multi-temporal sources (e.g., the GWHD [10] Datasets) significantly broaden the scope toward Temporal Variation (TV) tasks beyond AgroMind’s existing scenarios. 
+
+Data Pre-processing. We adopt and extend the rigorous data processing pipeline established in AgroMind [17], implementing customized protocol to handle the heterogeneity of our data sources. This protocol involves multi-stage cleaning, including manual screening to remove defective samples and content-aware format conversion. We further apply randomized parcel-boundary cropping to generate multi-scale samples, simulating diverse spatial query variations. All original image resolutions are preserved to maintain data fidelity. Detailed collection procedures and standardized preprocessing protocols are documented in Suppl. 4. 
+
+Question Generation. As depicted in Fig. 2, we utilize a Dual-Track gen-eration method to transform hierarchical annotations into instruction-tuning data. Rule-based Generation employs deterministic templates based on JSON metadata for spatial and numerical tasks, effectively eliminating geometric hal-6 J. Zhang et al. (a) Task Distribution of AgroOmni (b) Multi-view Data Scale and Composition (d) Wordcloud of Answer 
+
+> (c) Wordcloud of Question
+
+Fig. 3: Comprehensive statistics of the AgroOmni. (a) Classification of 14 fine-grained agricultural tasks across four cognitive dimensions (b) Multi-view data scale and task distribution across UAV, Satellite, and Ground perspectives (c-d) Wordclouds for QA pairs, highlighting the high density of domain-specific agronomic terminology 
+
+lucinations. Evidence-based Logic Synthesis for complex reasoning tasks adopts a "reverse-engineering" approach, translating raw labels into dynamic reasoning chains. Further details are provided in Suppl. 4. 
+
+3.2 Dataset Statistics and Analysis 
+
+AgroOmni is structured with a balance between expansive coverage and cognitive depth. As visualized in Fig. 3, the dataset’s characteristics are three-fold: 
+
+Heterogeneous Distribution. As shown in Fig. 3(b), AgroOmni aggregates 
+
+288,831 QA pairs across three views. The data exhibits a realistic "extremes-dominant" distribution: Ground ( 68.0%) and Satellite ( 24.1%) views provide rich micro-phenotypic and macro-regional planning insights, while the UAV view ( 7.9%) addresses the critical meso-scale resolution gap. This inherent imbalance mirrors real-world agricultural data availability, serving as a rigorous stress test for model robustness against data heterogeneity. 
+
+Hierarchical Task Taxonomy. Fig. 3(a) delineates 14 task types, mapping a cognitive progression from fundamental Spatial Perception to sophisticated Scene Reasoning. Beyond basic identification, we densify complex decision-making tasks, notably introducing Temporal Variation (TV) to bridge the void in dynamic phenological monitoring. 
+
+Lexical Analysis. Lexical analysis in Fig. 3(c, d) demonstrates high domain specificity. While questions center on query-oriented tokens (e.g., area, status), answers feature precise agronomic terminology (e.g., anomaly, fungus). This high semantic density steers LMMs away from generic visual descriptions toward deep, expert-aligned agricultural reasoning. AgroNVILA: Perception-Reasoning Decoupling 7      
+
+> Table 1: Comparison of existing agricultural vision-language instruction datasets. SFT QA refers to the number of complex instruction-tuning samples used for the fine-tuning stage. Grounding strictly indicates support for region-level geometric localization (e.g., bounding boxes). Multi-View denotes the inclusion of macroscopic perspectives (UAV/Satellite) alongside standard Ground imagery.
+
+Dataset Images SFT Spatial Complex Multi-QA Grounding Reasoning View 
+
+AgroInstruct [4] 108K 70K × × ×
+
+Agri-LLaVA [36] 397K 6K* × × ×
+
+Agri-3M-VL [41] 1M 3M × ✓ ×
+
+AGBASE [11] 57K 57K × ✓ ×
+
+AgroOmni (Ours) 107K 288K ✓ ✓ ✓
+
+> *Agri-LLaVA claims 400K data, but only 6K high-quality dialogues are used for SFT.
+
+4 AgroNVILA 
+
+4.1 Overall Architecture 
+
+Existing Multi-modal Large Language Models (MLLMs) inherently suffer from a severe Ground-view bias Fig. 5(Stage 1) when transposed to agricultural domains. This bias heavily distorts spatial understanding, manifesting as Scale and Perspective Confusion when processing Unmanned Aerial Vehicle (UAV) and Satellite imagery. Conventional paradigms (e.g., AnyRes) attempt to mitigate this by aggressively cropping high-resolution images, inevitably leading to a computationally prohibitive token explosion. To circumvent this, we approach the architecture from first principles and propose an elegant, lightweight Perception-Reasoning Decoupling (PRD) framework. As illustrated in Fig. 4, the input image first traverses a frozen visual encoder (SigLIP) and a primary projector, compressing the raw pixels into a discrete visual token sequence X ∈ RN ×D . The PRD framework inherently bifurcates the subse-quent processing into two cohesive phases. The first phase, the View-Conditioned Meta-Net, is strictly localized at the perception front to collapse scale ambiguity before the tokens enter the LLM. The second phase, RL-based Alignment, oper-ates purely on the reasoning front, leveraging the purified perceptual features to rigorously align with expert agricultural logic. 
+
+4.2 View-Conditioned Meta-Net: Vision-Side Prior Injection 
+
+While previous parameter-efficient tuning methods like CoCoOp [49] attempt to inject context by appending learnable parameters to text prompts, we argue that perspective ambiguity is fundamentally a visual distortion. Thus, within our generative framework, we introduce a direct Vision-Side Prior Injection .From a tensor-flow perspective, we first distill the global macro-environment from the projected visual sequence. By applying Global Average Pooling (GAP) 8 J. Zhang et al. AgroOmni     
+
+> Vision Encoder
+> Projector
+> VCMN
+> Large Language Model
+> Brodcast Projectd Token Seq View Prior Injection
+> Policy Model
+> Reward Model
+> Reference Model
+> Group Computation
+> Reference Model
+> Spatial Object Scene Reasoning
+> curriculum
+> early: near GRPO late: full DRPO
+
+ARPO 
+
++
+
+> View Token Global Token
+> Global Average Pooling
+> Linear ReLU Linear
+
+Expert Verified QA pairs (288K) Multi View (3) Multi Task (80+) 
+
+AgroNVILA AgroMind 
+
+> Satellite UAV Ground
+> Object UnderStanding Scene UnderStanding Scene Reasoning Spatial Perception
+
+BD 
+
+> Q: Find the most appropriate rectangular angular coordinates that can enclose the cultivated land in the image
+> Q: Among the four images provided, which one has scarab?
+
+PDD AR AS 
+
+> Q: Which anomalous area is in this image of farmland?
+> Q: In this image, what is the cultivated land coverage rate?
+
+RL training VCMN         
+
+> Text Tokenization
+> AgroNVILA: C,[0.312, 0.0, 1.0, 1.0]
+> Gpt-5.2: C,[0.312, 0.0, 1.0, 1.0]
+> Gpt-5.2: C
+> AgroNVILA: D
+> AgroNVILA: F, weed_cluster
+> Gpt-5.2: F, weed_cluster
+> AgroNVILA: F, 90%-100%
+> Gpt-5.2: I, 80%-90%
+
+Fig. 4: Architecture of AgroNVILA. Driven by a Perception-Reasoning Decoupling (PRD) paradigm, the framework sequentially integrates a View-Conditioned Meta-Net (VCMN) for multi-view spatial anchoring and an ARPO module for expert-aligned logical reasoning. 
+
+[20] across the token dimension, we effectively filter out localized, high-frequency spatial noise, isolating a pure macroscopic scene context c ∈ RD :
+
+c = 1
+
+N
+
+NX
+
+i=1 
+
+Xi (1) This condensed context c is then immediately routed through a highly lightweight, two-layer Multi-Layer Perceptron (the Meta-Net M [49]), param-eterized with fewer than 1M parameters. This network generates a targeted perspective bias vector b ∈ RD Finally, we perform a residual global broadcast. The bias vector is element-wise added to every original localized token: 
+
+b = M(c) (2) 
+
+X′
+
+i = Xi + b, ∀i ∈ { 1, 2, ..., N } (3) Physically, this operation functions as “colored glasses” tailored to a specific altitude. It explicitly forces the LLM to process the local patches under a unified, broadcasted spatial reference. By achieving this Perspective Grounding with zero inference overhead, AgroNVILA drastically enhances the robustness of macro-level tasks, such as crop density estimation and cross-scene reasoning. AgroNVILA: Perception-Reasoning Decoupling 9
+
+4.3 Agriculture-aware Relative Policy Optimization (ARPO) 
+
+While VCMN addresses perspective ambiguity at the perception stage, complex tasks such as growth stage classification and spatial localization require the model to internalize expert logic that exceeds the capacity of standard SFT. To bridge this gap, we introduce Agriculture-aware Relative Policy Optimization (ARPO), a Reinforcement Learning (RL)-based strategy that extends GRPO [29] to navigate the extreme task heterogeneity inherent in agricultural visual QA. 
+
+Preliminaries: Group Relative Policy Optimization (GRPO) optimizes policies by removing the auxiliary critic network and computing advantages directly within a group of G sampled responses {o1, . . . , o G} for a given prompt 
+
+q. The normalized advantage is: 
+
+ˆAGRPO  
+
+> i
+
+= ri − μG
+
+σG + ε , (4) where μG and σG are the group-wise mean and standard deviation. The policy 
+
+πθ is updated by maximizing the clipped surrogate objective with a KL penalty: 
+
+JGRPO (θ) = E
+
+"
+
+1
+
+G
+
+> G
+
+X
+
+> i=1
+
+min 
+
+
+
+ϕi ˆAGRPO  
+
+> i
+
+, clip (ϕi, 1−ε, 1+ ε) ˆAGRPO 
+
+> i
+
+
+
+− βD KL (πθ ∥πref )
+
+#
+
+.
+
+(5) Despite its computational efficiency, GRPO lacks a mechanism to differentiate between heterogeneous tasks. In benchmarks like AgroMind, easy high-frequency tasks ( e.g ., binary judgment) dominate gradient updates, providing insufficient learning signals for harder reasoning tasks such as spatial localization. 
+
+Task-Specific Reward Design: To align model reasoning with expert agronomic logic, we employ a multi-objective reward function r comprising task accuracy ( rtask ), spatial consistency ( rspatial ), and format validity ( rfmt ). As detailed in Tab. 2, rtask applies specific metrics tailored to each task category. For localization and boundary detection tasks, rspatial encourages geometric faithfulness via Intersection-over-Union (IoU) between predicted and ground-truth regions. Finally, a lightweight rfmt ensures syntactic correctness ( e.g ., valid coordinate tuples or numeric counts) to stabilize RL training and prevent degenerate outputs. The total reward is defined as: 
+
+r = λtask rtask + λspatial rspatial + λfmt rfmt , (6) where we set (λtask , λ spatial , λ fmt ) = (0 .8, 0.1, 0.1) to prioritize reasoning correct-ness while maintaining robust spatial grounding and structural validity. Detailed formulations for each reward component are in Suppl. 1. 
+
+Hierarchical Advantage Scaling: ARPO extends the DRPO [9] framework by aligning reweighting logic with agricultural cognitive tiers rather than physical modalities. To address extreme task heterogeneity, we categorize samples into four hierarchical domains based on the AgroMind [17] taxonomy: Spatial Perception ,
+
+Object Understanding , Scene Understanding , and Scene Reasoning .10 J. Zhang et al. 
+
+Table 2: Task-specific reward functions                
+
+> Task Reward Design Details
+> Single-choice / VQA Reward = 1.0 for exact match, 0 otherwise. Counting Reward = max(0 ,1− | Ans −GT |/max( |GT |,1)) .Multi-choice Reward = geometric mean of set-IoU and recall. Visual grounding / BBox Reward = IoU(pred, GT); +0.5 when IoU >0.5, capped at 1. Open-ended Reward = ROUGE-L with length penalty. Short-answer (e.g., growth-stage) Reward = ordinal-distance and triplet-level matching. Boundary detection & localization Reward = IoU(pred, GT). Format (auxiliary) Syntax check (option letters, counts, coordinates).
+
+For each domain g, we compute a domain-level temperature to balance gradient signals: 
+
+T (g) = max( N (g) μ(g), ε ) , (7) where N (g) and μ(g) denote the sample count and mean reward of domain g.This down-weights easy, overrepresented domains while amplifying harder ones. To capture intra-domain difficulty variations, K-means clustering is applied to reward vectors vq ∈ RG within each domain. A cluster-level temperature 
+
+T (c, g ) is then computed following Eq. (4), and the standard advantage ˆAGRPO 
+
+> i
+
+is hierarchically rescaled as: 
+
+˜Ai = ˆAGRPO 
+
+> i
+
+T (g) T (c, g ) . (8) By integrating both inter-domain and intra-cluster scaling, ARPO effectively redistributes the model’s learning capacity toward the most challenging aspects of agricultural reasoning. 
+
+Curriculum-controlled Scaling: To prevent instability from aggressive reweighting, we introduce a curriculum factor λ(t) = progress (t)p to modulate scaling intensity. The final ARPO advantage is: 
+
+ˆAARPO  
+
+> i
+
+= ˆAGRPO 
+
+> i
+
+ T (g) · T (c, g )λ(t)
+
+.
+
+std( ·), (9) where std (·) denotes batch-wise normalization to restore unit variance. This design enables ARPO to transition from standard GRPO ( λ(t) → 0) to full domain-aware scaling ( λ(t) → 1), stabilizing early optimization before focusing on challenging, underrepresented tasks. 
+
+5 Experiment 
+
+5.1 Experimental Setup Model, dataset and training. We build our model upon NVILA-Lite-8B with a frozen SigLIP vision encoder and adopt the same backbone for all experiments to ensure fair comparison. We introduce the View-Conditioned Meta-Net (VCMN) AgroNVILA: Perception-Reasoning Decoupling 11 
+
+between the projector and LLM and perform supervised fine-tuning (SFT) on AgroOmni (288K QA pairs) before reinforcement learning. The SFT stage is optimized using a cosine decay learning rate peaking at 2 × 10 −5 and a global batch size of 32 with one epoch. During the reinforcement learning stage, we apply Agricultural-aware Relative Policy Optimization (ARPO) with one epoch, a learning rate of 1 × 10 −6 for the LLM and 1 × 10 −7 for the projector (scale 0.1), gradient accumulation of 4 steps, and group size 8 for advantage computation, on 4 ×A100 GPUs. Further details are deferred to Suppl. 3. 
+
+Evaluation. We evaluate our model on the AgroMind benchmark [17], a multi-view agricultural VQA benchmark covering Ground, UAV, and Satellite imagery with 13 tasks across four dimensions: Spatial Perception (SL, SR, BD), Object Understanding (OC, PDD, GSR), Scene Understanding (SC, CO, AS), and Scene Reasoning (VPR, AR, CTR, PL). The MLLMs evaluated on AgroMind are grouped into three categories: closed-source models, open-source MLLMs, and our variants. Following the official protocol, we report per-task accuracy (%) and take the overall score as the mean accuracy across all 13 tasks. The results on other agricultural benchmarks will be presented in Suppl. 2. 
+
+5.2 Main Results 
+
+Table 3 presents a comprehensive performance comparison of AgroNVILA against 16 leading open-source and proprietary MLLMs. AgroNVILA achieves a new state-of-the-art average accuracy of 62.47% on the AgroMind benchmark, establishing a definitive superiority in cross-scale agricultural reasoning. Despite their immense parameter scale, leading proprietary models such as GPT-5.2 (47.29%) and Gemini-1.5-Pro (41.06%) exhibit severe performance degra-dation on AgroMind due to inherent terrestrial bias . Pre-trained predominantly on human-centric imagery, they suffer critical scale confusion when presented with macroscopic agricultural scenes, failing to map visual tokens to correct physical dimensions. Consequently, AgroNVILA surpasses GPT-5.2 by absolute margins of +17.64% and +16.85% in rigorous geometric tasks like Boundary Detection (BD) and Area Statistics (AS) estimation, as our VCMN explicitly recalibrates the spatial metric. Furthermore, within the open-source and specialized ecosystems, standard foundational models (e.g., LLaVA-NeXT-8B at 31.53%) struggle with agronomic logic, while remote sensing experts like GeoChat (25.93%) catastroph-ically fail due to over-optimization for strictly top-down orthophotos. Especially in complex Anomaly Reasoning (AR), AgroNVILA secures a dominant 78.11% accuracy with the former(17.22%) and latter(29.80%), underscoring the PRD framework’s efficacy in bridging cross-scale spatial perception. 
+
+5.3 Ablation Studies 
+
+We systematically deconstruct the AgroNVILA framework to validate its core components. Before detailed module analyses, we establish a macroscopic overview of our Perception-Reasoning Decoupling (PRD) paradigm based on Tab. 3. 12 J. Zhang et al. 
+
+Table 3: Performance comparison on the AgroMind benchmark. The overall score represents the average accuracy across all evaluation tasks. Bold and underlined values denote the best and second-best results respectively. Task abbreviations: AR (Anomaly Reasoning), AS (Area Statistics), BD (Boundary Detection), CO (Counting), CTR (Climate Type Reasoning), GSR (Growth Stage Recognition), OC (Object Classi-fication), PDD (Pest/Disease Diagnosis), PL (Planning), SC (Scene Comparison), SL (Spatial Localization), SR (Spatial Relationship), and VPR (Visual Prompt Reasoning).                                                                                                                                                                                                                                                                                                                    
+
+> Model Spatial Perception Object Understanding Scene Understanding Scene Reasoning Overall SL SR BD OC PDD GSR SC CO AS VPR AR CTR PL
+> Human 19.15 15.00 40.83 57.60 46.17 47.22 35.49 28.88 39.46 12.33 25.62 34.07 13.50 33.15 Random 18.03 17.97 16.48 35.65 25.65 10.00 24.39 4.99 21.20 9.19 19.87 21.70 26.96 19.24 GPT-4o 41.38 35.16 33.52 78.55 66.09 55.83 43.90 23.75 46.20 16.10 27.15 69.81 30.90 43.14 GPT-5.2 39.19 29.94 42.09 74.14 65.61 60.50 41.22 36.85 53.27 28.09 38.33 57.41 38.83 47.29 Gemini-1.5-Pro 27.59 23.44 24.73 77.39 52.61 45.83 39.02 32.30 47.78 19.92 34.44 66.04 30.04 41.06 Claude-3.5-Sonnet 24.14 17.19 40.11 57.97 50.00 57.50 44.51 24.47 35.44 20.34 33.11 50.94 36.05 37.11 Claude-4.6-Sonnet 40.37 19.91 43.13 74.20 61.48 37.08 45.14 26.87 51.07 20.69 32.61 65.14 34.00 43.15 DeepSeek-VL2-small 16.26 20.31 24.18 61.45 28.70 65.83 31.71 19.71 20.57 19.07 19.87 38.68 8.58 28.08 TinyLLaVA 29.56 17.97 24.73 68.41 23.48 30.00 24.39 23.99 31.65 3.39 13.91 45.28 9.44 28.01 InternVL-2-4B 29.06 23.44 25.27 48.70 44.78 19.17 30.49 19.00 46.84 19.49 30.46 50.94 12.88 31.15 XComposer2-4K-HD 29.06 27.34 32.97 51.88 40.00 44.17 34.15 22.33 27.53 11.86 37.75 43.40 38.63 33.02 InstructBLIP-Vicuna-7B 9.85 16.41 20.88 33.33 21.74 10.83 19.51 10.93 21.52 4.66 20.53 20.75 11.16 17.39 Mantis-Idefics2 16.75 20.31 31.32 63.77 44.35 37.50 22.56 24.23 20.89 8.47 13.91 56.60 30.90 30.41 LLaVA-NeXT-7B-Mistral 33.50 22.66 40.11 44.64 40.00 36.67 21.95 24.70 36.71 8.05 15.23 39.62 11.59 29.17 LLaVA-NeXT-8B 35.47 16.41 41.76 57.68 28.70 30.00 19.51 26.84 34.81 10.59 17.22 37.74 33.48 31.53 GeoChat 14.78 19.53 23.63 48.70 34.78 30.83 16.46 19.48 20.57 8.47 29.80 51.89 24.89 25.93 GeoLLaVA-8K 9.85 25.78 17.58 34.78 15.22 7.50 17.68 4.75 16.14 7.63 14.57 34.91 8.58 15.73 NVILA-Lite-8B 41.85 25.89 37.47 63.96 49.43 35.75 36.51 21.13 28.62 19.33 24.26 53.49 29.82 35.68 AgroNVILA-Baseline 51.23 30.64 56.76 84.79 90.09 83.33 38.81 47.01 69.40 52.45 78.30 68.97 44.90 61.61 +VCMN 50.74 30.64 57.03 85.02 90.30 84.25 42.31 46.92 69.87 53.05 76.46 70.18 42.67 61.73 +ARPO 50.79 30.95 59.73 84.96 90.48 84.42 44.06 47.22 70.12 55.37 78.11 70.36 43.57 62.47
+
+Transitioning from the vanilla NVILA-Lite-8B to AgroNVILA-Baseline (via SFT on AgroOmni) yields a +25.93% absolute gain (35.68% → 61.61%), confirm-ing the necessity of a multi-view corpus for recovering fundamental agricultural semantics. To address the plateau of pure SFT on geometric and logic-heavy tasks caused by implicit scale confusion, the sequential integration of VCMN and ARPO strictly resolves this bottleneck. VCMN explicitly anchors the perception floor, stabilizing spatial-sensitive tasks (e.g., BD: 56.76% → 57.03%, AS: 69.40% 
+
+→ 69.87%) by yielding a purified, scale-aware latent space. Subsequently, ARPO leverages this unambiguous perception for rigorous logical alignment, driving the overall peak performance to 62.47%. The most pronounced leaps occur in 
+
+Object Understanding (PDD: 90.30% → 90.48%, GSR: 84.25% → 84.42%) and 
+
+Scene Reasoning (CTR: 70.18% → 70.36%, PL: 42.67% → 43.57%), definitively proving that decoupling explicit spatial anchoring from expert logic alignment is the prerequisite for resolving logic drift in multi-altitude VQA. 
+
+Qualitative Insight: Resolving Scale Confusion. To intuitively verify this architectural synergy, Fig. 5 visualizes the evolution of the model’s spatial cognition on a Satellite scene. As illustrated, the baselines (NVILA and SFT) suffer from severe scale collapse, erroneously projecting macroscopic furrows into micro-level textures (e.g., hallucinating a “wall”). The integration of VCMN re-anchors the perspective, successfully expanding the receptive field to acknowledge regional layouts. Finally, ARPO aligns this purified perception with rigorous spatial logic, accurately delineating topological boundaries. This visual cascade AgroNVILA: Perception-Reasoning Decoupling 13 [Stage 1: NVILA] Semantic & Scale Collapse       
+
+> The image appears to be a close-up view of a textured surface, likely a wall or floor . ... The overall composition is abstract , with no clear objects or shapes .... The combination of the deep purple, lighter areas , and the greenish section on the left creates a visually striking and somewhat mysterious image.
+
+[Stage 2: SFT Baseline] Localized Semantic Recovery 
+
+[Stage 3: SFT + VCMN] Macroscopic Perspective Anchoring 
+
+[Stage 4: AgroNVILA] Holistic Geometric Alignment     
+
+> The image depicts a close-up view of a field with a mix of different crops....In the upper left corner , there's a section of a different crop... The field is bordered
+> by a green area on the left side ... taken from a slightly elevated angle ... Overall, the image captures a diverse agricultural landscape ...showcasing the variety of crops that can be cultivated in a single area.
+> Micro-level Texture Macro-level Layout
+> Topological Boundary
+
+Question: Please describe the image          
+
+> The image depicts a close-up view of a section of a field. The majority... appears to be a freshly plowed or tilled section... To the left of the purple area ,... It is a purely agricultural scene, emphasizing the process of field preparation.
+> The image depicts a close-up view of a field with a mix of different crops....majority of the field is covered in a purple-colored crop... In the upper left corner , there's a section... mix of green and white . ... The image is taken from a slightly elevated angle , providing a clear view of the different sections ...
+
+Fig. 5: Evolution of spatial cognition on a Satellite scene. Red (Baselines): 
+
+Scale collapse and micro-texture hallucinations. Blue (+VCMN): Perspective an-choring for regional awareness. Green (+ARPO): Topological alignment for holistic landscape synthesis. Additional cases are provided in Suppl. 5. 
+
+Table 4: Ablation on VCMN and data balancing. Values denote micro-average accuracy (%). AgroMind [17] contains 12,268 Satellite, 10,986 Ground, and 4,800 UAV samples (428 lacking metadata are excluded). ‘Balanced’ denotes UAV oversampling. Best results within each data strategy are bolded .
+
+Model Variant Data Strategy Satellite Ground UAV Overall 
+
+Baseline Unbalanced 59.39 66.28 61.10 62.38 + VCMN Unbalanced 59.68 66.68 60.21 62.51 
+
+Baseline Balanced 59.72 64.50 63.98 62.32 
+
++ VCMN Balanced 59.34 64.28 64.31 62.13 
+
+perfectly corroborates our quantitative findings: the PRD framework transcends simple semantic memorization, achieving genuine cross-scale geometric reasoning. 
+
+6 Discussion 
+
+6.1 Effect of View-Conditioned Meta-Net 
+
+We disentangle VCMN’s architectural efficacy from data biases using a 2 × 2
+
+ablation matrix (Tab. 4). As illustrated in the multi-view data composition (e.g., Fig. 3(b)), the native AgroOmni dataset exhibits severe domain imbalance: Ground and Satellite views heavily dominate the corpus with 196,293 and 69,713 QA pairs respectively, whereas the intermediate UAV view is critically underrep-resented with only 22,825 pairs. Under this unbalanced setting (Tab. 4), VCMN exhibits a strong “prior absorption” characteristic by faithfully internalizing these 14 J. Zhang et al. 
+
+Table 5: Effect of RL strategies on the AgroMind benchmark. We report accuracy (%) for each task and the overall average. Columns are grouped by AgroMind’s four evaluation dimensions. Bold and underlined values denote the best and second-best results within each column respectively.                                                                                
+
+> Method Spatial Perception Object Understanding Scene Understanding Scene Reasoning Overall SL SR BD OC PDD GSR SC CO AS AR CTR VPR PL
+> +VCMN 50.74 30.64 57.03 85.02 90.30 84.25 42.31 46.92 69.87 76.46 70.18 53.05 42.67 61.73 +PPO [28] 50.74 30.87 59.73 84.81 90.61 83.67 42.06 45.95 70.03 77.71 69.52 55.12 42.63 61.96 +GRPO [29] 50.74 30.72 59.89 84.99 90.30 84.50 42.91 46.82 69.90 77.98 70.46 55.71 43.31 62.32 +DRPO [9] 50.88 31.03 59.40 84.87 90.35 84.17 43.27 46.82 69.87 78.11 70.36 55.37 43.19 62.26 +ARPO 50.79 30.95 59.73 84.96 90.48 84.42 44.06 47.22 70.12 78.11 70.36 55.37 43.57 62.47
+
+dominant macroscopic and microscopic extremes. This drives gains in Satellite (+0.29%) and Ground (+0.40%) views but triggers a classical Matthew effect, degrading the data-scarce UAV domain (-0.89%) as the lightweight Meta-Net overfits to the extremes. However, when domain dominance is forcefully mitigated via balanced oversampling, VCMN demonstrates its true potential in resolving intermediate-scale ambiguity, achieving a crucial +0.33% absolute improvement on the challenging UAV view. Simultaneously, this induces a logical “see-saw” effect: forcing the lightweight parameter space to accommodate the minority domain slightly compromises its capacity on the massive Satellite and Ground domains. Ultimately, this orthogonal ablation definitively proves that VCMN functions as a highly sensitive, data-faithful prior injector, effectively establishing multi-perspective spatial anchoring based on the provided training geometry rather than hallucinating new knowledge. 
+
+6.2 Comparison with other RL strategies 
+
+Tab. 5 shows that ARPO achieves a state-of-the-art 62.47% accuracy, outperform-ing GRPO (62.32%) and DRPO (62.26%). While inheriting the hierarchical scaling of DRPO [9], ARPO specifically adapts to agriculture by replacing modality-based domains with cognitive-tier partitioning and introducing curriculum-controlled scaling λ(t) to stabilize optimization against noisy reward signals. These evo-lutions yield significant gains in reasoning-heavy dimensions, notably Scene Understanding (SC: 44.06%, CO: 47.22%) and Planning (PL: 43.57%). These results confirm that cognitive-aware rebalancing and progressive curriculum align-ment are essential for suppressing statistical shortcuts and ensuring expert-level logical consistency in multi-view agricultural VQA. 
+
+7 Conclusion 
+
+Agricultural multimodal reasoning faces challenges from scale and perspective ambiguities, as existing models often focus on terrestrial-centric data, leading to confusion and logic drift in multi-altitude agricultural tasks. To address this, we introduced AgroOmni , a large-scale, multi-view instruction-tuning dataset that AgroNVILA: Perception-Reasoning Decoupling 15 
+
+integrates Ground, UAV, and Satellite views, consisting of over 288K QA pairs across 56 specialized agricultural tasks, capturing diverse spatial topologies and scales for comprehensive reasoning. Building on the AgroOmni dataset, we pro-posed AgroNVILA , a novel MLLM framework based on a Perception-Reasoning Decoupling (PRD) architecture. This architecture separates the perception and reasoning processes, introducing a View-Conditioned Meta-Net (VCMN) to inject altitude-specific spatial priors, resolving scale ambiguity and improving cross-scale spatial perception with minimal computational overhead. On the reasoning side, we leveraged Agricultural-aware Relative Policy Optimization (ARPO), a reinforcement learning strategy that aligns the model’s decision-making with expert agricultural logic, preventing statistical shortcuts. Our experiments on the AgroMind benchmark demonstrate that AgroNVILA achieves a new state-of-the-art performance (62.47%), significantly outperforming the second-best model GPT-5.2 (47.29%). These results underline the effectiveness of the AgroOmni dataset and the AgroNVILA model in advancing multi-view agricultural rea-soning. Future works will focus on enhancing model scalability and deploying AgroNVILA in real-world agricultural systems. 16 J. Zhang et al. 
+
+# AgroNVILA: Perception-Reasoning Decoupling for Multi-view Agricultural Multimodal Large Language Models 
+
+Supplementary Material Table of Contents 
+
+1. Extended Methodology and Architectural Details 1. 1 View-Conditioned Meta-Net (VCMN) 
+
+1. 2 Agronomic Reasoning Policy Optimization (ARPO) 
+
+2. Extended Evaluations on General Agricultural Benchmarks 2. 1 Low-Resource Adaptation and Scaling Efficiency 
+
+2. 2 Superiority in Fine-grained Visual Grounding 
+
+3. Reproducibility and Implementation Details 3. 1 Hardware and Environment 
+
+3. 2 Stage-wise Training Pipeline 
+
+4. Extended Details of the AgroOmni Dataset 4. 1 Data Collection and Multi-view Composition 
+
+4. 2 Data Pre-processing 
+
+4. 3 Question Generation 
+
+4. 4 Processing for Each Dataset 
+
+5. Qualitative Analysis and Case Studies 
+
+1 More Detail about VCMN and ARPO 
+
+1.1 VCMN Architectural Placement & Forward Pass To rigorously disentangle per-spective ambiguity without corrupting the semantic integrity of textual prompts, VCMN operates exclusively on the visual modality post-projection. Formally, given an input image I and a text instruction T , let Evis and P denote the vision encoder and the vision-language projector, respectively, while Etxt represents the text embedding layer. The multimodal forward pass is formulated as: 
+
+X = P (Evis (I)) 
+
+Y = Etxt (T )
+
+X′ = X + M(X)
+
+O = LLM ([ X′, Y ]) 
+
+(10) AgroNVILA: Perception-Reasoning Decoupling 17 
+
+where [·, ·] denotes sequence concatenation. Unlike prompt-tuning paradigms (e.g., CoCoOp [49]) that append learnable prefixes directly to the text tokens Y ,our perspective bias is anchored purely in the projected visual latent space ( X′). This physical design avoids language-side syntax distortion while enforcing strict perspective grounding prior to the LLM reasoning stage. 
+
+Bottleneck Topology and Zero-Initialization Strategy To complement the high-level forward pass described in the main text, we detail the internal topology and initialization constraints of the Meta-Net M.To ensure extreme parameter efficiency, the two-layer MLP is designed with a strict bottleneck ratio of r = 16 and utilizes a Rectified Linear Unit (ReLU). Mathematically, the perspective bias is computed as b = W2 max (0 , W 1c), where 
+
+W1 ∈ RD× D 
+
+> 16
+
+and W2 ∈ R D  
+
+> 16 ×D
+
+.Crucially, introducing randomly initialized parameters directly into a pre-trained visual continuous latent space often triggers severe gradient instability, leading to catastrophic forgetting of the foundational visual priors. To circumvent this, we implement a strict Zero-Initialization strategy for the final projection layer (i.e., W2 = 0). Consequently, at step zero of training, the generated bias vector is strictly 
+
+b = 0. This mathematically guarantees that the residual broadcast ( X′ 
+
+> i
+
+= Xi + b)initially functions as a perfect identity mapping ( X′ 
+
+> i
+
+= Xi). This architectural safeguard allows the VCMN to be seamlessly integrated into the pre-trained backbone, enabling the network to smoothly "warm up" its perspective anchoring without corrupting the initial semantic alignment. 
+
+Computational Complexity Analysis The aggressive bottleneck design ( r =16 ) guarantees an almost non-existent computational footprint. The operation entails O(N · D) for the GAP, O( 2D2 
+
+> 16
+
+) for the MLP forward pass, and O(N · D)
+
+for the residual broadcast. When deployed alongside standard Large Language Models—where a single self-attention layer alone dictates an O(N 2 · D + N · D2)
+
+complexity—the additional Multiply-Accumulate Operations (MACs) introduced by VCMN constitute less than 0.1% of the overall computational graph, validating its status as a zero-inference-overhead plug-in. 
+
+1.2 ARPO Detailed Reward Formulations During ARPO training, we employ a com-bination of one main accuracy reward and two lightweight auxiliary rewards that jointly capture task correctness, output validity, and spatial consistency in agricultural scenes. Tab. 6 summarizes the reward components and the task-aware scoring for rtask .
+
+Accuracy reward. The primary objective is task accuracy, for which we compute a task-aware reward rtask (o, q ) per question type. We use exact letter matching for single-choice questions, a continuous relative error score for counting, 18 J. Zhang et al. 
+
+Table 6: Task-specific reward functions.                
+
+> Task Reward Design Details
+> Single-choice / VQA Reward = 1.0 for exact match, 0 otherwise. Counting Reward = max(0 ,1− | Ans −GT |/max( |GT |,1)) .Multi-choice Reward = geometric mean of set-IoU and recall. Visual grounding / BBox Reward = IoU(pred, GT). Open-ended Reward = ROUGE-L with length penalty. Short-answer (e.g., growth-stage) Reward = ordinal-distance and triplet-level matching. Boundary detection & localization Reward = IoU(pred, GT). Format (auxiliary) Syntax check (option letters, counts, coordinates).
+
+geometric-mean of set-IoU and recall for multi-choice selection, IoU-based scoring for bounding box prediction, and ROUGE-L with a length penalty for open-ended answers. For short-answer categories such as growth-stage classification and farmland description, we further apply ordinal-distance scoring and triplet-level matching to grant partial credit to near-miss predictions. 
+
+Spatial consistency reward. For spatial tasks (e.g., boundary detection and localization), we additionally encourage geometric faithfulness via a spatial reward rspatial (o, q ). Given a predicted box b and ground-truth region S, we define 
+
+rspatial as the intersection-over-union between b and S, which nudges the policy toward accurate delineation of cultivated areas and salient anomalies. 
+
+Auxiliary rewards. We also include a lightweight format reward rfmt (o, q )
+
+that checks whether the output conforms to the expected syntax (e.g., valid option letters, numeric counts, or coordinate tuples). This term is inexpensive to compute and helps stabilize RL training by discouraging degenerate or unparsable responses. 
+
+Combined reward. The final scalar reward supplied to ARPO is a weighted combination: 
+
+r = λtask rtask + λspatial rspatial + λfmt rfmt . (11) In our experiments, we set (λtask , λ spatial , λ fmt ) = (0 .8, 0.1, 0.1) , which balances task accuracy with spatial grounding and output validity while keeping the reward computation cheap. 
+
+KL-aware Regularization and Advantage Dampening The hierarchical scaling mechanism in ARPO, while effective for balancing heterogeneous tasks, can significantly increase the variance of normalized advantages. This may lead to optimization instability, where a small subset of responses with extreme advantages dominates the gradient updates. To mitigate this, we implement a 
+
+KL-aware regularization strategy, following the approach in QoQ-Med [9], to dampen advantages that exhibit excessive policy drift. Specifically, we control the optimization process through two complementary mechanisms: 
+
+1. Global KL Penalty: We incorporate a standard scalar KL penalty 
+
+β D KL (πθ ∥πref ) into the ARPO surrogate objective. We set β = 0 .05 to ensure the learned policy remains within a trust region of the reference model, thereby preventing catastrophic forgetting of the foundational visual-semantic priors acquired during the SFT stage. AgroNVILA: Perception-Reasoning Decoupling 19 
+
+2. Inverse-Linear Advantage Regularizer: To further stabilize training against outliers, we apply an inverse-linear dampening factor to the scaled advantages based on their question-level KL divergence. For each response o(q,i,t ),we first compute the KL divergence: 
+
+k(q,t ) =
+
+> L
+
+X
+
+> j=1
+
+
+
+πθ (oj |q) log πθ (oj |q)
+
+πref (oj |q)
+
+
+
+, (12) where L is the sequence length. We then define a multiplicative dampening factor 
+
+m(q,i,t ) to adjust the scaled advantage prior to batch-wise renormalization: 
+
+m(q,i,t ) = tp
+
+tp + max  sscaled (q,i,t ) · k(q,t ), 0 , (13) where sscaled (q,i,t ) denotes the advantage after domain and cluster temperature scaling, and tp is the p-th percentile of the product {sscaled · k} within the mini-batch (we set p = 0 .9). This regularization design offers several key advantages: – Deterrence of Shortcuts: It selectively dampens responses that achieve high rewards by deviating excessively from the reference model. In agricultural reasoning, such samples often represent overconfident “statistical shortcuts” rather than robust agronomic logic. 
+
+– Computational Efficiency: Since k(q,t ) is already required for the primary KL penalty in the loss function, the dampening factor m(q,i,t ) is computed with negligible overhead, requiring no additional forward passes. 
+
+– Stability: By suppressing high-variance outliers, this mechanism ensures smoother policy updates even under the extreme task heterogeneity of the AgroMind benchmark. 
+
+Detailed Ablation Experiments To balance experimental rigor and compu-tational constraints, ablations were conducted using a streamlined configuration: 4×A100 GPUs with a group size of G = 4 (one rollout per device) and a representative subset of 2,500 instances per sub-task. 
+
+Impact of Reward Components We perform a leave-one-out analysis (Tab. 7) to isolate the contribution of each reward term. The results indicate that the task accuracy reward rtask is the most critical component; its removal leads to the most significant performance degradation, with a 0.7% drop in macro accuracy (62.4% → 61.7%). While the global numerical impact of the spatial consistency reward rspatial and format reward rfmt appears smaller (0.2% and 0.3% respectively), their presence is essential for stabilizing the training process and ensuring the model’s outputs adhere to geometric and syntactic constraints. Specifically, rspatial serves as a necessary anchor for tasks requiring precise bounding-box regression, while rfmt prevents the model from generating unparsable or degenerate responses during the reinforcement learning phase. 
+
+Impact of Curriculum Tab. 8 evaluates the synergy between hierarchi-cal scaling and curriculum scheduling. While domain-wise reweighting ( AR-PODomainOnly ) provides a 62.17% baseline, the addition of cluster-level scaling 20 J. Zhang et al. 
+
+Table 7: Ablation of reward components in ARPO. Results are reported as accuracy (%) under the resource-efficient G = 4 configuration. Bold values indicate the best performance. rtask , rspatial , and rfmt denote task accuracy, spatial consistency, and format rewards, respectively. 
+
+Config rtask rspatial rfmt Acc. (%) 
+
+Full ✓ ✓ ✓ 62.4 
+
+w/o rtask × ✓ ✓ 61.7 w/o rspatial ✓ × ✓ 62.2 w/o rfmt ✓ ✓ × 62.1 
+
+Table 8: Impact of hierarchical scaling and curriculum scheduling in ARPO. 
+
+Per-task accuracy (%) results on the AgroMind benchmark. Bold and underlined values denote the best and second-best results for each task, respectively. DomainOnly : domain scaling without in-domain clustering; w/o curriculum : full scaling without progressive scheduling.                                                    
+
+> Method Spatial Perception Object Understanding Scene Understanding Scene Reasoning Overall SL SR BD OC PDD GSR SC CO AS AR CTR VPR PL
+> ARPO(DomainOnly) 50.74 30.72 59.40 84.96 90.35 84.08 42.85 47.01 69.93 77.98 69.80 54.82 42.93 62.17 ARPO(w/o curriculum) 50.83 30.87 59.40 85.02 90.43 83.92 43.75 47.27 69.84 77.98 69.90 54.65 43.10 62.27 ARPO(full) 50.59 30.87 59.40 85.04 90.39 83.83 43.57 47.51 69.87 78.11 70.27 54.95 43.10 62.32
+
+(ARPO w/o curriculum ) further refines performance to 62.27%, particularly in object-level tasks such as Pest/Disease Diagnosis (90.43%). However, the peak overall accuracy of 62.32% is only achieved by the full ARPO framework. Notably, the curriculum-driven transition proves most effective for logic-intensive dimensions, yielding the highest scores across all Scene Reasoning tasks, including 
+
+Anomaly Reasoning (78.11%), Climate Type Reasoning (70.27%), and Planning 
+
+(43.10%). This underscores that progressive scaling intensity is essential for stabi-lizing early optimization and successfully internalizing the complex agricultural reasoning logic that static strategies fail to capture. 
+
+2 Extended Evaluations on General Agricultural Benchmarks 
+
+To comprehensively assess the domain-adaptive capacity and cross-benchmark generalization of our proposed framework, we evaluate AgroNVILA on the Multiple-Choice Questions (MCQs) of the AgMMU benchmark. As shown in Tab. 9, we benchmark against a rigorous baseline suite, including proprietary giants (e.g., GPT-o4-mini, Gemini 1.5 Pro) and state-of-the-art open-source generalist models. AgroNVILA: Perception-Reasoning Decoupling 21 
+
+Table 9: Detailed performance comparison on the AgMMU [11] benchmark (MCQs). All scores are reported as accuracy (%). Bold and underlined values indicate the best and the second-best performance among all open-source and domain-specific models. By leveraging just 10% to 30% of AGBASE [11], AgroNVILA demonstrates robust adaptation, achieving exceptional performance in "Symptom" recognition (89.9%), significantly surpassing even proprietary models like GPT-o4-mini.                                                                               
+
+> Model Size Disease Insect/Pest Species Management Symptom Average
+> Proprietary Models
+> GPT-o4-mini [1] -77.9 85.4 90.3 93.8 84.3 86.5 Gemini 1.5 Pro [31] -76.2 81.1 82.8 88.1 76.9 82.4 Claude 3 Haiku -62.1 71.2 52.8 81.5 52.0 63.8
+> SOTA Open-sourced Models
+> LLaVA-1.5 [21] 13B 64.7 67.4 65.5 80.4 73.7 70.8 Cambrian [32] 8B 65.0 70.1 59.3 79.1 86.0 72.8 LLaVA-OneVision [16] 8B 65.7 72.9 71.2 85.9 78.8 75.4 LLaMA-3.2 [12] 11B 66.2 75.0 78.6 89.6 79.9 78.3 NVILA-Lite-8B [23] 8B 68.6 70.8 71.0 84.1 79.9 75.4
+> Domain-Specific Models (Ours)
+> AgroNVILA (Zero-shot) 8B 57.9 66.0 62.8 77.3 58.7 64.6 AgroNVILA (10% Data) 8B 67.9 77.1 67.6 85.9 84.9 77.3
+> AgroNVILA (30% Data) 8B 70.0 74.3 69.7 85.3 89.9 78.6
+
+2.1 Low-Resource Adaptation and Scaling Efficiency 
+
+The quantitative results reveal a highly efficient data scaling trajectory for our model. Without task-specific alignment, the zero-shot AgroNVILA yields a baseline accuracy of 64.6%. This suboptimal initial performance is primarily attributed to the severe semantic gap and spatial misalignment between top-down macro perspectives (e.g., UAV imagery) and fine-grained ground-level views, which strongly challenges the generalist visual priors of the pre-trained base model. However, utilizing merely a 10% subset of the training data triggers a dramatic performance surge to 77.3% (a +12.7% absolute gain). At this minimal data fraction, AgroNVILA already eclipses leading open-source models with equivalent or larger parameter counts, such as LLaVA-OneVision-8B (75.4%) and Cambrian-8B (72.8%). Scaling the alignment data to 30% further pushes the overall accuracy to 78.6%, successfully outperforming the 11B-parameter LLaMA-3.2 (78.3%) and the generic NVILA baseline (75.4%). This non-linear performance gain mathematically demonstrates that our domain-specific pre-training effectively primes the model’s high-dimensional latent space, requiring minimal downstream supervision to bridge this cross-perspective gap and achieve robust feature alignment. 
+
+2.2 Superiority in Fine-grained Visual Grounding 
+
+A deeper granular analysis across the five sub-tasks reveals the core architec-tural advantage of AgroNVILA. In the highly visually demanding "Symptom" 22 J. Zhang et al. 
+
+recognition task—which strictly requires precise grounding of high-frequency pathological textures (e.g., spots, lesions, and discolorations)—AgroNVILA (30% Data) achieves an exceptional accuracy of 89.9%. This significantly eclipses not only all open-source counterparts but also state-of-the-art proprietary gi-ants, including GPT-o4-mini (84.3%) and Gemini 1.5 Pro (76.9%). Furthermore, our model establishes new open-source state-of-the-art records in the "Disease" (70.0%) and "Insect/Pest" (77.1% under merely 10% data) categories. This fun-damental disparity indicates that while generalist MLLMs often rely on broad semantic priors that fail in expert-level pathological discrimination, AgroNVILA preserves and leverages high-fidelity visual grounding, successfully bridging the domain gap in fine-grained agricultural perception. 
+
+3 Reproducibility and Implementation Details 
+
+To facilitate full reproducibility of our Perception-Reasoning Decoupling (PRD) framework, we detail the hardware environment and the stage-wise training hyperparameters. 
+
+3.1 Hardware and Environment 
+
+All experiments, including training and evaluation, are conducted on a computing cluster equipped with 8 × NVIDIA A100 (80GB) GPUs. Our implementation is built upon the official NVILA codebase. We extend its core architecture to incorporate the View-Conditioned Meta-Net (VCMN) and the Agronomic Reasoning Policy Optimization (ARPO) modules. 
+
+3.2 Stage-wise Training Pipeline 
+
+The training pipeline of our proposed AgroNVILA is executed in a rigorous two-stage progression. The comprehensive hyperparameters for both stages are summarized in Tab. 10. 
+
+Stage 1: Supervised Fine-Tuning (SFT). In this initial perception-alignment phase, we fine-tune the multimodal framework using the AgroOmni dataset. To ensure parameter efficiency while acquiring domain-specific knowl-edge, we freeze the language backbone and inject Low-Rank Adaptation (LoRA) modules ( r = 128 , α = 256 ) into the base LLM. The vision encoder remains strictly frozen, while the vision-language projector and the newly initialized VCMN module are fully updated. The model is trained for a single epoch with a maximum sequence length of 5120. 
+
+Stage 2: Agronomic Reasoning Policy Optimization (ARPO). In the final reinforcement learning stage, we unfreeze the LLM backbone for full-parameter training to align its decision-making trajectory with expert logic. We follow a Domain-aware Relative Policy Optimization (DRPO) style objective: for each prompt we sample a group of G = 8 rollouts, compute group-relative AgroNVILA: Perception-Reasoning Decoupling 23 
+
+normalized advantages with hierarchical domain and in-domain (K-means) tem-perature scaling, and optimize the clipped surrogate objective plus a KL penalty to the frozen reference policy. Our ARPO experiments use 4 GPUs, with each device generating 2 rollout per prompt ( Glocal = 2 ). The vision tower remains frozen and gradient checkpointing is enabled to fit the computation on 4 ×A100 (80GB). To prevent catastrophic forgetting of the spatial and semantic priors acquired during SFT, we use a small learning rate ( 2 × 10 −7), a KL coefficient 
+
+β = 0 .05 , and PPO-style clipping ( ε = 0 .2). The combined reward includes a format term (weight 0.1); samples with near-uniform group rewards are skipped (threshold 0.05 ) to avoid low-signal updates. 
+
+Table 10: Global Hyperparameters for the two-stage training pipeline of AgroNVILA. Hyperparameter Stage 1: SFT (with VCMN) Stage 2: ARPO                                                      
+
+> Trainable Modules LLM (LoRA), Projector, VCMN LLM (full), Projector Frozen Vision Encoder Vision Encoder LoRA Config ( r, α, dropout) 128 ,256 ,0.05 –Global Batch Size 32 32 Per-Device Batch Size (prompts) 41Group Size G(rollouts per prompt) –8Gradient Accumulation 14Learning Rate (LR) 2×10 −52×10 −7
+> Projector LR Scale –0.1
+> LR Schedule Cosine Decay Constant Warmup Ratio 0.03 0.0 Weight Decay 0.0 0.01 Max Sequence Length 5120 5120 Max New Tokens (generation) –128 Temperature (sampling) –0.9 KL Coefficient β–0.05 Clip Range ε–0.2 Reward Format Weight –0.1 Optimizer AdamW AdamW (w/ KL Penalty) Epochs 11Precision bfloat16 bfloat16
+
+4 Extended Details of the AgroOmni Dataset 
+
+4.1 Data Collection and Multi-view Composition 
+
+The curation of AgroOmni is fundamentally driven by the necessity for a compre-hensive, scale-aware, and ecologically diverse training corpus. In this subsection, we detail our data collection paradigm. We elaborate on the strategic integra-tion of multi-scale viewpoints, the extensive geographical and scenario diversity covered by our sources, and the physical rationale behind the dataset’s native domain imbalance which directly motivates our architectural innovations. 24 J. Zhang et al. 
+
+Multi-scale Viewpoint Integration. Unlike previous agricultural datasets confined to a single perspective, AgroOmni spatially spans three distinct observa-tional scales (shown in Fig. 3(b)) by integrating 12 diverse open-source datasets with a proprietary parcel collection (detailed in Tab. 11), comprehensively cover-ing real-world scenarios in modern precision agriculture. This cross-scale visual instruction tuning fully activates and endows the model with superior practical capabilities in the agricultural domain: 
+
+– Ground-view: Focuses on micro-scale crop phenotypes and pathological features. For instance, in datasets such as ACFR, IP102, and the 2018 AI Challenge, the model is required to capture minute lesions on leaves or identify specific insect species. The rich data from this perspective provides high-fidelity texture priors for the model to master fine-grained Object Classification (OC) and Pest/Disease Diagnostics (PDD). 
+
+– UAV-view: Fills the meso-scale gap between the micro and macro levels. By leveraging datasets like OilPalmUAV and PhenoBench, the scenarios are extended to plot-level plant density estimation, weed distribution analysis, and complex Visual Prompt Reasoning (VPR). This perspective trains the model to develop strong dense object counting capabilities and local spatial topology awareness. 
+
+– Satellite-view: Endows the model with macro-scale global planning capa-bilities. By incorporating OAM-TCD, CropHarvest, and internally collected farmland vector data, the trained model handles large-scale land coverage analysis, Climate Type Reasoning (CTR), and Boundary Detection (BD), directly serving regional-level agricultural resource scheduling. 
+
+Scenario Diversity. Beyond multi-scale perspective coverage, AgroOmni exhibits exceptional scene generalization. Our data sources transcend isolated greenhouses or controlled experimental fields, spanning diverse global climate zones—such as tropical rainforests, temperate plains, and arid regions—and complex agricultural topographies. The dataset covers dozens of staple and cash crops (e.g., wheat, maize, oil palm, tomato) while faithfully preserving challenging environmental interferences, including variable lighting, cloud-induced occlusions, dense weed cohabitation, and irregular field boundaries. This cross-regional, cross-species, and cross-environmental richness significantly raises the complexity upper bound of multimodal reasoning and cultivates generalization in realistic agricultural settings. Furthermore, to transcend the limitations of static single-frame recognition, we introduce the Temporal Variation (TV) dimension. By integrating GWHD [10] for crop growth stage evolution and CLCD [22] for bi-temporal farmland change detection, we equip the model with dynamic monitoring and longitudinal comparative reasoning capabilities. This temporal dimension aligns with the long-cycle nature of real-world agricultural production, addressing a critical deficiency in existing training corpora. 
+
+Analysis of Real-world Domain Imbalance. It is crucial to note that AgroOmni exhibits a pronounced native imbalance, mirroring the realistic ac-quisition costs and long-tail characteristics of agricultural data: Ground and AgroNVILA: Perception-Reasoning Decoupling 25 
+
+Satellite modalities dominate the perspective distribution ( Fig. 3(b)), while foundational perception tasks (e.g., disease classification) significantly outweigh complex planning and temporal reasoning tasks ( Fig. 3(a)). We intentionally pre-serve this heterogeneous, "extremes-dominant" distribution rather than resorting to aggressive undersampling, as it constitutes the most authentic mapping of real-world agricultural intelligence. However, performing conventional SFT on such a skewed corpus inevitably drives models toward "perspective bias" and "statistical shortcuts"—overfitting to data-dense single perspectives while failing to internalize reasoning logic for complex long-tail scenarios. This distribution challenge serves as the core physical motivation for our AgroNVILA framework: we introduce the Perception-Reasoning Decoupling (PRD) architecture, utilizing VCMN to inject view-specific priors to resolve cross-view feature confusion, and the ARPO strategy, which employs Hierarchical Advantage Scaling to dynamically re-weight gradient signals across heterogeneous tasks. This synergy enables the model to maximize the utility of the full-scale corpus while genuinely internalizing cross-scale agronomic expert logic (see Sec. 4 and Suppl. 1). 
+
+4.2 Data Pre-processing 
+
+We adopt and extend the rigorous data processing pipeline established in Agro-Mind [17], implementing customized protocols to handle the heterogeneity of our data sources: 
+
+– Manual Screening and Deduplication: A manual screening phase is conducted on augmented images to eliminate defective samples exhibiting artifacts, such as excessive content overlap or extreme flipping, which can otherwise distort semantic information and introduce noise. 
+
+– Format Conversion: TIFF-format remote sensing imagery undergoes content-aware processing: colorful visual-spectrum images are converted to PNG/JPG formats to ensure model compatibility and prevent parsing failures. Conversely, images dominated by non-visible spectral bands are transformed into concatenated grayscale blocks, thereby preserving original spectral information within a grayscale representation. 
+
+– Multi-Scale Spatial Cropping: For high-resolution geospatial imagery, we apply randomized cropping based on parcel boundaries. This strategy generates multi-scale samples that simulate diverse spatial query resolutions, enhancing the model’s robustness to scale variations. 
+
+– Hierarchical Annotation Extraction: We leverage original labels and masks to derive instance-level statistical metrics and bounding boxes, creating a standardized dataset featuring hierarchical annotations across three levels: pixel-level (segmentation masks), instance-level (object detection boxes), and parcel-level (agricultural boundaries). To maintain data fidelity, original image resolutions are preserved ranging from 300 ×300 to 4,500 ×4,500 pixels. 
+
+– Strict Benchmark Decontamination: To ensure rigorous and unbiased evaluation, we enforce a strict physical separation between our instruction-tuning corpus (AgroOmni) and the evaluation benchmark (AgroMind [17]). 26 J. Zhang et al. 
+
+Table 11: Detailed description of datasets used in the AgroOmni 
+
+Dataset Year Content Resolution Link 
+
+ACFR Orchard Fruit Dataset [7] 2016 pixel-level annotations for almond, apple, mango 308 ×202, 500 ×500 
+
+https://data.acfr.usyd .edu.au/ag/treecrops/2 016-multifruit/ 
+
+2018 AI Challenge Dataset 2018 Extensive crop leaf image collection featuring 3-level disease severity labels and 26 disease types across 9 crops. Variable 
+
+https: //aistudio.baidu.com/d atasetdetail/76075 
+
+IP102 Dataset [38] 2019 A large-scale agricultural pest dataset containing VOC-format bounding boxes for 102 insect species. Variable https://github.com/xpw u95/IP102 
+
+Agriculture Vision Challenge [8] 2020 Aerial multi-spectral (RGB + NIR) imagery equipped with pixel-level binary masks for detecting six common field anomalies. 512 ×512 
+
+https://github.com/SHI-Labs/Agriculture-Vision 
+
+OilPalmUAV Dataset [48] 2021 High-resolution UAV drone imagery providing instance-level bounding box annotations for categorizing five distinct growth states of oil palms. 1024 ×1024 https://github.com/rs-dl/MOPAD 
+
+CropHarvest Dataset [33] 2021 Global remote sensing time-series combining satellite imagery and climate data with agricultural labels for multimodal crop classification. 896 ×832, 960 ×896 
+
+https://zenodo.org/rec ords/5828893 
+
+GWHD Dataset [10] 2021 Global wheat images and metadata equipped with bounding box annotations and four types of QA pairs for evaluating LMMs in object counting and visual reasoning. 1024 ×1024 https://zenodo.org/rec ords/5092309 
+
+CLCD Dataset [22] 2022 Bi-temporal Gaofen-2 satellite image pairs equipped with binary masks for cropland change detection. 512 ×512 https://github.com/liu mency/CropLand-CD 
+
+PhenoBench Dataset [37] 2023 UAV-captured agricultural field images offering hierarchical annotations for crop/weed semantic segmentation and plant instance segmentation. 1024 ×1024 https://github.com/PRB onn/phenobench 
+
+Tomato Dataset [46] 2023 Multi-illumination tomato images equipped with maturity labels, bounding boxes, and diverse VQA pairs for evaluating comparative crop maturity and global spatial reasoning. 1280 ×720 
+
+https: //www.sciengine.com/CS D/doi/10.11922/11-6035.csd.2023.0154.zh 
+
+OAM-TCD Dataset [34] 2024 Globally sourced aerial imagery paired with MS-COCO format bounding boxes and polygon masks for precise tree cover mapping. 2048 ×2048 https://zenodo.org/rec ords/11617167 
+
+EarthVQA Dataset [35] 2024 High-resolution remote sensing image-mask annotations equipped with 8-category pixel-level semantic masks for complex relational reasoning-based visual question answering. 1024 ×1024 https://github.com/Jun jue-Wang/EarthVQA 
+
+Private Parcel Dataset 2025 Internally collected multi-spectral GeoTIFFs and shapefile polygons covering diverse global regions for farmland parcel coverage analysis. Variable Internal Collection AgroNVILA: Perception-Reasoning Decoupling 27 
+
+Through precise filename cross-checking, we guarantee absolute zero image-level overlap between the training and testing sets. This isolation ensures that the model’s evaluated performance stems from genuine cross-scale gen-eralization rather than trivial data memorization. 
+
+4.3 Question Generation 
+
+We propose a Dual-Track QA Generation method to transform multi-level an-notations into high-fidelity instruction-tuning data. Leveraging the expert-level information embedded in the raw data, this method employs two complementary strategies—“Rule-based Generation” and “Human-based Logic Synthesis”—to automatically generate QA pairs covering the full cognitive spectrum from basic perception to complex reasoning. 
+
+Rule-based Generation. For tasks demanding rigorous numerical and po-sitional accuracy, such as Spatial Perception and Object Understanding tasks, we employ a deterministic template filling strategy. Utilizing JSON metadata or segmentation masks extracted during pre-processing (e.g., precise polygon coordinates, CRS projections, and geolocation), we construct a library of param-eterized templates. For instance, boundary detection questions are generated by directly formatting normalized coordinates, while climate zone reasoning is derived by mapping geographical coordinates to climate labels. This paradigm relies entirely on ground truth, fundamentally eliminating the numerical and spatial hallucinations often exhibited by LLMs. 
+
+Human-based Logic Synthesis. For tasks involving complex agronomic decision-making, such as Scene Understanding and Scene Reasoning tasks, we translate raw annotations into dynamic reasoning processes that simulate hu-man experts, guiding the model through pre-defined logical chains. We adopt a “reverse-engineering” approach from evidence to conclusion: starting with ground-truth annotations (e.g., “sparse and small weed clusters”), we apply agronomic principles to deduce valid conclusions (e.g., “early-stage infestation requiring preventive weeding”) and formulate corresponding decision-making questions. We require the model to replicate this observational path by first identifying specific visual evidence, then deriving the answer through logical deduction. This strategy balances semantic richness with factual accuracy while mitigating the hallucination risks associated with open-ended generation. 
+
+4.4 Processing for Each Dataset 
+
+For each dataset in Tab. 11, we adopt specific processing methods to design tailored question-answer pairs that align with the given scenarios. 
+
+ACFR Orchard Fruit Dataset. To transform the raw CSV-based fruit radius annotations into structured spatial queries, we first derive the equivalent radius for each fruit instance to calibrate for instance density, filtering out anoma-lous size outliers. To elevate the reasoning complexity, we partition each image into four discrete spatial quadrants, enabling the generation of queries focused on region-level density distributions and relative spatial patterns. Furthermore, 28 J. Zhang et al. 
+
+we implement a targeted augmentation strategy by superimposing synthetic fruit patches as distractors, specifically designed to challenge the model’s discriminative ability in multi-choice species classification tasks. 
+
+2018 AI Challenge Dataset. At first we refine the raw leaf imagery by discarding augmented artifacts, such as rotated, flipped, or redundant files flagged by filename metadata. We then map the original categorical labels—encompassing species, disease types, and severity levels—onto spatial disease distributions to instantiate diverse QA templates. These templates support multimodal infer-ence tasks including crop classification, health-status verification, and severity quantification. To mitigate class imbalance, we apply stratified downsampling across all crop-disease combinations, ensuring a uniform representation of disease progression and species diversity in the final balanced corpus. 
+
+IP102 Dataset. We restructure the VOC-formatted annotations of this large-scale pest collection to develop a fine-grained recognition and reasoning corpus. To facilitate the learning of nuanced taxonomic features, we organize identification tasks by pairing target pests with visually similar distractor species from the same superclass. This comparative learning strategy encourages the model to focus on subtle morphological distinctions rather than surface-level appearance. Beyond classification, we integrate pest count labels into the instruction-tuning process to train the model’s quantitative reasoning abilities. By linking specific pest identities with their associated host crops, we synthesize conversational pairs that not only evaluate semantic recognition but also enhance the model’s foundational knowledge regarding pest-crop ecological relationships. 
+
+Agriculture Vision Challenge. We utilize the original six-category binary masks—encompassing cloud shadows, planting irregularities, water-related anoma-lies, and weed clusters—alongside their corresponding multi-spectral (RGB+NIR) image pairs. To transform these pixel-level labels into rich instructional signals, we derive secondary localization annotations through contour extraction and quantified metrics for regional area and spatial distribution. These derived statis-tics, when combined with the original boundary masks, serve as the quantitative foundation for instruction-tuning queries focused on anomaly detection and cov-erage estimation. Moreover, we identify scenes featuring multiple co-occurring anomalies and apply relational positional annotations to evaluate relative spatial arrangements. This process results in a comprehensive training corpus that com-pels the model to internalize the interplay between multi-spectral visual features and complex spatial configurations in precision agriculture. 
+
+OilPalmUAV Dataset. Initially, we process the original bounding-box annotations by randomly scaling them by a factor of 1.1–1.5 using the PIL ImageDraw module. This augmentation step effectively prevents the model from relying on trivial box-based cues for recognition. Leveraging these refined instances, we curate fine-grained growth-stage classification tasks for individual trees and perform exhaustive instance enumeration to derive scene-level density metrics for quantitative reasoning. 
+
+CropHarvest Dataset. To process the multi-spectral spatiotemporal se-quences, we convert the raw GeoTIFF data into normalized band mosaics. This AgroNVILA: Perception-Reasoning Decoupling 29 
+
+pipeline involves parsing Sentinel-1/2 inputs via GDAL, applying per-band min-max normalization to mitigate sensor-induced variations, and filtering out degenerate observations (e.g., uniform-value bands or invalid pixels) to maintain high data fidelity. Utilizing the resultant spectral mosaics and polygon geometries, we formulate two distinct instruction-tuning modalities: a balanced binary classi-fication task for agricultural land-use verification (comprising 50% crop and 50% non-crop samples) and a spatial quantification task based on polygon-counting to assess field fragmentation patterns. These tasks are designed to train the model in interpreting both spectral characteristics and complex land-use layouts at a global scale. 
+
+GWHD Dataset. We unify the dataset formats and map each image to its corresponding metadata, including geographical information and wheat growth stages. By parsing the provided bounding-box annotations, we isolate individual wheat heads to facilitate precise object counting. We subsequently construct four distinct categories of rule-based QA pairs: single-image multiple-choice questions regarding growth stages; dual-image yes/no judgments; multi-image growth stage selections; and cross-image quantity difference calculations, prioritizing pairs with a count variance of no more than 20. These QA pairs are organized with unique identifiers and hierarchical labels, providing a rigorous training framework for evaluating object counting, scene understanding, and spatial reasoning in wheat-centric agricultural environments. 
+
+CLCD Dataset. To address the necessity of dynamic agricultural monitoring, we utilize the provided bi-temporal semantic masks to construct high-order temporal reasoning benchmarks. By performing image registration and differential retrieval on the same land parcels across distinct years, we capture granular land-use transitions. Specifically, we calculate the density of changed pixels relative to the global parcel scale to generate reasoning-intensive QA pairs regarding land-use evolution trajectories and change dynamics. This process effectively upgrades the model’s perception from static land-cover observation to dynamic evolutionary sensing, which is essential for mastering the long-term temporal characteristics of agricultural landscapes. 
+
+PhenoBench Dataset. In this dataset, we process the semantic segmen-tation masks to explicitly distinguish between intact and partially visible crop or weed instances. By aggregating instance-level annotations, we derive precise counts for individual plants and leaves. Furthermore, we utilize pixel-level visibil-ity maps to quantify plant completeness and inter-plant occlusion, establishing a robust quantitative foundation for tasks spanning plant counting, occlusion reasoning, and competitive weed-crop interaction analysis. This structured con-version enables the model to learn complex spatial and occlusion-aware concepts essential for precision agricultural monitoring. 
+
+Tomato Dataset. We parse dual-format annotations (JSON and VOC+XML) across four distinct lighting conditions—natural, artificial, faint, and sodium-yellow laser—to extract instance-level bounding boxes and three-tier maturity labels (unripe, half-ripe, ripe). By utilizing the extracted maturity metadata, we compute the ratio of fully ripe tomatoes per scene to instantiate comparative 30 J. Zhang et al. 
+
+visual QA pairs, assessing which of two randomly sampled images exhibits a higher overall crop maturity. Additionally, we aggregate instance-level labels to formulate multiple-choice queries identifying the exact subset of ripening stages present within a given frame. Finally, to evaluate global spatial reasoning, we calculate a single maximum-encompassing bounding box by aggregating the extreme coordinates of all individual instances, generating localization queries that require the model to encapsulate the entire tomato cluster simultaneously. 
+
+EarthVQA Dataset. To ground the model’s spatial cognition in complex agricultural environments, we leverage the eight provided semantic category labels. Beyond conventional classification, we perform geometric analysis on these pixel-level masks by computing the geometric centroids of individual land parcels. By comparing these spatial landmarks, we construct logical reasoning QA pairs that require the model to interpret relative spatial configurations and layouts. This transformation shifts the training focus from mere "entity recognition" to "spatial topology understanding," effectively enhancing the model’s capacity for relational geometric reasoning. 
+
+OAM-TCD Dataset. In this dataset, we curate a training subset converting raw GeoTIFF tree-cover maps into RGB-compressed JPEGs to optimize visual fidelity for multimodal encoders. Leveraging the original semantic annotations, we establish foundational tasks spanning ecological region classification and individ-ual plant identification. To synthesize complex spatial reasoning, we implement a 3×3 grid-based partitioning scheme, computing per-cell canopy density to derive regional distribution metrics. These spatial statistics enable advanced queries concerning global tree-cover patterns, while the random sampling of multi-grid cell pairs allows for the construction of multi-image comparison tasks that train the model to reason across heterogeneous landscape layouts. 
+
+5 Qualitative Analysis and Case Studies 
+
+While quantitative metrics provide a macro-level evaluation of model performance, they often obscure the underlying reasoning mechanisms and visual grounding capabilities of Multimodal Large Language Models (MLLMs). To investigate the domain gap between general-purpose vision-language models and our domain-specific AgroNVILA, we conduct a detailed qualitative analysis using chain-of-thought prompting. As illustrated in Figs. 6 to 9, we contrast the critical reasoning errors made by the second-best model with the precise visual grounding achieved by AgroNVILA across four fundamental agricultural perception tasks. 
+
+Case 1: Spatial Coordinate Alignment. In the bounding box regression task (en-closing cultivated land), the second-best model demonstrates a complete inversion of spatial mapping, incorrectly anchoring the semantic concept of "cultivated land" to the lower-left corner. Conversely, AgroNVILA exhibits precise semantic-to-coordinate mapping. It accurately defines the visual attributes ("green and has no buildings") and seamlessly translates this semantic understanding into the correct normalized spatial coordinates (0 .1264 , 0.3503) to (1 .0, 1.0) .AgroNVILA: Perception-Reasoning Decoupling 31 
+
+Case 2: Domain-Specific Pathological Diagnosis. When identifying fine-grained leaf diseases, the second-best model attempts to map visual symptoms using general-domain common sense, misinterpreting the irregular blotches as "Spider Mite Damage." AgroNVILA, however, demonstrates profound pathological feature extraction. It accurately captures the critical high-frequency details—"black spots and red streaks"—and explicitly links these symptoms to the etiology of "Black Measles Fungus," proving the effectiveness of our domain-specific feature alignment. 
+
+Case 3: Global Proportion Estimation. For the macro-area coverage estimation task, the second-best model exhibits severe visual illusions, drastically overesti-mating the tree coverage ratio (guessing ∼86% instead of the ground truth ∼29%). In stark contrast, AgroNVILA successfully overcomes this integration bottleneck. While its textual output is highly concise—a common trait of models optimized for strict QA correctness over conversational verbosity—its visual estimation is perfectly calibrated, accurately identifying the target range of 12,200-12,300 square meters. 
+
+Case 4: Absolute Physical Scale Anchoring. In the crown diameter measurement task, the second-best model attempts to infer absolute physical dimensions purely based on the relative empty space within the bounding box, resulting in blind guessing. AgroNVILA successfully anchors the visual representation to the correct physical metric scale (6.96m). This indicates that our pre-training and adaptation strategy effectively endows the model with implicit scale awareness, a capability fundamentally lacking in generic MLLMs. 
+
+Conclusion. These comparative cases empirically validate that the second-best’s performance degradation is a systematic breakdown in spatial grounding, scale perception, and pathological priors. AgroNVILA effectively recalibrates these representations. Furthermore, our model significantly suppresses the conversa-tional hallucinations typical of generic LLMs, trading verbosity for rigorous, domain-accurate decision-making. 32 J. Zhang et al. Question : Find the most appropriate rectangular angular 
+
+coordinates that can enclose all the cultivated land in the image. 
+
+(The upper left corner is xmin, ymin; x is horizontal, y is vertical; 
+
+both range from 0 to 1) 
+
+Options :
+
+A: [0.0, 0.4741, 1.0, 0.8765] B: [0.3691, 0.4758, 1.0, 1.0] 
+
+C: [0.1264, 0.3503, 1.0, 1.0] D: [0.0, 0.3827, 0.9268, 1.0] 
+
+Answer : C 
+
+Spatial Perception 
+
+AgroNVILA :
+
+The area that is green and has no buildings on it is the area that is enclosed by the rectangle 
+
+with the upper left corner at (0.1264, 0.3503) and the lower right corner at (1.0, 1.0). C 
+
+GPT-5.2 :
+
+The cultivated land appears as the large green field area occupying the lower-left portion of the image. To enclose all of it, 
+
+the rectangle must include: 
+
+The left edge of the image (the field reaches the left border). The bottom edge (the field extends to the bottom). 
+
+Its top boundary is around a bit above the midline (roughly y ≈ 0.38–0.40).Its right boundary ends before the far-right 
+
+road/structures; it does not extend all the way to x = 1.0 (it’s closer to x ≈ 0.9–0.93). 
+
+Checking options: A and B start too low (ymin ≈ 0.47), cutting off the upper part of the field. C starts too far right (xmin = 
+
+0.1264), cutting off the left portion .D starts near the correct top (ymin = 0.3827), includes x = 0.0, reaches the bottom, and 
+
+stops at x = 0.9268 which matches the field’s right edge. 
+
+Fig. 6: Qualitative Result on Spatial Perception. When enclosing cultivated land, the baseline model (GPT-5.2) completely inverts the spatial mapping, incorrectly anchoring the target to the lower-left corner. AgroNVILA accurately grounds the semantic concept to the correct normalized spatial coordinates. Object Understanding 
+
+AgroNVILA :
+
+The leaf has black spots and red streaks. The black spots are the result of the Black Measles 
+
+Fungus. The red streaks are the result of the Black Measles Fungus. The leaf is not healthy. The 
+
+answer is C.Final answer: C 
+
+GPT-5.2 :    
+
+> The leaf is not healthy. It shows many irregular reddish-brown blotches and bronzed/scorched-looking patches spread
+> across the surface rather than discrete round “measles-like” spots or chewing holes.
+> Not scarab damage: scarabs cause noticeable chewing and missing tissue/holes.
+> Not Black Measles Fungus: that typically presents as small, distinct dark “measles” spots.
+> Not zeaemaydis: that is associated with corn (maize) and typically produces more defined fungal lesions, not this
+> generalized bronzing.
+> This pattern best matches Spider Mite Damage, which commonly causes stippling that merges into bronzing and patchy
+> necrosis.Final answer: B: No, it has Spider Mite Damage.
+
+Question : Is the leaf healthy? If not, what disease does it have? 
+
+Options :
+
+A: No, it has zeaemaydis Tehon and Daniels 
+
+B: No, it has Spider Mite Damage 
+
+C: No, it has Black Measles Fungus 
+
+D: No, it has scarab 
+
+Answer : C 
+
+Fig. 7: Qualitative Result on Object Understanding. In fine-grained pathological diagnosis, the baseline relies on generic visual priors, misinterpreting the symptoms as Spider Mite Damage. AgroNVILA successfully captures high-frequency pathological details (e.g., black spots and red streaks) to correctly diagnose Black Measles Fungus. AgroNVILA: Perception-Reasoning Decoupling 33 Scene Understanding 
+
+Question : Given that the actual geographical area of the entire 
+
+image is 41973.75 square meters, what is the approximate tree-
+
+covered area of the ecosystem(Can be calculated based on 
+
+coverage ratio)? 
+
+Options :
+
+A: [12200-12300]square meters,B: [1200-1300]square meters,C: 
+
+[8400-8500]square meters,D: [36300-36400]square meters 
+
+Answer : A 
+
+AgroNVILA :
+
+The tree-covered area is 12200-12300 square meters. Final answer: A 
+
+GPT-5.2 :
+
+To estimate the tree-covered area, we use a coverage ratio approach: 
+
+1. Interpret the image (tree vs. non-tree): Most of the scene is dominated by palm/tree canopy and dense green vegetation. 
+
+Non-tree areas include: - light-gray flooded/water patches, - buildings/roofs and small paved areas, - the light-green open 
+
+field on the right edge, - some bare/transition areas. 
+
+2. Approximate tree coverage ratio: Visually, trees/vegetation cover the large majority of the image—roughly ~85–87% of 
+
+the total area. 
+
+3. Compute tree-covered area: Total area = 41,973.75 m ² Using ~86% as a mid estimate: [ 41973.75 times 0.86 approx 
+
+36097 text{ m}^2 ] This is closest to the option around 36,300–36,400 m ².Final Answer: D: [36300-36400] square meters 
+
+Fig. 8: Qualitative Result on Scene Understanding. For macro-area coverage estimation, the baseline model suffers from severe visual illusions, drastically overesti-mating the tree coverage ratio to ∼86%. AgroNVILA bypasses verbose hallucinations and accurately outputs the calibrated target area of 12,200-12,300 square meters. Scene Reason ing 
+
+Question : What is the crown diameter of the tree in the red box 
+
+in the image? 
+
+Options :
+
+"A": "11.44m", 
+
+"B": "8.96m", 
+
+"C": "6.80m", 
+
+"D": "6.96m" 
+
+Answer : D 
+
+AgroNVILA :
+
+The crown diameter of the tree in the red box is 6.96m. 
+
+GPT-5.2 :
+
+The red box encloses a single palm crown. Visually, the crown nearly fills the box but leaves a small margin on all sides, 
+
+suggesting the crown diameter is slightly smaller than the box width. 
+
+In this dataset style, the red boxes are typically drawn around crowns at a consistent reference size, and the observed 
+
+crown-to-box fill here looks closest to a crown diameter just under ~9–10 m rather than ~11 m (which would look more 
+
+tightly packed) and clearly larger than ~7 m (which would leave noticeably more empty space in the box) . Thus, the best 
+
+match among the options is 8.96 m.Final answer: B: 8.96m 
+
+Fig. 9: Qualitative Result on Scene Reasoning. When measuring absolute crown diameter, the baseline lacks a physical scale prior and resorts to blind guessing based on bounding box margins. AgroNVILA demonstrates strong implicit scale awareness, successfully anchoring the visual representation to the precise metric scale of 6.96m. 34 J. Zhang et al. 
+
+References 
+
+1. Achiam, J., Adler, S., Agarwal, S., Ahmad, L., Akkaya, I., Aleman, F.L., Almeida, D., Altenschmidt, J., Altman, S., Anadkat, S., et al.: Gpt-4 technical report. arXiv preprint arXiv:2303.08774 (2023) 21 2. Ahmadian, A., Cremer, C., Gallé, M., Fadaee, M., Kreutzer, J., Pietquin, O., Üstün, A., Hooker, S.: Back to basics: Revisiting reinforce-style optimization for learning from human feedback in llms. In: Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). pp. 12248–12267 (2024) 4 3. Arshad, M.A., Jubery, T.Z., Roy, T., Nassiri, R., Singh, A.K., Singh, A., Hegde, C., Ganapathysubramanian, B., Balu, A., Krishnamurthy, A., et al.: Leveraging vision language models for specialized agricultural tasks. In: 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV). pp. 6320–6329. IEEE (2025) 2 4. Awais, M., Alharthi, A.H.S.A., Kumar, A., Cholakkal, H., Anwer, R.M.: Agrogpt : Efficient agricultural vision-language model with expert tuning. In: IEEE/CVF Winter Conference on Applications of Computer Vision, WACV 2025, Tucson, AZ, USA, February 26 - March 6, 2025. pp. 5687–5696. IEEE (2025). https: //doi.org/10.1109/WACV61041.2025.00555 , https://doi.org/10.1109/WACV61 041.2025.00555 2, 4, 7 5. Bai, S., Cai, Y., Chen, R., Chen, K., Chen, X., Cheng, Z., Deng, L., Ding, W., Gao, C., Ge, C., et al.: Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 (2025) 4 6. Bargoti, S., Underwood, J.: Deep fruit detection in orchards. arXiv preprint arXiv:1610.03677 (2016) 5 7. Bargoti, S., Underwood, J.: Deep fruit detection in orchards. In: 2017 IEEE in-ternational conference on robotics and automation (ICRA). pp. 3626–3633. IEEE (2017) 26 8. Chiu, M.T., Xu, X., Wei, Y., Huang, Z., Schwing, A.G., Brunner, R., Khachatrian, H., Karapetyan, H., Dozier, I., Rose, G., Wilson, D., Tudor, A., Hovakimyan, N., Huang, T.S., Shi, H.: Agriculture-vision: A large aerial image database for agricultural pattern analysis. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (June 2020) 5, 26 9. Dai, W., Chen, P., Ekbote, C., Liang, P.P.: Qoq-med: Building multimodal clinical foundation models with domain-aware grpo training. arXiv preprint arXiv:2506.00711 (2025) 4, 9, 14, 18 10. David, E., Serouart, M., Smith, D., Madec, S., Velumani, K., Liu, S., Wang, X., Pinto, F., Shafiee, S., Tahir, I.S., Tsujimoto, H., Nasuda, S., Zheng, B., Kirchgessner, N., Aasen, H., Hund, A., Sadhegi-Tehran, P., Nagasawa, K., Ishikawa, G., Dandrifosse, S., Carlier, A., Dumont, B., Mercatoris, B., Evers, B., Kuroki, K., Wang, H., Ishii, M., Badhon, M.A., Pozniak, C., LeBauer, D.S., Lillemo, M., Poland, J., Chapman, S., de Solan, B., Baret, F., Stavness, I., Guo, W.: Global wheat head detection 2021: An improved dataset for benchmarking wheat head detection methods. Plant Phenomics 2021 , 9846158 (2021). https://doi.org/https: //doi.org/10.34133/2021/9846158 , https://www.sciencedirect.com/science/ article/pii/S2643651524000591 5, 24, 26 11. Gauba, A., Pi, I., Man, Y., Pang, Z., Adve, V.S., Wang, Y.: Agmmu: A compre-hensive agricultural multimodal understanding and reasoning benchmark. CoRR 
+
+abs/2504.10568 (2025). https://doi.org/10.48550/ARXIV.2504.10568 ,
+
+https://doi.org/10.48550/arXiv.2504.10568 2, 3, 4, 7, 21 AgroNVILA: Perception-Reasoning Decoupling 35 12. Grattafiori, A., Dubey, A., Jauhri, A., Pandey, A., Kadian, A., Al-Dahle, A., Letman, A., Mathur, A., Schelten, A., Vaughan, A., et al.: The llama 3 herd of models. arXiv preprint arXiv:2407.21783 (2024) 21 13. Guo, D., Yang, D., Zhang, H., Song, J., Wang, P., Zhu, Q., Xu, R., Zhang, R., Ma, S., Bi, X., et al.: Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 (2025) 4 14. Hu, J.: Reinforce++: A simple and efficient approach for aligning large language models. arXiv e-prints pp. arXiv–2501 (2025) 4 15. Hughes, D., Salathé, M., et al.: An open access repository of images on plant health to enable the development of mobile disease diagnostics. arXiv preprint arXiv:1511.08060 (2015) 4 16. Li, B., Zhang, Y., Guo, D., Zhang, R., Li, F., Zhang, H., Zhang, K., Zhang, P., Li, Y., Liu, Z., Li, C.: Llava-onevision: Easy visual task transfer. Trans. Mach. Learn. Res. 2025 (2025), https://openreview.net/forum?id=zKv8qULV6n 4, 21 17. Li, Q., Zhang, Y., Mai, Z., Chen, Y., Lou, S., Huang, H., Zhang, J., Zhang, Z., Wen, Y., Li, W., Fu, H., Jianxi, H., Zheng, J.: Can large multimodal models understand agricultural scenes? benchmarking with agromind. In: The Thirty-ninth Annual Conference on Neural Information Processing Systems Datasets and Benchmarks Track (2025) 2, 4, 5, 9, 11, 13, 25 18. Li, W., Liang, S., Chen, K., Chen, Y., Ma, H., Xu, J., Ma, Y., Guan, S., Fang, H., Shi, Z.: Agrifm: A multi-source temporal remote sensing foundation model for crop mapping. CoRR abs/2505.21357 (2025). https://doi.org/10.48550/ARXIV.2 505.21357 , https://doi.org/10.48550/arXiv.2505.21357 219. Li, Z., Xu, T., Zhang, Y., Lin, Z., Yu, Y., Sun, R., Luo, Z.Q.: Remax: A simple, effective, and efficient reinforcement learning method for aligning large language models. arXiv preprint arXiv:2310.10505 (2023) 4 20. Lin, M., Chen, Q., Yan, S.: Network in network. arXiv preprint arXiv:1312.4400 (2013) 8 21. Liu, H., Li, C., Wu, Q., Lee, Y.J.: Visual instruction tuning. Advances in neural information processing systems 36 , 34892–34916 (2023) 21 22. Liu, M., Chai, Z., Deng, H., Liu, R.: A cnn-transformer network with multiscale context aggregation for fine-grained cropland change detection. IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing 15 , 4297–4306 (2022). https://doi.org/10.1109/JSTARS.2022.3177235 5, 24, 26 23. Liu, Z., Zhu, L., Shi, B., Zhang, Z., Lou, Y., Yang, S., Xi, H., Cao, S., Gu, Y., Li, D., et al.: Nvila: Efficient frontier visual language models. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 4122–4134 (2025) 4, 21 24. Meng, Y., Xia, M., Chen, D.: Simpo: Simple preference optimization with a reference-free reward. Advances in Neural Information Processing Systems 37 , 124198–124235 (2024) 4 25. Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al.: Training language models to follow instructions with human feedback. Advances in neural information processing systems 35 , 27730–27744 (2022) 4 26. Rafailov, R., Sharma, A., Mitchell, E., Manning, C.D., Ermon, S., Finn, C.: Direct preference optimization: Your language model is secretly a reward model. Advances in neural information processing systems 36 , 53728–53741 (2023) 4 27. Samuel, D.J., Skarga-Bandurova, I., Sikolia, D., Awais, M.: Agrollm: Connecting farmers and agricultural practices through large language models for enhanced 36 J. Zhang et al. knowledge transfer and practical application. CoRR abs/2503.04788 (2025). 
+
+https://doi.org/10.48550/ARXIV.2503.04788 , https://doi.org/10.48550/a rXiv.2503.04788 228. Schulman, J., Wolski, F., Dhariwal, P., Radford, A., Klimov, O.: Proximal policy optimization algorithms. arXiv preprint arXiv:1707.06347 (2017) 4, 14 29. Shao, Z., Wang, P., Zhu, Q., Xu, R., Song, J., Bi, X., Zhang, H., Zhang, M., Li, Y., Wu, Y., et al.: Deepseekmath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 (2024) 4, 9, 14 30. Shinoda, R., Inoue, N., Kataoka, H., Onishi, M., Ushiku, Y.: Agrobench: Vision-language model benchmark in agriculture. CoRR abs/2507.20519 (2025). https: //doi.org/10.48550/ARXIV.2507.20519 , https://doi.org/10.48550/arXiv.2 507.20519 2, 4 31. Team, G., Georgiev, P., Lei, V.I., Burnell, R., Bai, L., Gulati, A., Tanzer, G., Vincent, D., Pan, Z., Wang, S., et al.: Gemini 1.5: Unlocking multimodal understanding across millions of tokens of context. arXiv preprint arXiv:2403.05530 (2024) 21 32. Tong, S., Brown, E., Wu, P., Woo, S., Middepogu, M., Akula, S.C., Yang, J., Yang, S., Iyer, A., Pan, X., et al.: Cambrian-1: A fully open, vision-centric exploration of multimodal llms. Advances in Neural Information Processing Systems 37 , 87310– 87356 (2024) 21 33. Tseng, G., Zvonkov, I., Nakalembe, C.L., Kerner, H.: Cropharvest: A global dataset for crop-type classification. In: Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 2) (2021), https: //openreview.net/forum?id=JtjzUXPEaCu 5, 26 34. Veitch-Michaelis, J., Cottam, A., Schweizer, D., Broadbent, E., Dao, D., Zhang, C., Almeyda Zambrano, A., Max, S.: Oam-tcd: A globally diverse dataset of high-resolution tree cover maps. Advances in neural information processing systems 37 ,49749–49767 (2024) 5, 26 35. Wang, J., Zheng, Z., Chen, Z., Ma, A., Zhong, Y.: Earthvqa: Towards queryable earth via relational reasoning-based remote sensing visual question answering 38 ,5481–5489 (Mar 2024). https://doi.org/10.1609/ai.v38i6.28357 , https: //ojs.aaai.org/index.php/AAAI/article/view/28357 5, 26 36. Wang, L., Jin, T., Yang, J., Leonardis, A., Wang, F., Zheng, F.: Agri-llava: Knowledge-infused large multimodal assistant on agricultural pests and diseases. arXiv preprint arXiv:2412.02158 (2024) 4, 7 37. Weyler, J., Magistri, F., Marks, E., Chong, Y.L., Sodano, M., Roggiolani, G., Chebrolu, N., Stachniss, C., Behley, J.: PhenoBench — A Large Dataset and Benchmarks for Semantic Image Interpretation in the Agricultural Domain. IEEE Trans. on Pattern Analysis and Machine Intelligence (T-PAMI) 46 (12), 9583–9594 (2024) 5, 26 38. Wu, X., Zhan, C., Lai, Y.K., Cheng, M.M., Yang, J.: Ip102: A large-scale benchmark dataset for insect pest recognition. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 8787–8796 (2019) 4, 5, 26 39. Yan, J., Gu, X., Chen, Y.: Cropsts: A remote sensing foundation model for cropland classification with decoupled spatiotemporal attention. Remote Sensing 17 (14), 2481 (2025) 2 40. Yang, A., Li, A., Yang, B., Zhang, B., Hui, B., Zheng, B., Yu, B., Gao, C., Huang, C., Lv, C., et al.: Qwen3 technical report. arXiv preprint arXiv:2505.09388 (2025) 4 41. Yang, B., Chen, Y., Feng, L., Zhang, Y., Xu, X., Zhang, J., Aierken, N., Huang, R., Lin, H., Ying, Y., Li, S.: Agrigpt-vl: Agricultural vision-language understanding suite. CoRR abs/2510.04002 (2025). https://doi.org/10.48550/ARXIV.2510.04002 ,
+
+https://doi.org/10.48550/arXiv.2510.04002 2, 4, 7 AgroNVILA: Perception-Reasoning Decoupling 37 42. Yang, B., Feng, L., Chen, Y., Zhang, Y., Zhang, J., Xu, X., Aierken, N., Li, S.: Agrigpt-omni: A unified speech-vision-text framework for multilingual agricultural intelligence. CoRR abs/2512.10624 (2025). https://doi.org/10.48550/ARXIV .2512.10624 , https://doi.org/10.48550/arXiv.2512.10624 243. Yang, B., Zhang, Y., Feng, L., Chen, Y., Zhang, J., Xu, X., Aierken, N., Li, Y., Chen, Y., Yang, G., He, Y., Huang, R., Li, S.: Agrigpt: a large language model ecosystem for agriculture. CoRR abs/2508.08632 (2025). https://doi.org/10.4 8550/ARXIV.2508.08632 , https://doi.org/10.48550/arXiv.2508.08632 244. Yang, S., Liu, Z., Mayer, W., Ding, N., Wang, Y., Huang, Y., Wu, P., Li, W., Li, L., Zhang, H., Feng, Z.: Shizishangpt: An agricultural large language model integrating tools and resources. In: Barhamgi, M., Wang, H., Wang, X. (eds.) Web Information Systems Engineering - WISE 2024 - 25th International Conference, Doha, Qatar, December 2-5, 2024, Proceedings, Part IV. Lecture Notes in Computer Science, vol. 15439, pp. 284–298. Springer (2024). https://doi.org/10.1007/978-981-96-0573-6_21 , https://doi.org/10.1007/978-981-96-0573-6_21 245. Yin, S., Fu, C., Zhao, S., Li, K., Sun, X., Xu, T., Chen, E.: A survey on multimodal large language models. National Science Review 11 (12), nwae403 (2024) 2 46. Zhang, Y., Rao, Y., Chen, W., Hou, W., Yan, S., Li, Y., Zhou, C., Wang, F., Chu, Y., Shi, Y.: A dataset of multimodal images of tomato fruits at different stages of maturity. China Scientific Data 10 (1), 1–16 (2025). https://doi.org/https: //doi.org/10.11922/11-6035.csd.2023.0154.zh , http://www.sciengine.com/ publisher/SciencePress/journal/ChinaScientificData/10/1/10.11922/11-6035.csd.2023.0154.zh 5, 26 47. Zhang, Z., Zhang, J., Liu, H., Lv, Q., Yang, J., Cai, K., Wang, K.: Agriworld: A world tools protocol framework for verifiable agricultural reasoning with code-executing llm agents. arXiv preprint arXiv:2602.15325 (2026) 2 48. Zheng, J., Fu, H., Li, W., Wu, W., Yu, L., Yuan, S., Tao, W.Y.W., Pang, T.K., Kanniah, K.D.: Growing status observation for oil palm trees using unmanned aerial vehicle (uav) images. ISPRS Journal of Photogrammetry and Remote Sensing 
+
+173 , 95–121 (2021) 5, 26 49. Zhou, K., Yang, J., Loy, C.C., Liu, Z.: Conditional prompt learning for vision-language models. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 16816–16825 (2022) 7, 8, 17 50. Zhu, H., Qin, S., Su, M., Lin, C., Li, A., Gao, J.: Harnessing large vision and language models in agriculture: A review. Frontiers in Plant Science 16 , 1579355 (2025) 2, 4

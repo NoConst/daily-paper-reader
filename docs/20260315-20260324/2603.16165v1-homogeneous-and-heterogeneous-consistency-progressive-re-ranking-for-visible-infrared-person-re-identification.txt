@@ -1,0 +1,369 @@
+Title: Homogeneous and Heterogeneous Consistency progressive Re-ranking for Visible-Infrared Person Re-identification
+
+URL Source: https://arxiv.org/pdf/2603.16165v1
+
+Published Time: Wed, 18 Mar 2026 00:41:41 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Homogeneous and Heterogeneous Consistency Re-ranking for Visible-Infrared Person Re-identification 
+
+## Yiming Wang 
+
+ymwang99@bupt.edu.cn 
+
+## Abstract 
+
+Visible-infrared person re-identification faces greater challenges than traditional person re-identification due to the significant differences between modalities. In partic-ular, the differences between these modalities make ef-fective matching even more challenging, mainly because existing re-ranking algorithms cannot simultaneously ad-dress the intra-modal variations and inter-modal discrep-ancy in cross-modal person re-identification. To address this problem, we propose a novel Progressive Modal Re-lationship Re-ranking method consisting of two modules, called heterogeneous and homogeneous consistency re-ranking(HHCR). The first module, heterogeneous consis-tency re-ranking, explores the relationship between the query and the gallery modalities in the test set. The second module, homogeneous consistency reranking, investigates the intrinsic relationship within each modality between the query and the gallery in the test set. Based on this, we propose a baseline for cross-modal person re-identification, called a consistency re-ranking inference network (CRI). We conducted comprehensive experiments demonstrating that our proposed re-ranking method is generalized, and both the re-ranking and the baseline achieve state-of-the-art performance. 
+
+## 1. Introduction 
+
+Person re-identification can identify the individuals in pedestrian query sets captured by different cameras by matching unknown identity query sets with known identity gallery sets. Most existing re-identification methods [1–4] can only recognize RGB images and perform poorly in low-light or nighttime conditions. To address these issues, some visible-infrared cross-modal person re-identification (V-I ReID) methods [4–6] have been proposed, which achieve cross-modal matching by learning the relationships between persons in both visible and infrared modalities. Visible-infrared person re-identification faces a greater challenge than single-modal person re-identification due to the in-troduction of an infrared modality and the significant gap 
+
+Figure 1. The crosshair represents the center of the same iden-tity, the same color indicates the same identity, and the circles and rectangles represent the two modalities. The arrows signify the process of reducing or increasing distances. Currently, the re-ranking methods applied to visible-infrared ReID consist of a single-stage re-ranking process, including only homogeneous re-ranking or heterogeneous re-ranking. The re-ranking method we propose includes Homogeneous Consistency Re-ranking and Het-erogeneous Consistency Re-ranking. 
+
+between visible and infrared modalities. These methods primarily focus on attention mechanisms, feature embed-ding, counterfactual intervention, and body shape elimina-tion [7–11]. Most of these approaches concentrate on op-timizing network architectures. Additionally, the impact of re-ranking [12–14] on performance is also significant. Op-timizing network structures aims to extract higher-quality features and increase the extraction of effective features. The purpose of re-ranking is to design a feature-matching algorithm that can reassess the similarity between query and gallery images, bringing similar images in the query and gallery closer together. Images contain a significant amount of noise in night-time environments due to poor image quality and low light. Traditional re-ranking methods typically employ a single-stage approach, which only analyzes intra-modal or inter-modal differences. Recent methods have driven rapid ad-vancements in traditional person re-identification. How-1
+
+> arXiv:2603.16165v1 [cs.CV] 17 Mar 2026
+
+ever, they cannot simultaneously evaluate subtle changes in pedestrian appearance within and across modalities, leading to potential omissions of fine-grained multimodal details. Consequently, such approaches still exhibit certain limita-tions in cross-modal person re-identification. To address the issue of detail loss when processing low-quality images in re-ranking, we propose a two-stage progressive re-ranking method based on Graph Convolu-tional Networks (GCN), named Homogeneous and Hetero-geneous Consistency Re-ranking (HHCR). To ensure that both cross-modal and intra-modal pedestrian information are handled, we designed two modules for HHCR: Homo-geneous Consistency Re-ranking and Heterogeneous Con-sistency Re-ranking. Since the number of visible and in-frared images in the test set is unequal, Heterogeneous Con-sistency Re-ranking is designed as a pseudo-symmetric re-trieval method for handling visible and infrared images. Ad-ditionally, to address the alignment of intra-modal homoge-neous information, Heterogeneous Consistency Re-ranking can separately process visible and infrared images, extract-ing the consistency within each modality. Specifically, our re-ranking approach for person re-identification focuses on matching the cross-modal hetero-geneous information consistency and intra-modal homoge-neous information consistency, dividing HHCR into two steps. In the first step, we apply the concept of graph net-works to separately extract the cross-modal heterogeneous information from the query set and gallery set within the en-tire test set, reducing the impact caused by unequal numbers of images between the query and gallery sets. In the second step, we extract the homogeneous information within the query and gallery sets to reduce the influence of noise from outlier images. Finally, the homogeneous consistency ma-trix, heterogeneous consistency matrix, and cosine similar-ity matrix are weighted to form the final HHCR similarity matrix. urthermore, based on HHCR, we propose a novel Consistency Re-ranking Inference Network (CRI). CRI is trained to update the parameters with a combination of triplet loss and cross-entropy loss functions. During test-ing, the features extracted by the backbone are input into HHCR, and based on the re-ranking results, CRI determines the identities of pedestrians in the query set. The contributions of our work are summarized as fol-lows: • We propose a consistency re-ranking inference net-work (CRI) for VI-ReID to explore the consistency of homogeneous and heterogeneous features. • We propose an innovative dual-stage progressive re-ranking method named Homogeneous and heteroge-neous consistency re-ranking(HHCR). The method in-cludes two modules, homogeneous consistency re-ranking, and heterogeneous consistency e-ranking, which match pedestrians by considering inter and intra-modality differences. • Extensive experiments demonstrate that our CRI and HHCR achieve state-of-the-art accuracy, and the accu-racy of our proposed baseline also reaches state-of-the-art levels. 
+
+## 2. Related Work 
+
+2.1. Network Structure Optimization For VI-reid 
+
+Cross-modal person re-identification was first proposed to identify pedestrians in nighttime and low-light condi-tions. The first cross-modal person re-identification net-work utilized a CNN architecture based on a zero-padding method [15]. Cross-modal person re-identification was first proposed to identify pedestrians in nighttime and low-light condi-tions. The first cross-modal person re-identification net-work utilized a CNN architecture based on a zero-padding method [15]. Following its introduction, many researchers conducted studies on cross-modal person re-identification, implement-ing various improvements to the network structure. The first cross-modal person re-identification network based on GANs [16], known as the Cross-Modality Generative Ad-versarial Network (cmGAN) [17], was designed. This net-work iteratively optimizes parameters through a minimax game between a generator and a discriminator, where aux-iliary information helps bridge the gaps between modalities and facilitates the learning of associations across different modalities. A bi-directional training strategy (BDTR) [18] was proposed, allowing the network to learn inter-modal features directly from the data and simultaneously learn both cross-modal and intra-modal relationships to enhance feature representation. A method employing two alignment strategies—pixel alignment and feature alignment—was in-troduced, marking the first approach to reduce inter-modal and intra-modal variations by modeling these two alignment strategies [8]. Additionally, a Dynamic Dual-Attentive Aggregation (DDAG) [19] Learning method was proposed, introduc-ing two types of graph attention representations: one for cross-modal graph attention structures that enhance fea-ture representation and another for inter-modal attention that adaptively allocates weights to different body parts. A method for cross-modality shared specific feature transfer (cm-SSFT) [20] algorithm has been proposed, effectively leveraging each sample’s shared and specific information to improve matching accuracy in cross-modal re-identification tasks. A baseline for cross-modal person re-identification 2Figure 2. The pipeline of the proposed network. The network structure processes the input visible and infrared images through ResNet to extract features, followed by a BN (Batch Normalization) layer for normalization, and finally, computes the loss function. During the testing phase, HHCR first concatenates the test set to compute the original similarity matrix Aori sim . Then, it separately calculates Homogeneous and Heterogeneous Consistency Re-ranking. Finally, the initial similarity matrix is filtered and summed, resulting in the final similarity matrix. The yellow line represents the noise filtering step for the original features, while the blue line indicates the noise filtering step for the original features after HECR graph convolution processing. 
+
+(AGW) [21] was introduced, which inserts Non-local At-tention [22] into the ResNet [23] architecture. Additionally, a novel re-identification evaluation metric, mINP (mean Inverse Negative Penalty), was proposed to measure the model’s ability to capture the most challenging sample fea-tures. An orthogonal decomposition method was developed to separate human features into shape-related and shape-irrelevant features, jointly optimizing shape-related and shape-erasure objectives through shape-guided methods [11]. DEEN [9] introduced a novel Diversified Embed-ding Expansion Module, which facilitates embedding dif-ferent feature representations, effectively addressing the challenges associated with smaller dataset sizes. 
+
+2.2. Re-ranking For Reid 
+
+Re-ranking methods, as a post-processing step in im-age retrieval, can significantly improve retrieval perfor-mance. To date, numerous effective re-ranking methods have been proposed. The k-reciprocal method first iden-tifies the k most similar features within the test set: mu-tual nearest neighbors. It then merges these mutual near-est features and computes the Jaccard distance. The k-reciprocal method [24] typically consumes significant time; therefore, a novel GCN-based re-ranking method [25] was proposed. This method models the query and gallery as a whole and weights the K most similar image features from both the query and gallery, thereby reducing computation time. The Expanded Cross Neighborhood (ECN) distance was proposed [12], which does not require strict ranking list comparisons. ECN handles the query and gallery sets separately, calculating only the distance between each im-age and its neighboring images. This unsupervised method is more general and can be applied to image and video do-mains. A novel re-ranking method was proposed, which treats the ranking problem as a binary classification task [13]. By combining local neighborhood information with the classifier’s prediction results, the retrieval accuracy is improved. The AIM method [14] was proposed, which not only leverages the correlation between the query and gallery to adjust the distance but also utilizes the relationships be-tween gallery images to reduce noise within the gallery set, thereby refining the distance between the query and gallery. 
+
+## 3. Methodology 
+
+In this section, we first introduce our proposed network architecture pipeline during both the training and testing phases. Then, we explain the HHCR optimization algo-rithm from both cross-modal and intra-modal perspectives, followed by a discussion of the similarity matrix after ap-plying HHCR. 
+
+3.1. Network Architecture Overview 
+
+Formally, given a probe set visible images feature 
+
+Fv = {vi |i = 1 , 2, ......, N }and a infrared set ir images fea-ture with N images Fr = {ri |i = 1 , 2, ......, N }, the cosine similarity between v and r as F ori sim = cos( Fr , F v ).The orig-3inal similarity matrix F ori sim and the overall similarity matrix 
+
+Fsim are as follows: 
+
+Fsim = cos( cat (Fv , F r ), cat (Fv , F r )) (1) 
+
+Fsim =
+
+Fvv , F vr 
+
+Frv , F rr 
+
+
+
+(2) Whereas cos represents the cosine similarity, and cat stands for matrix concatenation. Fvv denotes the similarity between visible images, Fvr denotes the similarity between visible and infrared images, Frv denotes the similarity between in-frared and visible images, Frr denotes the similarity be-tween infrared and infrared images. Figure 3 illustrates the overall framework of our pro-posed baseline, which uses a single-stream ResNet network as the backbone. In the training phase, the network is constrained by the triplet loss function [26] and the cross-entropy loss function [2]. During the testing phase, our proposed HHCR method is applied to explore the relation-ships of four matrix pairs: Fvv , F vr 
+
+,Frv , F rr 
+
+, Frr 
+
+, and Fvv 
+
+. The pairs Fvv , F vr 
+
+,Frv , F rr 
+
+ are used to explore cross-modal heterogeneous relationships, while Frr 
+
+, and Fvv 
+
+are used to explore intra-modal homogeneous re-lationships. HHCR jointly optimizes from both hetero-geneous and homogeneous perspectives to find the most matched pairs in the visible and infrared sets. 
+
+3.2. HHCR 
+
+Our proposed HHCR adopts a progressive approach to optimize the ranking list. HHCR consists of two stages: heterogeneous re-ranking and homogeneous consistency re-ranking. In the first stage, HHCR searches for the k1/k4 most similar images from the query and gallery sets to the query/gallery. Then, it selects the k2/k5 most similar im-ages from the query and gallery for query expansion. In the second stage, HHCR searches for the k2/k5 most simi-lar images from the query/gallery and then finds the k3/k6 most similar images from the query for further query expan-sion. 
+
+Heterogeneous Consistency Re-ranking 
+
+Due to the asymmetry between the query and gallery datasets, we split matrix M into two sub-matrices: F sub v =Fvv , F vr 
+
+ and F sub r = Frv , F rr 
+
+, process F sub v and 
+
+F sub r separately. Rank the top k1/k4 most similar elements for each query and gallery set from F sub v /F sub r .Define 
+
+T (k1, F sub v ) as the set of k1 elements with the highest rank-ing in Fv set.Similarity, T (k4, F sub r ) as the set of k4 ele-ments with the highest ranking in F sub r set.Assign different weights to the elements in Fsim based on whether they be-long to set T (k1, F sub v ) or T (k4, F sub r ).
+
+F k1 
+
+> v
+
+=
+
+(
+
+1 fi ∈ T (k1, F sub v )0 fi /∈ T (k1, F sub v ) (3) 
+
+F k4 
+
+> r
+
+=
+
+(
+
+1 fi ∈ T (k4, F sub r )0 fi /∈ T (k4, F sub r ) (4) Where fi represents the elements in matrix Fsim ,Ak1 
+
+> v
+
+and 
+
+Ak4 
+
+> r
+
+and represents the local adjacency matrix of query and gallery generated based on Fsim .Combine matrices Ak1 
+
+> v
+
+and Ak4 
+
+> r
+
+into matrix W , which is used as the adjacency matrix in the graph convolutional network. The adjacency matrix addresses the issue caused by the unequal number of visible and infrared images and assigns higher weight values to the most similar elements between the two sets. 
+
+W = [ F k1 
+
+> v
+
+, F k4 
+
+> r
+
+] [F k1 
+
+> v
+
+, F k4 
+
+> r
+
+]T (5) Where denotes element-wise addition. Rank all gallery elements in matrices Mv /M r for each query, denoted as F k1 
+
+> v
+
+and F k4 
+
+> r
+
+. F = F k1 
+
+> v
+
++ F k4 
+
+> r
+
+, which contains the candidate features of all visible and infrared images.Performing local queries on matrices F k1 
+
+> v
+
+and F k4
+
+> r
+
+ensures that each visible and infrared image in matrix F
+
+propagates information within its respective spatial neigh-borhood. This method helps mitigate the impact of abnor-mal features across modalities. We use matrix W and the matrix lqe (F ) after information propagation as the adja-cency matrix and node feature matrix in the graph convolu-tional network and aggregate them together. This operation helps explore the neighborhood relationships of each node within the node feature matrix. 
+
+F k2 
+
+> v
+
+=
+
+(
+
+fi fi ∈ T (k2, M sub v )0 mi /∈ T (k2, M sub v ) (6) 
+
+F k5 
+
+> r
+
+=
+
+(
+
+fi fi ∈ T (k5, M sub r )0 fi /∈ T (k5, M sub r ) (7) 
+
+F lqe v , F lqe r = split (lqe (F ) W ) (8) Whereas lqe represents the local query expansion operation, the split operation refers to dividing the aggregated matrix into visible and infrared parts, as F lqe v and F lqe r , and cos represents using the cosine function to compute the similar-ity between the visible and infrared image sets.Specifically, 
+
+k1/k 4 > k 2/k 5.
+
+Homogeneous Consistency Reranking 
+
+Homogeneous consistency re-ranking refers to minimiz-ing the feature differences of the same pedestrian within the same modality. homogeneous consistency re-ranking is per-formed after the filtering by heterogeneous consistency re-ranking. We consider k1 and k4 to represent the similar images from the visible and infrared modalities within the test set. Meanwhile, k2 and k5 represent the most similar images in their respective modality. Specifically, we be-lieve that k1 and k4 include some images from the other 4modality, whereas k2 and k5 mostly consist of images from the same modality. Therefore, to reduce the impact of out-lier images within the modality, Homogeneous Consistency Reranking further filters the effective information within the modality after selecting the top k2 and k5 similar images. First, in matrices Fvv and Frr , the k2/k 5 most similar el-ements are denoted as T (k2, F sub v )) and T (k5, F sub r )) , the 
+
+k3/k 6 most similar elements are denoted as T (k3, F v ) and 
+
+T (k6, F sub r )) .
+
+Ak2 
+
+> v
+
+=
+
+(
+
+1 fi ∈ T (k2, M sub v )0 fi /∈ T (k2, M sub v )) (9) 
+
+Ak5 
+
+> r
+
+=
+
+(
+
+1 fi ∈ T (k5, M sub r )) 0 fi /∈ T (k5, M sub r )) (10) 
+
+Ak3 
+
+> v
+
+=
+
+(
+
+fi fi ∈ T (k3, M sub v )) 0 fi /∈ T (k3, M sub v )) (11) 
+
+Ak6 
+
+> r
+
+=
+
+(
+
+fi fi ∈ T (k6, M sub r )) 0 fi /∈ T (k6, M sub r )) (12) Apply local query expansion to the obtained matrices, resulting in matrices F f ilter v and F f ilter r . Matrices gener-ated after lqe can filter out noise from homogeneous infor-mation within the same modality, bringing closer images of the same identity and pushing apart those of different iden-tities. 
+
+F f ilter v = lqe (F k3 
+
+> v
+
+F k5 
+
+> v
+
+) (13) 
+
+F f ilter r = lqe (F k3 
+
+> r
+
+F k6 
+
+> r
+
+) (14) 
+
+eF rank v = F f ilter v F rank v (15) 
+
+eF rank r = F f ilter r F rank r (16) 
+
+eFv = F f ilter v Fv (17) 
+
+eFr = F f ilter r Fr (18) where as F f ilter v and F f ilter r represent the filtered re-sults generated after the LQE operation, eF rank v a represents the matrix F rank v after the removal of noise within the modality, eF rank r a represents the matrix F rank r after the re-moval of noise within the modality, eFr a represents the ma-trix Fr after the removal of noise within the modality, eFv arepresents the matrix Fv after the removal of noise within the modality. 
+
+Final Similarity Matrix 
+
+The final similarity matrix comprises a weighted combi-nation of the original similarity matrix and the matrix ob-tained after re-ranking. Fixed parameter λ is used to con-trol the weights of the two matrices. Heterogeneous consis-tency is responsible for exploring the relationships between the test sets from a global perspective. homogeneous con-sistency re-ranking focuses on eliminating noise within the query and gallery sets. The final similarity matrix can be represented by Equa-tion (16). 
+
+ˆF f inal sim = (1 − λ) eF rank v ∗ eF rank r + λ eFv ∗ eFr (19) 
+
+## 4. Experiments 
+
+4.1. Dataset 
+
+LLCM: This dataset [9] was collected using 18 cam-eras, including nine visible-light cameras and nine infrared cameras. It is currently the largest infrared-visible dataset, containing a total of 46,767 images of 1,064 individuals. This dataset is particularly challenging due to the inclusion of various illumination conditions, which increases the dif-ficulty of pedestrian recognition. 
+
+SYSU-MM01: This large-scale dataset [15] was col-lected at Sun Yat-sen University, using six cameras in total—four visible-light cameras and two infrared cam-eras, covering both indoor and outdoor environments. The dataset contains 303,420 images of 491 individuals, with each identity represented in both modalities. During test-ing, the dataset can be used in two modes: indoor search and all-search. 
+
+RegDB: This dataset [27] was collected using dual cam-eras and contains 8,240 images of 412 individuals, with each identity having ten infrared and ten visible-light im-ages. In this dataset, each infrared image is paired with a corresponding visible-light image, and it has less variation in pedestrian poses compared to SYSU-MM01, making it easier to detect. 
+
+4.2. Implementation Details 
+
+Following saai, we adopt a ResNet network pre-trained on ImageNet as the backbone. For each batch, we select 10 identities, with 8 images per identity. Each image is resized to 288 × 144. The network is optimized using the Adam optimizer with a linear warmup strategy. The initial learn-ing rate is set to 3.5 × 10-4 and is reduced by factors of 0.1 and 0.01 at 80 and 120 epochs, respectively. The training process spans a total of 160 epochs. 
+
+4.3. Performance of the HHCR Method 
+
+In this section, we evaluate the HHCR method’s supe-riority and generalizability. First, we assess the CMBR method’s matching performance compared to other rerank-ing methods on the same dataset and model. Then, we test the generalizability of our proposed method by applying it to other models in the field of person re-identification. 
+
+Superiority Of The HHCR Method: In the experi-ments evaluating superiority, we maintained the same set-tings as GNN. The experiments were conducted on the 5RegDB, SYSU, and LLCM datasets. As shown in Ta-ble 1, we compared our proposed method with other re-ranking methods on cross-modality person re-identification datasets. In these experiments, we primarily observed two metrics: Rank-1 accuracy and mAP.The loss function con-sists of cross-entropy loss and triplet loss. Extensive exper-iments have demonstrated that the proposed PMRR method has achieved the SOTA. In the SYSU dataset, Rank-1 reached 83.98%, and mAP reached 85.32%. In the RegDB dataset, PMRR achieved the highest accuracy, with Rank-1 reaching 89.3% and mAP reaching 89.9%. In the LLCM dataset, Rank-1 reached 80.6%, and mAP reached 76.8%.                                                                 
+
+> Table 1. Comparison of Other Re-Ranking Methods and HHCR on Various Cross-Modal Person Re-Identification Datasets.
+> methods SYSU RegDB LLCM Rank1 mAP1 Rank1 mAP1 Rank1 mAP1 k-reciprocal 83.22 80.60 86.75 87.41 72.70 70.99 GNN 81.96 83.36 86.31 89.30 76.19 75.43 ECN 83.93 85.04 87.28 88.63 74.88 72.89 Ours 83.98 85.32 89.3 89.9 80.6 76.8
+> Table 2. Comparison of Applying HHCR and Without HHCR in Other V-I ReID Models.
+> methods SYSU RegDB LLCM mAP(%) Rank1(%) mAP(%) Rank1(%) mAP(%) Rank1(%) AGW 87.75 88.44 88.59 90.50 --Ours 87.31 88.26 96.54 97.19 --Yours ------Ours ------
+
+Retrieval Performance on other V-I ReID Net: Af-ter extracting features using current state-of-the-art cross-modality person re-identification models, we apply our pro-posed reranking method to match these features. Specifi-cally, we replace the Euclidean distance and similarity ma-trix used in other models’ feature matching with our CMBR algorithm. Despite this, As shown in Table 2, the accuracy of numerous models saw significant improvement after in-corporating our reranking algorithm. 
+
+4.4. Comparison With State-of-the-art Methods 
+
+We compare our baseline with current state-of-the-art methods to demonstrate the superiority of our approach. Experiments on the SYSU are presented in Table 3, exper-iments on the RegDB are presented in Table 4, and experi-ments on the LLCM dataset are shown in Table 5. 
+
+Comparison on SYSU-MM01 As shown in Table 3, the proposed baseline has achieved state-of-the-art perfor-mance. Our model achieved a Rank-1 accuracy of 76.6% and a mAP of 82.0% in the all-search Single-Shot mode. In the all-search Multi-Shot mode, our model achieved a Rank-1 accuracy of 88.9% and a mAP of 89.3%. In the indoor-search Single-Shot mode, our model achieved a Rank-1 accuracy of 88.0% and a mAP of 91.5%. Finally, in the indoor-search Multi-Shot mode, our model achieved a Rank-1 accuracy of 94.4% and a mAP of 95.0%. 
+
+Comparison on RegDB As shown in Table 4, the pro-posed baseline has achieved state-of-the-art performance. In the Visible to Infrared mode, our model achieved a Rank-1 accuracy of ****% and an mAP of ***%. In the Infrared to Visible mode, our model reached a Rank-1 accuracy of ****% and an mAP of ****%. 
+
+Comparison on LLCM As shown in Table 5, the pro-posed baseline has achieved state-of-the-art performance. In the Visible to Infrared mode, our model achieved a Rank-1 accuracy of ****% and an mAP of ***%. In the Infrared to Visible mode, our model reached a Rank-1 accuracy of ****% and an mAP of ****%. 
+
+4.5. Ablation Study 
+
+We use the model without any reranking algorithms added in this paper as the baseline. In the experiments, we fixed lambda at 0.3 and separately tested the impact of In-trinsic Consistency Reranking and Hetero-spectral Rerank-ing on the baseline. We also tested the effects of the adja-cency matrix Transposition Filtering and symmetric critical matrix Ranked Transposition Filtering on the model. As shown in Table 6, The experiments show that our proposed reranking algorithm is effective and can significantly im-prove the model’s accuracy. It is particularly noteworthy that HR w/o RTF achieved the highest performance on the RegDB and LLCM datasets but only reached Rank-1 accu-racy of 80.49% and mAP of 82.59% on the SYSU dataset. On the other hand, HR RTF achieved the highest accuracy on the SYSU dataset but did not attain the best performance on the RegDB and LLCM datasets. When comparing with other re-ranking methods, it was found that HR w/o RTF combined with HHCR showed relatively poor performance on SYSU. However, HR RTF consistently outperformed other re-ranking methods across all three datasets. There-fore, the final HHCR is based on the HR RTF architecture rather than HR w/o RTF. 
+
+4.6. HHCR result Visualization 
+
+To make the retrieval results of our HHCR method more clearly visible, we compared the visualized results with and without the application of HHCR. In Figure 3, the image on the far left represents the query image, while the images on the right represent the top ten most similar retrieval re-sults. Green indicates identity matches, and red indicates mismatches. The experimental results show that, in the top ten ranks, the number of correctly retrieved images signif-icantly increases after applying HHCR compared to the re-6Table 3. Comparison with State-of-the-Art Methods on SYSU-MM01. 
+
+Methods All-Search Indoor-Search Single-Shot Multi-Shot Single-Shot Multi-Shot Rank1 mAP Rank1 mAP Rank1 mAP Rank1 mAP Zero-Padding [15] 14.80 15.95 19.13 10.89 20.58 26.92 24.43 18.86 cmGAN [17] 26.97 27.80 31.49 22.27 31.63 42.19 37.00 32.76 JSIA-ReID [5] 38.10 36.90 45.10 29.50 43.80 52.90 52.70 42.70 AlignGAN [8] 42.40 40.70 51.50 33.90 45.90 54.30 57.10 45.30 AGW [21] 47.50 47.65 - - 54.1 62.97 - -LbA [28] 55.41 54.14 - - 58.46 66.33 - -NFS [29] 56.91 55.45 63.51 48.56 62.79 69.79 70.03 61.45 MID [30] 60.27 59.40 - - 64.86 70.12 - -cm-SSFT [20] 61.60 63.20 63.40 62.00 70.50 72.60 73.00 72.40 CM-NAS [31] 61.99 60.02 68.68 53.45 67.01 72.95 76.48 65.11 MCLNet [27] 65.40 61.98 - - 72.56 76.58 - -FMCNet [32] 66.34 62.51 73.44 56.06 68.15 74.09 78.86 63.82 SMCL [33] 67.39 61.78 72.15 54.93 68.84 75.56 79.57 66.57 MPANet [7] 70.58 68.24 75.58 62.91 76.74 80.95 84.22 75.11 MAUM [34] 71.68 68.79 - - 76.97 81.94 - -CMT [35] 71.88 68.57 80.23 63.13 76.90 79.91 84.87 74.11 CIFT [10] 74.08 74.79 79.74 75.56 81.82 85.61 88.32 86.42 MSCLNet [36] 76.99 71.64 - - 78.49 81.17 - -SAAI [14] 75.90 77.03 82.86 82.39 83.20 88.01 90.73 91.30 ours 83.99 85.32 87.44 87.63 90.42 93.31 94.76 95.16 
+
+Table 4. Comparison with State-of-the-Art Methods on Regdb. 
+
+methods VIS to IR IR to VIS Rank1 mAP Rank1 mAP1 Zero-Padding [15] 17.75 18.90 16.63 17.82 JSIA-ReID [5] 48.50 49.30 48.10 48.90 AlignGAN [8] 57.90 53.60 56.30 53.40 AGW [21] 70.05 66.37 70.49 65.9 cm-SSFT [20] 72.30 72.90 71.00 71.70 LbA [28] 74.17 67.64 72.43 65.46 MCLNet [27] 80.31 73.07 75.93 69.4 NFS [29] 80.54 72.10 77.95 69.79 MPANet [7] 83.70 80.90 82.80 80.70 SMCL [33] 83.93 79.83 83.05 78.57 MSCLNet [36] 84.17 80.99 83.86 78.31 CM-NAS [31] 84.54 80.32 82.57 78.31 MID [30] 87.45 84.85 84.29 81.41 MAUM [34] 87.87 85.09 86.95 84.3 FMCNet [32] 89.12 84.43 88.38 83.86 CIFT [10] 91.96 92.00 90.30 90.7 CMT [35] 95.17 87.30 91.97 84.46 SAAI [14] 91.07 91.45 92.09 92.0 ours 90.63 92.83 92.52 94.26 
+
+sults without HHCR. 
+
+Table 5. Comparison with State-of-the-Art Methods on LLCM. 
+
+methods IR to VIS VIS to IR Rank1 mAP Rank1 mAP DDAG [8] 40.3 48.4 48.0 52.3 AGW [21] 43.6 51.8 51.5 55.3 LbA [28] 43.8 53.1 50.8 55.6 CAJ [37] 48.8 56.6 56.5 59.8 DART [38] 52.2 59.8 60.4 63.2 MMN [39] 52.5 58.9 59.9 62.7 DEEN [9] 54.9 62.9 62.5 65.8 ours 75.87 75.24 82.33 80.00 
+
+Table 6. The impact of Ranked Transposition Filtering, Trans-position Filtering, Intrinsic Consistency Reranking, and Hetero-spectral Re-ranking on performance. 
+
+ICR HR HR w/o RTF RegDB SYSU LLCM Rank1 mAP Rank1 mAP1 Rank1 mAP1 86.3 83.7 66.18 64.31 63.09 49.07 
+
+✓ 85.6 89.0 64.34 72.02 71.1 66.57 
+
+✓ ✓ 90.7 92.9 83.98 85.32 75.87 75.24 
+
+✓ ✓ 91.8 93 80.49 82.59 80.6 76.8 
+
+7Figure 3. Comparison of Top 10 Retrieval Results with and with-out PMRR. 
+
+## 5. Conclusion 
+
+First, we propose a novel baseline for Cross-modal Person Re-identification. Then, we introduce a superior and generalizable HHCR feature–the matching method, which is a two-stage reranking approach. The first stage is Hetero-spectral Reranking, which reduces the differ-ences between modalities. The second stage is Intrinsic Consistency Reranking, which minimizes the differences within each modality. This two-stage reranking process significantly improves the accuracy of multi–modal fea-ture matching. Extensive experiments on the SYSU-MM01, LLCM, and RegDB datasets demonstrate the effectiveness of our method. 
+
+## References 
+
+[1] R. Quan, X. Dong, Y. Wu et al. , “Auto-reid: Searching for a part-aware convnet for person re-identification,” in Proceedings of the IEEE/CVF International Con-ference on Computer Vision (ICCV) , 2019, pp. 3750– 3759. 1 [2] H. Luo, Y. Gu, X. Liao et al. , “Bag of tricks and a strong baseline for deep person re-identification,” in 
+
+Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition Workshops ,2019, pp. 0–0. 1, 4 [3] Y. Huang, Q. Wu, J. Xu et al. , “Celebrities-reid: A benchmark for clothes variation in long-term person re-identification,” in 2019 International Joint Confer-ence on Neural Networks (IJCNN) . IEEE, 2019, pp. 1–8. 1 [4] Z. Cui, J. Zhou, Y. Peng et al. , “Dcr-reid: Deep component reconstruction for cloth-changing person re-identification,” IEEE Transactions on Circuits and Systems for Video Technology , vol. 33, no. 8, pp. 4415–4428, 2023. 1 [5] G. Wang, T. Zhang, Y. Yang et al. , “Cross-modality paired-images generation for rgb-infrared person re-identification,” in Proceedings of the AAAI Confer-ence on Artificial Intelligence , vol. 34, no. 7, 2020, pp. 12 144–12 151. 1, 7 [6] X. Hu and Y. Zhou, “Cross-modality person reid with maximum intra-class triplet loss,” in Pattern Recogni-tion and Computer Vision: Third Chinese Conference, PRCV 2020 . Springer International Publishing, 2020, pp. 557–568. 1 [7] A. Vaswani et al. , “Attention is all you need,” Ad-vances in Neural Information Processing Systems ,2017. 1, 7 [8] G. Wang, T. Zhang, J. Cheng et al. , “Rgb-infrared cross-modality person re-identification via joint pixel and feature alignment,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2019, pp. 3623–3632. 1, 2, 7 [9] “Diverse embedding expansion network and low-light cross-modality benchmark for visible-infrared person re-identification,” incomplete bibliographic informa-tion; please add authors, venue, and year. 1, 3, 5, 7 [10] X. Li, Y. Lu, B. Liu et al. , “Counterfactual inter-vention feature transfer for visible-infrared person re-identification,” in European Conference on Computer Vision (ECCV) . Springer Nature Switzerland, 2022, pp. 381–398. 1, 7 [11] J. Feng, A. Wu, and W.-S. Zheng, “Shape-erased feature learning for visible-infrared person re-identification,” in Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) , 2023, pp. 22 752–22 761. 1, 3 [12] M. S. Sarfraz, A. Schumann, A. Eberle et al. , “A pose-sensitive embedding for person re-identification with expanded cross neighborhood re-ranking,” in Pro-ceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2018, pp. 420–429. 1, 3 [13] Y. Zhou, Y. Wang, and L.-P. Chau, “Moving towards centers: Re-ranking with attention and memory for re-identification,” IEEE Transactions on Multimedia ,vol. 25, pp. 3456–3468, 2022. 1, 3 [14] X. Fang, Y. Yang, and Y. Fu, “Visible-infrared person re-identification via semantic alignment and affinity inference,” in Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision (ICCV) , 2023, pp. 11 270–11 279. 1, 3, 7 [15] A. Wu, W.-S. Zheng, H.-X. Yu et al. , “Rgb-infrared cross-modality person re-identification,” in Proceed-ings of the IEEE International Conference on Com-puter Vision (ICCV) , 2017, pp. 5380–5389. 2, 5, 7 8[16] I. Goodfellow, J. Pouget-Abadie, M. Mirza et al. ,“Generative adversarial nets,” Advances in Neural In-formation Processing Systems , vol. 27, 2014. 2 [17] P. Dai, R. Ji, H. Wang et al. , “Cross-modality person re-identification with generative adversarial training,” in IJCAI , vol. 1, no. 3, 2018, p. 6. 2, 7 [18] M. Ye, Z. Wang, X. Lan et al. , “Visible thermal person re-identification via dual-constrained top-ranking,” in 
+
+IJCAI , vol. 1, 2018, p. 2. 2 [19] M. Ye, J. Shen, D. J. Crandall et al. , “Dynamic dual-attentive aggregation learning for visible-infrared per-son re-identification,” in Computer Vision – ECCV 2020 . Springer International Publishing, 2020, pp. 229–247. 2 [20] Y. Lu, Y. Wu, B. Liu et al. , “Cross-modality person re-identification with shared-specific feature transfer,” in Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition (CVPR) , 2020, pp. 13 379–13 389. 2, 7 [21] M. Ye, J. Shen, G. Lin et al. , “Deep learning for person re-identification: A survey and outlook,” IEEE Trans-actions on Pattern Analysis and Machine Intelligence ,vol. 44, no. 6, pp. 2872–2893, 2021. 3, 7 [22] X. Wang, R. Girshick, A. Gupta et al. , “Non-local neu-ral networks,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) ,2018, pp. 7794–7803. 3 [23] K. He, X. Zhang, S. Ren et al. , “Deep residual learn-ing for image recognition,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recogni-tion (CVPR) , 2016, pp. 770–778. 3 [24] Z. Zhong, L. Zheng, D. Cao et al. , “Re-ranking person re-identification with k-reciprocal encoding,” in Pro-ceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2017, pp. 1318– 1327. 3 [25] X. Zhang, M. Jiang, Z. Zheng et al. , “Understanding image retrieval re-ranking: A graph neural network perspective,” arXiv preprint arXiv:2012.07620 , 2020. 3[26] A. Hermans, L. Beyer, and B. Leibe, “In defense of the triplet loss for person re-identification,” arXiv preprint arXiv:1703.07737 , 2017. 4 [27] D. T. Nguyen, H. G. Hong, K. R. Kim et al. , “Person recognition system based on a combination of body images from visible light and thermal cameras,” Sen-sors , vol. 17, no. 3, p. 605, 2017. 5, 7 [28] H. Park, S. Lee, J. Lee et al. , “Learning by align-ing: Visible-infrared person re-identification using cross-modal correspondences,” in Proceedings of the IEEE/CVF International Conference on Computer Vi-sion (ICCV) , 2021, pp. 12 046–12 055. 7 [29] Y. Chen, L. Wan, Z. Li et al. , “Neural feature search for rgb-infrared person re-identification,” in Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2021, pp. 587–597. 7[30] Z. Huang, J. Liu, L. Li et al. , “Modality-adaptive mixup and invariant decomposition for rgb-infrared person re-identification,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 36, no. 1, 2022, pp. 1034–1042. 7 [31] C. Fu, Y. Hu, X. Wu et al. , “Cm-nas: Cross-modality neural architecture search for visible-infrared person re-identification,” in Proceedings of the IEEE/CVF In-ternational Conference on Computer Vision (ICCV) ,2021, pp. 11 823–11 832. 7 [32] Q. Zhang, C. Lai, J. Liu et al. , “Fmcnet: Feature-level modality compensation for visible-infrared person re-identification,” in Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) , 2022, pp. 7349–7358. 7 [33] Z. Wei, X. Yang, N. Wang et al. , “Syncretic modality collaborative learning for visible infrared person re-identification,” in Proceedings of the IEEE/CVF In-ternational Conference on Computer Vision (ICCV) ,2021, pp. 225–234. 7 [34] J. Liu, Y. Sun, F. Zhu et al. , “Learning memory-augmented unidirectional metrics for cross-modality person re-identification,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition (CVPR) , 2022, pp. 19 366–19 375. 7 [35] K. Jiang, T. Zhang, X. Liu et al. , “Cross-modality transformer for visible-infrared person re-identification,” in European Conference on Computer Vision (ECCV) . Springer Nature Switzerland, 2022, pp. 480–496. 7 [36] Y. Zhang, S. Zhao, Y. Kang et al. , “Modality synergy complement learning with cascaded aggregation for visible-infrared person re-identification,” in European Conference on Computer Vision (ECCV) . Springer Nature Switzerland, 2022, pp. 462–479. 7 [37] M. Ye, W. Ruan, B. Du et al. , “Channel augmented joint learning for visible-infrared recognition,” in Pro-ceedings of the IEEE/CVF International Conference 
+
+9on Computer Vision (ICCV) , 2021, pp. 13 567–13 576. 7[38] M. Yang, Z. Huang, P. Hu et al. , “Learning with twin noisy labels for visible-infrared person re-identification,” in Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) , 2022, pp. 14 308–14 317. 7 [39] Y. Zhang, Y. Yan, Y. Lu et al. , “Towards a unified middle modality learning for visible-infrared person re-identification,” in Proceedings of the 29th ACM In-ternational Conference on Multimedia , 2021, pp. 788– 796. 7 10

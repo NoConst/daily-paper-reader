@@ -6,82 +6,82 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-15 ~ 2026-03-24
-- 运行时间：2026-03-24 05:33:38 UTC
+- 最新运行日期：2026-03-24
+- 运行时间：2026-03-24 20:10:27 UTC
 - 运行状态：成功
 - 本次总论文数：20
 - 精读区：9
 - 速读区：11
 
 ### 今日简报（AI）
-今日深度研读 20 篇多模态论文，重点攻克视觉提示接口与模型表征退化等前沿课题。
-满分力作 VP-VLA 重新定义了具身智能的交互界面，而预测性正则化技术则有效解决了多模态大模型的表征质量瓶颈。
-建议关注视觉 Token 压缩与投机解码等提效方案，探索更轻量、更智能的视觉语言交互未来。
-- 详情：[/20260315-20260324/README](/20260315-20260324/README)
+今日精选 20 篇多模态前沿论文，深度解析 VirPro 弱监督 3D 检测与 SSP-SAM 语义增强等 9 项核心突破。
+提示学习（Prompt Learning）在 3D 检测与指代分割中展现强劲性能，同时大模型异步剪枝与多模态推理技术取得显著进展。
+建议优先研读高分论文中的提示词工程思路，掌握视觉语言模型在复杂任务中的高效适配方案。
+- 详情：[/202603/24/README](/202603/24/README)
 
 ### 精读区论文标签
-1. [VP-VLA: Visual Prompting as an Interface for Vision-Language-Action Models](/20260315-20260324/2603.22003v1-vp-vla-visual-prompting-as-an-interface-for-vision-language-action-models)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：视觉语言动作模型的视觉提示接口
-2. [Predictive Regularization Against Visual Representation Degradation in Multimodal Large Language Models](/20260315-20260324/2603.20808v1-predictive-regularization-against-visual-representation-degradation-in-multimodal-large-language-models)  
+1. [VirPro: Visual-referred Probabilistic Prompt Learning for Weakly-Supervised Monocular 3D Detection](/202603/24/2603.17470v2-virpro-visual-referred-probabilistic-prompt-learning-for-weakly-supervised-monocular-3d-detection)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型中的视觉表示退化
-3. [CoVFT: Context-aware Visual Fine-tuning for Multimodal Large Language Models](/20260315-20260324/2603.21077v1-covft-context-aware-visual-fine-tuning-for-multimodal-large-language-models)  
+   evidence：用于多模态预训练的视觉参考概率提示学习
+2. [SSP-SAM: SAM with Semantic-Spatial Prompt for Referring Expression Segmentation](/202603/24/2603.18086v1-ssp-sam-sam-with-semantic-spatial-prompt-for-referring-expression-segmentation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型的视觉微调
-4. [QMoP: Query Guided Mixture-of-Projector for Efficient Visual Token Compression](/20260315-20260324/2603.21232v1-qmop-query-guided-mixture-of-projector-for-efficient-visual-token-compression)  
+   evidence：用于指代语义分割的语义空间提示
+3. [ProactiveBench: Benchmarking Proactiveness in Multimodal Large Language Models](/202603/24/2603.19466v1-proactivebench-benchmarking-proactiveness-in-multimodal-large-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型的视觉标记压缩
-5. [Learning Trajectory-Aware Multimodal Large Language Models for Video Reasoning Segmentation](/20260315-20260324/2603.21488v1-learning-trajectory-aware-multimodal-large-language-models-for-video-reasoning-segmentation)  
+   evidence：多模态大语言模型（MLLM）主动性基准测试
+4. [Vision-Language Attribute Disentanglement and Reinforcement for Lifelong Person Re-Identification](/202603/24/2603.19678v1-vision-language-attribute-disentanglement-and-reinforcement-for-lifelong-person-re-identification)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于视频推理分割的轨迹感知多模态大模型
-6. [SSAM: Singular Subspace Alignment for Merging Multimodal Large Language Models](/20260315-20260324/2603.21584v1-ssam-singular-subspace-alignment-for-merging-multimodal-large-language-models)  
+   evidence：视觉语言模型驱动的人员检索方法
+5. [Unbiased Dynamic Multimodal Fusion](/202603/24/2603.19681v1-unbiased-dynamic-multimodal-fusion)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：合并多模态大模型
-7. [ADaFuSE: Adaptive Diffusion-generated Image and Text Fusion for Interactive Text-to-Image Retrieval](/20260315-20260324/2603.21886v1-adafuse-adaptive-diffusion-generated-image-and-text-fusion-for-interactive-text-to-image-retrieval)  
+   evidence：无偏动态多模态融合框架
+6. [BALM: A Model-Agnostic Framework for Balanced Multimodal Learning under Imbalanced Missing Rates](/202603/24/2603.19718v1-balm-a-model-agnostic-framework-for-balanced-multimodal-learning-under-imbalanced-missing-rates)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：使用扩散模型的交互式文本到图像检索的自适应融合
-8. [Uncertainty-guided Compositional Alignment with Part-to-Whole Semantic Representativeness in Hyperbolic Vision-Language Models](/20260315-20260324/2603.22042v1-uncertainty-guided-compositional-alignment-with-part-to-whole-semantic-representativeness-in-hyperbolic-vision-language-models)  
+   evidence：用于跨模态表示与融合的平衡多模态学习框架
+7. [IsoCLIP: Decomposing CLIP Projectors for Efficient Intra-modal Alignment](/202603/24/2603.19862v1-isoclip-decomposing-clip-projectors-for-efficient-intra-modal-alignment)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：组合对齐与多对象组合场景
-9. [UniMotion: A Unified Framework for Motion-Text-Vision Understanding and Generation](/20260315-20260324/2603.22282v1-unimotion-a-unified-framework-for-motion-text-vision-understanding-and-generation)  
+   evidence：CLIP在图像检索中的模态内对齐研究
+8. [A Multihead Continual Learning Framework for Fine-Grained Fashion Image Retrieval with Contrastive Learning and Exponential Moving Average Distillation](/202603/24/2603.20648v1-a-multihead-continual-learning-framework-for-fine-grained-fashion-image-retrieval-with-contrastive-learning-and-exponential-moving-average-distillation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：运动、文本和视觉理解的统一框架
+   evidence：细粒度时尚图像检索的持续学习
+9. [Rethinking Token Reduction for Large Vision-Language Models](/202603/24/2603.21701v1-rethinking-token-reduction-for-large-vision-language-models)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：多轮 VQA 中大型视觉语言模型的标记减少
 
 ### 速读区论文标签
-1. [LLMind: Bio-inspired Training-free Adaptive Visual Representations for Vision-Language Models](/20260315-20260324/2603.14882v1-llmind-bio-inspired-training-free-adaptive-visual-representations-for-vision-language-models)  
+1. [Mostly Text, Smart Visuals: Asymmetric Text-Visual Pruning for Large Vision-Language Models](/202603/24/2603.16001v1-mostly-text-smart-visuals-asymmetric-text-visual-pruning-for-large-vision-language-models)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：视觉语言模型的自适应视觉表示
-2. [Balancing Saliency and Coverage: Semantic Prominence-Aware Budgeting for Visual Token Compression in VLMs](/20260315-20260324/2603.14892v1-balancing-saliency-and-coverage-semantic-prominence-aware-budgeting-for-visual-token-compression-in-vlms)  
+   evidence：大型视觉语言模型的不对称剪枝
+2. [Hyperbolic Multimodal Generative Representation Learning for Generalized Zero-Shot Multimodal Information Extraction](/202603/24/2603.16259v1-hyperbolic-multimodal-generative-representation-learning-for-generalized-zero-shot-multimodal-information-extraction)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：大型视觉语言模型中的视觉标记压缩
-3. [MMSpec: Benchmarking Speculative Decoding for Vision-Language Models](/20260315-20260324/2603.14989v1-mmspec-benchmarking-speculative-decoding-for-vision-language-models)  
+   evidence：用于信息提取的双曲多模态生成式表示学习
+3. [Follow the Clues, Frame the Truth: Hybrid-evidential Deductive Reasoning in Open-Vocabulary Multimodal Emotion Recognition](/202603/24/2603.16463v1-follow-the-clues-frame-the-truth-hybrid-evidential-deductive-reasoning-in-open-vocabulary-multimodal-emotion-recognition)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：针对视觉语言模型的投机解码基准测试
-4. [Look Before Acting: Enhancing Vision Foundation Representations for Vision-Language-Action Models](/20260315-20260324/2603.15618v1-look-before-acting-enhancing-vision-foundation-representations-for-vision-language-action-models)  
+   evidence：多模态大模型用于情感推理
+4. [Empirical Recipes for Efficient and Compact Vision-Language Models](/202603/24/2603.16987v1-empirical-recipes-for-efficient-and-compact-vision-language-models)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：视觉-语言-动作模型与LLM主干分析
-5. [DAIT: Distillation from Vision-Language Models to Lightweight Classifiers with Adaptive Intermediate Teacher Transfer](/20260315-20260324/2603.15166v1-dait-distillation-from-vision-language-models-to-lightweight-classifiers-with-adaptive-intermediate-teacher-transfer)  
+   evidence：紧凑型视觉语言模型的效率分析与优化方案
+5. [Beam Prediction Based on Multimodal Large Language Models](/202603/24/2603.15093v1-beam-prediction-based-on-multimodal-large-language-models)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：从视觉语言模型（VLM）到轻量级分类器的知识蒸馏
-6. [Look Before Acting: Enhancing Vision Foundation Representations for Vision-Language-Action Models](/20260315-20260324/2603.15618v2-look-before-acting-enhancing-vision-foundation-representations-for-vision-language-action-models)  
+   evidence：多模态大模型应用
+6. [Beam Prediction Based on Multimodal Large Language Models](/202603/24/2603.15093v2-beam-prediction-based-on-multimodal-large-language-models)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：视觉-语言-动作 (VLA) 模型及 LLM 主干分析
-7. [ViT-AdaLA: Adapting Vision Transformers with Linear Attention](/20260315-20260324/2603.16063v1-vit-adala-adapting-vision-transformers-with-linear-attention)  
+   evidence：基于多模态大模型的跨模态特征集成框架
+7. [Meta-TTRL: A Metacognitive Framework for Self-Improving Test-Time Reinforcement Learning in Unified Multimodal Models](/202603/24/2603.15724v1-meta-ttrl-a-metacognitive-framework-for-self-improving-test-time-reinforcement-learning-in-unified-multimodal-models)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：适配视觉Transformer和视觉基础模型
-8. [Reevaluating the Intra-Modal Misalignment Hypothesis in CLIP](/20260315-20260324/2603.16100v1-reevaluating-the-intra-modal-misalignment-hypothesis-in-clip)  
+   evidence：统一多模态模型的自改进框架
+8. [Evolving Contextual Safety in Multi-Modal Large Language Models via Inference-Time Self-Reflective Memory](/202603/24/2603.15800v1-evolving-contextual-safety-in-multi-modal-large-language-models-via-inference-time-self-reflective-memory)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：CLIP 对比语言图像训练与嵌入分析
-9. [Homogeneous and Heterogeneous Consistency progressive Re-ranking for Visible-Infrared Person Re-identification](/20260315-20260324/2603.16165v1-homogeneous-and-heterogeneous-consistency-progressive-re-ranking-for-visible-infrared-person-re-identification)  
+   evidence：多模态大模型的上下文安全评估
+9. [Diffusion-Guided Semantic Consistency for Multimodal Heterogeneity](/202603/24/2603.19337v1-diffusion-guided-semantic-consistency-for-multimodal-heterogeneity)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：跨模态行人重识别与模态间差异
-10. [Gesture-Aware Pretraining and Token Fusion for 3D Hand Pose Estimation](/20260315-20260324/2603.17396v1-gesture-aware-pretraining-and-token-fusion-for-3d-hand-pose-estimation)  
+   evidence：多模态异构性与语义表示
+10. [ROI-Driven Foveated Attention for Unified Egocentric Representations in Vision-Language-Action Systems](/202603/24/2603.20668v1-roi-driven-foveated-attention-for-unified-egocentric-representations-in-vision-language-action-systems)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：用于3D姿态估计的手势感知预训练与标记融合
-11. [AdaMuS: Adaptive Multi-view Sparsity Learning for Dimensionally Unbalanced Data](/20260315-20260324/2603.17610v1-adamus-adaptive-multi-view-sparsity-learning-for-dimensionally-unbalanced-data)  
+   evidence：VLA系统中的统一第一视角表示
+11. [PEARL: Geometry Aligns Semantics for Training-Free Open-Vocabulary Semantic Segmentation](/202603/24/2603.21528v1-pearl-geometry-aligns-semantics-for-training-free-open-vocabulary-semantic-segmentation)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：多视图特征融合与表示对齐
+   evidence：开放词汇语义分割中的跨模态几何
 
 
 <div class="dpr-home-promo-card">

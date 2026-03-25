@@ -6,82 +6,73 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-24
-- 运行时间：2026-03-24 20:10:27 UTC
+- 最新运行日期：2026-03-25
+- 运行时间：2026-03-25 20:07:21 UTC
 - 运行状态：成功
-- 本次总论文数：20
-- 精读区：9
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日精选 20 篇多模态前沿论文，深度解析 VirPro 弱监督 3D 检测与 SSP-SAM 语义增强等 9 项核心突破。
-提示学习（Prompt Learning）在 3D 检测与指代分割中展现强劲性能，同时大模型异步剪枝与多模态推理技术取得显著进展。
-建议优先研读高分论文中的提示词工程思路，掌握视觉语言模型在复杂任务中的高效适配方案。
-- 详情：[/202603/24/README](/202603/24/README)
+今日深度解析 17 篇论文，聚焦多模态大模型的空间认知缺陷与双曲几何下的语义对齐突破。
+CVT-Bench 揭示了 MLLM 在视角变换时空间表征的不稳定性，而双曲视觉语言模型通过局部-整体对齐实现了更精准的语义建模。
+建议重点关注大模型空间推理的鲁棒性评估，并探索非欧空间在复杂多模态任务中的应用潜力。
+- 详情：[/202603/25/README](/202603/25/README)
 
 ### 精读区论文标签
-1. [VirPro: Visual-referred Probabilistic Prompt Learning for Weakly-Supervised Monocular 3D Detection](/202603/24/2603.17470v2-virpro-visual-referred-probabilistic-prompt-learning-for-weakly-supervised-monocular-3d-detection)  
+1. [CVT-Bench: Counterfactual Viewpoint Transformations Reveal Unstable Spatial Representations in Multimodal LLMs](/202603/25/2603.21114v1-cvt-bench-counterfactual-viewpoint-transformations-reveal-unstable-spatial-representations-in-multimodal-llms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于多模态预训练的视觉参考概率提示学习
-2. [SSP-SAM: SAM with Semantic-Spatial Prompt for Referring Expression Segmentation](/202603/24/2603.18086v1-ssp-sam-sam-with-semantic-spatial-prompt-for-referring-expression-segmentation)  
+   evidence：多模态大模型空间推理的诊断基准
+2. [Uncertainty-guided Compositional Alignment with Part-to-Whole Semantic Representativeness in Hyperbolic Vision-Language Models](/202603/25/2603.22042v2-uncertainty-guided-compositional-alignment-with-part-to-whole-semantic-representativeness-in-hyperbolic-vision-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于指代语义分割的语义空间提示
-3. [ProactiveBench: Benchmarking Proactiveness in Multimodal Large Language Models](/202603/24/2603.19466v1-proactivebench-benchmarking-proactiveness-in-multimodal-large-language-models)  
+   evidence：双曲视觉语言模型中的组合对齐与局部-整体关系
+3. [Cog3DMap: Multi-View Vision-Language Reasoning with 3D Cognitive Maps](/202603/25/2603.23023v1-cog3dmap-multi-view-vision-language-reasoning-with-3d-cognitive-maps)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型（MLLM）主动性基准测试
-4. [Vision-Language Attribute Disentanglement and Reinforcement for Lifelong Person Re-Identification](/202603/24/2603.19678v1-vision-language-attribute-disentanglement-and-reinforcement-for-lifelong-person-re-identification)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：视觉语言模型驱动的人员检索方法
-5. [Unbiased Dynamic Multimodal Fusion](/202603/24/2603.19681v1-unbiased-dynamic-multimodal-fusion)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：无偏动态多模态融合框架
-6. [BALM: A Model-Agnostic Framework for Balanced Multimodal Learning under Imbalanced Missing Rates](/202603/24/2603.19718v1-balm-a-model-agnostic-framework-for-balanced-multimodal-learning-under-imbalanced-missing-rates)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于跨模态表示与融合的平衡多模态学习框架
-7. [IsoCLIP: Decomposing CLIP Projectors for Efficient Intra-modal Alignment](/202603/24/2603.19862v1-isoclip-decomposing-clip-projectors-for-efficient-intra-modal-alignment)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：CLIP在图像检索中的模态内对齐研究
-8. [A Multihead Continual Learning Framework for Fine-Grained Fashion Image Retrieval with Contrastive Learning and Exponential Moving Average Distillation](/202603/24/2603.20648v1-a-multihead-continual-learning-framework-for-fine-grained-fashion-image-retrieval-with-contrastive-learning-and-exponential-moving-average-distillation)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：细粒度时尚图像检索的持续学习
-9. [Rethinking Token Reduction for Large Vision-Language Models](/202603/24/2603.21701v1-rethinking-token-reduction-for-large-vision-language-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：多轮 VQA 中大型视觉语言模型的标记减少
+   evidence：具有显式3D认知地图的MLLM架构，用于空间推理
+4. [On the Cone Effect and Modality Gap in Medical Vision-Language Embeddings](/202603/25/2603.17246v2-on-the-cone-effect-and-modality-gap-in-medical-vision-language-embeddings)  
+   标签：评分：8.0/10、query:cir-ml
+   evidence：视觉语言嵌入中的模态间隙与跨模态分离
+5. [CRE-T1 Preview Technical Report: Beyond Contrastive Learning for Reasoning-Intensive Retrieval](/202603/25/2603.17387v1-cre-t1-preview-technical-report-beyond-contrastive-learning-for-reasoning-intensive-retrieval)  
+   标签：评分：8.0/10、query:cir-ml
+   evidence：超越对比学习的推理密集型检索
+6. [VirPro: Visual-referred Probabilistic Prompt Learning for Weakly-Supervised Monocular 3D Detection](/202603/25/2603.17470v1-virpro-visual-referred-probabilistic-prompt-learning-for-weakly-supervised-monocular-3d-detection)  
+   标签：评分：8.0/10、query:cir-ml
+   evidence：视觉参考的概率提示学习用于多模态预训练
 
 ### 速读区论文标签
-1. [Mostly Text, Smart Visuals: Asymmetric Text-Visual Pruning for Large Vision-Language Models](/202603/24/2603.16001v1-mostly-text-smart-visuals-asymmetric-text-visual-pruning-for-large-vision-language-models)  
+1. [Interpretable Cross-Domain Few-Shot Learning with Rectified Target-Domain Local Alignment](/202603/25/2603.17655v1-interpretable-cross-domain-few-shot-learning-with-rectified-target-domain-local-alignment)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：大型视觉语言模型的不对称剪枝
-2. [Hyperbolic Multimodal Generative Representation Learning for Generalized Zero-Shot Multimodal Information Extraction](/202603/24/2603.16259v1-hyperbolic-multimodal-generative-representation-learning-for-generalized-zero-shot-multimodal-information-extraction)  
+   evidence：CLIP中的视觉语言表示学习与局部对齐
+2. [CycleCap: Improving VLMs Captioning Performance via Self-Supervised Cycle Consistency Fine-Tuning](/202603/25/2603.18282v2-cyclecap-improving-vlms-captioning-performance-via-self-supervised-cycle-consistency-fine-tuning)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于信息提取的双曲多模态生成式表示学习
-3. [Follow the Clues, Frame the Truth: Hybrid-evidential Deductive Reasoning in Open-Vocabulary Multimodal Emotion Recognition](/202603/24/2603.16463v1-follow-the-clues-frame-the-truth-hybrid-evidential-deductive-reasoning-in-open-vocabulary-multimodal-emotion-recognition)  
+   evidence：用于视觉语言模型图文对齐的自监督循环一致性
+3. [AlignMamba-2: Enhancing Multimodal Fusion and Sentiment Analysis with Modality-Aware Mamba](/202603/25/2603.18462v1-alignmamba-2-enhancing-multimodal-fusion-and-sentiment-analysis-with-modality-aware-mamba)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：多模态大模型用于情感推理
-4. [Empirical Recipes for Efficient and Compact Vision-Language Models](/202603/24/2603.16987v1-empirical-recipes-for-efficient-and-compact-vision-language-models)  
+   evidence：使用Mamba进行跨模态对齐和多模态融合
+4. [Correlation-Weighted Multi-Reward Optimization for Compositional Generation](/202603/25/2603.18528v1-correlation-weighted-multi-reward-optimization-for-compositional-generation)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：紧凑型视觉语言模型的效率分析与优化方案
-5. [Beam Prediction Based on Multimodal Large Language Models](/202603/24/2603.15093v1-beam-prediction-based-on-multimodal-large-language-models)  
+   evidence：组合生成与多概念优化
+5. [$x^2$-Fusion: Cross-Modality and Cross-Dimension Flow Estimation in Event Edge Space](/202603/25/2603.16671v1-x2-fusion-cross-modality-and-cross-dimension-flow-estimation-in-event-edge-space)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：多模态大模型应用
-6. [Beam Prediction Based on Multimodal Large Language Models](/202603/24/2603.15093v2-beam-prediction-based-on-multimodal-large-language-models)  
+   evidence：跨模态融合与共享潜空间表示
+6. [On the Cone Effect and Modality Gap in Medical Vision-Language Embeddings](/202603/25/2603.17246v1-on-the-cone-effect-and-modality-gap-in-medical-vision-language-embeddings)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：基于多模态大模型的跨模态特征集成框架
-7. [Meta-TTRL: A Metacognitive Framework for Self-Improving Test-Time Reinforcement Learning in Unified Multimodal Models](/202603/24/2603.15724v1-meta-ttrl-a-metacognitive-framework-for-self-improving-test-time-reinforcement-learning-in-unified-multimodal-models)  
+   evidence：视觉语言嵌入中的模态间隙分析
+7. [Towards Motion-aware Referring Image Segmentation](/202603/25/2603.17413v1-towards-motion-aware-referring-image-segmentation)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：统一多模态模型的自改进框架
-8. [Evolving Contextual Safety in Multi-Modal Large Language Models via Inference-Time Self-Reflective Memory](/202603/24/2603.15800v1-evolving-contextual-safety-in-multi-modal-large-language-models-via-inference-time-self-reflective-memory)  
+   evidence：用于融合图文嵌入的多模态径向对比学习
+8. [PCA-Seg: Revisiting Cost Aggregation for Open-Vocabulary Semantic and Part Segmentation](/202603/25/2603.17520v1-pca-seg-revisiting-cost-aggregation-for-open-vocabulary-semantic-and-part-segmentation)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：多模态大模型的上下文安全评估
-9. [Diffusion-Guided Semantic Consistency for Multimodal Heterogeneity](/202603/24/2603.19337v1-diffusion-guided-semantic-consistency-for-multimodal-heterogeneity)  
+   evidence：开放词汇分割中的视觉语言对齐
+9. [Semantic One-Dimensional Tokenizer for Image Reconstruction and Generation](/202603/25/2603.16373v1-semantic-one-dimensional-tokenizer-for-image-reconstruction-and-generation)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：多模态异构性与语义表示
-10. [ROI-Driven Foveated Attention for Unified Egocentric Representations in Vision-Language-Action Systems](/202603/24/2603.20668v1-roi-driven-foveated-attention-for-unified-egocentric-representations-in-vision-language-action-systems)  
+   evidence：用于多模态对齐和表示的视觉标记化
+10. [V-DyKnow: A Dynamic Benchmark for Time-Sensitive Knowledge in Vision Language Models](/202603/25/2603.16581v1-v-dyknow-a-dynamic-benchmark-for-time-sensitive-knowledge-in-vision-language-models)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：VLA系统中的统一第一视角表示
-11. [PEARL: Geometry Aligns Semantics for Training-Free Open-Vocabulary Semantic Segmentation](/202603/24/2603.21528v1-pearl-geometry-aligns-semantics-for-training-free-open-vocabulary-semantic-segmentation)  
+   evidence：评估视觉语言模型中时效性事实知识的基准
+11. [HMAR: Hierarchical Modality-Aware Expert and Dynamic Routing Medical Image Retrieval Architecture](/202603/25/2603.16679v1-hmar-hierarchical-modality-aware-expert-and-dynamic-routing-medical-image-retrieval-architecture)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：开放词汇语义分割中的跨模态几何
+   evidence：分层模态感知专家与图像检索
 
 
 <div class="dpr-home-promo-card">

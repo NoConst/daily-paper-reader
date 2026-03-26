@@ -1,0 +1,358 @@
+Title: 2603.18184v1.pdf
+
+URL Source: https://arxiv.org/pdf/2603.18184v1
+
+Published Time: Fri, 20 Mar 2026 00:11:15 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# CWoMP: Morpheme Representation Learning for Interlinear Glossing 
+
+Morris Alper *1 Enora Rice *2 Bhargav Shandilya *2 Alexis Palmer 2 Lori Levin 1 
+
+> *Equal contribution 1
+
+Carnegie Mellon University 2University of Colorado Boulder 
+
+https://cwomp.github.io 
+
+Abstract 
+
+Interlinear glossed text (IGT) is a standard notation for language documentation which is linguistically rich but laborious to produce manually. Recent automated IGT methods treat glosses as character sequences, neglect-ing their compositional structure. We pro-pose CWoMP (Contrastive Word-Morpheme Pre-training) , which instead treats morphemes as atomic form-meaning units with learned rep-resentations. A contrastively trained encoder aligns words-in-context with their constituent morphemes in a shared embedding space; an autoregressive decoder then generates the mor-pheme sequence by retrieving entries from a mutable lexicon of these embeddings. Pre-dictions are interpretable–grounded in lexicon entries–and users can improve results at infer-ence time by expanding the lexicon without re-training. We evaluate on diverse low-resource languages, showing that CWoMP outperforms existing methods while being significantly more efficient, with particularly strong gains in ex-tremely low-resource settings. 
+
+1 Introduction 
+
+While thousands of languages are spoken in the world, the majority are at risk of language loss —ceasing to be passed on to future generations (Pine and Turin, 2017). As global language diversity dwindles, language documentation is increasingly important to preserve minority languages, aid revi-talization efforts, and keep a scientific record for posterity (Seifart et al., 2018). A common form of linguistic annotation used in language documentation is interlinear glossed text (IGT) , a format which illustrates the internal struc-ture of words and encodes the functional and lexical meanings of their constituent morphemes. In this work, we define each such morpheme as a paired segment and gloss —that is, a form-meaning unit 
+
+(see Section 2). 
+
+Figure 1: CWoMP predicts key components of IGT by retrieving morpheme entries from a mutable lexicon of learned representations (green morpheme embeddings are selected). Compared to approaches that generate un-constrained text, our method’s outputs are interpretable and can be refined at inference time by adding lexicon entries without retraining. In the example shown above, a Tsez word meaning Don’t be afraid is split by CWoMP into constituent morphemes. 
+
+Though IGT is widely used in language documen-tation, producing it is time-consuming, motivating growing interest in automated glossing (Ginn et al., 2024c). So far, existing systems have seen limited adoption due to a disconnect between research out-put and practical needs of field linguists (Gessler, 2022; Rice et al., 2025). To address some of these needs, we propose a novel system, CWoMP (Con-trastive Word-Morpheme Pretraining , see Figure 1). CWoMP takes unsegmented transcriptions as in-put and jointly predicts morphological segmenta-tion and glosses. A contrastively trained encoder aligns words and their constituent units in a shared embedding space, producing a discrete codebook of morpheme segments and their glosses. An au-toregressive decoder then generates the morpheme sequence for each target word by retrieving entries from this codebook. This system offers several unique advantages: (A) Because predictions are constrained to code-book entries, they are free of hallucinated mor-pheme types by design. (B) Each entry contains both a segment and a gloss, guaranteeing that the number of glosses is equal to the number of morphemic seg-1ments. (C) The codebook is extensible at inference time : users can add new morphemes to handle un-seen vocabulary without retraining. (D) Predictions are interpretable as they are grounded in a known lexicon and their embeddings reflect morphology via geometric relations. (E) By using meaningful representations for morphology, our method is sig-nificantly more data- and compute-efficient than prior SOTA. Our experiments on seven typologically diverse low-resource languages (Section 4.1) show that CWoMP outperforms existing SOTAs at automatic IGT generation, with particularly large gains in ex-tremely low-resource settings—the scenario most relevant for field linguists. Performance consistently improves when the codebook is expanded at infer-ence time, validating the practical workflow of re-fining outputs without retraining. CWoMP also achieves these results with significantly lower com-putational cost than prior approaches. We release our code and trained models at our project page 1.
+
+2 Background – Interlinear Glossed text 
+
+IGT is a structured linguistic annotation format that aligns text in a target language to labels describing the meanings and grammatical properties of individ-ual morphemes. A typical IGT instance consists of a transcription, segmentation, gloss, and translation, as in the following Tsez example (Abdulaev and Ab-dullaev, 2010):  
+
+> (1) T’ay t’ay from.here rił rił butter łu łu who.ERG ragäƛin r-IV-agi lick -a -Q -ƛin -QUOT “Who licked the butter out of it?”
+
+The second line (segmentation tier) segments words at morpheme boundaries (marked by hy-phens). The third line (gloss tier) glosses each seg-ment: grammatical labels appear in capitals (e.g., ERG), lexical meanings in lowercase (e.g., butter), and periods indicate fusional morphemes carrying multiple functions. These conventions follow the Leipzig glossing rules (Lehmann, 1982). We note that there are multiple conventions for segmentation due to the fact that morphemes often change form in context—e.g., English leaf with the plural suffix -s becomes leaves . This could be seg-mented as leave-s (surface segmentation, preserving the form as written) or leaf-s (underlying segmen-tation, also called canonical segmentation). In our 
+
+> 1https://cwomp.github.io
+
+results (Section 4.3) we discuss how segmentation type may have downstream effects on our method. Beyond analyzing individual sentences, a collec-tion of IGT preserves a systematic record of a lan-guage, encoding (e.g.) morphotactics, morphosyn-tactic strategies, and vocabulary. In addition to lan-guage documentation, it is also the standard nota-tion in linguistic scholarship, precisely because it makes so much of a language’s structure explicit. Automatic IGT generation must address several challenges that motivate our method. Allomorphy: 
+
+morphemes change form in context, requiring flex-ible mappings between surface text and underly-ing forms. Out-of-Vocabulary (OOV) morphemes: 
+
+training data rarely covers the full inventory of morphemes encountered in practice. Hallucination: 
+
+spurious morpheme types are especially harmful for endangered languages, where uncaught errors may propagate. Contextual disambiguation: homo-graphs like English bears may require different anal-yses (bear-PL vs. bear-3SG) depending on context. Finally, documentary linguists need interpretable, refinable predictions that work in extremely low-resource settings. CWoMP is designed to address each of these challenges, as outlined in Section 1. 
+
+3 Method 
+
+Here, we introduce the CWoMP system for gloss generation. We begin with preliminary definitions and prompt formats (Section 3.1), then describe the two stages of CWoMP: contrastive pretraining of morpheme representations (Section 3.2), followed by autoregressive decoding over the resulting lexi-con (Section 3.3). Further implementation details are provided in the appendix. 
+
+3.1 Preliminaries 
+
+Let W denote the vocabulary of words-in-context :structured inputs that couple each target word with a transcription of the context in which it appears and corresponding translation (see Example 2). Let 
+
+M denote the candidate pool of morphemes . Each word w ∈ W corresponds to ground truth IGT rep-resentation Gw = ( m1, m 2, · · · , m k) where each 
+
+mi = ( si, g i) ∈ M is a morpheme with segment 
+
+si and gloss gi (both strings). Note that w and si
+
+are both in the target language, while gi is gloss text in a language of wider communication, includ-ing grammatical labels. We also define the bag-of-morphemes (BoM) representation of a word w as the unordered set Bw = {m1, · · · , m k}.2Figure 2: BoM Encoder. This dual encoder learns to embed words and morphemes in a shared space via con-trastive learning. The distance between the embedding of a word w and the embeddings of its constituent mor-phemes (shown in green) is minimized, while the dis-tance between w and all other morphemes is maximized. Above, S(wi, m j ) denotes the cosine similarity between encodings of the i-th word and j-th morpheme. 
+
+A concrete example of these definitions is given below, using a word in the context of Example 1: 
+
+w = ragäƛin (+ context) 
+
+Gw = (( r, IV )
+
+︸ ︷︷ ︸ 
+
+> m1
+
+, ( agi 
+
+︸︷︷︸ 
+
+> s2
+
+, lick ︸︷︷︸ 
+
+> g2
+
+), (a, Q), (in , QUOT )) 
+
+Bw = {m1, m 2, m 3, m 4} (unordered) 
+
+In practice, words-in-context and morphemes are represented by prompt strings that are converted into embeddings by the BoM encoder. Schematic examples of these strings are shown below: (2) w: “ ........ ragäƛin | Context: .... T’ay .... rił ... łu .......... ragäƛin? | Translation: Who licked the butter out of it?” 
+
+m: “ .... ƛin | Gloss: QUOT” Text with ....... dotted ............ underlines has spaces inserted between characters—forcing character-level tok-enization to avoid subword tokenization artifacts. We also include sentential context which may ben-efit glossing (Zhao et al., 2020; Ginn et al., 2023). We ablate these design choices in the appendix. 
+
+3.2 BoM Encoder 
+
+In order to learn meaningful representations of words and morphemes, we use an inclusion objec-tive: Given word-in-context w and morpheme m,the goal is to determine whether m ∈ Bw, where 
+
+Bw is the BoM representation described above. We employ a dual encoder architecture (Figure 2) that learns embedding functions pθ : W → Rn and 
+
+qθ : M → Rn, mapping words-in-context and mor-phemes into a shared latent space. Both use a single string encoder—a transformer with shared weights 
+
+θ, initialized from a pretrained multilingual text en-coder. These encoders apply L2 normalization to their outputs, and the similarity between a word-in-context and morpheme is given by their dot-product similarity S(w, m ) = pθ(w) · qθ(m). Intuitively, this similarity should be high for morphemes con-tained in the target word and low otherwise. We train with a multi-positive variant of the In-foNCE loss (Oord et al., 2018) using in-batch neg-atives. For a batch of B word–morpheme pairs 
+
+{(wi, m i)}Bi=1 , each sample pairs a word-in-context with one of its constituent morphemes (randomly chosen), so (wi, m i) are positive matches for each i.In standard InfoNCE, all other in-batch morphemes are treated as implicit negatives. However, since words share morphemes—e.g., the same grammat-ical affix may appear in multiple words—other in-batch morphemes may also be valid positives for a given query. Naively treating these as negatives pe-nalizes the model for correctly recognizing shared morphemes (hurting performance; see ablations in appendix). We address this by identifying all valid positive pairs within each batch and averaging over them, normalizing per query to prevent those with more in-batch positives from dominating the gradi-ent. The loss is thus given by 
+
+L(θ) = −1
+
+B
+
+> B
+
+∑
+
+> i=1
+
+1
+
+|P i|
+
+∑
+
+> p∈P i
+
+log eS(wi,m p)/ τ
+
+∑Bj=1 eS(wi,m j )/ τ ,
+
+where Pi is the set of valid in-batch positives for query wi and τ is a learnable temperature parameter. When |P i| = 1 this reduces to standard InfoNCE. 
+
+3.3 IGT Decoder 
+
+Given a query word-in-context w, the decoder (Fig-ure 3) autoregressively generates a sequence of em-beddings, each matched to its nearest neighbor in a precomputed lexicon of morpheme embeddings produced by the frozen BoM encoder. The code-book contains entries for all morphemes observed during training, plus a special [EOS] token. Impor-tantly, this means the decoder is constrained to se-lect from these morpheme entries and cannot hallu-cinate unseen morpheme types. The decoder is run independently per word and generates the within-word morpheme sequence (e.g., stem+affixes), with sentential context provided as conditioning informa-tion via the input word representation. 3Figure 3: IGT Decoder. To predict IGT, CWoMP autoregressively predicts morphemes as form-meaning units, conditioned on an input word. The pretrained BoM encoder is frozen (lock symbol) and used offline to cache embeddings of all lexicon morphemes. During in-ference, the word-in-context to be glossed is encoded and passed autoregressively through the IGT decoder; at each step, the latter outputs an embedding which is matched (magnifying glass symbol) to its nearest neighbor in the lexicon, whose encoding is fed back into the decoder. 
+
+The decoder is a lightweight autoregressive trans-former. Its input consists of the word-in-context embedding qθ(w) (including sentential context) fol-lowed by the embeddings of previously generated morphemes (during training, ground truth embed-dings via teacher forcing, preceded by a [BOS] to-ken). Inputs are projected to the model’s hidden di-mension dmodel with sinusoidal positional encoding. At each decoding step j, the model’s hidden state 
+
+hj is projected to dmodel and scored against all code-book entries via dot-product similarity: logits j = hj · V ⊤
+
+> emb
+
+/κ
+
+where Vemb is the matrix of precomputed mor-pheme embeddings and κ is a temperature param-eter learned jointly with the decoder. These logits are used for standard beam search decoding. 
+
+4 Experiments and Results 
+
+We first discuss our experimental setup, including baselines and evaluation methodology (Sections 4.1 and 4.2). We then present our results on gloss gener-ation (Section 4.3) and segmentation (Section 4.4). Finally, we analyze our method’s data and compute efficiency (Sections 4.5 and 4.6) and interpretability of learned embeddings (Section 4.7). Further de-tails and results including ablations and morpheme retrieval evaluation are provided in the appendix. 
+
+4.1 Experimental Setup Architecture and Training. For our dual encoder model, we initialize a pretrained LaBSE (Feng et al., 2022) transformer model, using shared weights for the word and morpheme encoders. Our autoregressive decoder is com-posed of four transformer blocks and is randomly initialized. 
+
+Data. Data comes from the SIGMORPHON 2023 shared task on IGT Interlinear Glossing (Ginn, 2023). All languages include translations except for Nyangbo; these are in Spanish for Uspanteko and English for other languages. Results are calculated on each language’s respective test set. Dataset sizes are reported in Table 1. Language Train Dev Test Gitksan (git) 31 42 37 Lezgi (lez) 701 88 87 Natugu (ntu) 791 99 99 Nyangbo (nyb) 2,100 263 263 Tsez (ddo) 3,558 445 445 Uspanteko (usp) 9,774 232 633 Arapaho (arp) 39,501 4,938 4,892 
+
+> Table 1: Dataset Size Statistics
+
+Baselines. We compare to the leading model for gloss generation: GlossLM (Ginn et al., 2023) treats gloss generation as a character-level sequence-to-sequence task, additionally benefiting from cross-lingual transfer learning. Specifically, we compare our model to GlossLM UNSEG, FT , a setting where GlossLM is trained on unsegmented input and fine-tuned on task data in the target language. GlossLM is not trained with explicit segmenta-tion supervision, despite the presence of a segmen-tation tier in the SIGMORPHON data. Although there is a version of GlossLM (GlossLM ALL ) that predicts the gloss tier from pre-segmented inputs, this task is substantially less challenging than ours and fails to map onto realistic documentation work-flows (Rice et al., 2025). Unlike these baselines, CWoMP is capable of effectively using both seg-mentation and gloss tiers as training supervision, while during inference, it receives only an unseg-mented transcription and simultaneously predicts 
+
+both the segmentation and the gloss. In the appendix, we also provide a comparison to the concurrent glossing model of Ginn et al. (2026), whose reported results use a different data split. 
+
+Metrics. Our primary evaluation metric is Mor-pheme Error Rate (MER) . Following Ginn et al. 4Figure 4: Improvement over baseline . We report Morpheme Error Rate ( ↓) for glossing for CWoMP (ours) and the leading prior method GlossLM. CWoMP performs competitively or outperforms GlossLM for most languages, with a substantial boost in the extended lexicon setting. We analyze factors impacting Uspanteko performance in Section 4.3. 
+
+(2026), this is defined as follows: given respec-tive ground truth and predicted glosses G =(g1, · · · , g n) and G′ = ( g′
+
+> 1
+
+, · · · , g ′
+
+> m
+
+) of an entire utterance, MER is calculated as the Levenshtein dis-tance between these sequences, treating each gloss symbol as an atomic unit. Thus MER is equal to 0
+
+if and only if G = G′, and reflects insertion, dele-tion, and substitution of gloss symbols, analogous to word and character error rate metrics standard for tasks such as automatic speech recognition and ma-chine translation. We calculate MER identically for the segmentation tier, treating segments rather than gloss symbols as atomic units. We report additional metrics used in prior works in the appendix. 
+
+4.2 Mutable Lexicon Evaluation 
+
+In a realistic linguistic annotation scenario, a user may wish to expand the lexicon of recognized mor-phemes at inference time without additional model training. This is particularly pressing when consid-ering field linguist users who may not be experts in model training but desire an interpretable method for improving model outputs. The mutable mor-pheme lexicon of CWoMP allows us to propose a new framework for testing this setting by expand-ing the lexicon to include ground truth morphemes unseen during training. In particular, for all experiments we report met-rics in two settings: 1. Train Lexicon: The set of retrievable mor-phemes consists only of those seen during training. OOV morphemes are matched to their nearest neighbor in the training lexicon, which may result in incorrect substitutions. 2. Extended Lexicon: Ground truth morphemes from the evaluation split (dev or test) are also included in the set over which retrieval is per-formed. The first setting strictly precludes data leakage from evaluation sets, while the second setting ap-proximates results in a dynamic setting with a user noticing that a certain morpheme is never predicted and adding it to the lexicon without retraining. Note that the extended setting adds only mor-pheme entries to the lexicon–model weights are un-changed, and no training signal is derived from eval-5uation data. While this is an oracle setting that as-sumes knowledge of which morphemes are missing, it simulates the realistic workflow of a linguist man-ually expanding a lexicon and is analogous to adding entries to a dictionary used by a retrieval system. 
+
+4.3 Gloss Generation Task Description. In this task, we predict glosses from sentence transcriptions and translations, re-porting the metrics defined in Section 4.1. 
+
+Results. The results of our final configuration and corresponding baselines on glossing are shown in Figure 4, with languages sorted in ascending or-der of training data quantity (values in Section 4.1). These results show that CWoMP mostly achieves competitive or superior performance across lan-guages, with consistent improvements in the ex-tended lexicon setting. Gains are particularly pro-nounced for mid- to low-resource languages: on Lezgi, CWoMP reduces MER from 0.26 to 0.14– 0.19 (extended vs. train vocab), and on Gitksan– with only 31 training examples–the extended vo-cabulary setting reduces MER from 0.68 to 0.54. CWoMP also improves performance on the highest-resource language (Arapaho), while for Tsez, our results are within 0.01 MER of GlossLM. No-tably, CWoMP achieves these results using only IGT training data from the single language under consideration, while GlossLM benefits from pre-training on external multilingual glossed data (al-though both methods incorporate multilingual foun-dation models—LaBSE and ByT5, respectively). The only language where CWoMP underper-forms is Uspanteko, which corresponds to a key qualitative observation—in the SIGMORPHON 2023 dataset, the Uspanteko data shows large vari-ation in attested forms of morphemes. For exam-ple, the morpheme gloss abuela (Spanish for grand-mother ) is attested with segment tiit’ in the train set and tit’ in the test set; the latter is thus not correctly predicted. Frequent variations in morpheme forms are common in real-world IGT datasets, stemming from speaker variation and words that can be spelled in multiple ways, as well as speech errors and tran-scription errors—highlighting our method’s trade-off between performance in low-data settings and sensitivity to consistency of morpheme annotations. In all cases the extended lexicon setting outper-forms the train lexicon setting, suggesting that many errors in the latter stem from morphemes that can-not be predicted because they are unattested in the training data. As such, the mean proportion of OOV morphemes per sentence should quantify the por-tion of MER that is structurally unrecoverable with-out lexicon expansion. We compare this OOV rate and MER gain from lexicon expansion in Table 2:                     
+
+> arp usp ddo git lez ntu nyb
+> pOOV .043 .069 .007 .446 .064 .042 .021
+> ∆MER .035 .040 .003 .133 .047 .034 .018
+> Table 2: Per-sentence proportion of OOV morphemes per language ( pOOV ) and MER gain in the expanded lex-icon setting ( ∆MER ). Language codes follow Table 1.
+
+Overall, trends in these values broadly corre-spond, with the largest mismatch being for the lowest-resource language (Gitksan, with only 31 train samples) where prediction is harder overall due to limited training data. We also provide qualitative examples (appendix) showing cases where baseline methods halluci-nate morphemes unattested in training data, while CWoMP is constrained to select from its lexicon. 
+
+4.4 Segmentation Task Description. In addition to glossing, our model jointly predicts morphological segmentation from sentence transcripts and translations.                     
+
+> arp usp ddo git lez ntu nyb ByT5 0.08 0.15 0.04 0.98 0.27 0.09 0.03 CWoMP (Train) 0.11 0.21 0.03 0.71 0.16 0.14 0.04 CWoMP (Extended) 0.07 0.17 0.02 0.57 0.11 0.10 0.02
+> Table 3: Morpheme Error Rate ( ↓) for segmentation .Best results are in bold and second-best underlined.
+
+Results. We compare against a ByT5 (Xue et al., 2022) baseline finetuned on monolingual segmen-tation for each language in our test set. Table 3 shows that CWoMP demonstrates strong perfor-mance, particularly in the extended lexicon setting, outperforming the baseline for most languages. A major advantage of CWoMP is its guaran-teed alignment between morpheme segments and glosses, directly addressing the crucial usability is-sue identified by Rice et al. (2025) of misalignments in prior methods. Because CWoMP is constrained to retrieve attested segment/gloss pairs, it inherently cannot generate spurious pairings or mismatched numbers of segments and glosses. 6Figure 5: CWoMP outperforms finetuned Byt5 in low-resource training scenarios. Morpheme Error Rate ∆ (ByT5 - CWoMP) for glossing as a function of number of training samples. Results are reported as the mean of 3 runs using independent random subsets. 
+
+4.5 Effect of Training Set Size 
+
+To evaluate how CWoMP scales with available data, we measure MER as a function of training set size. We compare against a finetuned ByT5 baseline, representative of the character-level sequence-to-sequence paradigm used in prior work (Ginn et al., 2024c). We use fixed hyperparameters across all data subsets to isolate the effect of training set size. Results are shown in Figure 5. Compared to the baseline, CWoMP performs noticeably better in the lowest-resource settings, with the gap narrowing as more data becomes available. This corresponds to the extremely resource-constrained language docu-mentation setting where our method is most needed. 
+
+4.6 Computational Footprint 
+
+We compare the computational efficiency of our model against the previous SOTA—the ByT5-based GlossLM model. CWoMP has ∼1.2x fewer parameters (485M vs. 582M; counting both en-coder and decoder) while requiring ∼8.5x fewer floating point operations (FLOPs) per sentence at inference time. This extreme gain in efficiency rela-tive to the moderate reduction in parameters reflects our two-stage system. In standard autoregressive generation with GlossLM, the ByT5 decoder con-tributes to a majority ( ∼58%) of the total FLOPs in a typical generation, which scales with output length in bytes. On the other hand, CWoMP’s small IGT decoder performs minimal computation, as each output is an entire morpheme; consequently, ∼88%    
+
+> Figure 6: Morphological analogies in Tsez word em-bedding space, visualised via PCA. Points in the em-bedding space represent embeddings of Tsez words, cal-culated by CWoMP’s BoM encoder. Each arrow con-nects two inflected forms of a common stem, point-ing from the source to the target morphological form. The four colors represent four morphological transfor-mations. Parallel arrows of the same color indicate that the difference vector between two inflected forms of a common stem is consistent across stems, suggesting lin-ear morphological structure in the embedding space.
+
+of CWoMP’s FLOPs are performed by the much larger BoM encoder—as the word being glossed must be embedded online before decoding. Over-all, CWoMP performs less computation by avoid-ing ByT5’s byte-level decoding bottleneck. Impor-tantly, this comparison does not include the pre-computation of our codebook of morpheme embed-dings used for inference-time retrieval, which can be calculated and cached offline. For FLOP com-putation details, see Appendix A.4. 
+
+4.7 Embedding Interpretability 
+
+A key advantage of CWoMP over seq2seq base-lines is that its predictions are grounded in a learned embedding space where words and morphemes have explicit geometric relationships. We examine whether these capture meaningful linguistic struc-ture by testing for morphological analogies in the learned space, as shown in Figure 6. As a concrete example, consider the Tsez word aždaħqay (segmentation aždaħ-qay , gloss 
+
+aždaħ-POSS.ABL , translation "from aždaħ's" ). Its nearest neighbors in the embedding space in-clude other inflected forms of the same stem, like 
+
+aždaħqor (similarity: 0.82) and aždaħz (similar-ity: 0.80), suggesting that morphological structure is represented geometrically. Moreover, the em-bedding space supports word2vec-style (Mikolov et al., 2013) morphological analogies in line with Ginn and Palmer (2024): the difference vectors 7are consistent across stems, such that aždaħqay −
+
+aždaħqor ≈ babiwqay − babiwqor ≈ baruqay −
+
+baruqor . This holds across all 20 stem pairs in the POSS.ABL to POSS.LAT transformation group, with a mean pairwise cosine similarity of 0.79 be-tween difference vectors. This same structure holds for other transformation groups—three of which are shown in Figure 6, with mean cosine similarities ranging from 0.70 to 0.79. 
+
+5 Related Work 
+
+Automated Glossing. Initial automated gloss-ing systems used rule-based and statistical ap-proaches (Palmer et al., 2009; Bender et al., 2014; Moeller and Hulden, 2018), while recent works have largely adopted neural methods, spurred by the SIGMORPHON 2023 shared task (Ginn et al., 2023). Most of the latter frame glossing as a sequence-to-sequence (seq2seq) task, predicting gloss strings learned via fine-tuning (Ginn et al., 2024c; He et al., 2024) or in-context learning (Ginn et al., 2024a,b). Unlike these systems that gener-ate character or subword sequences, we leverage the morphological structure of the target language by learning and predicting sequences of morpheme-level representations. This prevents hallucination of unattested morpheme types and enables system up-dates at inference time without retraining. 
+
+Representation Learning. CWoMP draws on methods that align different views of data in shared embedding spaces via intra-modal similar-ity (Reimers and Gurevych, 2019; Feng et al., 2022) or cross-modal matching (Radford et al., 2021). While these typically use semantic similarity or align modalities such as text and vision, we adapt a similar dual encoder architecture and treat word in context and morphemes as parallel modalities. Our learned morpheme embeddings also relate to work on distributional models of derivational mor-phology (Lazaridou et al., 2013; Kisselew et al., 2015), which showed that morphological composi-tion can be modeled geometrically in embedding space. Recent work has shown that transformer em-beddings capture compositional structure of com-pound words (Nagar et al., 2025). Most closely re-lated to our approach, Chanchani and Huang (2023) maximize alignment between sentences and compo-sitions of their phrasal constituents. Our approach differs from these prior works in learning mor-pheme representations via an explicit contrastive inclusion objective rather than analyzing emergent properties of pretrained embeddings. 
+
+Generation in Learned Embedding Spaces. 
+
+Our autoregressive decoding of learned mor-pheme embeddings connects to two lines of work. Codebook-based generative models (Van Den Oord et al., 2017; Wang et al., 2023) learn discrete representations for autoregressive generation of continuous modalities such as images and audio. GIVT (Tschannen et al., 2024) extends this to continuous-valued outputs, more similar to the con-tinuous outputs of our decoder. Generative retrieval models (Rajput et al., 2023; Li et al., 2025) gener-ate token sequences that identify items to retrieve. Among these, SimCIT (Zhai et al., 2025) is most similar to us in using contrastively-learned cross-modal representations as tokens. Our setting differs from both of these directions: we operate on linguis-tically meaningful discrete units, each decoder out-put independently selects a morpheme rather than contributing to a composite identifier; and the lexi-con can be expanded at inference time, unlike the fixed codebooks of prior approaches. We also differ from retrieval-augmented genera-tion (RAG) approaches (Lewis et al., 2020) that re-trieve items with learned embeddings to condition a downstream generator. By contrast, CWoMP in-tegrates retrieval directly into the generation mecha-nism, selecting an entry from the morpheme lexicon at each step. This is conceptually related to pointer networks (Vinyals et al., 2015) which use output em-beddings to select from a dynamic set. However, our method selects from an external, learned muta-ble lexicon rather than from the input sequence. 
+
+6 Conclusion 
+
+We present CWoMP, a retrieval-based system for morphological glossing and segmentation. Our re-sults demonstrate strong performance over existing gloss generation models, while providing several user-centric benefits: outputs are free of halluci-nated morpheme types, segmentation and glossing are inherently aligned, and the morpheme lexicon is extensible at inference time without retraining. In the future, we will investigate how CWoMP might support real users through human-in-the-loop documentary linguistic workflows. Other directions include incorporating additional linguistic resources such as dictionaries, formal grammars, and cross-lingual data (Tanzer et al., 2023; Zhang et al., 2024; Shandilya and Palmer, 2025). 8Limitations 
+
+Our method has several inherent limitations. We assume that IGT is formatted in two corresponding tiers (segmentation and gloss) with equal numbers of units separated by hyphens. While prior meth-ods learn from glosses alone, CWoMP also uses seg-mentation as supervision; while this enables leverag-ing this additional signal for training, it also limits the method’s applicability to settings where under-lying segmentation is available. CWoMP may be sensitive to inconsistent morpheme annotations or use of surface segmentation with substantial varia-tion in morpheme forms, as discussed in Section 4.3. We have also not yet included conventions such as clitics separated by the = symbol, which future work could address. While CWoMP is more con-strained and interpretable than methods that gen-erate glosses as free text, it is also limited in be-ing unable to generate forms of new morphemes that are not present in the lexicon (unless it is ex-tended with these forms). While we test perfor-mance on diverse languages with different typolo-gies, further work could explore its performance on languages with additional typological features that are under-represented in the SIGMORPHON 2023 dataset, such as extensive non-concatenative mor-phology. Finally, as with other generative applica-tions of machine learning, care must be taken to vali-date outputs of our system with expert speakers and linguists, to avoid propagating incorrect language materials for endangered languages. 
+
+References 
+
+A. K. Abdulaev and I. K. Abdullaev, editors. 2010. 
+
+Cezyas folklor / Dido (Tsez) folklore / Didojskij (cezskij) fol’klor . Lotos, Leipzig–Makhachkala. Emily M Bender, Joshua Crowgey, Michael Wayne Goodman, and Fei Xia. 2014. Learning grammar specifications from igt: A case study of chintang. In 
+
+Proceedings of the 2014 Workshop on the Use of Com-putational Methods in the Study of Endangered Lan-guages , pages 43–53. Sachin Chanchani and Ruihong Huang. 2023. Composition-contrastive learning for sentence embeddings. In Proceedings of the 61st Annual Meet-ing of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 15836–15848. Jonathan H Clark, Dan Garrette, Iulia Turc, and John Wieting. 2022. Canine: Pre-training an efficient tokenization-free encoder for language representation. 
+
+Transactions of the Association for Computational Lin-guistics , 10:73–91. Kingma Diederik. 2014. Adam: A method for stochastic optimization. (No Title) .Fangxiaoyu Feng, Yinfei Yang, Daniel Cer, Naveen Ari-vazhagan, and Wei Wang. 2022. Language-agnostic BERT sentence embedding. In Proceedings of the 60th Annual Meeting of the Association for Compu-tational Linguistics (Volume 1: Long Papers) , pages 878–891, Dublin, Ireland. Association for Computa-tional Linguistics. Luke Gessler. 2022. Closing the NLP gap: Documen-tary linguistics and NLP need a shared software in-frastructure. In Proceedings of the Fifth Workshop on the Use of Computational Methods in the Study of En-dangered Languages , pages 119–126, Dublin, Ireland. Association for Computational Linguistics. Michael Ginn. 2023. Sigmorphon 2023 shared task of interlinear glossing: Baseline model. Preprint ,arXiv:2303.14234. Michael Ginn, Mans Hulden, and Alexis Palmer. 2024a. Can we teach language models to gloss endangered languages? In Findings of the Association for Compu-tational Linguistics: EMNLP 2024 , pages 5861–5876. Michael Ginn, Ali Marashian, Bhargav Shandilya, Claire Post, Enora Rice, Juan Vásquez, Marie Mcgregor, Matthew Buchholz, Mans Hulden, and Alexis Palmer. 2024b. On the robustness of neural models for full sentence transformation. In Proceedings of the 4th Workshop on Natural Language Processing for Indige-nous Languages of the Americas (AmericasNLP 2024) ,pages 159–173. Michael Ginn, Sarah Moeller, Alexis Palmer, Anna Stacey, Garrett Nicolai, Mans Hulden, and Miikka Silfverberg. 2023. Findings of the SIGMORPHON 2023 shared task on interlinear glossing. In Proceed-ings of the 20th SIGMORPHON workshop on Compu-tational Research in Phonetics, Phonology, and Mor-phology , pages 186–201, Toronto, Canada. Associa-tion for Computational Linguistics. Michael Ginn and Alexis Palmer. 2024. Decomposing fusional morphemes with vector embeddings. In Pro-ceedings of the 21st SIGMORPHON workshop on Com-putational Research in Phonetics, Phonology, and Mor-phology , pages 57–66, Mexico City, Mexico. Associ-ation for Computational Linguistics. Michael Ginn, Lindia Tjuatja, Taiqi He, Enora Rice, Gra-ham Neubig, Alexis Palmer, and Lori Levin. 2024c. GlossLM: Multilingual pretraining for low-resource interlinear glossing. Preprint , arXiv:2403.06399. Michael Ginn, Lindia Tjuatja, Enora Rice, Ali Marashian, Maria Valentini, Jasmine Xu, Graham Neubig, and Alexis Palmer. 2026. Massively mul-tilingual joint segmentation and glossing. Preprint ,arXiv:2601.10925. Taiqi He, Kwanghee Choi, Lindia Tjuatja, Nathaniel Robinson, Jiatong Shi, Shinji Watanabe, Graham Neubig, David R Mortensen, and Lori Levin. 2024. 
+
+9Wav2gloss: Generating interlinear glossed text from speech. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Vol-ume 1: Long Papers) , pages 568–582. Max Kisselew, Sebastian Padó, Alexis Palmer, and Jan Šnajder. 2015. Obtaining a better understanding of distributional models of german derivational morphol-ogy. In Proceedings of the 11th international confer-ence on computational semantics , pages 58–63. Angeliki Lazaridou, Marco Marelli, Roberto Zamparelli, and Marco Baroni. 2013. Compositional-ly derived representations of morphologically complex words in distributional semantics. In Proceedings of the 51st annual meeting of the association for computational linguistics (volume 1: Long papers) , pages 1517–1526. Christian Lehmann. 1982. Directions for interlinear morphemic translations. 16(1–4):199–224. Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Tim Rock-täschel, and 1 others. 2020. Retrieval-augmented gen-eration for knowledge-intensive nlp tasks. Advances in neural information processing systems , 33:9459– 9474. Xiaoxi Li, Jiajie Jin, Yujia Zhou, Yuyao Zhang, Peitian Zhang, Yutao Zhu, and Zhicheng Dou. 2025. From matching to generation: A survey on generative infor-mation retrieval. ACM Transactions on Information Systems , 43(3):1–62. Manuel Mager, Özlem Çetinoğlu, and Katharina Kann. 2020. Tackling the low-resource challenge for canon-ical segmentation. In Proceedings of the 2020 Confer-ence on Empirical Methods in Natural Language Pro-cessing (EMNLP) , pages 5237–5250, Online. Associ-ation for Computational Linguistics. Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean. 2013. Efficient estimation of word representa-tions in vector space. Preprint , arXiv:1301.3781. Sarah Moeller and Mans Hulden. 2018. Automatic gloss-ing in a low-resource setting for language documen-tation. In Proceedings of the Workshop on Computa-tional Modeling of Polysynthetic Languages , pages 84– 93. Aishik Nagar, Ishaan Singh Rawal, Mansi Dhanania, and Cheston Tan. 2025. How do transformer embeddings represent compositions? a functional analysis. In 
+
+Findings of the Association for Computational Linguis-tics: ACL 2025 , pages 21444–21461. Aaron van den Oord, Yazhe Li, and Oriol Vinyals. 2018. Representation learning with contrastive predictive coding. arXiv preprint arXiv:1807.03748 .Alexis Palmer, Taesun Moon, and Jason Baldridge. 2009. Evaluating automation strategies in language docu-mentation. In Proceedings of the NAACL HLT 2009 Workshop on Active Learning for Natural Language Processing , pages 36–44. Aidan Pine and Mark Turin. 2017. Language revitaliza-tion. Oxford research encyclopedia of linguistics .Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sas-try, Amanda Askell, Pamela Mishkin, Jack Clark, and 1 others. 2021. Learning transferable visual models from natural language supervision. In International conference on machine learning , pages 8748–8763. PmLR. Shashank Rajput, Nikhil Mehta, Anima Singh, Raghu-nandan Hulikal Keshavan, Trung Vu, Lukasz Heldt, Lichan Hong, Yi Tay, Vinh Tran, Jonah Samost, and 1 others. 2023. Recommender systems with generative retrieval. Advances in Neural Information Processing Systems , 36:10299–10315. Nils Reimers and Iryna Gurevych. 2019. Sentence-bert: Sentence embeddings using siamese bert-networks. In Proceedings of the 2019 conference on empirical methods in natural language processing and the 9th in-ternational joint conference on natural language pro-cessing (EMNLP-IJCNLP) , pages 3982–3992. Enora Rice, Katharina von der Wense, and Alexis Palmer. 2025. Interdisciplinary research in conver-sation: A case study in computational morphology for language documentation. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , pages 11284–11296. Frank Seifart, Nicholas Evans, Harald Hammarström, and Stephen C Levinson. 2018. Language documen-tation twenty-five years on. Language , 94(4):e324– e345. Bhargav Shandilya and Alexis Palmer. 2025. Boost-ing the capabilities of compact models in low-data contexts with large language models and retrieval-augmented generation. In Proceedings of the 31st In-ternational Conference on Computational Linguistics ,pages 7470–7483, Abu Dhabi, UAE. Association for Computational Linguistics. Garrett Tanzer, Mirac Suzgun, Eline Visser, Dan Juraf-sky, and Luke Melas-Kyriazi. 2023. A benchmark for learning to translate a new language from one gram-mar book. arXiv preprint arXiv:2309.16575 .Michael Tschannen, Cian Eastwood, and Fabian Mentzer. 2024. Givt: Generative infinite-vocabulary transformers. In European Conference on Computer Vision , pages 292–309. Springer. Aaron Van Den Oord, Oriol Vinyals, and 1 others. 2017. Neural discrete representation learning. Advances in neural information processing systems , 30. Oriol Vinyals, Meire Fortunato, and Navdeep Jaitly. 2015. Pointer networks. Advances in neural infor-mation processing systems , 28. Chengyi Wang, Sanyuan Chen, Yu Wu, Ziqiang Zhang, Long Zhou, Shujie Liu, Zhuo Chen, Yanqing Liu, 
+
+10 Huaming Wang, Jinyu Li, and 1 others. 2023. Neu-ral codec language models are zero-shot text to speech synthesizers. arXiv preprint arXiv:2301.02111 .Linting Xue, Aditya Barua, Noah Constant, Rami Al-Rfou, Sharan Narang, Mihir Kale, Adam Roberts, and Colin Raffel. 2022. Byt5: Towards a token-free fu-ture with pre-trained byte-to-byte models. Preprint ,arXiv:2105.13626. Penglong Zhai, Yifang Yuan, Fanyi Di, Jie Li, Yue Liu, Chen Li, Jie Huang, Sicong Wang, Yao Xu, and Xin Li. 2025. A simple contrastive framework of item tokenization for generative recommendation. arXiv preprint arXiv:2506.16683 .Kexun Zhang, Yee Man Choi, Zhenqiao Song, Taiqi He, William Yang Wang, and Lei Li. 2024. Hire a linguist!: Learning endangered languages with in-context linguistic descriptions. arXiv preprint arXiv:2402.18025 .Xingyuan Zhao, Satoru Ozaki, Antonios Anastasopou-los, Graham Neubig, and Lori Levin. 2020. Au-tomatic interlinear glossing for under-resourced lan-guages leveraging translations. In Proceedings of the 28th International Conference on Computational Lin-guistics , pages 5397–5408, Barcelona, Spain (Online). International Committee on Computational Linguis-tics. 
+
+A Additional Implementation Details 
+
+A.1 Training Hyperparameters 
+
+Below we provide hyperparameter values, noting defaults and language-specific deviations. The latter are determined by coarse hyperparameter searches on validation data. After training for all epochs, we use checkpoints from the best epoch according to validation metrics for final testing. 
+
+BoM Encoder We train our final encoder with a batch size of 128 for 100 epochs (1000 for Gitksan) with a learning rate of 2×10 −5. We employ a learn-ing rate scheduler with 100 warmup steps. 
+
+IGT Decoder Our decoder is initialized 4 de-coder blocks with a hidden dimension of 512 and 4 self-attention heads. We train with a batch size of 32 for 100 epochs (1000 for Gitksan) using a learn-ing rate of 1×10 −4. Our decoder is optimized using a weight decay of 0.01 and gradient clipping (max norm 1.0). We set dropout to 0.1. 
+
+ByT5 Baseline We train ByT5 for a max 30 epochs using early stopping with patience 5. We use a batch size of 64 and a learning rate of 5 × 10 −5.We use Adam optimization (Diederik, 2014) and gradient clipping (max norm 1.0). We use the same hyperparameters for both segmentation and gloss-ing. 
+
+A.2 Inference Settings 
+
+For IGT decoding, we use beam search with 5
+
+beams. 
+
+A.3 Metric Calculations 
+
+MER follows the implementation of Ginn et al. (2026), including clipping with maximum value 1 and excluding punctuation-only tokens from calcu-lations. We aggregate MER on the sample level (not corpus level). 
+
+A.4 FLOPs calculation 
+
+We estimate FLOPs per sentence using the stan-dard transformer multiply-accumulate formula cov-ering self-attention and feed-forward layers. Em-beddings, layer norms, and output projections are excluded as minor contributors. For CWoMP, to-tal FLOPs per sentence combine the BoM encoder, which encodes all words in the sentence in a sin-gle batched forward pass, and the IGT decoder, which performs beam search autoregressively for each word. For GlossLM, total FLOPs combine the ByT5 encoder, which runs once per sentence and is shared across all beams, and the ByT5 decoder, which runs beam search over the full byte-level out-put sequence. The decoder FLOPs account for both self-attention and cross-attention at each step. Both models are evaluated under their actual inference beam sizes (GlossLM: 3, CWoMP: 5), and sentence-level estimates assume 8 words per sentence, 3 mor-phemes per word, and 128 decoder output bytes for GlossLM. Under these assumptions, CWoMP re-quires 24.8B FLOPs per sentence (BoM encoder: 21.8B, IGT decoder: 3.0B) compared to 211.7B for GlossLM (ByT5 encoder: 87.8B, ByT5 decoder: 123.9B). 
+
+B Additional Results 
+
+B.1 Morpheme Retrieval Task Description. This task directly tests the per-formance of CWoMP’s BoM encoder module (Sec-tion 3.2). We evaluate its final test performance on 
+
+word →morpheme retrieval, reporting standard re-trieval metrics (recall@k, NDCG, mAP). The tar-get set to retrieve consists of all ground-truth mor-phemes in the word (restricted to in-vocabulary mor-phemes in the train lexicon setting). This task serves two purposes—it validates the encoder’s per-formance before training the downstream decoder, and may be useful in its own right for future mor-phological tasks where analysis should be restricted 11 to retrieved morphemes. 
+
+Results. Retrieval results are shown in Table 4. The BoM encoder generally shows strong perfor-mance at retrieving relevant morphemes, and fur-ther benefits from the extended lexicon setting.                                                               
+
+> arp usp ddo git lez ntu nyb
+> Train Lexicon
+> P@1 .829 .644 .901 .624 .880 .930 .907 R@10 .950 .920 .984 .923 .965 .990 .990 NDCG .874 .784 .934 .781 .917 .959 .945 mAP .823 .721 .899 .717 .886 .938 .918
+> Extended Lexicon
+> P@1 .859 .656 .901 .732 .896 .929 .910 R@10 .952 .927 .984 .899 .970 .989 .991 NDCG .885 .796 .934 .810 .925 .959 .947 mAP .833 .733 .899 .753 .893 .937 .921
+
+Table 4: Retrieval performance of our final encoder con-figuration. NDCG and R are @10; mAP is @100. Lan-guage codes are as in Table 1. 
+
+B.2 Additional Metrics 
+
+In addition to the results in our main paper us-ing a MER metric, here we report additional met-rics following prior work: For glossing, Table 5 re-ports morpheme and word accuracy metrics from Ginn et al. (2024c); for segmentation, Table 6 uses the modified F1 score and whole-word accuracy of Mager et al. (2020). Glossing metrics are reported at the corpus level. Segmentation metrics are com-puted at the sample level and averaged. Overall, the relative performance of models is consistent with our main results, justifying our use of MER. We also note the conceptual advantages motivat-ing our use of MER: Unlike the metrics of Ginn et al. (2024c), it is not biased towards the left-hand side of sentences—while those metrics treat all con-tent after the first misaligned metric as incorrect. Unlike the F1 metric of Mager et al. (2020), MER is order-aware; and unlike its word accuracy, MER gives a fine-grained signal when a word’s analysis is partially correct. Moreover, MER can be applied consistently between the glossing and segmentation tasks, and signals both word- and morpheme-level performance. 
+
+B.3 Additional Comparison 
+
+We provide a comparison to the concurrent Poly-gloss model of Ginn et al. (2026) in Table 7 (using their most performant model—ByT5 Interleaved). We reproduce their reported MER scores for our                                                   
+
+> arp usp ddo git lez ntu nyb
+> Morpheme Accuracy (%) ↑
+> GlossLM (+ft) 82.1 78.6 83.6 10.1 57.3 62.8 87.4 CWoMP (Train) 80.6 69.8 82.8 11.1 66.0 66.6 88.2 CWoMP (Ext.) 84.1 72.9 82.9 14.8 69.3 67.8 89.1
+> Word Accuracy (%) ↑
+> GlossLM (+ft) 81.5 81.0 87.3 28.4 64.9 78.9 86.2 CWoMP (Train) 83.7 75.3 86.9 24.7 77.3 82.4 86.8 CWoMP (Ext.) 87.9 79.9 87.4 38.3 81.9 86.1 87.8
+
+Table 5: Morpheme and Word Accuracy ( ↑) on Gloss-ing. Best results are in bold and second-best underlined. Language codes follow Table 1.                                                   
+
+> arp usp ddo git lez ntu nyb
+> F1 ↑
+> Finetuned ByT5 .939 .872 .977 .098 .756 .923 .976 CWoMP (Train) .908 .807 .977 .377 .873 .900 .969 CWoMP (Ext.) .943 .850 .981 .533 .917 .931 .983
+> Accuracy ↑
+> Finetuned ByT5 .768 .551 .690 .000 .149 .374 .920 CWoMP (Train) .860 .768 .957 .219 .831 .866 .953 CWoMP (Ext.) .909 .811 .963 .407 .880 .904 .968
+
+Table 6: F1 and Accuracy ( ↑) on Segmentation. Best results are in bold and second-best underlined. Language codes follow Table 1. 
+
+languages, along with our performance. Impor-tantly, these results use different data splits as Polygloss was trained on additional examples for the languages in SIGMORPHON 2023 (for exam-ple, over twice as many train samples for Gitksan), and does not use the standard test sets—hence, these results provide a rough indication of overall perfor-mance but are not directly comparable to ours.         
+
+> arp usp ddo git lez ntu nyb Polygloss .152 .160 .072 .597 .357 .142 .222 CWoMP (Train) .119 .228 .077 .677 .186 .156 .102 CWoMP (Extended) .084 .188 .074 .544 .139 .122 .084
+
+Table 7: Comparison between Polygloss (Ginn et al., 2026) and CWoMP, reporting Morpheme Error Rate ( ↓)for Glossing. As discussed in Appendix B.3, these re-sults use different data splits and are only provided as a rough indication of overall performance. 
+
+B.4 Ablations 
+
+We ablate the following key design choices of our method: • Base encoder: CANINE-S (Clark et al., 2022) vs. LaBSE (Feng et al. 2022; used in our full system) 12 • Loss function: Standard InfoNCE vs. our multi-positive variant (Section 3.2) • Prompt format: Inclusion of translations and transcripts in prompts for encoding words; use of forced character tokenization via spaces. For these ablations, encoder models are trained for 50 epochs with a batch size of 64. All other hy-perparameters are equivalent to those used for our final configuration (Appendix A.1). Ablations are run for Tsez, Gitksan, Natugu and Nyangbo. We report validation metrics in Table 8, seeing that each component of our system has an over-all positive impact on results, with our full system mostly outperforming alternative configurations.                                    
+
+> Encoder Loss Prompt NDCG mAP P@1 R@10 CANINE-S InfoNCE W.837 .774 .761 .894 W+Tr .838 .777 .766 .933 W+Ts .827 .765 .758 .931 W+Tr+Ts .847 .791 .776 .937 LaBSE W.832 .792 .773 .908 W+Tr .846 .805 .795 .916 W+Ts .866 .823 .816 .938 W+Tr+Ts .881 .844 .840 .942 W+Tr+Ts+Sp .890 .846 .821 .970 MultPos W+Tr+Ts+Sp .897 .856 .826 .972
+
+Table 8: Encoder, prompt format and loss function ab-lations. Metrics ( ↑) averaged across languages; NDCG is @10 and mAP is @100. Prompt format: W=Word, Tr=Transcript, Ts=Translation, Sp=character spacing. Best results are in bold and second-best underlined. 
+
+B.5 Sample Predictions 
+
+We provide representative system outputs in Ta-ble 12, and highlight specific qualitative patterns be-low. Tables 9 to 11 illustrate three notable hallucina-tion patterns in GlossLM outputs. Table 9 shows GlossLM hallucinating a morpheme that was nei-ther observed during training nor appropriate in con-text. Table 10 shows GlossLM generating gram-matical tags that deviate from the expected conven-tion (e.g., PST.UW instead of PST.UNW). Because CWoMP is constrained to a discrete codebook, its outputs exactly match attested or user-provided glosses, precluding such errors. We note, how-ever, that GlossLM can sometimes correctly predict glosses unseen during training, such as “rough” in Table 10 and “police” in Table 11—likely due to sentential context (e.g., the translation tier) or string matching (“police” is an English loanword in Gitk-san). In both cases, CWoMP fails to produce the correct label—a limitation that can be mitigated by inference-time lexicon expansion. 
+
+C Generative AI Disclosure 
+
+Generative AI tools were used for polishing wording and formatting in this manuscript, and for coding assistance. 13 Transcript Kaƛ’iƛin , žawab teƛno nesä . Segmentation koƛ’i-ƛin žawab teƛ-n nesi-a Translation ”I can.”, he answered. Gold Gloss understand.to-QUOT answer give-PST.UNW DEM1.ISG.OBL-ERG GlossLM Gloss unable-QUOT answer give-PST.UNW DEM1.ISG.OBL-ERG CWoMP (Train) Gloss understand.to-QUOT answer give-PST.UNW DEM1.ISG.OBL-ERG Unattested Labels in Gold N/A Unattested GlossLM Labels unable 
+
+Table 9: GlossLM can mistakenly hallucinate gloss labels not seen during training. In this Tsez example, GlossLM outputs the label “unable” despite being unattested during training and contextually inappropriate. Incorrect predictions are highlighted. 
+
+Transcript Xediw qač’aw , qizanyos t’alam bodixanusi žek’u zown Segmentation xediw qač’aw qizan-s t’alam b-odi-xanusi žek’u zow-n Translation The husband was a rough man who did not do the family’s duty. Gold Gloss husband rough family-GEN1 care III-do-NEG.PRS.PRT man be.NPRS-PST.UNW GlossLM Gloss husband rough family-GEN1 duty III-do- NEG.PRS.PTCP man be.NPRS- PST.UW CWoMP (Train) Gloss husband living family-GEN1 care III-do-NEG.PRS.PRT man be.NPRS-PST.UNW CWoMP (Extended) Gloss husband rough family-GEN1 care III-do-NEG.PRS.PRT man be.NPRS-PST.UNW Unattested Labels in Gold rough Unattested GlossLM Labels NEG.PRS.PTCP, PST.UW 
+
+Table 10: GlossLM can mistakenly generate grammatical tags deviating from expected conventions. In this Tsez example, GlossLM generates PST.UW instead of PST.UNW and NEG.PRS.PTCP instead of NEG.PRS.PRT. Incorrect predictions are highlighted. 
+
+Transcript Needii ’nakwt ii bakwhl police. Segmentation nee-dii ’nekw-t ii bakw-hl police Translation Not long after, the police came. Gold Gloss NEG-FOC long-3.II CCNJ come.PL-CN police GlossLM Gloss NEG-FOC long.after CCNJ arrive-CN police CWoMP (Train) Gloss NEG-FOC long-long CCNJ arrive.PL-CN pole CWoMP (Extended) Gloss NEG-FOC long-long CCNJ come.PL-CN police Unattested Labels in Gold come.PL, police Unattested GlossLM Labels long.after, police 
+
+Table 11: GlossLM can correctly predict unattested labels. In this Gitksan example, GlossLM predicts “police” despite it not being present attested in the train lexicon. Note that “police” is an English loanword in Gitksan, and further appears in the translation tier. Incorrect predictions are highlighted. 
+
+14 Table 12: Random selection of system outputs (Part 1 of 2) 
+
+Language Natugu Transcript Nzpwrkilvcngr doa kcng nztupebz badr Seg. nz-pwrkilvc-ngr doa kcng nz-tu-pe-bz badr Translation Those students were surprised about him standing there with them Gold Gloss 3AUG-startled-APPL person those PAS-stand-COS-PDIR.YON COM.PL GlossLM Gloss 3AUG-be.surprised-about-APPL child those 3AUG-stand-COS-PDIR.YON COM.P CWoMP (Train) Seg. nzvecngr-ki-ngr doa kcng nz-tu-pe-bz badr CWoMP (Train) Gloss war-path-APPL child those 3AUG-stand-COS-PDIR.YON COM.PL’ CWoMP (Ext.) Seg. nzvecngr-ki-ngr doa kcng nz-tu-pe-bz badr CWoMP (Ext.) Gloss war-path-APPL child those 3AUG-stand-COS-PDIR.YON COM.PL Language Natugu Transcript Rpi-mopwz kxetu r ami kx , ” Nim ncblo kznike ?” Seg. rpi-mou-bz kxetu r ami kx , ” nim ncblo kznike ?” Translation The head of the army further said, ”What kind of man are you?” Gold Gloss said-again-PDIR.YON leader GEN1A army SUBR , ” be.2MINII mankind who ?” GlossLM Gloss said-again-PDIR.YON leader GEN1A army SUBR be.2MINII mankind kind? CWoMP (Train) Seg. rpi-mou-bz kx-etu r ami kx , ” nim ncblo nike ?” CWoMP (Train) Gloss said-again-PDIR.YON SUBR-be.big GEN1A army SUBR , ” be.2MINII mankind what ?” CWoMP (Ext.) Seg. rpi-mou-bz kx-etu r ami kx , ” nim ncblo kznike ?” CWoMP (Ext.) Gloss said-again-PDIR.YON SUBR-be.big GEN1A army SUBR , ” be.2MINII mankind who ?” Language Gitksan Transcript ”Ii hasaga’m dim hogwin litxwhl k’ay limxsim gyet dim ent hlimoo’m.” Seg. ii hasak-’m dim hogwin lit-xw-hl k’ay limxs-m gyet dim en-t hlimoo-’m Translation ”We will want the support of young men to help us.” Gold Gloss CCNJ want-1PL.II PROSP near stand-PASS-CN still grow-ATTR man PROSP AX-3.I help-1PL.II GlossLM Gloss CCNJ want-1PL.II PROSP house-1PL.II PROSP-CN young.man PROSP PROSP help-1PL.II CWoMP (Train) Seg. ii baasax̲ dim g̲oo-xwin-xwin hahla’lst-hl k̲’ak̲ lax̲’ni-’m guu-diit dim nee-t hahla’lst-’m-’m CWoMP (Train) Gloss CCNJ separate PROSP LOC-DEM.PROX-DEM.PROX work-CN open hear-1PL.II take-3PL.II PROSP NEG-DM work-1PL.II-1PL.II CWoMP (Ext.) Seg. ii hasak̲ dim hogwin-hogwin-xwin luuhligyootxw-hl ky’ax̲ limx̲s-’m gu-t dim nee-t hlimoo-’m-’m CWoMP (Ext.) Gloss CCNJ desire PROSP toward-toward-DEM.PROX axe-CN unanimously grow-1PL.II what-3PL.II PROSP NEG-DM help-1PL.II-1PL.II Language Gitksan Transcript Ii sit’aa’mam depdiithl hlidaaxhl hlgu laxha’niijok. Seg. ii si-t’aa-’ma-m dep-diit-hl hlidaax-hl hlgu laxha-’nii-jok Translation They started measuring out the little settlement. Gold Gloss CCNJ CAUS1-sit-1PL.II-ATTR measure-3PL.II-CN circumference-CN little on INS-on-live GlossLM Gloss CCNJ start-PROG.3PL measure-CN house-CN DEM DIM VIS.INFR-forget.PL CWoMP (Train) Seg. ii ’wa sdil-diit hahla’lst-hl hlgu lax̲ g̲a-’nakw CWoMP (Train) Gloss CCNJ reach accompany-3PL.II work-CN small on DISTR-long CWoMP (Ext.) Seg. ii ’ma diye-diit hlidaax-hl hlgu lax̲ g̲a-’nakw CWoMP (Ext.) Gloss CCNJ DETR QUOT.3SG-3PL.II circumference-CN little on DISTR-long Language Tsez Transcript Ža reƛ’izał maxšel, hunar yołäsi, saɣaw ci rik’äsi uži zown. Seg. ža reƛ’a-bi-ł maxšel hunar yoł-asi saɣaw ci r-ik’i-asi uži zow-n Translation He was a boy who was known for his talent and skill at his hands. Gold Gloss DEM1.SG hand-PL-CONT.ESS skill talent be-RES.PRT healthy name IV-go-RES.PRT boy be.NPRS-PST.UNW GlossLM Gloss DEM1.SG hand-PL-CONT.ESS talent talent be-RES.PRT common name IV-go-RES.PRT boy be.NPRS-PST.UNW CWoMP (Train) Seg. ža reƛ’a-bi-ł maxšel hunar yoł-asi saɣ ci r-ik’i-asi uži zow-n CWoMP (Train) Gloss DEM1.SG hand-PL-CONT.ESS skill talent be-RES.PRT cure name IV-go-RES.PRT boy be.NPRS-PST.UNW CWoMP (Ext.) Seg. ža reƛ’a-bi-ł maxšel hunar yoł-asi saɣaw ci r-ik’i-asi uži zow-n CWoMP (Ext.) Gloss DEM1.SG hand-PL-CONT.ESS skill talent be-RES.PRT healthy name IV-go-RES.PRT boy be.NPRS-PST.UNW Language Tsez Transcript Elur k’ukyoƛ ħažoƛin, ƛ’iri butin žedu. Seg. elu-r k’uk-ƛ ħaži-o-ƛin ƛ’iri b-uti-n žedu. Translation ”Exchange it for a cap with us!”, they proposed. Gold Gloss we(I).OBL-LAT cap-SUB.ESS exchange-IMPR-QUOT above I.PL-turn-PFV.CVB DEM1.IPL GlossLM Gloss we(I).OBL-LAT cap-SUB.ESS exchange-IMPR-QUOT above I.PL-return-PST.UNW DEM1.IPL CWoMP (Train) Seg. ’ža reƛ’a-bi-ł maxšel hunar yoł-asi saɣ ci r-ik’i-asi uži zow-n CWoMP (Train) Gloss we(I).OBL-LAT cap-SUB.ESS exchange-IMPR-QUOT above I.PL-return-PST.UNW DEM1.IPL CWoMP (Ext.) Seg. ža reƛ’a-bi-ł maxšel hunar yoł-asi saɣaw ci r-ik’i-asi uži zow-n CWoMP (Ext.) Gloss we(I).OBL-LAT cap-SUB.ESS exchange-IMPR-QUOT above I.PL-return-PST.UNW DEM1.IPL 
+
+15 Table 13: Random selection of system outputs (Part 2 of 2) 
+
+Language Arapaho Transcript biikoo ceniibiikoo Seg. biikoo cenii-biikoo Translation Night , it was a really late at night . Gold Gloss at.night very-at.night GlossLM Gloss at.night very-at.night CWoMP (Train) Seg. biikoo cenii-biikoo CWoMP (Train) Gloss at.night very-at.night CWoMP (Ext.) Seg. biikoo cenii-biikoo CWoMP (Ext.) Gloss at.night very-at.night Language Arapaho Transcript ne’P honoo3itootowoo Seg. ne’-P honoo3itoot-owoo Translation I will tell it Gold Gloss that-pause IC.tell.story-1S GlossLM Gloss then-pause IC.tell.of-1S CWoMP (Train) Seg. ne’-P honoo3itoot-owoo CWoMP (Train) Gloss ’then-pause IC.tell.story-1S CWoMP (Ext.) Seg. tne’-P honoo3itoot-owoo CWoMP (Ext.) Gloss ’then-pause IC.tell.story-1S Language Nyangbo Transcript aábá anyɛ́núvɔɛ nɔ́ ɔbha Seg. a-á-bá a-nyɛ́núvɔɛ nɔ́ ɔ-bha Gold Gloss 3SG-PROG-come CM-boy DEF CM-side GlossLM Gloss 3SG-PROG-come CM-boy DEF CM-side CWoMP (Train) Seg. a-á-bá a-nyɛ́núvɔɛ nɔ́ ɔ-bha CWoMP (Train) Gloss 3SG-PROG-come CM-boy DEF CM-side CWoMP (Ext.) Seg. a-á-bá a-nyɛ́núvɔɛ nɔ́ ɔ-bha CWoMP (Ext.) Gloss 3SG-PROG-come CM-boy DEF CM-side Language Nyangbo Transcript anɛ bulĩ́ Seg. a-nɛ bu-lĩ́ Gold Gloss 3SG-NEG:be CM-water GlossLM Gloss 3SG-NEG:be CM-water CWoMP (Train) Seg. a-nɛ bu-lĩ́ CWoMP (Train) Gloss 3SG-NEG:be CM-water CWoMP (Ext.) Seg. a-nɛ bu-lĩ́ CWoMP (Ext.) Gloss 3SG-NEG:be CM-water Language Lezgi Transcript « Самур » газет атай береда . 00 . 20 Seg. « Самур » газет атун-й бере-е . 00 . 20 Translation When ”Samur” newspaper came Gold Gloss « ”Samur” » newspaper come-PTP time-INESS . 00 . 20 GlossLM Gloss Samur newspaper come-PTP time-INESS 00 20 CWoMP (Train) Seg. « Самур » газет атай-й бере-е . 00 . 20 CWoMP (Train) Gloss « ”Samur” » newspaper coming-PTP time-INESS . 00 . 20 CWoMP (Ext.) Seg. « Самур » газет атай-й бере-е . 00 . 20 CWoMP (Ext.) Gloss « ”Samur” » newspaper coming-PTP time-INESS . 00 . 20 Language Lezgi Transcript Писвал ийиз кӀанзава хьир гададиз Seg. писвал-вал ийи-з кӀан-зва хьир гада-ди-з . Translation He wants to do evil to the guy. Gold Gloss evil-PURP make-DAT want-IMPF even boy-DIR-DAT . GlossLM Gloss evil-PURP make-DAT want-IMPF even boy-DIR-DAT CWoMP (Train) Seg. ’писвал-вал ийи-з кӀан-зва хьир гада-ди-з . CWoMP (Train) Gloss evil-PURP make-DAT want-IMPF even boy-DIR-DAT . CWoMP (Ext.) Seg. писвал-вал ийи-з кӀан-зва хьир гада-ди-з . CWoMP (Ext.) Gloss evil-PURP make-DAT want-IMPF even boy-DIR-DAT . 
+
+16

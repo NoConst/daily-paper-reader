@@ -6,121 +6,88 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-26
-- 运行时间：2026-03-26 19:57:56 UTC
+- 最新运行日期：2026-03-27
+- 运行时间：2026-03-27 20:26:47 UTC
 - 运行状态：成功
-- 本次总论文数：33
-- 精读区：22
+- 本次总论文数：22
+- 精读区：11
 - 速读区：11
 
 ### 今日简报（AI）
-今日深度研读 33 篇前沿论文，重点聚焦嵌入压缩与联邦个性化对齐等 22 项核心突破。
-满分论文揭示了谱回火（Spectral Tempering）在检索压缩中的卓越表现，以及 FedPDPO 在大模型分布式对齐上的创新。
-建议优先研读这两篇满分佳作，快速掌握提升检索效率与模型个性化对齐的实战前沿。
-- 详情：[/202603/26/README](/202603/26/README)
+今日深度研读 22 篇 AI 论文，重点突破多模态组合能力与个性化视频生成两大核心领域。
+满分论文揭示了“以概念为中心”的学习无需负样本即可强化模型理解，而 LumosX 则实现了身份与属性的精准视频关联。
+建议优先研读 CCL 框架以掌握零样本能力的新突破，并关注医疗视觉语言模型在去偏与微调上的最新进展。
+- 详情：[/202603/27/README](/202603/27/README)
 
 ### 精读区论文标签
-1. [Spectral Tempering for Embedding Compression in Dense Passage Retrieval](/202603/26/2603.19339v1-spectral-tempering-for-embedding-compression-in-dense-passage-retrieval)  
+1. [No Hard Negatives Required: Concept Centric Learning Leads to Compositionality without Degrading Zero-shot Capabilities of Contrastive Models](/202603/27/2603.25722v1-no-hard-negatives-required-concept-centric-learning-leads-to-compositionality-without-degrading-zero-shot-capabilities-of-contrastive-models)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：密集通路检索系统的嵌入压缩
-2. [FedPDPO: Federated Personalized Direct Preference Optimization for Large Language Model Alignment](/202603/26/2603.19741v1-fedpdpo-federated-personalized-direct-preference-optimization-for-large-language-model-alignment)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：大语言模型对齐的个性化联邦框架
-3. [ECI: Effective Contrastive Information to Evaluate Hard-Negatives](/202603/26/2603.20990v1-eci-effective-contrastive-information-to-evaluate-hard-negatives)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：评估用于训练密集检索模型的硬负样本
-4. [OPERA: Online Data Pruning for Efficient Retrieval Model Adaptation](/202603/26/2603.17205v1-opera-online-data-pruning-for-efficient-retrieval-model-adaptation)  
+   evidence：视觉语言模型中组合表示的概念中心学习
+2. [LumosX: Relate Any Identities with Their Attributes for Personalized Video Generation](/202603/27/2603.20192v1-lumosx-relate-any-identities-with-their-attributes-for-personalized-video-generation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：密集检索器的在线数据剪枝
-5. [SARE: Sample-wise Adaptive Reasoning for Training-free Fine-grained Visual Recognition](/202603/26/2603.17729v2-sare-sample-wise-adaptive-reasoning-for-training-free-fine-grained-visual-recognition)  
+   evidence：多模态大模型用于个性化视频生成
+3. [GEM: A Native Graph-based Index for Multi-Vector Retrieval](/202603/27/2603.20336v1-gem-a-native-graph-based-index-for-multi-vector-retrieval)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：利用大视觉语言模型进行细粒度视觉识别
-6. [DataProphet: Demystifying Supervision Data Generalization in Multimodal LLMs](/202603/26/2603.19688v1-dataprophet-demystifying-supervision-data-generalization-in-multimodal-llms)  
+   evidence：用于多向量检索系统的原生基于图的索引
+4. [flexvec: SQL Vector Retrieval with Programmatic Embedding Modulation](/202603/27/2603.22587v1-flexvec-sql-vector-retrieval-with-programmatic-embedding-modulation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型中的监督数据泛化
-7. [ConSearcher: Supporting Conversational Information Seeking in Online Communities with Member Personas](/202603/26/2603.19747v1-consearcher-supporting-conversational-information-seeking-in-online-communities-with-member-personas)  
+   evidence：带嵌入调制的SQL向量检索
+5. [PERMA: Benchmarking Personalized Memory Agents via Event-Driven Preference and Realistic Task Environments](/202603/27/2603.23231v1-perma-benchmarking-personalized-memory-agents-via-event-driven-preference-and-realistic-task-environments)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：具有动态生成成员画像的LLM驱动工具
-8. [PEARL: Personalized Streaming Video Understanding Model](/202603/26/2603.20422v1-pearl-personalized-streaming-video-understanding-model)  
+   evidence：个性化记忆智能体基准测试
+6. [VISion On Request: Enhanced VLLM efficiency with sparse, dynamically selected, vision-language interactions](/202603/27/2603.23495v1-vision-on-request-enhanced-vllm-efficiency-with-sparse-dynamically-selected-vision-language-interactions)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态个性化与流式视频基准
-9. [Premier: Personalized Preference Modulation with Learnable User Embedding in Text-to-Image Generation](/202603/26/2603.20725v1-premier-personalized-preference-modulation-with-learnable-user-embedding-in-text-to-image-generation)  
+   evidence：提高大型视觉语言模型（LVLM）的效率
+7. [ReDiPrune: Relevance-Diversity Pre-Projection Token Pruning for Efficient Multimodal LLMs](/202603/27/2603.24680v1-rediprune-relevance-diversity-pre-projection-token-pruning-for-efficient-multimodal-llms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：利用多模态大模型进行个性化偏好调节
-10. [The Hidden Puppet Master: A Theoretical and Real-World Account of Emotional Manipulation in LLMs](/202603/26/2603.20907v1-the-hidden-puppet-master-a-theoretical-and-real-world-account-of-emotional-manipulation-in-llms)  
+   evidence：用于高效多模态大语言模型的令牌剪枝
+8. [GoldiCLIP: The Goldilocks Approach for Balancing Explicit Supervision for Language-Image Pretraining](/202603/27/2603.24804v1-goldiclip-the-goldilocks-approach-for-balancing-explicit-supervision-for-language-image-pretraining)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：大语言模型对话中的个性化情感操纵
-11. [User Preference Modeling for Conversational LLM Agents: Weak Rewards from Retrieval-Augmented Interaction](/202603/26/2603.20939v1-user-preference-modeling-for-conversational-llm-agents-weak-rewards-from-retrieval-augmented-interaction)  
+   evidence：语言-图像预训练与视觉语言模型监督
+9. [Visual Attention Drifts,but Anchors Hold:Mitigating Hallucination in Multimodal Large Language Models via Cross-Layer Visual Anchors](/202603/27/2603.25088v1-visual-attention-driftsbut-anchors-holdmitigating-hallucination-in-multimodal-large-language-models-via-cross-layer-visual-anchors)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：通过检索增强交互实现个性化LLM
-12. [ResPrune: Text-Conditioned Subspace Reconstruction for Visual Token Pruning in Large Vision-Language Models](/202603/26/2603.21105v1-resprune-text-conditioned-subspace-reconstruction-for-visual-token-pruning-in-large-vision-language-models)  
+   evidence：缓解多模态大模型中的幻觉问题
+10. [ColBERT-Att: Late-Interaction Meets Attention for Enhanced Retrieval](/202603/27/2603.25248v1-colbert-att-late-interaction-meets-attention-for-enhanced-retrieval)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型中用于高效推理的视觉标记剪枝
-13. [Test-Time Adaptation via Cache Personalization for Facial Expression Recognition in Videos](/202603/26/2603.21309v2-test-time-adaptation-via-cache-personalization-for-facial-expression-recognition-in-videos)  
+   evidence：用于增强神经信息检索的延迟交互框架
+11. [CLIP-RD: Relational Distillation for Efficient CLIP Knowledge Distillation](/202603/27/2603.25383v1-clip-rd-relational-distillation-for-efficient-clip-knowledge-distillation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：视觉语言模型的缓存个性化
-14. [VideoDetective: Clue Hunting via both Extrinsic Query and Intrinsic Relevance for Long Video Understanding](/202603/26/2603.22285v1-videodetective-clue-hunting-via-both-extrinsic-query-and-intrinsic-relevance-for-long-video-understanding)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于长视频理解的多模态大语言模型
-15. [A Brief Comparison of Training-Free Multi-Vector Sequence Compression Methods](/202603/26/2603.22434v1-a-brief-comparison-of-training-free-multi-vector-sequence-compression-methods)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：多向量密集检索模型的压缩方法
-16. [KARMA: Knowledge-Action Regularized Multimodal Alignment for Personalized Search at Taobao](/202603/26/2603.22779v1-karma-knowledge-action-regularized-multimodal-alignment-for-personalized-search-at-taobao)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：使用LLM和正则化目标进行个性化搜索的多模态对齐
-17. [Focus, Don't Prune: Identifying Instruction-Relevant Regions for Information-Rich Image Understanding](/202603/26/2603.22815v1-focus-dont-prune-identifying-instruction-relevant-regions-for-information-rich-image-understanding)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于信息丰富图像理解的大型视觉语言模型
-18. [ProGRank: Probe-Gradient Reranking to Defend Dense-Retriever RAG from Corpus Poisoning](/202603/26/2603.22934v1-progrank-probe-gradient-reranking-to-defend-dense-retriever-rag-from-corpus-poisoning)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：针对密集检索RAG的防御
-19. [Cluster-Wise Spatio-Temporal Masking for Efficient Video-Language Pretraining](/202603/26/2603.22953v1-cluster-wise-spatio-temporal-masking-for-efficient-video-language-pretraining)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：基于时空掩码的高效视频-语言预训练
-20. [Unleashing Spatial Reasoning in Multimodal Large Language Models via Textual Representation Guided Reasoning](/202603/26/2603.23404v1-unleashing-spatial-reasoning-in-multimodal-large-language-models-via-textual-representation-guided-reasoning)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型中的空间推理
-21. [Attention-aware Inference Optimizations for Large Vision-Language Models with Memory-efficient Decoding](/202603/26/2603.23914v1-attention-aware-inference-optimizations-for-large-vision-language-models-with-memory-efficient-decoding)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：大视觉语言模型的优化
-22. [Thinking with Tables: Enhancing Multi-Modal Tabular Understanding via Neuro-Symbolic Reasoning](/202603/26/2603.24004v1-thinking-with-tables-enhancing-multi-modal-tabular-understanding-via-neuro-symbolic-reasoning)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：通过神经符号推理增强多模态表格理解
+   evidence：用于高效 CLIP 知识迁移的关系蒸馏
 
 ### 速读区论文标签
-1. [A Unified Language Model for Large Scale Search, Recommendation, and Reasoning](/202603/26/2603.17533v1-a-unified-language-model-for-large-scale-search-recommendation-and-reasoning)  
+1. [SEM: Sparse Embedding Modulation for Post-Hoc Debiasing of Vision-Language Models](/202603/27/2603.19028v1-sem-sparse-embedding-modulation-for-post-hoc-debiasing-of-vision-language-models)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：搜索、推荐和检索的统一模型
-2. [Negation is Not Semantic: Diagnosing Dense Retrieval Failure Modes for Trade-offs in Contradiction-Aware Biomedical QA](/202603/26/2603.17580v1-negation-is-not-semantic-diagnosing-dense-retrieval-failure-modes-for-trade-offs-in-contradiction-aware-biomedical-qa)  
+   evidence：对CLIP等视觉语言模型进行事后去偏
+2. [LoFi: Location-Aware Fine-Grained Representation Learning for Chest X-ray](/202603/27/2603.19451v1-lofi-location-aware-fine-grained-representation-learning-for-chest-x-ray)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：诊断生物医学问答中的密集检索失败模式
-3. [HiMu: Hierarchical Multimodal Frame Selection for Long Video Question Answering](/202603/26/2603.18558v1-himu-hierarchical-multimodal-frame-selection-for-long-video-question-answering)  
+   evidence：使用多模态大模型进行视觉语言任务的细粒度表示学习
+3. [Instruction-Free Tuning of Large Vision Language Models for Medical Instruction Following](/202603/27/2603.19482v1-instruction-free-tuning-of-large-vision-language-models-for-medical-instruction-following)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：为多模态推理分解组合查询
-4. [ADAPT: Attention Driven Adaptive Prompt Scheduling and InTerpolating Orthogonal Complements for Rare Concepts Generation](/202603/26/2603.19157v1-adapt-attention-driven-adaptive-prompt-scheduling-and-interpolating-orthogonal-complements-for-rare-concepts-generation)  
+   evidence：大型视觉语言模型的微调
+4. [PowerLens: Taming LLM Agents for Safe and Personalized Mobile Power Management](/202603/27/2603.19584v1-powerlens-taming-llm-agents-for-safe-and-personalized-mobile-power-management)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：文本到图像合成中稀有概念的组合生成
-5. [Parameter-Efficient Modality-Balanced Symmetric Fusion for Multimodal Remote Sensing Semantic Segmentation](/202603/26/2603.17705v1-parameter-efficient-modality-balanced-symmetric-fusion-for-multimodal-remote-sensing-semantic-segmentation)  
+   evidence：使用LLM智能体的个性化移动电源管理
+5. [Semantic Tool Discovery for Large Language Models: A Vector-Based Approach to MCP Tool Selection](/202603/27/2603.20313v1-semantic-tool-discovery-for-large-language-models-a-vector-based-approach-to-mcp-tool-selection)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：遥感中的多模态融合与模态不平衡问题
-6. [Probabilistic Federated Learning on Uncertain and Heterogeneous Data with Model Personalization](/202603/26/2603.18083v1-probabilistic-federated-learning-on-uncertain-and-heterogeneous-data-with-model-personalization)  
+   evidence：大语言模型语义工具发现的向量检索方法
+6. [Low-pass Personalized Subgraph Federated Recommendation](/202603/27/2603.20338v1-low-pass-personalized-subgraph-federated-recommendation)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：使用元学习和贝叶斯神经网络的个性化联邦学习
-7. [Retrieval-Augmented LLM Agents: Learning to Learn from Experience](/202603/26/2603.18272v1-retrieval-augmented-llm-agents-learning-to-learn-from-experience)  
+   evidence：个性化子图联邦推荐
+7. [Sinkhorn Based Associative Memory Retrieval Using Spherical Hellinger Kantorovich Dynamics](/202603/27/2603.20656v1-sinkhorn-based-associative-memory-retrieval-using-spherical-hellinger-kantorovich-dynamics)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：从经验中学习的检索增强LLM智能体
-8. [Hypothesis-Conditioned Query Rewriting for Decision-Useful Retrieval](/202603/26/2603.19008v1-hypothesis-conditioned-query-rewriting-for-decision-useful-retrieval)  
+   evidence：使用 Sinkhorn 散度的密集关联记忆检索
+8. [PAVE: Premise-Aware Validation and Editing for Retrieval-Augmented LLMs](/202603/27/2603.20673v1-pave-premise-aware-validation-and-editing-for-retrieval-augmented-llms)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：面向证据的检索查询重写
-9. [CWoMP: Morpheme Representation Learning for Interlinear Glossing](/202603/26/2603.18184v1-cwomp-morpheme-representation-learning-for-interlinear-glossing)  
+   evidence：检索增强大模型的验证层
+9. [Text-Based Personas for Simulating User Privacy Decisions](/202603/27/2603.19791v1-text-based-personas-for-simulating-user-privacy-decisions)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：表示学习中的组合结构
-10. [TopoChunker: Topology-Aware Agentic Document Chunking Framework](/202603/26/2603.18409v1-topochunker-topology-aware-agentic-document-chunking-framework)  
+   evidence：使用基于大语言模型的角色模拟用户隐私决策
+10. [BubbleRAG: Evidence-Driven Retrieval-Augmented Generation for Black-Box Knowledge Graphs](/202603/27/2603.20309v1-bubblerag-evidence-driven-retrieval-augmented-generation-for-black-box-knowledge-graphs)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：通过结构化文档分块提高下游检索质量
-11. [From Token to Item: Enhancing Large Language Models for Recommendation via Item-aware Attention Mechanism](/202603/26/2603.19693v1-from-token-to-item-enhancing-large-language-models-for-recommendation-via-item-aware-attention-mechanism)  
+   evidence：检索增强生成和信息子图检索
+11. [Toward a Theory of Hierarchical Memory for Language Agents](/202603/27/2603.21564v1-toward-a-theory-of-hierarchical-memory-for-language-agents)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：通过项目感知注意力机制增强用于推荐的LLM
+   evidence：语言智能体中内容检索的分层记忆与遍历
 
 
 <div class="dpr-home-promo-card">

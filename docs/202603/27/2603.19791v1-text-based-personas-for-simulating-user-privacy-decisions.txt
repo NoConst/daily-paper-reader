@@ -1,0 +1,1189 @@
+Title: Text-Based Personas for Simulating User Privacy Decisions
+
+URL Source: https://arxiv.org/pdf/2603.19791v1
+
+Published Time: Mon, 23 Mar 2026 00:41:45 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# Text-Based Personas for Simulating User Privacy Decisions 
+
+# Kassem Fawaz ∗
+
+University of Wisconsin–Madison USA kfawaz@wisc.edu 
+
+# Ren Yi 
+
+Google Research USA ryi@google.com 
+
+# Octavian Suciu 
+
+Google Research USA osuciu@google.com 
+
+# Rishabh Khandelwal 
+
+Google USA krishab@google.com 
+
+# Hamza Harkous 
+
+Google Switzerland harkous@google.com 
+
+# Nina Taft 
+
+Google USA ninataft@google.com 
+
+# Marco Gruteser 
+
+Google Research USA gruteser@google.com 
+
+## Abstract 
+
+The ability to simulate human privacy decisions has significant implications for aligning autonomous agents with individual intent and conducting cost-effective, large-scale privacy-centric user stud-ies. Prior approaches prompt Large Language Models (LLMs) with natural language user statements, data-sharing histories, or demo-graphic attributes to simulate privacy decisions. These approaches, however, fail to balance individual-level accuracy, prompt usability, token efficiency, and population-level representation. We present 
+
+Narriva , an approach that generates text-based synthetic privacy personas to address these shortcomings. Narriva grounds persona generation in prior user privacy decisions, such as those from large-scale survey datasets, rather than purely relying on demographic stereotypes. It compresses this data into concise, human-readable summaries structured by established privacy theories. Through benchmarking across five diverse datasets, we analyze the character-istics of Narriva ’s synthetic personas in modeling both individual and population-level privacy preferences. We find that grounding personas in past privacy behaviors achieves up to 88% predictive ac-curacy (significantly outperforming a non-personalized LLM base-line), and yields an 80-95% reduction in prompt tokens compared to in-context learning with raw examples. Finally, we demonstrate that personas synthesized from a single survey can reproduce the aggregate privacy behaviors and statistical distributions (TVCom-plement up to 0.85) of entirely different studies. 
+
+## Keywords 
+
+Synthetic Personas, Privacy Simulations, Large Language Models 
+
+## 1 Introduction 
+
+Measuring and modeling users’ privacy-related reactions, prefer-ences, and behaviors is a long-standing challenge [ 3]. Addressing this challenge would allow system developers, researchers, and other stakeholders to understand at scale how users make privacy-related decisions, perceive privacy risks in new technologies, react to privacy incidents, and utilize privacy-enhancing technologies. Re-cent developments in agentic frameworks make this challenge even 
+
+> ∗Work done at Google as a visiting faculty researcher.
+
+more pressing. To realize the vision of increasingly autonomous agents, they will need to make data-sharing decisions on behalf of users in many contexts. While aligning autonomous actions with human intent is a broad challenge, it is important to measure how an agent’s automated choices reflect a user’s privacy preferences [ 15 ]— a task central to the development of effective personalized privacy assistants. The conventional approach to capturing and evaluating privacy decision-making relies on directly measuring user behaviors and attitudes at both the individual and population levels. These mea-surements take place through either controlled user studies (e.g., surveys, interviews, and lab experiments) or observational methods (e.g., on-boarding questions, recording app permissions, telemetry, or in-the-wild interactions). At the individual level, these meth-ods capture the granular privacy preferences, concerns, and utility trade-offs, which can guide and evaluate personalized, automated decisions. At the population level, they allow researchers to identify privacy norms and measure how population groups perceive and reason about privacy. While directly measuring user decision-making remains the gold standard for grounding privacy models, relying on it continuously is unscalable and costly [ 5, 20 ]. At the population level, repeatedly testing new experimental conditions or design combinations to understand group norms requires large participant pools. This leads to prohibitively expensive studies, participant fatigue [ 16 ], and non-representative sample sizes [ 18 , 29 ]. At the individual level, initial surveys provide an essential baseline, but relying exclusively on direct measurement means users must be prompted every time a new context emerges. Therefore, using infrequent measurement to ground simulated decisions can reduce the friction and fatigue of constantly requiring updated input [16]. In light of these practical constraints, there is a rising interest in leveraging LLMs to simulate human decisions [ 5, 18 , 29 ] in so-cial sciences [ 26 ], human-computer interaction (HCI) [ 22 ], and privacy [ 15 , 16 , 20 , 30 ]. Researchers have demonstrated and bench-marked LLM’s ability to predict privacy decisions at the individual-level [ 15 , 16 , 30 ] and simulate population-level privacy phenom-ena [ 20 ]. The key underlying approach is to use persona-based 
+
+> 1
+> arXiv:2603.19791v1 [cs.CR] 20 Mar 2026
+
+prompts to steer the model to answer questions from the perspec-tive of a specific user profile. There are two methods to generating these personas. Individual-level personas are constructed by com-piling granular data from a specific user. In the privacy domain, models are prompted with natural language user statements [ 16 ]or histories of prior data-sharing decisions [ 15 , 30 ]. On the other hand, population-level personas are synthesized to represent de-mographic segments or broad archetypes rather than a specific individual. These are typically constructed using demographic at-tributes (e.g., age, gender, income) [20]. However, existing approaches struggle to balance four compet-ing dimensions: predictiveness (accuracy in simulating individual decisions on novel questions), usability and transparency (human-readability and editability), scalability (maintaining bounded con-text lengths), and representation (authentically capturing population diversity without relying on generic LLM stereotypes). For instance, constructing individual-level models by concatenating raw histories into an LLM’s context window [ 15 ] yields high predictiveness when novel queries match the format of the historical data. However, this approach struggles to generalize to new domains or question types, and maintaining a growing raw history affects scalability and usability. Conversely, relying on user-provided natural language statements (e.g., “I am very careful about sharing information”) offers high usability but lower predictiveness, especially in novel scenarios [ 16 ]. Finally, synthesizing pre-generated demographic personas [ 13 ] is highly scalable but, as highlighted by Anthis et al. [ 5] and Li et al. [ 20 ], often falls short in representation and pre-dictiveness, producing biased outputs that rely on LLM-specific artifacts rather than authentic human nuances [ 18 ]. Therefore, a critical challenge remains: how to systematically generate text-based privacy personas that successfully balance predictiveness, usability, scalability, and representation. 
+
+To address this challenge, this work explores how to systemati-cally generate and validate a large-scale set of text-based personas for privacy simulations. In particular, we answer the following research questions: 
+
+RQ1. Can concise, text-based synthetic personas capture real-world population characteristics to accurately reproduce population-level privacy perspectives? 
+
+RQ2. Can basic personas be enhanced to effectively model individual-level preferences when simulating personalized privacy-related decisions? 
+
+RQ3. Are these generated personas sufficiently general to predict population-level perspectives in completely independent studies? To address these research questions, we propose Narriva (de-rived from Nar rative Personas for P riva cy), a framework designed to successfully balance these four dimensions. To achieve usability and scalability , Narriva compresses raw privacy data into gener-alized, text-based privacy personas, shifting from uninterpretable raw data logs to concise, human-readable narratives. To ensure these personas maintain population-level representation , we ground their generation in large-scale real-world survey datasets rather than relying on LLM-generated demographic stereotypes. Finally, to achieve individual-level predictiveness , Narriva moves beyond processing a single summarization pass. Instead, it employs an iter-ative optimization process that tests the generated persona against the user’s historical decisions, refining the narrative until it can consistently simulate that individual’s specific privacy preferences. We apply Narriva to five diverse, privacy-centric datasets— from the Pew Research Center (PP1, W49, W127), ACM CHI 2021 (CAuthN), and PETS Symposium 2024 (SPA)—to evaluate the per-formance of the text-based personas. We highlight these findings. 
+
+• [RQ1 & RQ2] Text-based personas match the accuracy of raw input while being significantly more concise and us-able. Narriva successfully condenses long question-answer his-tories into narratives up to 20x smaller. This reduction lowers inference compute costs, enhances human readability, and im-proves privacy by abstracting away exact historical interactions without degrading individual or population-level predictability. 
+
+• [RQ2] Behavioral questions strongly predict practical de-cisions, while general attitudes fall short. We show that ab-stract values and stated attitudes are poor indicators of concrete data-sharing choices. Conversely, grounding personas in survey responses about specific behavioral decisions reliably forecasts unseen choices. 
+
+• [RQ2] Dynamically tailoring privacy templates to indi-viduals unlocks higher predictive accuracy. Representing personas through different privacy frameworks (e.g., Privacy Calculus, Bounded Rationality) offers more control over per-sona structure without affecting macro-level accuracy. However, identifying the framework that best fits an individual improves personalized predictions. 
+
+• [RQ3] High-fidelity personas generalize across surveys but degrade over long temporal gaps. Personas synthesized from one study can accurately simulate population-level responses for an independent study conducted a few years apart. Yet, trans-ferability degrades for surveys separated by nearly a decade, reflecting shifts in the technological landscape and population attitudes. 
+
+## 2 Related Work 
+
+Because LLMs possess advanced reasoning capabilities and access to vast training data, recent research proposes using them to simu-late human behaviors and decisions in several domains, including privacy. In a recent position paper, Anthis et al. argue that LLMs can enable simulating a spectrum of user studies, provided five key challenges are addressed [ 5]. These challenges include diversity, bias, sycophancy, alienness, and generalization. The authors cat-egorize potential simulation tasks along a spectrum of feasibility, ranging from the immediately feasible pilot studies to increasingly complex tasks such as exploratory studies, exact replication, and sensitivity analysis, leading to complete end-to-end studies. Related works fall into two main categories: those that attempt to simulate general populations through synthetic personas, and those that simulate particular individuals from existing information about them. 
+
+## 2.1 Population-Level Simulations 
+
+The simulation of users in general user experience (UX) research settings is gaining popularity. Lu et al. propose an approach to 
+
+> 2
+
+pre-generate a set of user personas [ 22 ]. These personas include demographic attributes, such as age, gender, and income. Then, a browser-use agent is prompted with the user persona to perform a set of actions on a web interface to measure its usability. This process provides qualitative feedback for researchers to review. More recently, Bui et al. address the problem of how to guide the LLM to mimic the responses of a target population [ 8]. To improve simulation diversity, they propose an agentic framework that dy-namically samples a probabilistic mixture of personas, achieving better population alignment than existing baselines. While synthetic personas show promise for general UX tasks, adapting them to the privacy domain remains challenging. No-tably, concurrent work by Li et al. highlights the potential and the limitations of using out-of-the-box LLMs to simulate privacy and se-curity behaviors [ 20 ]. They introduce SP-ABCBench to evaluate the population-level alignment of LLMs using synthetically generated, demographic-based personas. They found that while population-level prompting works for broad user interactions, current models fail at the nuance required for privacy, achieving only moderate fidelity (scoring 50–64% on average). 
+
+## 2.2 Individual-level Simulation 
+
+In the second category, researchers propose approaches to simulate individuals by grounding models in their prior data. In the broader social sciences, Park et al. perform in-depth interviews with more than 1000 individuals and propose an agentic framework to simu-late their behavior [ 26 ]. Their framework takes an entire, adaptively elicited interview transcript as context to answer questions about the user, reproducing answers to the General Social Survey with 85% accuracy. Other works seek to align individual LLM simula-tions through fine-tuning. Suh et al. develop a fine-tuning method to align the probability distributions of responses from an LLM to those from human subpopulations [ 29 ]. Krsteski et al. demonstrate that synthesized personas and basic fine-tuning often yield biased responses, proposing a post-hoc rectification mechanism using a small portion of user surveys to estimate debiasing parameters [ 18 ]. Similarly, Wang et al. propose an optimal allocation rule to distrib-ute limited human data between fine-tuning and rectification [ 31 ]. In the privacy domain, several works explore the use of LLMs to guide personalized privacy decisions. Groschupp et al. [ 16 ] in-vestigate the capacity of LLMs to automate personalized privacy decisions for app permissions. By incorporating natural language user statements, such as “I am very careful about sharing informa-tion,” into the system prompt, their model achieves up to an 88% alignment with user decisions across the population. However, ac-curacy per user varied significantly, with model accuracy dropping sharply for specific users. Similarly, Flemings et al. [ 15 ] employ logic-based inference on Contextual Integrity (CI) information flows to determine if past sharing decisions can predict future ones. In the domain of robotics, Sullivan et al. [ 30 ] demonstrate that including a history of user decisions in the LLM prompt significantly improves alignment with future household robot interactions. 
+
+## 2.3 Contributions 
+
+Existing approaches to generating simulated privacy personas strug-gle to simultaneously achieve predictiveness, usability, scalability, and representation. Population-level approaches rely on zero-shot demographic prompting. While they are highly scalable, they can-not represent the nuances of privacy decision making of the under-lying populations. They are also inherently incapable of predicting individual-level decisions. Individual-level methods that rely on raw, extensive decision logs or entire transcripts offer higher pre-dictiveness for specific scenarios but inherently limit scalability and usability. Finally, methods relying on brief, free-form natural lan-guage statements offer high usability but poor predictive accuracy in novel scenarios. 
+
+Narriva departs from these previously proposed approaches to LLM simulations in several key aspects. Through an iterative, LLM-driven feedback loop, it generates and validates these text-based personas against actual user histories. It also compresses high-dimensional user data into human-readable personas. Consequently, 
+
+Narriva generates personas that are simultaneously predictive, generalizable, and representative. 
+
+## 3 Problem Statement 
+
+Narriva addresses the problem of generating synthetic privacy personas that help simulate human-like privacy decision-making. 
+
+## 3.1 Objectives and Approaches 
+
+The overall objective of Narriva is to generate a large set of syn-thetic text-based personas to enable the rigorous simulation and prediction of privacy decisions. To balance the four dimensions of text-based personas–usability and transparency, scalability, predic-tiveness, and representation–we set the following objectives and outline how we approach them. 
+
+Predictiveness. Narriva ensures that personas are predictive of individual decisions by grounding them in the known history of the user, such as their prior privacy choices or answers to previous sur-vey questionnaires. Rather than relying on a single summarization pass, this grounding happens through an iterative and lightweight optimization process. This process iteratively refines the generated persona until it can accurately and consistently predict the user’s responses to privacy-related questions. 
+
+Usability, Transparency, and Readability. Narriva compresses raw data about an individual into concise, structured personas such that they are usable, transparent, and readable , properties essential for establishing user trust in future personalized privacy assis-tants. In particular, it grounds these personas in established privacy decision-making frameworks (e.g., Privacy Calculus or Bounded Rationality), thereby standardizing their representation and improv-ing readability. Rather than relying on the “black-box” mechanisms of an LLM or unbounded interaction logs, Narriva explicitly ex-tracts specific information from a user’s history to populate a short, theory-driven template that remains scalable for subsequent infer-ences. 
+
+Representation. Narriva ensures that the generated personas are representative of a target population by applying its predictive and theory-driven persona generation to privacy datasets. Privacy researchers have consistently measured user concerns, knowledge, attitudes, preferences, and behaviors about privacy. Typically, this data is collected using careful procedures to sample individuals 
+
+> 3
+
+that represent a target population, especially in terms of demo-graphic attributes. For example, the Pew Research Center samples US individuals, employing a sampling strategy to proportionately cover all subgroups in the US population. Synthesizing personas based on the historical responses of specific individuals from these datasets results in a set of personas that capture population-level decision-making. 
+
+## 3.2 Problem Formalization 
+
+We are given a dataset 𝑆 containing privacy-related responses from a set of individuals. This setting generalizes the case of simulating the decisions for a single individual. We represent this dataset as an 𝑀 × 𝑁 matrix of 𝑀 individuals and 𝑁 questions, such that the set of individual responses (rows) is R = {r1, r2, . . . , r𝑀 } and the set of questions (columns) Q = {𝑞 1, 𝑞 2, . . . , 𝑞 𝑁 }. Each question has a set of possible answers, which depend on its nature (e.g., binary, Likert, categorical). Let 𝐴 𝑖 = {𝑎 𝑖, 1, 𝑎 𝑖, 2, . . . , 𝑎 𝑖,𝑚 𝑖 }, be the set of 𝑚 𝑖 
+
+possible answers for question 𝑞 𝑖 . For simplicity, we do not consider empty answers or refusals as possible answers. We also assume that there is a function 𝑓 𝑖 for a question 𝑞 𝑖 that consistently maps each answer to a numerical value: 𝑓 𝑖 : 𝐴 𝑖 → { 1, 2, . . . , 𝑚 𝑖 } (e.g., {0, 1} for a binary question). The response set r𝑗 is defined as the vector of answers provided by the 𝑗 -th individual, denoted as r𝑗 = (𝑟 𝑗, 1, 𝑟 𝑗, 2, . . . , 𝑟 𝑗,𝑁 ), where each element 𝑟 𝑗,𝑖 ∈ 𝐴 𝑖 . We further assume that the set of questions Q
+
+can be partitioned into a set of 𝐾 mutually exclusive domains D =
+
+{𝐷 1, 𝐷 2, . . . , 𝐷 𝐾 }, such that Ð𝐾 𝑘 =1 𝐷 𝑘 = Q. Examples of domains include demographics, privacy decisions/behaviors, and privacy attitude questionnaires. We additionally partition the set of questions Q into two disjoint subsets: a generation set Q𝑔𝑒𝑛 and an evaluation set Q𝑒𝑣𝑎𝑙 . These subsets satisfy Q𝑔𝑒𝑛 ∪ Q 𝑒𝑣𝑎𝑙 = Q and Q𝑔𝑒𝑛 ∩ Q 𝑒𝑣𝑎𝑙 = ∅. For each response set r𝑗 , we define two subsets of responses. The first subset of responses, rgen  
+
+> 𝑗
+
+, is used for generation and consists of answers to questions in Q𝑔𝑒𝑛 . The second is used for evaluation: reval  
+
+> 𝑗
+
+, which consists of answers to questions in Q𝑒𝑣𝑎𝑙 .We define two methods to enable Narriva . The generation task, 
+
+𝑝 𝑗 = generate (rgen  
+
+> 𝑗
+
+)
+
+, maps a response set r𝑗 to a persona 𝑝 𝑗 . The prediction method produces an answer to a question ( 𝑞 with correct response 𝑟 ), given a persona ( 𝑝 𝑗 ), where: 
+
+ˆ𝑟 = predict (𝑝 𝑗 , 𝑞 ).
+
+Now, we can define evaluation tasks that assess the performance of the generated personas at the individual level and at the pop-ulation level. The individual-level evaluation task compares the predicted answers from the generated persona against the eval-uation set reval  
+
+> 𝑗
+
+. In particular, for a response set belonging to an individual 𝑗 , the individual-level accuracy is given by: acc 𝑗 = 1
+
+|Q 𝑒𝑣𝑎𝑙 |∑︁ 𝑞 𝑖 ∈ Q 𝑒𝑣𝑎𝑙 
+
+I( ˆ𝑟 𝑗,𝑖 = 𝑟 𝑗,𝑖 ),Generation Optimization Prediction  
+
+> LLM
+> Persona Template
+> Instructions
+> Prompt
+> Generation Response Set
+> Instructions
+> Evaluation Questions
+> Prompt
+> Simulated Responses
+> Optimized Persona
+> LLM
+> LLM
+> Persona at iteration i
+> Generation Response Set
+> Correction Prompt
+> Generation Response Set
+> Persona candidates
+> Prediction Prompt
+
+Figure 1: High-level overview of Narriva , which comprises three stages: initial persona generation, light-weight optimization, and prediction using the optimized persona. 
+
+where I is the indicator function and ˆ𝑟 𝑗,𝑖 = 𝑝𝑟𝑒𝑑𝑖𝑐𝑡 (𝑝 𝑗 , 𝑞 𝑖 ). The macro average accuracy over the entire dataset is simply: acc 𝑆 = 1
+
+𝑀 
+
+> 𝑀
+
+∑︁ 
+
+> 𝑗 =1
+
+acc 𝑗 .
+
+The population-level evaluation task measures the distributional similarity between the predicted answers and real answers to a given question. To that end, we utilize the Total Variation Distance (TVD). For a given question 𝑞 𝑖 and response 𝑎 , we obtain the proba-bility mass function of true responses as 𝑃 𝑖 (𝑎 ) = 1
+
+> 𝑀
+
+Í𝑀 𝑗 =1 I(𝑓 𝑖 (𝑟 𝑗,𝑖 ) =
+
+𝑎 ) and that of predicted responses as ˆ𝑃 𝑖 (𝑎 ) = 1
+
+> 𝑀
+
+Í𝑀 𝑗 =1 I(𝑓 𝑖 ( ˆ𝑟 𝑗,𝑖 ) = 𝑎 ).The Total Variation Distance 𝑇𝑉 𝐷 𝑖 for question 𝑞 𝑖 is then: 
+
+𝑇𝑉 𝐷 𝑖 = 12
+
+> 𝑚 𝑖
+
+∑︁ 
+
+> 𝑎 =1
+
+|𝑃 𝑖 (𝑎 ) − ˆ𝑃 𝑖 (𝑎 )| .
+
+For consistent presentation between the individual and population level metrics, we also report the TVComplement from the Synthetic Data Vault [ 10 ], which is the complement of the Total Variation Distance (TVD) (i.e., 1 − TVD ). This metric quantifies the similarity between real and synthetic distributions [7, 21]. We also report the macro average of the Total Variation Distance over all evaluation questions as: TVD 𝑆 = 1
+
+|Q 𝑒𝑣𝑎𝑙 |∑︁ 𝑞 𝑖 ∈ Q 𝑒𝑣𝑎𝑙 
+
+TVD 𝑖 .
+
+The average TVComplement is given as 1 − TVD 𝑆 .
+
+## 4 System Design 
+
+We present the design of Narriva , a system that generates text-based personas based on answers to prior questions and uses them to predict answers to unseen questions about privacy. We start with a high-level overview of Narriva , followed by detailed descriptions of its components. 
+
+## 4.1 High-level Overview 
+
+At a high level (Fig. 1), Narriva simulates user decisions on unseen privacy questions given their observed historical responses. It uses large language models (LLMs) to instantiate the generate and 
+
+predict methods defined in Sec. 3. 
+
+• Generation: Narriva prompts an LLM with a subset of an indi-vidual’s responses ( rgen ), a persona template, and instructions to 
+
+> 4
+
+generate the persona. The persona template offers a structured representation of the persona to be filled based on the individual’s history. 
+
+• Prediction: Narriva utilizes a prediction template to prompt an LLM to generate an answer to a given question. This template includes the generated persona, the question, the answer range, and the relevant instructions to simulate the user’s decision. To improve the accuracy of its simulations and practical scala-bility, Narriva employs an individual-level narrative optimization process. A user’s privacy persona is highly specific and dynamically evolves as new questions are answered. To accommodate this dy-namism, Narriva ’s individual-level optimization uses a lightweight and iterative loop to quickly refine the user’s generated narrative for predictiveness and conciseness. This refinement anchors the personas in formal privacy theories, distilling a user’s prior answers into structured dimensions like risk perception and perceived ben-efit rather than unstructured narratives. Once a persona has been generated, Narriva applies a pre-vetted prediction template to answer an unseen question. This design ensures Narriva remains agile when capturing individual behavioral shifts by optimizing the text persona itself, without requiring computationally prohibitive searches to continually rewrite the underlying prompt structure for every single user. 
+
+Why Optimize Text Personas? A naive approach to simulating privacy decisions inserts a user’s entire historical response set ( rgen )directly into the generation model’s prompt. While effective for static, one-off research experiments, this “raw-examples” baseline fails to meet the scalability and usability requirements of real-world privacy assistants. First, as assistants continuously accumulate in-teractions, the raw context keeps growing. This growing context affects real-time latency and increases inference costs. While Nar-riva ’s narrative optimization requires periodic compute, this pro-cess can be run offline in the background with optimizations like caching and batching, keeping real-time inference costs low and bounded. Second, maintaining a massive raw history of past actions makes it challenging for users to audit or edit their inferred pref-erences. It is unrealistic to expect users to manually sift through and edit raw historical logs to guide the LLM to act on their behalf. Finally, raw logs lack the abstraction required for robust general-ization. Users often make noisy choices, and anticipating decisions on novel data types (e.g., emerging AR sensors) requires reasoning about deeper motivations. More importantly, raw logs are tied to specific platform schemas and might contain unnecessary, granular details that inadvertently expose sensitive daily habits. To address these issues, Narriva compresses a user’s history into a readable text-based persona. This summarization approach keeps inference costs manageable over time. It naturally acts as a data minimization layer by abstracting away granular and privacy sensitive decisions from raw logs. Furthermore, instead of rely-ing on unstructured pattern-matching, it grounds these personas in established privacy frameworks. By standardizing the persona generation across users, these theoretical frameworks provide a predictable structure that is easier for users to audit and edit. In the following sections, we detail Narriva ’s three main components: initial persona generation, persona optimization, and prediction. 
+
+## 4.2 Initial Persona Generation 
+
+The first step in Narriva is generating an initial persona for an individual given their responses rgen . As mentioned earlier, we employ templates to represent these personas in a more standard way. We derive these templates from earlier works that model privacy decision making of individuals in different settings. These predefined templates serve two purposes in Narriva ’s de-sign and evaluation. First, Narriva uses these templates to address the user experience aspects of text-based personas. Prompting the LLM to generate personas yields a free-form narrative that, while legible, can be unpredictable and difficult for users to identify and edit specific privacy postures. Templates address this issue by or-ganizing the persona into predefined and distinct sections that are clearly labeled, allowing users to quickly pinpoint and modify spe-cific privacy traits. Ideally, Narriva should be able to utilize the structured persona template, without incurring a performance loss as compared to less structured baselines. Second, these templates allow us to assess the utility of structured, framework-driven per-sonas against standard baseline and raw example-based prompting. We can thus empirically answer an important research question about whether representing a user through the lens of an estab-lished privacy framework enhances the model’s ability to predict future privacy decisions. We consider the following privacy frame-works, which are detailed in Appendix B. 
+
+• Basic Persona: A baseline representation that uses chain-of-thought reasoning to analyze a user’s responses and extract a concise narrative explaining their underlying logic. 
+
+• Privacy Calculus: Models individuals as rational actors by iden-tifying their contextual variables, risk assessment methods, com-pelling benefit drivers, and strategies for weighing risks against benefits [9, 17, 19]. 
+
+• Bounded Rationality: Accounts for cognitive limitations by identifying cognitive biases (e.g., optimism or present bias), emo-tional triggers, and primary heuristics that override a purely rational risk assessment [2, 4]. 
+
+• Protection Motivation Theory (PMT): Frames privacy de-cisions as threat responses by evaluating an individual’s risk appraisal (severity and vulnerability) alongside their coping ap-praisal (self-efficacy and effectiveness) [28]. 
+
+## 4.3 Persona Optimization 
+
+The core of Narriva is the persona optimization procedure, de-fined in Alg. 1. An initially generated persona, while conforming to a template, might not be completely predictive of the user’s privacy decisions, attitudes, or preferences. As such, we develop an iterative optimization procedure to incrementally improve the generated persona, while imposing three constraints: predictive-ness, conciseness, and generalizability. The optimization procedure takes as input a specific persona template, a set of generation ques-tions ( qgen ) with their corresponding user responses ( rgen ), and a set of hyper-parameters. The hyper-parameters are: the number of personas generated at each iteration ( 𝐵 ), the maximum number of iterations ( 𝐼 ), the generation model ( 𝑀 𝑔𝑒𝑛 ), the prediction model (𝑀 𝑝𝑟𝑒𝑑 ), the feedback model ( 𝑀 𝑓 𝑏 ), and the generation temperature (𝜏 ). 
+
+> 5
+
+Algorithm 1 Persona Optimization Procedure                                                                                                                          
+
+> 1: Input: Persona Template 𝑃 𝑡𝑒𝑚𝑝 , Questions qgen , User Responses rgen ,Hyper-parameters (𝐵, 𝐼, 𝑀 𝑔𝑒𝑛 , 𝑀 𝑝𝑟𝑒𝑑 , 𝑀 𝑓 𝑏 , 𝜏 )
+> 2: Output: Optimized Persona 𝑃 ∗
+> 3: 𝑃 𝑏𝑒𝑠𝑡 ←null
+> 4: 𝑎𝑐𝑐 𝑏𝑒𝑠𝑡 ←0
+> 5: 𝐹 ←null ⊲Feedback buffer
+> 6: for 𝑖 =1to 𝐼 do
+> 7: Step 1: Population Generation
+> 8: if 𝑖 =1then
+> 9: P𝑖 ←Generate 𝐵 personas from 𝑀 𝑔𝑒𝑛 (𝑃 𝑡𝑒𝑚𝑝 |qgen |rgen , 𝜏 )
+> 10: else
+> 11: P𝑖 ←Generate 𝐵 personas from 𝑀 𝑔𝑒𝑛 (𝑃 𝑏𝑒𝑠𝑡 |𝐹, 𝜏 )
+> 12: end if
+> 13: Step 2: Evaluation and Selection
+> 14: for each 𝑃 ∈ P 𝑖 do
+> 15: ˆr←Predict answers for qgen using 𝑀 𝑝𝑟𝑒𝑑 conditioned on 𝑃
+> 16: 𝑎𝑐𝑐 ←Calculate accuracy of ˆragainst rgen
+> 17: if 𝑎𝑐𝑐 >𝑎𝑐𝑐 𝑏𝑒𝑠𝑡 then
+> 18: 𝑎𝑐𝑐 𝑏𝑒𝑠𝑡 ←𝑎𝑐𝑐
+> 19: 𝑃 𝑏𝑒𝑠𝑡 ←𝑃
+> 20: ˆr𝑏𝑒𝑠𝑡 ←ˆr
+> 21: end if
+> 22: end for
+> 23: Step 3: Termination Check
+> 24: if 𝑎𝑐𝑐 𝑏𝑒𝑠𝑡 =1.0or 𝑖 =𝐼 then
+> 25: return 𝑃 𝑏𝑒𝑠𝑡
+> 26: end if
+> 27: Step 4: Feedback Generation
+> 28: 𝐹 ←𝑀 𝑓 𝑏 (𝑃 𝑏𝑒𝑠𝑡 ,ˆr𝑏𝑒𝑠𝑡 ,rgen )⊲Evaluate Conciseness, Generalization, Predictiveness
+> 29: end for
+> 30: return 𝑃 𝑏𝑒𝑠𝑡
+
+The optimization procedure operates as an iterative search, in-spired by evolutionary algorithms and LLM-driven optimization approaches [ 14 , 27 , 32 ]. At each iteration, it generates a population of personas, chooses the best one, and provides correction feedback for the subsequent iterations. The search stops when the maximum number of iterations is reached or the best persona exhibits no more improvements. At the first iteration, the generation model is prompted with the persona template, the set of questions ( qgen ) and responses ( rgen ), and instructions to generate the persona. During this initial step, the model is prompted 𝐵 times with high temper-ature to promote diversity in persona generation. The output is a population of 𝐵 initial personas that follow the persona template and compress the individual questions and responses. We opted to use a higher temperature rather than prompting the model ex-plicitly to diversify the persona generation, as explicit diversity instructions might lead to contrived or superficial variations. Given the population of personas, the next step is to evaluate each one of them on the rgen set. The procedure prompts a pre-diction model ( 𝑀 𝑝𝑟𝑒𝑑 ) with the persona, each question from ( qgen ), the answer range, and the instructions to predict the answer. It keeps the persona with the highest accuracy ( 𝑎𝑐𝑐 𝑏𝑒𝑠𝑡 ) for the next generation, as the most representative of the user’s rgen . Next, a feedback model ( 𝑀 𝑓 𝑏 ) analyzes the best persona at the current iteration for three aspects: conciseness, generalization, and pre-dictiveness. In particular, it takes the predicted answers from this persona ( ˆr𝑏𝑒𝑠𝑡 ) and compares them with the real answers. Then it constructs feedback, which includes necessary corrections to be made for the persona based on wrong predictions, suggested alignment with the template, and improvements for conciseness and generalization. The next 𝐼 − 1 iterations proceed similarly. The generation model (𝑀 𝑔𝑒𝑛 ) is prompted with the best persona from the prior iteration and the feedback from the feedback model. The generation model produces a batch 𝐵 of corrected personas using a high temperature to induce diversity. These corrected personas undergo the same pro-cess of prediction, selection, feedback, and correction. The search stops at the earlier of two conditions: the maximum number of iter-ations 𝐼 has been reached or when the best persona at an iteration matches all the responses from rgen .
+
+## 4.4 Persona-based Prediction 
+
+Following the generation of the persona, Narriva ’s next task is to apply this persona to answer a given question on behalf of the individual. This task prompts a prediction model ( 𝑀 𝑝𝑟𝑒𝑑 ) with three components: the individual’s generated persona, the unseen ques-tion from ( qeval ), and instructions to simulate the decision. Because 
+
+Narriva can generate multiple personas for a single user (e.g., one per persona template), it must determine which of them best encapsulates the user’s reasoning. To solve this, Narriva optionally employs a post-hoc calibration step. Akin to post-hoc adaptation [ 18 , 31 ], which estimates bias terms on held-out responses to correct statistical properties, we leverage LLMs as a personalized selection mechanism. We desig-nate a small “calibration set” from Qeval . Narriva evaluates each generated persona on these calibration questions and selects the representation yielding the highest individual-level accuracy ( 𝑎𝑐𝑐 ). The selected persona operates as the final, validated privacy profile for that user. We evaluate the impact of this optional calibration in Sec. 5 on simulating privacy decision-making on unseen questions. 
+
+## 5 Evaluation 
+
+We now evaluate how well Narriva addresses our research ques-tions, and then we examine the impact of our design choices. Specif-ically, our evaluation is structured around four sets of experiments: 
+
+• Predictiveness and Representation: In Section 5.2.1, we assess research questions RQ1 and RQ2 by examining how well text-based personas can reconstruct population-level distributions and predict individual-level privacy decisions. 
+
+• Cross-Study Applicability: In Section 5.2.2, we address RQ3 and quantify how well personas synthesized from one study simulate distributions of responses in independent surveys. 
+
+• Influence of Privacy Behavior Theories: In Section 5.2.3, we quantify how guiding the persona generation using the different theoretical frameworks, such as Privacy Calculus or Bounded Rationality, impacts overall predictive accuracy. 
+
+• Influence of Attitude and Behavioral Questions: In Sec-tion 5.2.4, we study the impact of generating personas based 
+
+> 6
+
+on attitude versus behavioral questions. We examine if an-swers to attitude questions can predict behaviors, or if only answers to behavioral questions can do so. 
+
+## 5.1 Datasets 
+
+We utilize five privacy-centric datasets (Table 1) to carry out the above evaluations. We choose three types of surveys to represent different granularities in the measured privacy decisions. Three datasets are privacy panels from Pew Research that measure general privacy attitudes and behaviors. The fourth dataset from Dehling et al. measures users’ willingness to disclose biometric data for continuous authentication [ 11 ]. The fifth dataset measures whether individuals accept a smart personal assistant sharing specific data types with third-party entities for specific purposes. We describe these datasets briefly here, and defer the full description to Appen-dix C. 
+
+SPA Dataset [ 1]. Abdi et al. published a dataset about privacy norms for smart home personal assistants (SPAs) [ 1] comprising 1,737 responses. The survey measures participants’ comfort with a set of 24 data sharing scenarios, alongside their privacy and se-curity attitudes. The scenarios cover varied data types, recipients, purposes, and conditions. When analyzing this dataset, we parti-tion the responses into two groups: behaviors (i.e., data sharing scenarios mapped to acceptable/unacceptable), and privacy and security attitudes. We discard neutral responses. 
+
+Pew PP1 [ 23 ]. The Pew Research Center conducted this study in 2014 as part of the first American Trends Panel (ATP). The dataset includes responses from 607 US adults regarding their perceptions of privacy, surveillance, and data management. It covers dimensions such as the perceived importance of controlling personal informa-tion, concern over government and corporate monitoring, and the perceived sensitivity of various data types. 
+
+Pew W49 [ 6]. Collected by Pew in 2019, this dataset focuses on the trade-offs inherent in the modern data ecosystem. It includes responses from 4,272 U.S. adults. The study covers perceived risks versus benefits of data collection, concerns regarding data usage, sense of control over data, and understanding of privacy policies. It also includes hypothetical scenarios where respondents rated the acceptability of data sharing in exchange for specific services or societal benefits. 
+
+Pew W127 [ 25 ]. Collected by Pew in 2023, this study includes responses from a nationally representative sample of 5,101 U.S. adults. The survey covers general concerns regarding government and corporate data collection, perceived control over personal data, individual digital privacy behaviors (e.g., use of password man-agers), and specific attitudes toward emerging technologies, such as artificial intelligence and residential cameras. 
+
+CAuthN Study Dataset [ 11 ]. Dehling et al. studied individuals’ perceptions around continuous biometric authentication. They re-cruited 830 US Internet users in 2022. The study covers willingness to continuously share biometric data, belief in the efficacy of bio-metric authentication, perceived privacy and security risks, and perceived trust in the service provider. The survey also includes standard privacy and security attitude scales. 
+
+## 5.2 Experiments 
+
+We perform four sets of experiments for the above evaluations. 
+
+5.2.1 Predictiveness and Representation. The first set of exper-iments investigates whether synthetic personas can predict re-sponses to unseen questions drawn from the same surveys at both the individual and population levels. 
+
+Experiment Setup. We parse each study and represent it as the dataset matrix defined in Sec. 3. The first set of experiments does not distinguish between attitude and behavioral questions. Instead, we randomly split the response set for each user into two subsets: a generation set (80%) and an evaluation set (20%). We use Gemini 3.0 Flash (temperature = 1.5) to synthesize narratives and Gemini 2.5 Flash-Lite (temperature = 0) for prediction. The optimization parameters are 𝐵 = 5 personas per iteration and 𝐼 = 3 iterations. In this evaluation, we use the basic persona generation template (Appendix D.1) to synthesize, and the basic prediction template (Appendix D.2) to apply the personas. As questions are randomly distributed between generation and evaluation sets per individual, the set of respondents evaluating any specific question varies. Thus, to compute population-level metrics, we aggregate the simulated answers per unique evaluation question to construct a predicted distribution. We then compute the TVComplement between the predicted distribution and the ground-truth distribution for that specific subset of respondents. We report the average across all questions. Finally, we evaluate the text-based personas against two prompting strategies: raw examples 
+
+and internal LLM baseline . The raw examples strategy refers to using the survey question-answer sets verbatim as the privacy persona. The internal LLM baseline approach instructs the LLM to apply standard privacy norms without any personalization (see Appendix D.2 for exact prompts). We report the individual-level accuracy ( 𝑎𝑐𝑐 𝑆 ) and population-level metric ( 1 − 𝑇𝑉 𝐷 ) as defined in Sec. 3. 
+
+Results. Fig. 2 shows the individual-level and population-level performance of the text-based personas on the five datasets. Error bars represent 95% confidence intervals obtained through bootstrap-ping the results 1,000 times with replacement. We highlight key takeaways while deferring detailed metrics to Appendix A. 
+
+Text-based personas retain predictive power. First, the perfor-mance of the text-based persona tracks that of the raw examples across all datasets and metrics. This tight alignment highlights the effectiveness of Narriva in distilling the generation set. Rather than losing important information about user decisions during the optimization, the text-based persona successfully captures the user’s core privacy preferences from the raw question-answer pairs. 
+
+Personalization is strictly necessary. Second, both raw exam-ples and text-based personas perform significantly better than the internal LLM baseline on both individual- and population-level met-rics. Prompting LLMs to answer privacy-related questions without grounding in real user data fails to match the real distribution of re-sponses [ 20 ]. Grounding, either through exact data or a summarized persona, is essential for accurate predictions. 
+
+> 7
+
+Table 1: High-level overview of the five datasets used to evaluate Narriva .
+
+Dataset Data Source Date Size ( 𝑁 ) Target Population # Qs/respondent Primary Focus SPA [1] Prolific Pre-2021 1,737 UK 160 Smart assistant sharing 
+
+Pew PP1 [23] Pew ATP Jan 2014 607 US adults 51 General privacy attitudes 
+
+Pew W49 [6] Pew ATP Jun 2019 4,272 US adults 74 Data sharing trade-offs 
+
+Pew W127 [25] Pew ATP May 2023 5,101 US adults 131 Tech & privacy behaviors 
+
+CAuthN [11] Prolific Sep–Oct 2022 830 US Internet users 83 Biometric authentication 0 20 40 60 80 100          
+
+> Accuracy (%)
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 67.9
+> 58.6
+> 56.7
+> 52.1
+> 40.1
+> 85.2
+> 69.4
+> 65.8
+> 66.6
+> 50.2
+> 84.6
+> 67.7
+> 64.3
+> 66.1
+> 45.8
+> Individual: Accuracy ( )
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1 - TVD
+> 0.68
+> 0.50
+> 0.50
+> 0.46
+> 0.32
+> 0.92
+> 0.79
+> 0.76
+> 0.77
+> 0.73
+> 0.94
+> 0.84
+> 0.80
+> 0.81
+> 0.73
+> Population: 1 - TVD ( )
+> Baseline Raw Narrative
+
+Figure 2: Individual- and population-level performance of text-based personas using 80:20 generation/evaluation split. Error bars show 95% confidence intervals obtained via bootstrapping. We report per-formance of summarized persona derived from question-answer pairs (Narrative), against that of the original question-answer pairs (Raw) and the LLM’s internal privacy baseline without personaliza-tion (Baseline). 
+
+Predictability varies among respondents in the same dataset. 
+
+At the individual-level, we observe significant variance in the pre-diction accuracy for each dataset with the standard deviation vary-ing between 10% and 15%. Still, Narriva accurately represents specific subsets of users: more than 40% of respondents achieve 
+
+> 90% matching accuracy on the SPA dataset, and more than 30% of respondents achieve >70% accuracy in the Pew W49 and PP1 datasets. We attribute this variance to the inherent consistency (or lack thereof) in participants’ responses. As identified in prior work, predicting individual survey responses can be inherently noisy [ 18 ]. Appendix E details two participants from the Pew PP1 survey that illustrate this contrast in predictability. Participant A, yielding high prediction accuracy (83%), maintains a consistent, tiered approach to privacy with clear boundaries between sensitive data (e.g., SSN, health records) and less critical data—a structured posture the persona easily formalizes. In contrast, Participant B proves highly challenging to predict (50% accuracy) due to conflict-ing decisions, such as avoiding mainstream social media for security while frequently "egosurfing" and oscillating between anonymity and real names. 
+
+Predictability varies significantly across datasets. Fourth, we observe a noticeable variance in absolute prediction accuracy across the five datasets. We attribute this variance to the dataset structure in terms of number of questions and answer granularity, where datasets with highly repetitive structures enable stronger extrapo-lation. For instance, the SPA dataset contains ∼144 uniform data sharing questions per respondent, allowing the model to achieve high predictability. Conversely, the CAuthN dataset involves pre-dicting continuous values on a 1–100 scale, resulting in poorer baseline accuracy. On the Pew datasets, the models achieve a re-spectable ∼65% to 70% average individual accuracy, notably high given the 5-point and 7-point Likert scales used. 
+
+Personas accurately reconstruct population distributions. 
+
+Fifth, Narriva demonstrates high fidelity at the population-level. As shown in the right plot of Fig. 2, the text-based personas consis-tently yield the highest TVComplement ( 1−TVD ) across all datasets, marginally outperforming even the raw examples. This result in-dicates that grounded personas accurately mimic population-level aggregated responses on unseen questions, effectively smoothing out some of the individual-level noise inherent in survey data. 
+
+Nuanced privacy preferences are harder to predict. Sixth, like the individual-level predictability, population-level performance varies across specific evaluation questions. To illustrate why some questions are inherently easier to predict than others, we highlight two examples from the SPA dataset. One question asked partici-pants if sharing smart thermostat history with an entertainment skill (e.g., Star Wars quotes) was acceptable. This proved easy to predict: the population-level metric (TVComplement) was perfect (Narriva correctly estimated the distribution at 47/54 unacceptable and 7/54 acceptable), and individual-level accuracy was 50 of 54. This high accuracy likely stems from a clear lack of functional ne-cessity and an obvious privacy risk of revealing whether someone is home or not. In contrast, a more difficult question asked if shar-ing sleeping hours with a health and fitness skill was acceptable. For this scenario, TVComplement dropped to 0.75 and individual accuracy dropped to 41 of 58 responses. This question captures a subjective trade-off: some users gladly share sleep data for personal-ized health analysis, while others consider it too private regardless of the benefit. These examples demonstrate that predictive models more easily internalize clear-cut privacy violations than nuanced, subjective trade-offs. 
+
+Text-based personas are concise. Finally, Table 2 reports the number of tokens for both the raw examples and Narriva ’s per-sonas across the five datasets. The token count is calculated per 
+
+> 8
+
+Category Raw Narrative % Reduction 
+
+SPA 8920 431 95% Pew PP1 1738 296 82% Pew W49 2291 399 82% Pew W127 3243 453 86% CAuthN 3006 395 86% 
+
+> Table 2: The average token count comparison between raw examples and the personas from the basic template. The narrative personas reduce token count by 82%-95% compared to the baseline.
+
+individual using the Gemini 3.0 Flash tokenizer, then averaged across all individuals per dataset. As shown in the table, Narriva 
+
+generates highly concise personas, particularly when the genera-tion set is large. For instance, the SPA dataset contains over 100 question-answer pairs in its generation set, yet Narriva ’s personas are approximately 20 × smaller in token count compared to the raw examples. This reduction in token size lowers inference costs while simultaneously improving readability and portability, without sacrificing predictive or representative performance. 
+
+5.2.2 Cross Study Applicability. The second set of experiments evaluates the cross-study applicability of Narriva by assessing whether text-based personas from one study can simulate the pri-vacy decisions in a different study. 
+
+Experiment Setup. We evaluate three cross-study scenarios, where we generate personas from the generation questions of one study, select highly performing ones, and apply them to the evaluation questions of another study. 
+
+Scenarios: We evaluate cross-study applicability across indepen-dent populations. In this experiment, we divide the survey questions into behavioral and non-behavioral domains. After randomly split-ting the behavioral questions into generation (80%) and evaluation sets (20%), we generate personas based on the generation set of one study and apply them to the evaluation set of another. This approach allows us to measure how well the personas capture pri-vacy actions at the population level. We conduct this evaluation using three dataset pairs: 1) surveys conducted around the same time (Pew W49 (2019) and SPA (2020/2021)), 2) surveys separated by a small temporal gap (Pew W49 (2019) and Pew W127 (2023)), and 3) surveys separated by a large temporal gap (Pew PP1 (2014) and Pew W127 (2023)). 
+
+Persona Selection and Evaluation: Given the generation set of questions from a source study, we generate candidate personas using the basic template. Then, we filter them based on their perfor-mance on the evaluation set from the same study. In particular, we select personas that cross an individual-level accuracy threshold of 
+
+0.70 , establishing a baseline population of personas that serve as reliable proxies for their underlying respondents. Because these dis-tinct studies are designed to be representative samples of the same broader underlying population (e.g., US adults), we operate under the assumption that a valid synthetic panel generated from one study should closely mirror the aggregate behavioral distribution of another. To measure population-level metrics across studies, we use 
+
+Cross-study Scenario 1 − 𝑇𝑉 𝐷 (↑) In-Study Baseline 
+
+Near Term: W49 → SPA 0.866 0.93 
+
+Short-term: W49 → W127 0.844 0.81 
+
+Long-term: PP1 → W127 0.733 0.81 
+
+> Table 3: Population-level metrics measuring the cross-study appli-cability of personas across datasets. Higher values indicate closer alignment with the real distribution of the target dataset.
+
+a Cartesian matrix approach. Specifically, we use each selected per-sona to generate answers to all unique questions in the evaluation set of the target dataset. We then compare the distribution of the simulated answers to that of the real answers on the target dataset. Otherwise, we use the same generation and prediction parameters as in Section 5.2.1. 
+
+Results. Table 3 reports the population-level transfer perfor-mance of the synthetic personas. It also includes the in-study base-lines for reference. Below are the main takeaways. 
+
+Personas generalize across independent populations with small temporal gaps and shared context. When applying per-sonas across populations with small temporal gaps, Narriva mim-ics population-level trends. For instance, personas generated from Pew W49 (2019) transfer well to Pew W127 (2023) when evaluated on behavioral questions. This performance even exceeds the in-study baseline of personas generated on the Pew W127 datasets. We suspect that cross-study personas performed better because we filtered them to keep only the most accurate personas, a step we skipped for the in-study baseline. This result shows that a carefully chosen group of older profiles may outperform a larger, unfiltered group from the current dataset. We also observe that the context of the study affects the cross-study applicability of the personas. Both the Pew W49 and SPA datasets were collected around the same time, and they both contain a mix of behavioral and attitude questions. The performance of the in-study personas generated from the SPA dataset is comparable to those generated from the Pew W49 dataset when the personas are generated on behavioral questions. However, when generating the personas based on the attitude questions of the SPA dataset, the performance drops significantly, as will be described later in Fig. 6 ( 1 − 𝑇𝑉 𝐷 =0.83). In this case, the personas generated from the behavioral questions of the Pew W49 dataset outperform the in-study ones from the SPA dataset. Sec. 5.2.4 delves deeper into this phenomenon in the in-study setting. 
+
+Longitudinal behavior drift limits long-term transferability. 
+
+We observe that personas do not transfer reliably across large tem-poral gaps, such as from Pew PP1 (2014) to Pew W127 (2023). We at-tribute this performance gap to two factors. First, the nine-year gap means that the privacy landscape, technologies, and data-sharing norms evolved drastically over this nine-year period, rendering the 2014 personas outdated for modern scenarios. Second, the two datasets have a different focus, where the Pew PP1 focuses on privacy attitudes and awareness, and the Pew W127 focuses on technology and privacy behaviors. 
+
+There is a need for grounded personas. In all cases, the cross-study performance significantly outperforms the LLM baseline 
+
+> 9
+
+performance (given in Fig. 2). Our results further indicate that the choice of personas (in terms of common context and temporal gaps) also affects their applicability. Overall, our results indicate the need for grounded persona-based prompting for simulating user decisions. 
+
+5.2.3 Influence of Privacy Behavior Theories. Next, we assess the impact of privacy theories on the performance of generated per-sonas. 
+
+Experiment Setup. We employ the three persona templates in-spired by established privacy theories: Privacy Calculus, Bounded Rationality, and Protection Motivation Theory (PMT) (described in Section 4.2 and Appendix B). We keep the same generation and pre-diction parameters as Section 5.2.1. Our goal is to measure whether framing the prompt around how individuals make data-sharing de-cisions impacts the predictive accuracy of the generated personas. We use Gemini 3.0 Flash to generate privacy persona narratives based on half of an individual’s responses, applying one of the four templates (Basic, Bounded, Calculus, PMT, see their corre-sponding generation prompt in Appendix D.1). We then evaluate these persona narratives on the remaining questions to compute population-level metrics and individual-level accuracy. When gen-erating the personas, we set 𝐼 = 1, as our analysis in Fig. 8 from Appendix A.1 shows that additional optimization steps are unlikely to result in better-performing personas. 
+
+Results. We highlight three main findings across the datasets. The detailed set of results across all metrics is found in Appendix A. 
+
+Aggregate performance is robust to theoretical framing. Ta-ble 4 reports the TVComplement metric across the prompt variants, demonstrating that population-level performance remains highly stable (e.g., 1 − 𝑇𝑉 𝐷 is between 0.80 and 0.81 on Pew W127 across all prompt types). This stability confirms that, in aggregate, per-sona predictiveness stems primarily from grounding the LLM in historical user data rather than the psychological framing of the generation prompt. 
+
+No single privacy theory dominates globally. While aggregate performance is stable, individual-level variance is significant. Fig. 3 illustrates the fraction of individuals for whom each specific the-ory yielded the highest predictive accuracy. No single template universally captures everyone’s behavior. For instance, on the SPA dataset, the Basic template performs the best for 38% of users, but Bounded Rationality and Privacy Calculus best fit 24% and 23% of users, respectively. This fragmentation suggests that different indi-viduals naturally align with different theoretical heuristics when evaluating privacy decisions. 
+
+Dynamically matching templates to respondents unlocks higher accuracy. Leveraging this fragmented alignment, we find a measurable boost in performance when dynamically selecting the optimal theoretical template per respondent. As shown in Fig. 4, utilizing the “Best” template increases average individual accuracy across all datasets compared to relying solely on the “Basic” persona. For instance, in the CAuthN dataset, average individual accuracy increases from 45.8% (Basic) to 52.2% (Best). Importantly, this added personalization also maintains or slightly improves the population-level metrics. This result reveals a practical computational trade-off: investing generation resources to synthesize and evaluate multiple Fraction of Respondents                   
+
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 0.38 0.24 0.23 0.14
+> 0.27 0.24 0.28 0.22
+> 0.21 0.26 0.29 0.25
+> 0.22 0.27 0.28 0.22
+> 0.22 0.34 0.26 0.19
+> Basic Bounded Calculus PMT
+
+Figure 3: The fraction of individuals across the five datasets for which each specific privacy theory template yields the highest predictive accuracy. 0 20 40 60 80 100         
+
+> Accuracy (%)
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 84.6
+> 67.7
+> 64.3
+> 66.1
+> 45.8
+> 86.6
+> 73.5
+> 69.7
+> 69.8
+> 52.2
+> Individual: Accuracy ( )
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1 - TVD
+> 0.94
+> 0.84
+> 0.80
+> 0.81
+> 0.73
+> 0.94
+> 0.85
+> 0.81
+> 0.81
+> 0.75
+> Population: 1 - TVD ( )
+> Basic Best
+
+Figure 4: Comparison of individual accuracy and population-level 
+
+𝑇𝑉 𝐷 when using the Basic text-based persona versus dynamically selecting the Best-performing theoretical template per respondent. Error bars are obtained via bootstrapping. 
+
+theoretical personas for a user ultimately provides a direct pathway to superior predictive accuracy. 
+
+Dataset Basic Bounded Calculus PMT 
+
+SPA 0.94 ( ±0.00) 0.93 ( ±0.00) 0.94 ( ±0.00) 0.93 ( ±0.00) Pew PP1 0.84 ( ±0.02) 0.84 ( ±0.02) 0.82 ( ±0.02) 0.83 ( ±0.02) Pew W49 0.80 ( ±0.01) 0.80 ( ±0.01) 0.79 ( ±0.01) 0.80 ( ±0.01) Pew 127 0.81 ( ±0.01) 0.81 ( ±0.01) 0.80 ( ±0.01) 0.80 ( ±0.01) CAuthN 0.73 ( ±0.01) 0.73 ( ±0.01) 0.73 ( ±0.01) 0.73 ( ±0.01) 
+
+Table 4: Impact of the persona-generating prompt on the population-level metric 1 − 𝑇𝑉 𝐷 (↑), on the five datasets. The performance is similar across prompt variants for each dataset, suggesting that the high predictiveness of the personas does not stem from the choice of prompt. 
+
+5.2.4 Influence of Attitude and Behavioral Questions. In the final set of experiments, we delve deeper into whether attitude questions can predict responses to behavioral questions. 
+
+Experiment Setup. We split the questions in each dataset into two domains: attitude and behavioral. Attitude questions quantify              
+
+> 10 020 40 60 80 100
+> Accuracy (%)
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 86.7
+> 61.7
+> 62.4
+> 57.8
+> 63.3
+> 88.4
+> 73.8
+> 73.2
+> 68.7
+> 76.2
+> Individual: Accuracy ( )
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1 - TVD
+> 0.93
+> 0.81
+> 0.82
+> 0.78
+> 0.80
+> 0.93
+> 0.85
+> 0.83
+> 0.81
+> 0.84
+> Population: 1 - TVD ( )
+> Basic Best
+
+Figure 5: Performance when generating from behavioral questions and evaluating on behavioral questions, across prompt templates. Error bars are obtained via bootstrapping. 0 20 40 60 80 100         
+
+> Accuracy (%)
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 67.4
+> 66.3
+> 58.1
+> 53.2
+> 49.6
+> 71.0
+> 77.9
+> 69.4
+> 60.0
+> 59.9
+> Individual: Accuracy ( )
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1 - TVD
+> 0.83
+> 0.84
+> 0.78
+> 0.75
+> 0.70
+> 0.83
+> 0.83
+> 0.82
+> 0.74
+> 0.75
+> Population: 1 - TVD ( )
+> Basic Best
+
+Figure 6: Performance when generating from attitude questions and evaluating on behavioral questions, across prompt templates. Error bars are obtained via bootstrapping. 
+
+a respondent’s internal perceptions, values, and general concerns regarding privacy, such as the perceived sensitivity of information, level of concern regarding surveillance, or trust in institutional data handling. Behavioral questions measure self-reported past actions or intended decisions, such as the adoption of privacy-enhancing tools or the willingness to share specific data types. We manually label each question in the dataset as attitude or behavioral. Ques-tions not falling to either categories are discarded. We consider two experimental settings: (1) using attitude questions for generation and behavioral questions for evaluation, and (2) splitting the behav-ioral questions between generation and evaluation. In this setting, we randomly split the subset of responses for each user, using 80% for generation and 20% for evaluation, and generate the personas in a single iteration ( 𝐼 = 1). 
+
+Results. Fig. 5 and Fig. 6 show how the text-based personas pre-dict individual responses under these two experimental conditions. The detailed results across templates are found in Appendix A. We highlight two main takeaways. Fraction of Respondents                  
+
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 0.39 0.29 0.20 0.12
+> 0.79 0.11 0.08
+> 0.07 0.72 0.13 0.08
+> 0.09 0.60 0.20 0.11
+> 0.08 0.62 0.18 0.12
+> Basic Bounded Calculus PMT
+
+Figure 7: Fraction of individuals for which each of the templates is best performing when generating and evaluating on behavioral questions. 
+
+Behavioral questions strongly predict responses to other be-havioral questions. As shown in Fig. 5, generating personas di-rectly from answers to behavioral questions is highly effective for predicting responses to unseen behavioral questions, which is con-sistent with findings in prior studies [ 15 ]. Across all datasets, the text-based personas perform better than the baseline case where questions are randomly split without distinguishing domains (as shown previously in Fig. 2). For example, on the SPA dataset, per-sonas built strictly from behavioral questions achieve up to 88.4% individual accuracy, compared to 84.6% with a random split. Just as in our prior experiments, dynamically selecting the best-performing theoretical template per user improves performance. In the CAu-thN dataset, individual accuracy increases from 63.3% under the Basic template to 76.2% utilizing the Best template, while lowering population-level TVComplement (e.g., from 0.81 to 0.85 on Pew PP1). Interestingly, predicting behaviors from behaviors drastically shifts the optimal template distribution (Fig. 7). Unlike the uniform spread seen earlier, the Bounded Rationality template now domi-nates, proving to be the most accurate fit for 60–80% of individuals across four of the five datasets. This aligns with theory: when mod-eling specific actions rather than broad beliefs, individuals heavily rely on cognitive heuristics and bounded choices. 
+
+General privacy attitudes are weak predictors of responses to behavioral questions. Conversely, we observe a pronounced difficulty in predicting answers to concrete behavioral privacy ques-tions when derived solely from general attitude surveys. As a result, the predictive performance when generating from attitudes (Fig. 6) is worse across both individual- and population-level metrics com-pared to generating from behavioral responses (Fig. 5). Although confined to survey settings, this predictive gap can be indicative of the “privacy paradox,” where stated concerns frequently mis-align with practical data-sharing realities. When transitioning from behavior-based to attitude-based generation, individual accuracy drops significantly: falling from 88.4% to 71.0% on the SPA dataset, and from 76.2% to 59.9% on CAuthN. Population-level Maximum Overlap simultaneously decreases across the board (e.g., Maximum Overlap on CAuthN degrades from 0.84 to 0.75 ). Consequently, robustly simulating user decisions requires grounding in histori-cal behavioral responses rather than relying strictly on attitudinal measures. 
+
+> 11
+
+## 6 Discussion 
+
+The evaluation of Narriva highlights the capabilities of optimized text-based personas to balance predictiveness, usability, scalability, and representation. We discuss the broader implications of these findings for simulating user studies and enabling personalized pri-vacy assistants, alongside the limitations of this work. 
+
+Capabilities of Text-based Personas. Recent work demonstrates that LLMs struggle to accurately simulate privacy attitudes, even when conditioned on demographic personas [ 20 ]. Our findings confirm that accurately simulating individual- and population-level privacy decisions requires grounding personas in observed behavioral data. 
+
+Narriva proves that text-based personas can compress this raw historical data effectively, achieving high predictive accuracy (e.g., up to 85% on the dense SPA dataset) while drastically reducing the context overhead compared to in-context learning with raw logs. Furthermore, grounding these personas in established privacy theories adds structured readability and interpretability, crucial for usability, without sacrificing predictive power. Future work can leverage Automatic Prompt Optimization (APO) [ 14 , 27 ] to dynamically construct customized prediction templates for these theoretical structures, further optimizing how text-based personas map to novel privacy scenarios. 
+
+User Study Simulation. As shown in Sec. 5.2.2, Narriva can extract highly predictive personas from one study to accurately simulate population-level responses in an independent study. This capability enables the creation of synthetic panels —collections of validated, text-based personas that represent specific target populations. Re-searchers and practitioners could use these panels to pilot new survey instruments, test UI variants, or evaluate experimental con-ditions before deploying them to human participants, reducing study costs and participant fatigue. However, creating reliable synthetic panels presents three chal-lenges. First, representing specific target populations requires ac-cess to diverse, high-fidelity datasets, while available ones are skewed heavily toward WEIRD (Western, educated, industrialized, rich, and democratic) demographics. Second, distribution bias can arise if only a subset of personas pass the initial validation threshold. Finally, privacy preferences shift over time as attitudes and norms evolve alongside new technologies. A synthetic panel derived from older studies will eventually fail to capture contemporary privacy behaviors, necessitating continuous dataset updates. 
+
+Personalized Privacy and the Cold Start Problem. Beyond population-level simulations, text-based personas are sufficiently predictive and usable to power future personalized privacy assistants. An as-sistant could utilize an individual’s validated persona as a system instruction to autonomously negotiate data-sharing agreements on the user’s behalf. Crucially, standardizing these preferences into a concise text format addresses a major hurdle for AI assistants: the 
+
+cold start problem . Currently, onboarding a user to a new privacy assistant requires either tedious, granular questionnaires—which often fail to predict actual behavior due to the privacy paradox—or collecting massive amounts of raw behavioral data over time. In contrast, text-based personas offer inherent portability . A persona summarized from a user’s behavior on one platform (e.g., a dom-inant social media ecosystem) can be extracted as a structured, human-readable text file and securely ported to bootstrap a new privacy assistant on an entirely different platform. This portability resolves the cold start problem without requiring the transfer of sensitive, granular raw history logs between services. To support this ecosystem, future research must design trans-parent, usable interfaces that allow users to securely audit, edit, and export their text-based personas. These interfaces should in-form users when an autonomous decision was made using their persona, providing the LLM’s reasoning and allowing for real-time corrections. Given the inevitability of LLM hallucinations, it will be essential to incorporate uncertainty estimation [ 13 ] and explicitly request human intervention on high-risk, low-confidence decisions. 
+
+Ethical Considerations. We use publicly available research datasets strictly in line with their original intent: understanding human privacy reasoning. Narriva synthesizes text-based personas using only the explicitly provided responses within each dataset. We do not attempt to cross-reference this data with external sources, de-anonymize participants, or infer information beyond the scope of their stated responses. 
+
+Limitations. The evaluation of Narriva is subject to several limita-tions. First, the datasets exclusively cover adult populations in the US and UK. Expanding the geographical and cultural diversity of the validation datasets is necessary to fully assess representation. Second, the generated text schemas capture a temporal snapshot of a user’s attitudes; more work is needed to develop mechanisms that continuously calibrate and update text personas over time as user preferences drift. Finally, Finally, because running the iterative optimization across five large datasets incurs prohibitive API costs, our results are derived primarily from the Gemini model family (Gemini 3.0 Flash and Gemini 2.5 Flash-Lite). However, concur-rent work indicates that different frontier models perform similarly when simulating privacy behaviors [15, 20]. 
+
+## 7 Conclusion 
+
+Simulating individual privacy decisions requires balancing com-peting demands: predictiveness, usability, scalability, and represen-tation. While prior approaches often compromise one dimension for another, Narriva transforms raw survey data into concise, grounded privacy personas that balance these dimensions. By com-pressing inputs into structured narratives, it reduces prompt tokens by 80–95% across five diverse datasets while preserving high pre-dictive accuracy. Our evaluation reveals that past behaviors are stronger predictors of future choices than general privacy attitudes, and that dynamically tailoring persona templates further maxi-mizes performance. Moreover, the resulting personas ere highly transferable, remaining predictive across diverse populations and topics. Although these personas must continue to evolve alongside technological shifts, we show that scalable, accurate, and human-interpretable simulation is achievable, laying a practical foundation for transparent personalized privacy assistants. 
+
+## References     
+
+> [1] Noura Abdi, Xiao Zhan, Kopo M. Ramokapane, and Jose Such. 2021. Privacy Norms for Smart Home Personal Assistants. In Proceedings of the 2021 CHI Con-ference on Human Factors in Computing Systems (Yokohama, Japan) (CHI ’21) .Association for Computing Machinery, New York, NY, USA, Article 558, 14 pages. https://doi.org/10.1145/3411764.3445122
+> 12
+
+[2] Alessandro Acquisti. 2004. Privacy in electronic commerce and the economics of immediate gratification. In Proceedings of the 5th ACM Conference on Electronic Commerce (New York, NY, USA) (EC ’04) . Association for Computing Machinery, New York, NY, USA, 21–29. https://doi.org/10.1145/988772.988777 [3] Alessandro Acquisti, Laura Brandimarte, and George Loewenstein. 2015. Privacy and human behavior in the age of information. Science 347, 6221 (2015), 509–514. [4] A. Acquisti and J. Grossklags. 2005. Privacy and rationality in individual decision making. IEEE Security & Privacy 3, 1 (2005), 26–33. https://doi.org/10.1109/MSP. 2005.22 [5] Jacy Anthis, Ryan Liu, Sean Richardson, Austin Kozlowski, Bernard Koch, Erik Brynjolfsson, James Evans, and Michael Bernstein. 2025. Position: LLM Social Simulations Are a Promising Research Method. In Forty-second International Conference on Machine Learning Position Paper Track . https://icml.cc/virtual/ 2025/poster/40125 [6] Brooke Auxier, Lee Rainie, Monica Anderson, Andrew Perrin, Madhu Kumar, and Erica Turner. 2019. Americans and Privacy: Concerned, Confused and Feeling Lack of Control Over Their Personal Information . Technical Report. Pew Research Center. www.pewresearch.org [7] Austin A. Barr, Eddie Guo, Brij S. Karmur, and Emre Sezgin. 2025. Synthetic neurosurgical data generation with generative adversarial networks and large language models:an investigation on fidelity, utility, and privacy. Neurosurgical Focus 59, 1 (July 2025), E17. https://doi.org/10.3171/2025.4.focus25225 [8] Ngoc Bui, Hieu Trung Nguyen, Shantanu Kumar, Julian Theodore, Weikang Qiu, Viet Anh Nguyen, and Rex Ying. 2025. Mixture-of-Personas Language Models for Population Simulation. In Findings of the Association for Computational Linguistics: ACL 2025 , Wanxiang Che, Joyce Nabende, Ekaterina Shutova, and Mohammad Taher Pilehvar (Eds.). Association for Computational Linguistics, Vienna, Austria, 24761–24778. https://doi.org/10.18653/v1/2025.findings-acl.1271 [9] Mary J. Culnan and Pamela K. Armstrong. 1999. Information Privacy Concerns, Procedural Fairness, and Impersonal Trust: An Empirical Investigation. Organi-zation Science 10, 1 (1999), 104–115. http://www.jstor.org/stable/2640390 [10] DataCebo. 2024. TVComplement - SDMetrics Documentation. https://docs.sdv. dev/sdmetrics/data-metrics/quality/tvcomplement. Accessed: 2026-03-10. [11] Florian Dehling, Jan Tolsdorf, Hannes Federrath, and Luigi Lo Iacono. 2024. Internet Users’ Willingness to Disclose Biometric Data for Continuous Online Account Protection: An Empirical Investigation. PoPETs (Proceedings on Privacy Enhancing Technologies) 2024, 2 (2024), 479 – 508. https://doi.org/10.56553/ popets-2024-0060 [12] Cori Faklaris, Laura A. Dabbish, and Jason I. Hong. 2019. A Self-Report Measure of End-User Security Attitudes (SA-6). In Fifteenth Symposium on Usable Privacy and Security (SOUPS 2019) . USENIX Association, Santa Clara, CA, 61–77. https: //www.usenix.org/conference/soups2019/presentation/faklaris [13] Sebastian Farquhar, Jannik Kossen, Lorenz Kuhn, and Yarin Gal. 2024. Detecting hallucinations in large language models using semantic entropy. Nature 630, 8017 (06 2024), 625–630. https://doi.org/10.1038/s41586-024-07421-0 [14] Chrisantha Fernando, Dylan Banarse, Henryk Michalewski, Simon Osindero, and Tim Rocktäschel. 2024. Promptbreeder: self-referential self-improvement via prompt evolution. In Proceedings of the 41st International Conference on Machine Learning (Vienna, Austria) (ICML’24) . JMLR.org, Article 541, 64 pages. [15] James Flemings, Ren Yi, Octavian Suciu, Kassem Fawaz, Murali Annavaram, and Marco Gruteser. 2025. Personalizing Agent Privacy Decisions via Logical Entailment. arXiv:2512.05065 [cs.CR] https://arxiv.org/abs/2512.05065 [16] Friederike Groschupp, Daniele Lain, Aritra Dhar, Lara Magdalena Lazier, and Srdjan Čapkun. 2025. Can LLMs Make (Personalized) Access Control Decisions? arXiv:2511.20284 [cs.CR] https://arxiv.org/abs/2511.20284 [17] Bart Knijnenburg, Elaine Raybourn, David Cherry, Daricia Wilkinson, Saadhika Sivakumar, and Henry Sloan. 2017. Death to the privacy calculus? Available at SSRN 2923806 (2017). [18] Stefan Krsteski, Giuseppe Russo, Serina Chang, Robert West, and Kristina Gligorić. 2025. Valid Survey Simulations with Limited Human Data: The Roles of Prompting, Fine-Tuning, and Rectification. arXiv:2510.11408 [cs.CL] https://arxiv.org/abs/2510.11408 [19] Robert S. Laufer and Maxine Wolfe. 1977. Privacy as a Concept and a Social Issue: A Multidimensional Developmental Theory. Journal of Social Issues 33, 3 (1977), 22–42. https://spssi.onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-4560.1977.tb01880.x [20] Yuxuan Li, Leyang Li, Hao-Ping Lee, and Sauvik Das. 2026. How Well Can LLM Agents Simulate End-User Security and Privacy Attitudes and Behaviors? arXiv:2602.18464 [cs.CY] https://arxiv.org/abs/2602.18464 [21] Richard K. Lomotey, Sandra Kumi, Madhurima Ray, and Ralph Deters. 2024. Syn-thetic Data Digital Twins and Data Trusts Control for Privacy in Health Data Shar-ing. In Proceedings of the 2024 ACM Workshop on Secure and Trustworthy Cyber-Physical Systems (Porto, Portugal) (SaT-CPS ’24) . Association for Computing Machinery, New York, NY, USA, 1–10. https://doi.org/10.1145/3643650.3658605 [22] Yuxuan Lu, Bingsheng Yao, Hansu Gu, Jing Huang, Zheshen Jessie Wang, Yang Li, Jiri Gesi, Qi He, Toby Jia-Jun Li, and Dakuo Wang. 2025. UXAgent: An LLM Agent-Based Usability Testing Framework for Web Design. In Proceedings of the Extended Abstracts of the CHI Conference on Human Factors in Computing Systems (CHI EA ’25) . Association for Computing Machinery, New York, NY, USA, Article 545, 12 pages. https://doi.org/10.1145/3706599.3719729 [23] Mary Madden. 2014. Public Perceptions of Privacy and Security in the Post-Snowden Era . Technical Report. Pew Research Center. http://www.pewinternet.org/2014/ 11/12/public-privacy-perceptions/ [24] Naresh Malhotra, Sung Kim, and James Agarwal. 2004. Internet Users’ Informa-tion Privacy Concerns (IUIPC): The Construct, the Scale, and a Causal Model. 
+
+Information Systems Research 15 (12 2004). https://doi.org/10.1287/isre.1040.0032 [25] Colleen McClain, Michelle Faverio, Monica Anderson, and Eugenie Park. 2023. 
+
+How Americans View Data Privacy . Technical Report. Pew Research Center. www.pewresearch.org [26] Joon Sung Park, Carolyn Q. Zou, Aaron Shaw, Benjamin Mako Hill, Carrie Cai, Meredith Ringel Morris, Robb Willer, Percy Liang, and Michael S. Bernstein. 2024. Generative Agent Simulations of 1,000 People. arXiv:2411.10109 [cs.AI] https://arxiv.org/abs/2411.10109 [27] Reid Pryzant, Dan Iter, Jerry Li, Yin Lee, Chenguang Zhu, and Michael Zeng. 2023. Automatic Prompt Optimization with “Gradient Descent” and Beam Search. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing , Houda Bouamor, Juan Pino, and Kalika Bali (Eds.). Association for Computational Linguistics, Singapore, 7957–7968. https://doi.org/10.18653/v1/ 2023.emnlp-main.494 [28] Ronald W. Rogers. 1975. A Protection Motivation Theory of Fear Appeals and At-titude Change1. The Journal of Psychology 91, 1 (1975), 93–114. https://doi.org/10. 1080/00223980.1975.9915803 arXiv:https://doi.org/10.1080/00223980.1975.9915803 PMID: 28136248. [29] Joseph Suh, Erfan Jahanparast, Suhong Moon, Minwoo Kang, and Serina Chang. 2025. Language Model Fine-Tuning on Scaled Survey Data for Predicting Dis-tributions of Public Opinions. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , Wanx-iang Che, Joyce Nabende, Ekaterina Shutova, and Mohammad Taher Pilehvar (Eds.). Association for Computational Linguistics, Vienna, Austria, 21147–21170. https://doi.org/10.18653/v1/2025.acl-long.1028 [30] Dakota Sullivan, Shirley Zhang, Jennica Li, Heather Kirkorian, Bilge Mutlu, and Kassem Fawaz. 2025. Benchmarking LLM Privacy Recognition for Social Robot Decision Making. arXiv:2507.16124 [cs.RO] https://arxiv.org/abs/2507.16124 [31] Lei Wang, Zikun Ye, and Jinglong Zhao. 2025. Efficient Inference Using Large Language Models with Limited Human Data: Fine-Tuning then Rectification. 
+
+SSRN Electronic Journal (11 2025). https://doi.org/10.2139/ssrn.5763184 [32] Chengrun Yang, Xuezhi Wang, Yifeng Lu, Hanxiao Liu, Quoc V Le, Denny Zhou, and Xinyun Chen. 2024. Large Language Models as Optimizers. In The Twelfth International Conference on Learning Representations (ICLR) .
+
+> 13
+
+## A Detailed Results 
+
+Below we report detailed results for the experiments described in Section 5.2. 
+
+## A.1 Impact of Optimizations Steps 
+
+We assess how the number of iterations employed in the refinement of the persona impacts their predictive power of these personas. Figure 8 presents the results across datasets. The figure shows that that there are limited gains beyond the second iteration. This finding indicates that optimization is needed to improve the persona performance and that Narriva is efficient, not requiring more than two iterations to converge. 0.88      
+
+> 0.90
+> 0.92
+> 0.94
+> 0.96
+> 1 - TVD
+> Raw (0.92)
+> SPA
+> 0.74
+> 0.76
+> 0.78
+> 0.80
+> 0.82
+> 0.84
+> 0.86
+> 1 - TVD
+> Raw (0.79)
+> PEW PP1
+> 0.75
+> 0.76
+> 0.77
+> 0.78
+> 0.79
+> 0.80
+> 0.81
+> 1 - TVD
+> Raw (0.76)
+> PEW W49
+> 0.74
+> 0.76
+> 0.78
+> 0.80
+> 0.82
+> 1 - TVD
+> Raw (0.77)
+> PEW 127
+> 123
+> Iteration #
+> 0.62
+> 0.64
+> 0.66
+> 0.68
+> 0.70
+> 0.72
+> 0.74
+> 1 - TVD
+> Raw (0.73)
+> CAuthN
+> Basic Bounded Calculus PMT
+
+Figure 8: The performance of the narratives at different iteration steps, across datasets. The plot presents the population-level met-ric 1 − 𝑇𝑉 𝐷 (↑) on the evaluation set as the number of iterations 𝐼 
+
+increases. We observe that the performance plateaus after two itera-tions, suggesting that additional optimization steps are unlikely to result in better-performing personas. 
+
+Dataset Base Bounded Calculus PMT 
+
+SPA 26.59 ( ±1.88) 29.15 ( ±1.77) 30.10 ( ±1.99) 31.47 ( ±1.80) Pew PP1 21.55 ( ±7.63) 21.69 ( ±6.56) 25.81 ( ±8.89) 22.14 ( ±6.66) Pew W49 25.98 ( ±3.85) 26.22 ( ±3.92) 27.48 ( ±4.06) 26.22 ( ±3.74) Pew W127 18.72 ( ±2.60) 18.56 ( ±2.50) 18.84 ( ±2.63) 19.00 ( ±2.64) CAuthN 15.69 ( ±0.63) 15.40 ( ±0.68) 16.23 ( ±0.68) 17.31 ( ±0.77) 
+
+Table 5: Impact of persona-generating prompt on the population-level metric Mean Estimation Error 𝑀𝐸𝐸 𝑆 (↓). Each cell also reports 95% confidence intervals obtained through bootstrapping the results 1,000 times with replacement. The performance is similar across the datasets, suggesting that the high predictiveness of personas does not stem, on average, from the choice in the prompt. 
+
+## A.2 Additional Population-Level Metrics 
+
+We adopt two addtional measures from prior literature to compare the distribution of predicted responses to that of true responses: mean estimation error from Krsteski et al. [ 18 ] and the Wasserstein Distance (WD) [29]. 
+
+Mean Estimation Error. The mean estimation error (MEE) is given as the relative error between mean estimated over the real responses and that over the predicted responses for a given question over all the individuals. Specifically, the true mean for question 𝑞 𝑖 is 
+
+𝜇 𝑖 = 1
+
+> 𝑀
+
+Í𝑀 𝑗 =1 𝑓 𝑖 (𝑟 𝑗,𝑖 ) and the predicted mean is ˆ𝜇 𝑖 = 1
+
+> 𝑀
+
+Í𝑀 𝑗 =1 𝑓 𝑖 ( ˆ𝑟 𝑗,𝑖 ).
+
+Then, 𝑀𝐸𝐸 𝑖 for question 𝑞 𝑖 is: 
+
+𝑀𝐸𝐸 𝑖 = 100 × | ˆ𝜇 𝑖 − 𝜇 𝑖 |
+
+𝜇 𝑖 
+
+.
+
+We can also report the macro average of the mean estimation error over all the questions in the dataset as: MEE 𝑆 = 1
+
+|Q 𝑒𝑣𝑎𝑙 |∑︁ 𝑞 𝑖 ∈ Q 𝑒𝑣𝑎𝑙 
+
+𝑀𝐸𝐸 𝑖 .
+
+Wasserstein Distance. For a given question 𝑞 𝑖 and response 𝑎 , we obtain the probability mass function of true responses as 𝑃 𝑖 (𝑎 ) =
+
+> 1
+> 𝑀
+
+Í𝑀 𝑗 =1 I(𝑓 𝑖 (𝑟 𝑗,𝑖 ) = 𝑎 ) and that of predicted responses as ˆ𝑃 𝑖 (𝑎 ) =
+
+> 1
+> 𝑀
+
+Í𝑀 𝑗 =1 I(𝑓 𝑖 ( ˆ𝑟 𝑗,𝑖 ) = 𝑎 ). Then, we estimate the cumulative distribu-tion functions as 𝐶 𝑖 (𝑣 ) = Í𝑣 𝑎 =1 𝑃 𝑖 (𝑎 ) and ˆ𝐶 𝑖 (𝑣 ) = Í𝑣 𝑎 =1 ˆ𝑃 𝑖 (𝑎 ). The Wasserstein distance 𝑊 𝐷 𝑖 for question 𝑞 𝑖 is then: 
+
+𝑊 𝐷 𝑖 =
+
+> 𝑚 𝑖
+
+∑︁ 
+
+> 𝑣 =1
+
+|𝐶 𝑖 (𝑣 ) − ˆ𝐶 𝑖 (𝑣 )| .
+
+Similar to the metrics, we report the macro average of the Wasser-stein distance over all evaluation questions as: WD 𝑆 = 1
+
+|Q 𝑒𝑣𝑎𝑙 |∑︁ 𝑞 𝑖 ∈ Q 𝑒𝑣𝑎𝑙 
+
+𝑊 𝐷 𝑖 .
+
+## A.3 Influence of Privacy Behavior Theories 
+
+Figure 9 highlights the detailed individual-level and population-level ( 1 − 𝑇𝑉 𝐷 ) performance across prompts from the four privacy theories: Privacy Calculus, Bounded Rationality and Protection Motivation Theory (PMT). The prompts we create for these theories are listed in Appendix D. The remaining population-level metrics (1 − 𝑇𝑉 𝐷 , 𝑀𝐸𝐸 𝑆 , and 𝑊 𝐷 𝑆 ) are reported in Tables 4, 5, and 6, respectively.                 
+
+> 14 020 40 60 80 100
+> Accuracy (%)
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 84.6
+> 67.7
+> 64.3
+> 66.1
+> 45.8
+> 83.3
+> 66.7
+> 64.3
+> 66.1
+> 46.7
+> 83.2
+> 67.4
+> 65.0
+> 66.5
+> 46.4
+> 82.5
+> 67.0
+> 64.7
+> 66.5
+> 45.5
+> 86.6
+> 73.5
+> 69.7
+> 69.8
+> 52.2
+> Individual: Accuracy ( )
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1 - TVD
+> 0.94
+> 0.84
+> 0.80
+> 0.81
+> 0.73
+> 0.93
+> 0.84
+> 0.80
+> 0.81
+> 0.73
+> 0.94
+> 0.82
+> 0.79
+> 0.80
+> 0.73
+> 0.93
+> 0.83
+> 0.80
+> 0.80
+> 0.73
+> 0.94
+> 0.85
+> 0.81
+> 0.81
+> 0.75
+> Population: 1 - TVD ( )
+> Basic Bounded Calculus PMT Best
+
+Figure 9: Individual- and population level performance across prompt templates inspired by privacy behavior theories. Results using 80:20 generation/evaluation split. Error bars represent 95% confidence intervals obtained through bootstrapping the results 1,000 times with replacement. 
+
+Dataset Base Bounded Calculus PMT 
+
+SPA 0.06 ( ±0.00) 0.07 ( ±0.00) 0.07 ( ±0.00) 0.07 ( ±0.00) Pew PP1 0.21 ( ±0.02) 0.21 ( ±0.02) 0.22 ( ±0.02) 0.22 ( ±0.02) Pew W49 0.22 ( ±0.02) 0.24 ( ±0.02) 0.24 ( ±0.01) 0.23 ( ±0.02) Pew 127 0.24 ( ±0.02) 0.24 ( ±0.02) 0.25 ( ±0.02) 0.25 ( ±0.02) CAuthN 0.65 ( ±0.03) 0.62 ( ±0.03) 0.63 ( ±0.03) 0.66 ( ±0.03) 
+
+Table 6: Impact of the persona-generating prompt on the population-level metric 𝑊 𝐷 𝑆 (↓), on the five datasets. The performance is similar across prompt variants for each datasets, suggesting that the high predictiveness of the personas does not stem from the choice in the prompt. 
+
+## A.4 Influence of Attitude and Behavioral Questions 
+
+A.4.1 Generating from Attitude Questions and Evaluating on Behav-ioral Questions. Figure 10 illustrates the fraction of individuals for whom each specific template yielded the highest predictive accu-racy when the generation set consists of attitude questions and the evaluation set contains only behavioral questions. For the setting in which only attitude questions are used for generation, Figure 11 highlights the detailed individual-level and population-level ( 1 − 𝑇𝑉 𝐷 ) performance across prompts from the four privacy theories: Privacy Calculus, Bounded Rationality and Protection Motivation Theory (PMT). The prompts we create for these theories are listed in Appendix D. The population-level met-rics ( 𝑇𝑉 𝐷 , 𝑀𝐸𝐸 𝑆 , and 𝑊 𝐷 ) are reported in Tables, 7, 8, and 9, respectively. Fraction of Respondents                   
+
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 0.28 0.25 0.25 0.22
+> 0.12 0.50 0.24 0.15
+> 0.14 0.34 0.30 0.22
+> 0.25 0.28 0.25 0.21
+> 0.18 0.36 0.25 0.21
+> Basic Bounded Calculus PMT
+
+Figure 10: The fraction of individuals for which each of the templates is best performing when generating from attitude questions and evaluating on behavioral questions. 0 20 40 60 80 100            
+
+> Accuracy (%)
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 67.4
+> 66.3
+> 58.1
+> 53.2
+> 49.6
+> 67.0
+> 65.8
+> 60.7
+> 51.6
+> 47.9
+> 67.4
+> 66.7
+> 61.3
+> 52.4
+> 48.4
+> 67.4
+> 67.0
+> 61.6
+> 52.3
+> 49.8
+> 71.0
+> 77.9
+> 69.4
+> 60.0
+> 59.9
+> Individual: Accuracy ( )
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1 - TVD
+> 0.83
+> 0.84
+> 0.78
+> 0.75
+> 0.70
+> 0.84
+> 0.83
+> 0.79
+> 0.71
+> 0.72
+> 0.80
+> 0.84
+> 0.78
+> 0.73
+> 0.73
+> 0.80
+> 0.81
+> 0.80
+> 0.70
+> 0.73
+> 0.83
+> 0.83
+> 0.82
+> 0.74
+> 0.75
+> Population: 1 - TVD ( )
+> Basic Bounded Calculus PMT Best
+
+Figure 11: Individual- and population level performance across prompt templates inspired by privacy behavior theories. Results when generating from attitude questions and evaluating on behav-ioral questions. Error bars represent 95% confidence intervals ob-tained through bootstrapping the results 1,000 times with replace-ment. 
+
+A.4.2 Generating from Behavioral Questions and Evaluating on Behavioral Questions. Figure 7 illustrates the fraction of individuals for whom each specific template yielded the highest predictive accuracy when the generation and evaluation sets consist of only behavioral questions. For the setting in which only behavioral questions are used for generation and evaluation, Figure 12 highlights the detailed individual-level and population-level ( 1 −𝑇𝑉 𝐷 ) performance across prompts from the four privacy theories: Privacy Calculus, Bounded Rationality and Protection Motivation Theory (PMT). The prompts we create for these theories are listed in Appendix D. The remaining population-level metrics ( 𝑀𝐸𝐸 𝑆 and 𝑇𝑉 𝐷 ) are reported in Tables 10 and 11, respectively. 
+
+> 15
+
+Dataset Base Bounded Calculus PMT 
+
+SPA 0.17 ( ±0.00) 0.16 ( ±0.00) 0.20 ( ±0.01) 0.20 ( ±0.01) Pew PP1 0.16 ( ±0.07) 0.17 ( ±0.06) 0.16 ( ±0.07) 0.19 ( ±0.07) Pew W49 0.22 ( ±0.04) 0.21 ( ±0.03) 0.22 ( ±0.04) 0.20 ( ±0.03) Pew 127 0.25 ( ±0.04) 0.29 ( ±0.04) 0.27 ( ±0.04) 0.30 ( ±0.03) CAuthN 0.30 ( ±0.01) 0.28 ( ±0.01) 0.27 ( ±0.01) 0.27 ( ±0.01) 
+
+Table 7: Impact of persona-generating prompt on the population-level metric 𝑇𝑉 𝐷 (↓), on the five datasets. Each cell also reports 95% confidence intervals obtained through bootstrapping the re-sults 1,000 times with replacement. Results are reported on the five datasets when generating from attitude questions and evaluating on behavioral questions. 
+
+Dataset Base Bounded Calculus PMT 
+
+SPA 51.01 ( ±1.27) 50.31 ( ±1.36) 58.34 ( ±0.95) 56.49 ( ±0.97) Pew PP1 38.85 ( ±12.78) 44.07 ( ±13.12) 32.32 ( ±13.31) 55.39 ( ±13.88) Pew W49 44.81 ( ±9.77) 40.16 ( ±7.02) 48.97 ( ±12.58) 39.80 ( ±6.56) Pew 127 32.26 ( ±6.21) 40.50 ( ±7.57) 37.82 ( ±7.98) 41.74 ( ±8.90) CAuthN 25.89 ( ±1.13) 25.64 ( ±1.35) 25.03 ( ±1.25) 23.98 ( ±1.05) 
+
+Table 8: Impact of persona-generating prompt on the population-level metric 𝑀𝐸𝐸 𝑆 (↓), on the five datasets. Each cell also reports 95% confidence intervals obtained through bootstrapping the re-sults 1,000 times with replacement. Results are reported on the five datasets when generating from attitude questions and evaluating on behavioral questions. 
+
+Dataset Base Bounded Calculus PMT 
+
+SPA 0.17 ( ±0.00) 0.16 ( ±0.00) 0.20 ( ±0.01) 0.20 ( ±0.01) Pew PP1 0.17 ( ±0.08) 0.18 ( ±0.08) 0.17 ( ±0.08) 0.20 ( ±0.07) Pew W49 0.26 ( ±0.06) 0.24 ( ±0.05) 0.23 ( ±0.05) 0.22 ( ±0.04) Pew 127 0.32 ( ±0.07) 0.37 ( ±0.07) 0.32 ( ±0.07) 0.37 ( ±0.06) CAuthN 0.72 ( ±0.03) 0.68 ( ±0.03) 0.68 ( ±0.04) 0.65 ( ±0.03) 
+
+Table 9: Impact of persona-generating prompt on the population-level metric 𝑊 𝐷 𝑆 (↓), on the five datasets. Each cell also reports 95% confidence intervals obtained through bootstrapping the re-sults 1,000 times with replacement. Results are reported on the five datasets when generating from attitude questions and evaluating on behavioral questions. 
+
+## B Privacy Theories 
+
+Base Persona. The first template is a basic one that serves as a baseline persona representation. It has two sets of instructions. First, it instructs the LLM to analyze the behavior of an individual based on their responses ( r𝑔𝑒𝑛 ). It then instructs the LLM to output a concise and precise persona narrative that explains the logic behind the individual’s responses. The instructions utilize chain-of-thought prompting to generate the persona, check if it answers the given responses correctly, and update it to correctly answer the questions. 
+
+Privacy Calculus. Research around how individuals disclose pri-vate information has theorized that individuals follow a privacy calculus [ 9 ]. Laufer and Wolfe studied present privacy as an in-formation management process and coined the term “calculus of 0 20 40 60 80 100            
+
+> Accuracy (%)
+> SPA
+> Pew PP1
+> Pew W49
+> Pew 127
+> CAuthN
+> 86.7
+> 61.7
+> 62.4
+> 57.8
+> 63.3
+> 85.2
+> 63.1
+> 63.6
+> 58.3
+> 65.2
+> 84.9
+> 60.2
+> 62.1
+> 58.1
+> 64.1
+> 84.5
+> 65.4
+> 62.8
+> 58.1
+> 64.6
+> 88.4
+> 73.8
+> 73.2
+> 68.7
+> 76.2
+> Individual: Accuracy ( )
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 1 - TVD
+> 0.93
+> 0.81
+> 0.82
+> 0.78
+> 0.80
+> 0.92
+> 0.81
+> 0.81
+> 0.78
+> 0.82
+> 0.91
+> 0.79
+> 0.77
+> 0.80
+> 0.80
+> 0.91
+> 0.82
+> 0.80
+> 0.77
+> 0.81
+> 0.93
+> 0.85
+> 0.83
+> 0.81
+> 0.84
+> Population: 1 - TVD ( )
+> Basic Bounded Calculus PMT Best
+
+Figure 12: Individual- and population level performance across prompt templates inspired by privacy behavior theories. Results when generating from behavioral questions and evaluating on be-havioral questions. Error bars represent 95% confidence intervals obtained through bootstrapping the results 1,000 times with replace-ment. 
+
+Dataset Base Bounded Calculus PMT 
+
+SPA 31.63 ( ±1.71) 34.52 ( ±2.00) 36.89 ( ±1.56) 37.51 ( ±1.76) Pew PP1 77.42 ( ±37.57) 66.72 ( ±27.41) 101.97 ( ±57.18) 50.42 ( ±15.60) Pew W49 39.35 ( ±8.72) 36.72 ( ±7.76) 53.54 ( ±9.96) 42.47 ( ±7.49) Pew 127 27.44 ( ±3.52) 28.81 ( ±4.11) 23.91 ( ±3.48) 30.65 ( ±4.28) CAuthN 16.80 ( ±1.07) 12.39 ( ±0.90) 14.51 ( ±0.97) 13.66 ( ±0.99) 
+
+Table 10: Impact of persona-generating prompt on the population-level metric 𝑀𝐸𝐸 𝑆 (↓), on the five datasets. Each cell also reports 95% confidence intervals obtained through bootstrapping the re-sults 1,000 times with replacement. Results are reported on the five datasets when generating from behavioral questions and evaluating on behavioral questions. 
+
+Dataset Base Bounded Calculus PMT 
+
+SPA 0.07 ( ±0.00) 0.08 ( ±0.00) 0.09 ( ±0.00) 0.09 ( ±0.00) Pew PP1 0.19 ( ±0.05) 0.19 ( ±0.06) 0.21 ( ±0.06) 0.18 ( ±0.05) Pew W49 0.18 ( ±0.03) 0.19 ( ±0.03) 0.23 ( ±0.04) 0.20 ( ±0.04) Pew 127 0.22 ( ±0.03) 0.22 ( ±0.03) 0.20 ( ±0.04) 0.23 ( ±0.04) CAuthN 0.20 ( ±0.01) 0.18 ( ±0.01) 0.20 ( ±0.01) 0.19 ( ±0.01) 
+
+Table 11: Impact of persona-generating prompt on the population-level metric 𝑇𝑉 𝐷 (↓), on the five datasets. Each cell also reports 95% confidence intervals obtained through bootstrapping the re-sults 1,000 times with replacement. Results are reported on the five datasets when generating from behavioral questions and evaluating on behavioral questions. 
+
+behavior," [ 19 ] where individuals assess the consequences of in-formation disclosure in terms of future risks and benefits. In par-ticular, individuals can disclose what they consider to be private 
+
+> 16
+
+information if they perceive benefits. Later, Culnan and Armstrong presented privacy calculus as a process where individuals rationally decide to disclose information if they perceive benefits as exceed-ing the risks. Knijnenburg et al. proposed to operationalize privacy calculus for personalized privacy [ 17 ]. Inspired by their model, this template models the privacy calculus of an individual by following the process: identifying contextual variables that influence individ-ual’s privacy posture, determining risk assessment method of how does the individual determine risk, determining the their benefit drivers of what types of benefits are most compelling to them, and extracting their decision strategy of how they compare risks to benefits. 
+
+Bounded Rationality. While privacy calculus assumes that indi-viduals are rational actors in privacy decision making, other re-search shows that such privacy decisions are limited by individuals’ bounded rationality [ 2, 4]. In that framework, individuals are inca-pable of performing a proper risk assessment because some of the risks are invisible to them and they do not have enough knowledge to estimate risks. Besides, individuals favor immediate gratifica-tion from information disclosure over distant and often undefined privacy risks. This template models the bounded rationality of an individual by following this process: determining cognitive biases, such as optimism bias or present bias that shape individual percep-tion of risk; identifying what triggers (e.g., excitement for a new feature) tend to override rational decision making; and describing the primary heuristic for privacy decision making. 
+
+Protection Motivation Theory (PMT). The protection motivation theory posits that individuals engage in protective behavior, such as not disclosing information, in response to threatening events [ 28 ]. In particular, individuals consider three components of fear corre-sponding to an event: magnitude of harm, occurrence, and effec-tiveness of a protective behavior. Then, they engage in a mediating process that assesses the severity of harm, expected exposure of the event, and the belief that the protective behavior is effective. The assessment centers around whether the protective behavior can remedy the expected harm from an event. This template op-erationalizes PMT in the context of persona generation through this process: appraise their risk of events in terms of severity and vulnerability (chance of happening), determine the coping appraisal of protective behavior (self-efficacy and effectiveness), and describe how the balance between their threat and coping appraisals deter-mines their motivation to adopt the protective behavior. 
+
+## C Dataset Description 
+
+SPA Dataset [ 1]. Abdi et al. published a dataset about privacy norms for smart home personal assistants (SPAs) [ 1]. This dataset comprises responses from 1,737 participants about their comfort with a set of 24 data sharing scenarios, their privacy attitudes mea-sured using the 10-item IUIPC scale (10 questions) [ 24 ], and their security attitudes (6 questions) measured using the SA-6 scale [ 12 ]. The participants were recruited from the Prolific service prior to 2021. Abdi et al. do not indicate the country of the respondents and the precise time of data collection. The scenarios are sampled from a larger set of 120 scenarios covering whether the smart assistant should share data with skills. These scenarios, constructed to cover 15 data types, have eight scenarios for each data type. The eight scenarios correspond to providing a purpose, omitting a purpose, and varying 6 types of re-cipients. Each scenario has a set of questions where the respondent indicates their comfort, on a five-point Likert scale, with the per-sonal assistant sharing a specific data type with different recipients, purposes, or conditions. When analyzing this dataset, we partition the responses into three groups: behaviors, privacy attitudes, and security attitudes. The first group includes the responses to the data sharing scenarios (144 separate responses on average per respondent). We use the first group to represent personalized privacy use cases, where we group the responses into two binary categories: acceptable and unacceptable. We discard the Neutral answers from the analysis. The two other groups (16 responses) denote the responses to the privacy and security attitude questionnaires. 
+
+Pew PP1 [ 23 ]. The Pew Research Center conducted this study between January 10-27, 2014, as part of the first American Trends Panel (ATP). The dataset includes responses from 607 US adults re-garding their perceptions of privacy, surveillance, and data manage-ment in the post-Snowden era. The study covers several dimensions of privacy, including (1) the perceived importance of controlling personal information (11 questions), (2) the level of concern regard-ing government and corporate monitoring (6 questions), and (3) the perceived sensitivity of various types of personal data, such as social security numbers, health information, and relationship history (10 questions). 
+
+Pew W49 [ 6]. This dataset, titled "Americans and Privacy," was collected by Pew between June 3-17, 2019, as part of the American Trends Panel (ATP) Wave 49. It includes responses from 4,272 U.S. adults and focuses on the trade-offs inherent in the modern data ecosystem. The study is structured into sections covering (1) the perceived risks versus benefits of data collection by companies and the government (2 questions), (2) the level of concern regarding how personal data is used by various entities (multiple questions), (3) the perceived sense of control over different data types, such as physical location, search terms, and social media posts (multi-ple questions), and (4) the understanding of privacy policies and laws (multiple questions). The dataset consists of a series of six hypothetical scenarios where respondents were asked to rate the "acceptability" of data sharing in exchange for specific services or societal benefits (e.g., a fitness tracker sharing data with health researchers or a grocery store using loyalty card data). 
+
+Pew 127 [ 25 ]. The dataset was collected by the Pew Research Cen-ter between May 15-21, 2023, as part of the American Trends Panel (ATP) Wave 127. The study includes responses from a nationally representative sample of 5,101 U.S. adults, featuring oversamples of Hispanic, Black, and Asian respondents to ensure demographic precision. The survey is structured into sections covering (1) gen-eral concerns regarding government and corporate data collection (multiple questions), (2) the perceived level of control over personal data and understanding of privacy laws (multiple questions), (3) individual digital privacy behaviors, such as the use of password managers, engagement with privacy policies, and responses to data breaches, and (4) specific attitudes toward emerging technologies, 
+
+> 17
+
+including artificial intelligence and law enforcement’s use of resi-dential cameras or private messaging data. 
+
+CAuthN Study dataset [ 11 ]. Dehling et al. studied individuals’ perception around continuous biometric authentication. They re-cruited 830 participants using the Prolific service between Septem-ber and October 2022. The recruited participants are US Internet users and are balanced by sex. Each respondent is assigned a single condition about the type of a service provider. The study comprises 8 sections which cover (1) the willingness to continuously share 15 types of biometric data on a scale from 1 to 100 (15 questions), (2) the belief in the effectiveness of biometric authentication in im-proving security on a scale from 1 to 100 (15 questions, one per data type) efficacy, (3) perceived privacy risk from disclosing biometric data to a service provider on a scale from 1 to 100 (15 questions), (4) the perceived risk in the service provider on a 7-point Likert scale (5 questions), (5) the perceived trust in the service provider on a 7-point Likert scale (5 questions), (6) the perceived loss in unauthorized access to biometric data on a 7-point Likert scale (5 questions), and (7) the perceived susceptibility of unauthorized access to biometric data on a 5-point Likert scale (3 questions). The last section covers the privacy (8-item IUIPC scale) and security (SA-6 scale) attitude questions (14 questions) as the SPA dataset. When analyzing this dataset, we discard all responses where the response is neutral (middle point in the Likert scale). 
+
+## D Prompts 
+
+Below we provide the different prompts used for persona generation and prediction. 
+
+## D.1 Prompts for Persona Generation 
+
+Prompt D.1: Template for narrative generation: Basic 
+
+You are analyzing the behavior of a specific user based on their history of decisions. **User History:** raw_narrative **Task:** Write a concise "Persona Narrative" that explains the logic behind this user’s decisions. The narrative should be precise enough to predict how this user would answer future questions. Think silently and follow this process: 1. generate the narrative for all scenarios and user responses 2. check if the narrative predicts the answer to each scenario 3. update the narrative so that it correctly predicts the answer each scenario ***Output only the generated Narrative. Do not output thoughts or any other text (such as introductory text)*** 
+
+Prompt D.2: Template for narrative generation: Bounded 
+
+You are analyzing the behavior of a specific user based on their history of decisions. **User History:** raw_narrative **Task:** Write a concise "Persona Narrative" that explains the logic behind this user’s decisions. Think silently and follow this process: 1. generate the narrative for all scenarios and user responses 2. check if the narrative predicts the answer to each scenario 3. update the narrative so that it correctly predicts the answer each scenario **Crucial Constraints:** 1. The generated persona MUST be *fully consis-tent* with the answers to the survey. 2. Follow the format below. **Persona Narrative Format:** 
+
+This detailed privacy persona is to be based on the principles of Bounded Rationality. The persona’s decisions should be predictably shaped by cog-nitive biases and heuristics, not a rational cost-benefit analysis. Focus on their characteristics, behaviors, and internal decision-making shortcuts. The persona should be structured as follows: 1. Measure (User Profile & Behaviors) User Characteristics: Define the persona’s key demographic and psycho-graphic traits. User Behaviors: Describe the persona’s common privacy-related behaviors, especially those that appear habitual or automatic. 2. Model (The Persona’s Decision-Making Heuristics) Contextual Variables: Choice Framing: How does the presentation of the data request (e.g., framed as a gain vs. a loss, complex vs. simple) affect their choice? Recipient Framing: How does the perceived authority or friendliness of the recipient trigger mental shortcuts (e.g., trust heuristics)? Risk & Benefit Perception: Dominant Cognitive Biases: How do biases like Optimism Bias, Present Bias (instant gratification), or the Illusion of Control shape their perception of risk? Affective Triggers: What emotional responses (e.g., excitement for a new feature, fear of missing out) are most compelling and tend to override rational thought? Heuristic Model: Decision Strategy: Describe their primary heuristic (e.g., "path of least resistance," "go with the default," "trust gut feeling"). Example: Heuristic-Driven: ’They will always click "Accept All" on cookie banners without reading because the immediate benefit of accessing the site out-weighs the abstract future risk (Present Bias).’ Framing-Dependent: ’They are more likely to enable location tracking if it is framed as "gaining personalized recommendations" rather than "losing locational privacy."’ ***IMPORTANT OUTPUT CONSTRAINT: *** ***Output only the generated Narrative. Do not output thoughts or any other text (such as introductory text)*** 
+
+Prompt D.3: Template for narrative generation: Calculus 
+
+You are analyzing the behavior of a specific user based on their history of decisions. **User History:** raw_narrative **Task:** Write a concise "Persona Narrative" that explains the logic behind this user’s decisions. Think silently and follow this process: 1. generate the narrative for all scenarios and user responses 2. check if the narrative predicts the answer to each scenario 3. update the narrative so that it correctly predicts the answer each scenario **Crucial Constraints:** 1. The generated persona MUST be *fully consis-tent* with the answers to the survey. 2. Follow the format below. **Persona Narrative Format:** This detailed privacy persona is to be based on the principles of the Privacy Calculus Theory. The persona should be a complete representation of an individual’s privacy decision-making process, focusing on their character-istics, behaviors, and internal ’privacy calculus.’ The persona should be structured as follows: 1. Measure (User Profile & Behaviors) User Characteristics: Define the persona’s key demographic and psycho-graphic traits (e.g., age, occupation, tech-savviness, general attitude towards data privacy). User Behaviors: Describe the persona’s common privacy-related behaviors and digital footprint (e.g., what social media they use, how they shop online, their app usage patterns). 2. Model (The Persona’s Privacy Calculus) Contextual Variables: Data Sensitivity: How does their willingness to disclose information change based on the type of data being requested (e.g., email address vs. real-time location vs. biometric data)? Recipient Trust: How does their willingness to share change based on the recipient (e.g., a friend, their bank, a new mobile game, a large tech company)? Risk & Benefit Determination: 
+
+> 18
+
+Risk Assessment Method: How does the persona primarily determine risk? (e.g., based on expert opinions from news articles, their own perceptions and feelings, or the behavior of their peers). Primary Benefit Drivers: What types of benefits are most compelling to them? (e.g., system utility and personalization, convenience, social connec-tion, financial discounts). Tradeoff Model: Decision Strategy: Describe whether the persona uses a compensatory or non-compensatory decision strategy. Example: Compensatory: ’They will share their browsing history if it results in a significant discount on a product they want.’ Non-Compensatory: ’They will never share their contact list with an app, regardless of the features offered.’ ***IMPORTANT OUTPUT CONSTRAINT: *** ***Output only the generated Narrative. Do not output thoughts or any other text (such as introductory text)*** 
+
+Prompt D.4: Template for narrative generation: PMT 
+
+You are analyzing the behavior of a specific user based on their history of decisions. **User History:** raw_narrative **Task:** Write a concise "Persona Narrative" that explains the logic behind this user’s decisions. Think silently and follow this process: 1. generate the narrative for all scenarios and user responses 2. check if the narrative predicts the answer to each scenario 3. update the narrative so that it correctly predicts the answer each scenario **Crucial Constraints:** 1. The generated persona MUST be *fully consis-tent* with the answers to the survey. 2. Follow the format below. **Persona Narrative Format:** This detailed privacy persona is to be based on the principles of Protec-tion Motivation Theory (PMT). The persona’s privacy-protective behavior (or lack thereof) should be a function of their threat appraisal and cop-ing appraisal. Focus on their characteristics, behaviors, and their internal motivation process. The persona should be structured as follows: 1. Measure (User Profile & Behaviors) User Characteristics: Define the persona’s key traits (e.g., tech-savviness, general anxiety level, exposure to privacy news). User Behaviors: Describe their current privacy-protective behaviors (e.g., use of 2FA, password habits, software updates). 2. Model (The Persona’s Threat & Coping Appraisal) Contextual Variables: Threat Context: How does the type of threat (e.g., identity theft vs. social embarrassment) affect their appraisal? Source of Information: How does the source of a threat warning (e.g., a news report, a system notification, a friend) influence their appraisal? Appraisal Process: Threat Appraisal: How does the persona assess threat severity ("how bad is it?") and their personal vulnerability ("how likely is it to happen to me?")? Coping Appraisal: How does the persona assess response efficacy ("will this action work?"), self-efficacy ("can I do this?"), and response costs ("is it too much effort/time/money?")? Protection Motivation Model: Decision Logic: Describe how the balance between their threat and coping appraisals determines their motivation to act. Mention the potential role of privacy fatigue. Example: High Threat, Low Coping: ’They are very worried about their bank account being hacked (high threat appraisal), but they find setting up two-factor authentication confusing and intimidating (low coping appraisal), leading to inaction and anxiety.’ High Threat, High Coping: ’After a friend’s account was compromised (high vulnerability), they believe using a password manager is an effective and easy solution (high coping appraisal), leading them to adopt the behavior.’ ***IMPORTANT OUTPUT CONSTRAINT: *** ***Output only the generated Narrative. Do not output thoughts or any other text (such as introductory text)*** 
+
+## D.2 Prompts for Prediction 
+
+Prompt D.5: Prediction prompt template for internal LLM baseline 
+
+You are an AI simulator evaluating data privacy sharing decisions, attitudes, preferences, and posture. Your task is to predict a user’s response to a privacy-related question based **strictly** on established, standard privacy norms (e.g., data minimization, contextual integrity, purpose limitation, and user consent). Input format is: - Privacy Question: The query to evaluate. - Answer Range: The exact options to select from. Question: {{question}} Respond with one of the following: {{answer_range}} Output only the response from the above. Do not output anything else. 
+
+Prompt D.6: Prediction prompt template using raw & gen-erated narratives 
+
+You are an AI simulator running a Data Privacy Persona. Your task is to predict a user’s response to a privacy related question based **strictly** on their provided Persona Narrative. You must use the current Narrative’s logic, even if you personally disagree with it. Input format is: - Current Persona Narrative - Privacy Question - The Answer Range to pick the answer from narrative: {{narrative}} question: {{question}} Respond with one of the following:{{answer_range}} Output only the response from the above. Do not output anything else. 
+
+## E Sample Personas 
+
+To illustrate the nature of the personas generated, we provide a few examples herein. Our first example is of a person (called Participant A) from the PEW PP1 survey for whom we predict their survey answers to unseen questions with 75% accuracy. 
+
+This user is a pragmatic and active internet participant who maintains a tiered approach to privacy. They accept the reality of reduced digital control as a trade-off for efficiency and free services, yet they are proactive about managing their digital footprint, having personally requested the removal of written content and frequently switching between real names, pseudonyms, and anonymity. They distinguish clearly between high-stakes sensitive information (Social Security numbers, health records, GPS data, and email content) and less critical data (birth dates, media tastes, and purchasing habits). While they use social media frequently, they express lower trust in its security com-pared to other communication channels and remain skeptical of both government and corporate surveillance. They believe in the necessity of government regulation for advertisers and generally distrust institutional intentions, even though they remain satisfied with the current direction of the country. Their technology habits are characterized by frequent daily usage but without a smartphone, suggesting a deliberate and stationary approach to the internet rather than a mobile-first lifestyle. Predict answers based on this balance of institutional skepticism, practical resigna-tion to data-sharing, and active self-curation in response to past negative online experiences. 
+
+Figure 13: PEW PP1 participant-A, Base Narrative Persona. 83% ac-curacy prediction. 
+
+This persona may do a good job predicting this participant’s choices because the participant is very clear on which data types they consider very sensitive and less sensitive. This description also indicates that this participant usually engages with online 
+
+> 19
+
+activity, even with social media, and that rather than avoid using online services, they prefer to deal with recovering afterwards (e.g. deleting data) if something goes wrong. Figure 14 presents the same participant’s profile, this time framed through the lens of Privacy Calculus theory. This version features a clear, modular structure that makes it significantly easier for a user to review and understand. Upon comparison, it becomes evident that both the base and theory-driven personas capture the same fundamental user traits. This consistency is expected, as both are derived from the identical set of survey responses; they simply apply different framing to the same underlying data. We observed this pattern across all theoretical frameworks evaluated for this par-ticipant. This specific case illustrates why privacy theory templates do not, on average, outperform base personas in predictive accu-racy: although the wording varies, the core semantic information remains the same. We now examine a persona with poor predictive performance. Figure 15 shows the profile for "Participant-B," generated using the Bounded Rationality theory. This persona differs structurally from the previous examples, and achieves only 50% accuracy in its predictions. The narrative itself reveals why this individual’s pref-erences are so challenging to forecast. The profile describes a user who "oscillates between using their real name and pseudonyms," allows an "emotional distaste for being monitored" to override ra-tional analysis, and remains "technically active yet prefers legacy communications like landlines". Furthermore, despite their privacy vigilance, they frequently "egosurf" for their own name. Ultimately, it is inherently difficult to predict behaviors when a user’s survey responses reflect inconsistent underlying practices. 
+
+Measure (User Profile & Behaviors) 
+
+User Characteristics: This individual is a frequent, active internet user who engages with the digital world several times a day. Despite their high level of online activity and presence on social networking sites like Facebook and Twitter, they remain tethered to traditional technology, notably opting not to use a smartphone. They are satisfied with the general direction of the country but maintain a healthy skepticism toward the institutions governing it. They have a high awareness of personal digital "residue" because they have personally suffered bad experiences due to inaccurate or embarrassing information being posted about them. 
+
+User Behaviors: Their online behavior is a mix of transparency and caution. They have posted using their real name, pseudonyms, and anonymously, depending on the context. They are proactive about reputation management—having requested the removal of written material—but they are not technically proactive in a preventative sense, as they do not use tools like search engine alerts. Their communication relies on a broad mix of landlines, cell calls, and texts, all of which they find "somewhat" secure, unlike social media, which they distrust for private matters. 
+
+Model (The Persona’s Privacy Calculus) 
+
+Contextual Variables: 
+
+Data Sensitivity: They use a tiered sensitivity scale. "Primary" identifiers and private thoughts (SSN, health info, GPS location, and email content) are considered very sensitive. "Social" information (relationships, purchasing habits, friends lists) is somewhat sensitive. Basic "public" data (birth date and media tastes) is viewed as having low sensitivity. 
+
+Recipient Trust: They operate with a low-trust baseline. They only trust the government and advertisers "some of the time" and are "somewhat concerned" about both entities accessing their social media data without knowledge. They find 1-to-1 communication channels (calls/email) significantly more secure than 1-to-many platforms (social media). 
+
+Risk & Benefit Determination: 
+
+Risk Assessment Method: Their risk assessment is rooted in "experience-based pragmatism." Because they have been harmed by online information before, they view the internet as a place where consumers have lost control. They operate under the assumption that social monitoring is a given, strongly agreeing that new acquaintances will search for them online. 
+
+Primary Benefit Drivers: This user is highly motivated by "system utility" and "cost-free access." They explicitly value the efficiency gained through data sharing and are willing to provide personal information to maintain ac-cess to free services, seeing it as a necessary trade-off for participation in modern life. 
+
+Tradeoff Model: 
+
+Decision Strategy: Compensatory. They consciously balance the high risks of government surveillance and corporate data collection against the practical benefits of the internet. While they believe American citizens should be concerned about monitoring and support government regulation of advertisers, they continue to share data because the utility of "free" and "efficient" services outweighs the abstract threat to their privacy. They compensate for the perceived lack of systemic control by exercising individual control through content removal requests when specific harm occurs. 
+
+Figure 14: PEW PP1 participant-A, Privacy Calculus Persona. 80% prediction accuracy 
+
+> 20
+
+Measure (User Profile & Behaviors) 
+
+User Characteristics: This user is a technologically active but deeply cynical ""Defensive Digital Resident."" They are heavy internet users and smartphone owners who are well-informed about government surveillance and privacy risks. They exhibit a high degree of skepticism toward institutional authority, characterized by a complete lack of trust in the government and significant doubt regarding advertisers. While they value their privacy intensely, they are not digital recluses; rather, they engage with the web on their own terms, often feel-ing like they are fighting a losing battle against an inherently insecure infrastructure. 
+
+User Behaviors: Their privacy management is reactive and vigilant. They fre-quently perform ""egosurfing"" (searching for their own name) to monitor their digital footprint and have successfully intervened to have personal informa-tion removed or corrected. They avoid mainstream social media platforms like Facebook and Twitter entirely, viewing them as fundamentally insecure. Interestingly, they oscillate between using their real name, pseudonyms, and anonymity online, suggesting a strategy of selective disclosure depending on the perceived context of the interaction rather than a blanket attempt at total invisibility. 
+
+Model (The Persona’s Decision-Making Heuristics) 
+
+Contextual Variables: 
+
+Choice Framing: The user rejects any framing that links data-sharing to ""effi-ciency"" or ""convenience."" They view such offers through a Loss Aversion lens, where the abstract gain of a faster service is always outweighed by the concrete loss of personal autonomy. They are more likely to respond to choices framed around ""restoring"" or ""reclaiming"" control rather than ""improving"" experience. 
+
+Recipient Framing: The user employs a Zero-Trust Heuristic for large, centralized entities. If the recipient is the government or a major advertiser, their default mental shortcut is ""Exploitation Risk."" Conversely, they feel slightly more comfortable with legacy communication forms like landline telephones, likely due to an Availability Heuristic where older technology is perceived as less susceptible to the modern, omnipresent surveillance they hear ""a lot"" about in the news. 
+
+Risk & Benefit Perception: 
+
+Dominant Cognitive Biases: The user is driven by a strong Pessimism Bias regarding institutional data handling. They also exhibit a variation of the Illusion of Control; by asking for data corrections and searching their own name, they gain a temporary sense of agency in a digital environment they otherwise perceive as impossible to remain anonymous in. Their ""Strongly Agree"" stance on the difficulty of avoiding cameras suggests a perceived inevitability of surveillance that triggers a ""siege mentality."" 
+
+Affective Triggers: Their primary driver is ""Privacy Fatigue"" mixed with indignation. There is a clear emotional distaste for being ""monitored,"" which overrides any rational analysis of the benefits of personalized services. This emotional response is tied to a belief in the inherent right to a private life, particularly regarding ""objective"" identifiers like SSNs and health data, though they are curiously less worried about the sensitivity of their ""subjective"" views (politics/media) being known. 
+
+Heuristic Model: 
+
+Decision Strategy: Their primary heuristic is ""Systemic Defensiveness."" They operate under the assumption that all digital communication is compromised (tex-ting, social media), leading them to categorize information into ""Internal/Sacred"" (health, conversations, SSN) and ""External/Transient"" (media tastes, texts, political views). Example (Heuristic-Driven): They will refuse to use social media even if it is the only way to contact a friend because they perceive the platform’s infrastructure as an inherent threat that outweighs the social benefit (Zero-Trust Heuristic). Example (Framing-Dependent): They will ignore a notification about ""more relevant ads"" but will spend hours navigating a ""Privacy Correction Request"" portal because it aligns with their need to exercise whatever limited control they have left (Illusion of Control)." 
+
+Figure 15: PEW PP1 participant-B, Bounded Rationality Persona. 50% prediction accuracy

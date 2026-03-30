@@ -6,71 +6,82 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-29
-- 运行时间：2026-03-29 19:26:17 UTC
+- 最新运行日期：2026-03-30
+- 运行时间：2026-03-30 20:23:13 UTC
 - 运行状态：成功
-- 本次总论文数：17
-- 精读区：6
+- 本次总论文数：20
+- 精读区：9
 - 速读区：11
 
 ### 今日简报（AI）
-今日深挖 17 篇前沿论文，重点聚焦机器人 VLA 模型的推理对齐与医疗病理切片的层级化
-- 详情：[/202603/29/README](/202603/29/README)
+今日深度研读 20 篇前沿论文，重点聚焦少样本图文检索与组合式图像检索的性能突破。
+满分论文 HINT 提出的双路径组合网络与全新的少样本检索基准，为多模态理解提供了当前最优的优化路径。
+建议关注 Mamba 架构在视频定位中的应用，以及利用大模型角色扮演提升垂直领域数据多样性的新思路。
+- 详情：[/202603/30/README](/202603/30/README)
 
 ### 精读区论文标签
-1. [RoboAlign: Learning Test-Time Reasoning for Language-Action Alignment in Vision-Language-Action Models](/202603/29/2603.21341v1-roboalign-learning-test-time-reasoning-for-language-action-alignment-in-vision-language-action-models)  
+1. [Few Shots Text to Image Retrieval: New Benchmarking Dataset and Optimization Methods](/202603/30/2603.25891v1-few-shots-text-to-image-retrieval-new-benchmarking-dataset-and-optimization-methods)  
+   标签：评分：10.0/10、query:cir-ml
+   evidence：明确针对带有参考示例的文本图像检索，处理组合查询
+2. [HINT: Composed Image Retrieval with Dual-path Compositional Contextualized Network](/202603/30/2603.26341v1-hint-composed-image-retrieval-with-dual-path-compositional-contextualized-network)  
+   标签：评分：10.0/10、query:cir-ml
+   evidence：基于多模态查询的组合图像检索 (CIR)
+3. [CoVFT: Context-aware Visual Fine-tuning for Multimodal Large Language Models](/202603/30/2603.21077v2-covft-context-aware-visual-fine-tuning-for-multimodal-large-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型中的具身推理
-2. [MLLM-HWSI: A Multimodal Large Language Model for Hierarchical Whole Slide Image Understanding](/202603/29/2603.23067v1-mllm-hwsi-a-multimodal-large-language-model-for-hierarchical-whole-slide-image-understanding)  
+   evidence：分析多模态大语言模型（MLLM）的视觉微调策略
+4. [PersonalQ: Select, Quantize, and Serve Personalized Diffusion Models for Efficient Inference](/202603/30/2603.22943v1-personalq-select-quantize-and-serve-personalized-diffusion-models-for-efficient-inference)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于分层图像理解的多模态大语言模型
-3. [Sparton: Fast and Memory-Efficient Triton Kernel for Learned Sparse Retrieval](/202603/29/2603.25011v1-sparton-fast-and-memory-efficient-triton-kernel-for-learned-sparse-retrieval)  
+   evidence：个性化扩散模型与混合检索
+5. [Drive My Way: Preference Alignment of Vision-Language-Action Model for Personalized Driving](/202603/30/2603.25740v1-drive-my-way-preference-alignment-of-vision-language-action-model-for-personalized-driving)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：快速且内存高效的稀疏检索内核
-4. [Semantic Shift: the Fundamental Challenge in Text Embedding and Retrieval](/202603/29/2603.21437v1-semantic-shift-the-fundamental-challenge-in-text-embedding-and-retrieval)  
-   标签：评分：8.0/10、query:cir-ml
-   evidence：文本嵌入与检索中语义偏移的分析
-5. [Structured Visual Narratives Undermine Safety Alignment in Multimodal Large Language Models](/202603/29/2603.21697v1-structured-visual-narratives-undermine-safety-alignment-in-multimodal-large-language-models)  
-   标签：评分：8.0/10、query:cir-ml
-   evidence：多模态大模型的安全对齐与视觉推理
-6. [Interpretable Zero-shot Referring Expression Comprehension with Query-driven Scene Graphs](/202603/29/2603.25004v1-interpretable-zero-shot-referring-expression-comprehension-with-query-driven-scene-graphs)  
-   标签：评分：8.0/10、query:cir-ml
-   evidence：利用视觉语言模型和大模型进行零样本指代理解
+   evidence：针对驾驶习惯的个性化视觉-语言-动作 (VLA) 模型
+6. [ETA-VLA: Efficient Token Adaptation via Temporal Fusion and Intra-LLM Sparsification for Vision-Language-Action Models](/202603/30/2603.25766v1-eta-vla-efficient-token-adaptation-via-temporal-fusion-and-intra-llm-sparsification-for-vision-language-action-models)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：视觉-语言-动作模型的高效令牌适配
+7. [MemoryCD: Benchmarking Long-Context User Memory of LLM Agents for Lifelong Cross-Domain Personalization](/202603/30/2603.25973v1-memorycd-benchmarking-long-context-user-memory-of-llm-agents-for-lifelong-cross-domain-personalization)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：评估用于个性化的长上下文用户记忆基准
+8. [Knowledge is Power: Advancing Few-shot Action Recognition with Multimodal Semantics from MLLMs](/202603/30/2603.26033v1-knowledge-is-power-advancing-few-shot-action-recognition-with-multimodal-semantics-from-mllms)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：利用多模态大模型作为动作识别的知识库
+9. [Reflect to Inform: Boosting Multimodal Reasoning via Information-Gain-Driven Verification](/202603/30/2603.26348v1-reflect-to-inform-boosting-multimodal-reasoning-via-information-gain-driven-verification)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：通过视觉内省增强多模态大模型的推理能力
 
 ### 速读区论文标签
-1. [On the Challenges and Opportunities of Learned Sparse Retrieval for Code](/202603/29/2603.22008v1-on-the-challenges-and-opportunities-of-learned-sparse-retrieval-for-code)  
+1. [Mamba-VMR: Multimodal Query Augmentation via Generated Videos for Precise Temporal Grounding](/202603/30/2603.22121v1-mamba-vmr-multimodal-query-augmentation-via-generated-videos-for-precise-temporal-grounding)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：针对代码的深度学习稀疏检索，作为密集嵌入模型的替代方案
-2. [The Dual Mechanisms of Spatial Reasoning in Vision-Language Models](/202603/29/2603.22278v1-the-dual-mechanisms-of-spatial-reasoning-in-vision-language-models)  
+   evidence：用于视频片段检索的多模态查询增强
+2. [SOUPLE: Enhancing Audio-Visual Localization and Segmentation with Learnable Prompt Contexts](/202603/30/2603.22732v1-souple-enhancing-audio-visual-localization-and-segmentation-with-learnable-prompt-contexts)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：视觉语言模型中的空间推理
-3. [Language Models Can Explain Visual Features via Steering](/202603/29/2603.22593v2-language-models-can-explain-visual-features-via-steering)  
+   evidence：将 CLIP 应用于视听定位并桥接语义对应关系
+3. [DALDALL: Data Augmentation for Lexical and Semantic Diverse in Legal Domain by leveraging LLM-Persona](/202603/30/2603.22765v1-daldall-data-augmentation-for-lexical-and-semantic-diverse-in-legal-domain-by-leveraging-llm-persona)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：解释视觉语言模型中的视觉特征
-4. [ENC-Bench: A Benchmark for Evaluating Multimodal Large Language Models in Electronic Navigational Chart Understanding](/202603/29/2603.22763v1-enc-bench-a-benchmark-for-evaluating-multimodal-large-language-models-in-electronic-navigational-chart-understanding)  
+   evidence：基于人格的信息检索数据增强
+4. [Zero-Shot Personalization of Objects via Textual Inversion](/202603/30/2603.23010v1-zero-shot-personalization-of-objects-via-textual-inversion)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：评估多模态大模型在专业视觉语言任务中的基准
-5. [Ontology-driven personalized information retrieval for XML documents](/202603/29/2603.21139v1-ontology-driven-personalized-information-retrieval-for-xml-documents)  
+   evidence：通过扩散模型中的文本反转实现对象的零样本个性化
+5. [Generative Artificial Intelligence Assisted Multi-modal Semantic Extraction for NOMA-based Image Transmissions](/202603/30/2603.21092v1-generative-artificial-intelligence-assisted-multi-modal-semantic-extraction-for-noma-based-image-transmissions)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：使用用户画像的个性化信息检索
-6. [Fast Nearest Neighbor Search for $\ell_p$ Metrics](/202603/29/2603.21148v1-fast-nearest-neighbor-search-for-ellp-metrics)  
+   evidence：跨模态语义特征和多模态提取
+6. [Multi-Modal Image Fusion via Intervention-Stable Feature Learning](/202603/30/2603.23272v1-multi-modal-image-fusion-via-intervention-stable-feature-learning)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：针对大规模应用的快速最近邻搜索
-7. [ALADIN:Attribute-Language Distillation Network for Person Re-Identification](/202603/29/2603.21482v1-aladinattribute-language-distillation-network-for-person-re-identification)  
+   evidence：多模态图像融合中的因果原则和跨模态依赖
+7. [Mixture of Demonstrations for Textual Graph Understanding and Question Answering](/202603/30/2603.23554v1-mixture-of-demonstrations-for-textual-graph-understanding-and-question-answering)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：从CLIP蒸馏以进行视觉语言对齐
-8. [Compensating Visual Insufficiency with Stratified Language Guidance for Long-Tail Class Incremental Learning](/202603/29/2603.21708v1-compensating-visual-insufficiency-with-stratified-language-guidance-for-long-tail-class-incremental-learning)  
+   evidence：大模型的图检索增强生成
+8. [MoCHA: Denoising Caption Supervision for Motion-Text Retrieval](/202603/30/2603.23684v1-mocha-denoising-caption-supervision-for-motion-text-retrieval)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：利用大语言模型为增量学习中的视觉任务生成语言指导
-9. [Riding Brainwaves in LLM Space: Understanding Activation Patterns Using Individual Neural Signatures](/202603/29/2603.21847v1-riding-brainwaves-in-llm-space-understanding-activation-patterns-using-individual-neural-signatures)  
+   evidence：用于动作-文本检索对齐的对比学习目标
+9. [Evaluating a Multi-Agent Voice-Enabled Smart Speaker for Care Homes: A Safety-Focused Framework](/202603/30/2603.23625v1-evaluating-a-multi-agent-voice-enabled-smart-speaker-for-care-homes-a-safety-focused-framework)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：将语言模型适配到个人神经特征以实现个性化
-10. [Dual-Space Knowledge Distillation with Key-Query Matching for Large Language Models with Vocabulary Mismatch](/202603/29/2603.22056v1-dual-space-knowledge-distillation-with-key-query-matching-for-large-language-models-with-vocabulary-mismatch)  
+   evidence：包含密集检索在内的RAG方法
+10. [Knowledge-Refined Dual Context-Aware Network for Partially Relevant Video Retrieval](/202603/30/2603.23902v1-knowledge-refined-dual-context-aware-network-for-partially-relevant-video-retrieval)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：大语言模型的知识蒸馏
-11. [Dynamic Fusion-Aware Graph Convolutional Neural Network for Multimodal Emotion Recognition in Conversations](/202603/29/2603.22345v1-dynamic-fusion-aware-graph-convolutional-neural-network-for-multimodal-emotion-recognition-in-conversations)  
+   evidence：视频检索与多尺度短语线索
+11. [Semantic Centroids and Hierarchical Density-Based Clustering for Cross-Document Software Coreference Resolution](/202603/30/2603.24246v1-semantic-centroids-and-hierarchical-density-based-clustering-for-cross-document-software-coreference-resolution)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：多模态情感识别与动态融合
+   evidence：稠密语义嵌入与 FAISS 高效检索
 
 
 <div class="dpr-home-promo-card">

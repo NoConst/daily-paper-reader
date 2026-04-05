@@ -6,76 +6,73 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-04
-- 运行时间：2026-04-04 19:56:21 UTC
+- 最新运行日期：2026-04-05
+- 运行时间：2026-04-05 20:13:28 UTC
 - 运行状态：成功
-- 本次总论文数：18
-- 精读区：7
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日深度复盘 18 篇 AI 论文，聚焦多模态强化学习与视觉语言推理的性能飞跃。
-轨迹引导 RL 与自适应深度聚合技术表现亮眼，在提升 RLVR 任务表现的同时显著降低了推理成本。
-推荐关注 GUI 智能体及多模态知识库在导航中的应用，把握视觉交互自动化的新趋势。
-- 详情：[/202604/04/README](/202604/04/README)
+今日深度复盘 17 篇 AI 论文，聚焦多模态大模型在组合类比推理与精准视觉感知上的核心突破。
+满分论文 CARV 揭示了模型在复杂逻辑下的推理短板，而强化学习驱动的精准裁剪框架显著提升了 MLLM 的细节捕捉能力。
+建议优先研读多模态推理基准与 RAG 不确定性优化方向，以应对日益复杂的跨模态交互需求。
+- 详情：[/202604/05/README](/202604/05/README)
 
 ### 精读区论文标签
-1. [Beyond Where to Look: Trajectory-Guided Reinforcement Learning for Multimodal RLVR](/202604/04/2603.26126v1-beyond-where-to-look-trajectory-guided-reinforcement-learning-for-multimodal-rlvr)  
+1. [CARV: A Diagnostic Benchmark for Compositional Analogical Reasoning in Multimodal LLMs](/202604/05/2603.27958v1-carv-a-diagnostic-benchmark-for-compositional-analogical-reasoning-in-multimodal-llms)  
+   标签：评分：10.0/10、query:cir-ml
+   evidence：多模态大模型组合类比推理的诊断基准
+2. [Learning to Focus and Precise Cropping: A Reinforcement Learning Framework with Information Gaps and Grounding Loss for MLLMs](/202604/05/2603.27494v1-learning-to-focus-and-precise-cropping-a-reinforcement-learning-framework-with-information-gaps-and-grounding-loss-for-mllms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型中多模态推理的强化学习
-2. [Mitigating the Reasoning Tax in Vision-Language Fine-Tuning with Input-Adaptive Depth Aggregation](/202604/04/2603.26330v1-mitigating-the-reasoning-tax-in-vision-language-fine-tuning-with-input-adaptive-depth-aggregation)  
+   evidence：增强多模态大模型（MLLM）在复杂视觉场景中的感知和推理能力
+3. [LongCat-Next: Lexicalizing Modalities as Discrete Tokens](/202604/05/2603.27538v1-longcat-next-lexicalizing-modalities-as-discrete-tokens)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：减轻视觉语言微调中的推理损失
-3. [ClimateCheck 2026: Scientific Fact-Checking and Disinformation Narrative Classification of Climate-related Claims](/202604/04/2603.26449v1-climatecheck-2026-scientific-fact-checking-and-disinformation-narrative-classification-of-climate-related-claims)  
+   evidence：在共享离散空间中表示多模态信息的统一框架
+4. [Efficient Inference of Large Vision Language Models](/202604/05/2603.27960v1-efficient-inference-of-large-vision-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：结合密集检索流水线和大型语言模型的系统
-4. [Webscraper: Leverage Multimodal Large Language Models for Index-Content Web Scraping](/202604/04/2603.29161v1-webscraper-leverage-multimodal-large-language-models-for-index-content-web-scraping)  
+   evidence：大型视觉语言模型推理加速技术的综述
+5. [Robust Multimodal Safety via Conditional Decoding](/202604/05/2604.00310v1-robust-multimodal-safety-via-conditional-decoding)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：利用多模态大语言模型进行网页抓取和导航
-5. [CL-VISTA: Benchmarking Continual Learning in Video Large Language Models](/202604/04/2604.00677v1-cl-vista-benchmarking-continual-learning-in-video-large-language-models)  
+   evidence：多模态大语言模型（MLLM）的安全对齐
+6. [Not All Tokens See Equally: Perception-Grounded Policy Optimization for Large Vision-Language Models](/202604/05/2604.01840v1-not-all-tokens-see-equally-perception-grounded-policy-optimization-for-large-vision-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：视频大语言模型持续学习基准测试
-6. [IWP: Token Pruning as Implicit Weight Pruning in Large Vision Language Models](/202604/04/2604.00757v1-iwp-token-pruning-as-implicit-weight-pruning-in-large-vision-language-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：大型视觉语言模型的令牌剪枝框架
-7. [Ego-Grounding for Personalized Question-Answering in Egocentric Videos](/202604/04/2604.01966v1-ego-grounding-for-personalized-question-answering-in-egocentric-videos)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：使用多模态大模型在第一人称视频中进行个性化问答
+   evidence：大型视觉语言模型的感知落地策略优化
 
 ### 速读区论文标签
-1. [Towards GUI Agents: Vision-Language Diffusion Models for GUI Grounding](/202604/04/2603.26211v1-towards-gui-agents-vision-language-diffusion-models-for-gui-grounding)  
+1. [CLIP-AUTT: Test-Time Personalization with Action Unit Prompting for Fine-Grained Video Emotion Recognition](/202604/05/2603.27999v1-clip-autt-test-time-personalization-with-action-unit-prompting-for-fine-grained-video-emotion-recognition)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于GUI定位和多模态推理的视觉语言模型
-2. [Beyond Textual Knowledge-Leveraging Multimodal Knowledge Bases for Enhancing Vision-and-Language Navigation](/202604/04/2603.26859v1-beyond-textual-knowledge-leveraging-multimodal-knowledge-bases-for-enhancing-vision-and-language-navigation)  
+   evidence：视觉语言模型的测试时个性化
+2. [Robust Remote Sensing Image-Text Retrieval with Noisy Correspondence](/202604/05/2603.28134v1-robust-remote-sensing-image-text-retrieval-with-noisy-correspondence)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于视觉语言导航的多模态知识库
-3. [Let Triggers Control: Frequency-Aware Dropout for Effective Token Control](/202604/04/2603.27199v1-let-triggers-control-frequency-aware-dropout-for-effective-token-control)  
+   evidence：带噪声对应的鲁棒遥感图文检索
+3. [Entropic Claim Resolution: Uncertainty-Driven Evidence Selection for RAG](/202604/05/2603.28444v1-entropic-claim-resolution-uncertainty-driven-evidence-selection-for-rag)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：生成模型个性化与标记控制
-4. [GAAMA: Graph Augmented Associative Memory for Agents](/202604/04/2603.27910v1-gaama-graph-augmented-associative-memory-for-agents)  
+   evidence：重构 RAG 推理，超越基于相关性的密集检索
+4. [ELViS: Efficient Visual Similarity from Local Descriptors that Generalizes Across Domains](/202604/05/2603.28603v1-elvis-efficient-visual-similarity-from-local-descriptors-that-generalizes-across-domains)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于智能体个性化行为的图增强关联记忆
-5. [BLOSSOM: Block-wise Federated Learning Over Shared and Sparse Observed Modalities](/202604/04/2603.27552v1-blossom-block-wise-federated-learning-over-shared-and-sparse-observed-modalities)  
+   evidence：跨域检索的图像到图像相似度模型
+5. [Streamlined Open-Vocabulary Human-Object Interaction Detection](/202604/05/2603.27500v1-streamlined-open-vocabulary-human-object-interaction-detection)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：多模态联邦学习基础
-6. [Towards Domain-Generalized Open-Vocabulary Object Detection: A Progressive Domain-invariant Cross-modal Alignment Method](/202604/04/2603.27556v1-towards-domain-generalized-open-vocabulary-object-detection-a-progressive-domain-invariant-cross-modal-alignment-method)  
+   evidence：用于开放词汇交互识别的视觉语言模型 (VLM)
+6. [OpenDPR: Open-Vocabulary Change Detection via Vision-Centric Diffusion-Guided Prototype Retrieval for Remote Sensing Imagery](/202604/05/2603.27645v1-opendpr-open-vocabulary-change-detection-via-vision-centric-diffusion-guided-prototype-retrieval-for-remote-sensing-imagery)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：开放词汇检测中的跨模态对齐与潜空间稳定性
-7. [Structured Observation Language for Efficient and Generalizable Vision-Language Navigation](/202604/04/2603.27577v1-structured-observation-language-for-efficient-and-generalizable-vision-language-navigation)  
+   evidence：利用CLIP等视觉语言模型进行以视觉为中心的原型检索
+7. [Progressive Prompt-Guided Cross-Modal Reasoning for Referring Image Segmentation](/202604/05/2603.27993v1-progressive-prompt-guided-cross-modal-reasoning-for-referring-image-segmentation)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：导航任务中的视觉与语言模态融合
-8. [MAR3: Multi-Agent Recognition, Reasoning, and Reflection for Reference Audio-Visual Segmentation](/202604/04/2603.27706v1-mar3-multi-agent-recognition-reasoning-and-reflection-for-reference-audio-visual-segmentation)  
+   evidence：将语言描述与图像区域关联的跨模态推理
+8. [ParaSpeechCLAP: A Dual-Encoder Speech-Text Model for Rich Stylistic Language-Audio Pretraining](/202604/05/2603.28737v1-paraspeechclap-a-dual-encoder-speech-text-model-for-rich-stylistic-language-audio-pretraining)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：指代视听分割的多智能体推理
-9. [Can Small Models Reason About Legal Documents? A Comparative Study](/202604/04/2603.25944v1-can-small-models-reason-about-legal-documents-a-comparative-study)  
+   evidence：双编码器对比模型的组合性评估
+9. [AutoCut: End-to-end advertisement video editing based on multimodal discretization and controllable generation](/202604/05/2603.28366v1-autocut-end-to-end-advertisement-video-editing-based-on-multimodal-discretization-and-controllable-generation)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：法律文档推理中密集RAG的评估
-10. [Rethinking Easy-to-Hard: Limits of Curriculum Learning in Post-Training for Deductive Reasoning](/202604/04/2603.27226v1-rethinking-easy-to-hard-limits-of-curriculum-learning-in-post-training-for-deductive-reasoning)  
+   evidence：用于视频编辑的多模态离散化和共享视音频文本标记空间
+10. [HISA: Efficient Hierarchical Indexing for Fine-Grained Sparse Attention](/202604/05/2603.28458v2-hisa-efficient-hierarchical-indexing-for-fine-grained-sparse-attention)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：大语言模型组合推理中的课程学习
-11. [INSID3: Training-Free In-Context Segmentation with DINOv3](/202604/04/2603.28480v1-insid3-training-free-in-context-segmentation-with-dinov3)  
+   evidence：用于高效搜索和检索的分层索引
+11. [SafeClaw-R: Towards Safe and Secure Multi-Agent Personal Assistants](/202604/05/2603.28807v1-safeclaw-r-towards-safe-and-secure-multi-agent-personal-assistants)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：用于语义匹配的密集自监督特征
+   evidence：集成个人数据的安全多智能体个人助手
 
 
 <div class="dpr-home-promo-card">

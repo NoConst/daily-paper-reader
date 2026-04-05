@@ -1,0 +1,755 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-05T20:11:26.023351+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 26,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 55,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2603.27958v1",
+      "title": "CARV: A Diagnostic Benchmark for Compositional Analogical Reasoning in Multimodal LLMs",
+      "abstract": "Analogical reasoning tests a fundamental aspect of human cognition: mapping the relation from one pair of objects to another. Existing evaluations of this ability in multimodal large language models (MLLMs) overlook the ability to compose rules from multiple sources, a critical component of higher-order intelligence. To close this gap, we introduce CARV (Compositional Analogical Reasoning in Vision), a novel task together with a 5,500-sample dataset as the first diagnostic benchmark. We extend the analogy from a single pair to multiple pairs, which requires MLLMs to extract symbolic rules from each pair and compose new transformations. Evaluation on the state-of-the-art MLLMs reveals a striking performance gap: even Gemini-2.5 Pro achieving only 40.4% accuracy, far below human-level performance of 100%. Diagnostic analysis shows two consistent failure modes: (1) decomposing visual changes into symbolic rules, and (2) maintaining robustness under diverse or complex settings, highlighting the limitations of current MLLMs on this task.",
+      "authors": [
+        "Yongkang Du",
+        "Xiaohan Zou",
+        "Minhao Cheng",
+        "Lu Lin"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-30T02:22:30+00:00",
+      "link": "https://arxiv.org/pdf/2603.27958v1",
+      "tags": [
+        "keyword:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Diagnostic benchmark for compositional analogical reasoning in multimodal LLMs",
+      "llm_evidence_cn": "多模态大模型组合类比推理的诊断基准",
+      "llm_evidence": "多模态大模型组合类比推理的诊断基准",
+      "canonical_evidence": "多模态大模型组合类比推理的诊断基准",
+      "llm_tldr_en": "Introduces CARV to evaluate how MLLMs compose rules from multiple visual sources for analogical reasoning.",
+      "llm_tldr_cn": "引入 CARV 基准，评估多模态大模型从多个视觉源组合规则并进行类比推理的能力。",
+      "llm_tldr": "引入 CARV 基准，评估多模态大模型从多个视觉源组合规则并进行类比推理的能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Compositional Learning",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.27494v1",
+      "title": "Learning to Focus and Precise Cropping: A Reinforcement Learning Framework with Information Gaps and Grounding Loss for MLLMs",
+      "abstract": "To enhance the perception and reasoning capabilities of multimodal large language models in complex visual scenes, recent research has introduced agent-based workflows. In these works, MLLMs autonomously utilize image cropping tool to analyze regions of interest for question answering. While existing training strategies, such as those employing supervised fine-tuning and reinforcement learning, have made significant progress, our empirical analysis reveals a key limitation. We demonstrate the model's strong reliance on global input and its weak dependence on the details within the cropped region. To address this issue, we propose a novel two-stage reinforcement learning framework that does not require trajectory supervision. In the first stage, we introduce the ``Information Gap\" mechanism by adjusting the granularity of the global image. This mechanism trains the model to answer questions by focusing on cropped key regions, driven by the information gain these regions provide. The second stage further enhances cropping precision by incorporating a grounding loss, using a small number of bounding box annotations. Experiments show that our method significantly enhances the model's attention to cropped regions, enabling it to achieve state-of-the-art performance on high-resolution visual question-answering benchmarks. Our method provides a more efficient approach for perceiving and reasoning fine-grained details in MLLMs. Code is available at: https://github.com/XuanPu-Z/LFPC.",
+      "authors": [
+        "Xuanpu Zhao",
+        "Zhentao Tan",
+        "Dianmo Sheng",
+        "Tianxiang Chen",
+        "Yao Liu",
+        "Yue Wu",
+        "Tao Gong",
+        "Qi Chu",
+        "Nenghai Yu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-29T03:18:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.27494v1",
+      "tags": [
+        "keyword:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Enhancing perception and reasoning of multimodal large language models (MLLMs) in complex visual scenes",
+      "llm_evidence_cn": "增强多模态大模型（MLLM）在复杂视觉场景中的感知和推理能力",
+      "llm_evidence": "增强多模态大模型（MLLM）在复杂视觉场景中的感知和推理能力",
+      "canonical_evidence": "增强多模态大模型（MLLM）在复杂视觉场景中的感知和推理能力",
+      "llm_tldr_en": "Proposes a reinforcement learning framework to improve MLLM visual grounding and detail perception via cropping.",
+      "llm_tldr_cn": "提出一种强化学习框架，通过裁剪工具增强多模态大模型对视觉细节的感知与定位能力。",
+      "llm_tldr": "提出一种强化学习框架，通过裁剪工具增强多模态大模型对视觉细节的感知与定位能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.27538v1",
+      "title": "LongCat-Next: Lexicalizing Modalities as Discrete Tokens",
+      "abstract": "The prevailing Next-Token Prediction (NTP) paradigm has driven the success of large language models through discrete autoregressive modeling. However, contemporary multimodal systems remain language-centric, often treating non-linguistic modalities as external attachments, leading to fragmented architectures and suboptimal integration. To transcend this limitation, we introduce Discrete Native Autoregressive (DiNA), a unified framework that represents multimodal information within a shared discrete space, enabling a consistent and principled autoregressive modeling across modalities. A key innovation is the Discrete Native Any-resolution Visual Transformer (dNaViT), which performs tokenization and de-tokenization at arbitrary resolutions, transforming continuous visual signals into hierarchical discrete tokens. Building on this foundation, we develop LongCat-Next, a native multimodal model that processes text, vision, and audio under a single autoregressive objective with minimal modality-specific design. As an industrial-strength foundation model, it excels at seeing, painting, and talking within a single framework, achieving strong performance across a wide range of multimodal benchmarks. In particular, LongCat-Next addresses the long-standing performance ceiling of discrete vision modeling on understanding tasks and provides a unified approach to effectively reconcile the conflict between understanding and generation. As an attempt toward native multimodality, we open-source the LongCat-Next and its tokenizers, hoping to foster further research and development in the community. GitHub: https://github.com/meituan-longcat/LongCat-Next",
+      "authors": [
+        "Meituan LongCat Team",
+        "Bin Xiao",
+        "Chao Wang",
+        "Chengjiang Li",
+        "Chi Zhang",
+        "Chong Peng",
+        "Hang Yu",
+        "Hao Yang",
+        "Haonan Yan",
+        "Haoze Sun",
+        "Haozhe Zhao",
+        "Hong Liu",
+        "Hui Su",
+        "Jiaqi Zhang",
+        "Jiawei Wang",
+        "Jing Li",
+        "Kefeng Zhang",
+        "Manyuan Zhang",
+        "Minhao Jing",
+        "Peng Pei",
+        "Quan Chen",
+        "Taofeng Xue",
+        "Tongxin Pan",
+        "Xiaotong Li",
+        "Xiaoyang Li",
+        "Xiaoyu Zhao",
+        "Xing Hu",
+        "Xinyang Lin",
+        "Xunliang Cai",
+        "Yan Bai",
+        "Yan Feng",
+        "Yanjie Li",
+        "Yao Qiu",
+        "Yerui Sun",
+        "Yifan Lu",
+        "Ying Luo",
+        "Yipeng Mei",
+        "Yitian Chen",
+        "Yuchen Xie",
+        "Yufang Liu",
+        "Yufei Chen",
+        "Yulei Qian",
+        "Yuqi Peng",
+        "Zhihang Yu",
+        "Zhixiong Han",
+        "Changran Wang",
+        "Chen Chen",
+        "Dian Zheng",
+        "Fengjiao Chen",
+        "Ge Yang",
+        "Haowei Guo",
+        "Haozhe Wang",
+        "Hongyu Li",
+        "Huicheng Jiang",
+        "Jiale Hong",
+        "Jialv Zou",
+        "Jiamu Li",
+        "Jianping Lin",
+        "Jiaxing Liu",
+        "Jie Yang",
+        "Jing Jin",
+        "Jun Kuang",
+        "Juncheng She",
+        "Kunming Luo",
+        "Kuofeng Gao",
+        "Lin Qiu",
+        "Linsen Guo",
+        "Mianqiu Huang",
+        "Qi Li",
+        "Qian Wang",
+        "Rumei Li",
+        "Siyu Ren",
+        "Wei Wang",
+        "Wenlong He",
+        "Xi Chen",
+        "Xiao Liu",
+        "Xiaoyu Li",
+        "Xu Huang",
+        "Xuanyu Zhu",
+        "Xuezhi Cao",
+        "Yaoming Zhu",
+        "Yifei Cao",
+        "Yimeng Jia",
+        "Yizhen Jiang",
+        "Yufei Gao",
+        "Zeyang Hu",
+        "Zhenlong Yuan",
+        "Zijian Zhang",
+        "Ziwen Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-03-29T06:35:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.27538v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "unified framework for multimodal information in shared discrete space",
+      "llm_evidence_cn": "在共享离散空间中表示多模态信息的统一框架",
+      "llm_evidence": "在共享离散空间中表示多模态信息的统一框架",
+      "canonical_evidence": "在共享离散空间中表示多模态信息的统一框架",
+      "llm_tldr_en": "Introduces DiNA, a framework for native autoregressive modeling across modalities using discrete tokens.",
+      "llm_tldr_cn": "引入DiNA框架，通过离散Token实现跨模态的原生自回归建模。",
+      "llm_tldr": "引入DiNA框架，通过离散Token实现跨模态的原生自回归建模。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.27960v1",
+      "title": "Efficient Inference of Large Vision Language Models",
+      "abstract": "Although Large Vision Language Models (LVLMs) have demonstrated impressive multimodal reasoning capabilities, their scalability and deployment are constrained by massive computational requirements. In particular, the massive amount of visual tokens from high-resolution input data aggravates the situation due to the quadratic complexity of attention mechanisms. To address these issues, the research community has developed several optimization frameworks. This paper presents a comprehensive survey of the current state-of-the-art techniques for accelerating LVLM inference. We introduce a systematic taxonomy that categorizes existing optimization frameworks into four primary dimensions: visual token compression, memory management and serving, efficient architectural design, and advanced decoding strategies. Furthermore, we critically examine the limitations of these current methodologies and identify critical open problems to inspire future research directions in efficient multimodal systems.",
+      "authors": [
+        "Surendra Pathak"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL",
+        "cs.CV"
+      ],
+      "published": "2026-03-30T02:23:37+00:00",
+      "link": "https://arxiv.org/pdf/2603.27960v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "survey of state-of-the-art techniques for accelerating LVLM inference",
+      "llm_evidence_cn": "大型视觉语言模型推理加速技术的综述",
+      "llm_evidence": "大型视觉语言模型推理加速技术的综述",
+      "canonical_evidence": "大型视觉语言模型推理加速技术的综述",
+      "llm_tldr_en": "Provides a comprehensive survey on optimizing and accelerating Large Vision Language Model inference.",
+      "llm_tldr_cn": "对大型视觉语言模型推理的优化和加速技术进行了全面综述。",
+      "llm_tldr": "对大型视觉语言模型推理的优化和加速技术进行了全面综述。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.00310v1",
+      "title": "Robust Multimodal Safety via Conditional Decoding",
+      "abstract": "Multimodal large-language models (MLLMs) often experience degraded safety alignment when harmful queries exploit cross-modal interactions. Models aligned on text alone show a higher rate of successful attacks when extended to two or more modalities. In this work, we propose a simple conditional decoding strategy, CASA (Classification Augmented with Safety Attention) that utilizes internal representations of MLLMs to predict a binary safety token before response generation. We introduce a novel safety attention module designed to enhance the model's ability to detect malicious queries. Our design ensures robust safety alignment without relying on any external classifier or auxiliary head, and without the need for modality-specific safety fine-tuning. On diverse benchmarks such as MM-SafetyBench, JailbreakV-28k, and adversarial audio tests, CASA lowers the average attack success rate by more than 97% across modalities and across attack types. Our empirical evaluations also show that CASA maintains strong utility in benign inputs, a result validated through both automated and human evaluations (via 13 trained annotators). Together, these results highlight CASA as a simple and generalizable framework to improve multimodal LLM safety.",
+      "authors": [
+        "Anurag Kumar",
+        "Raghuveer Peri",
+        "Jon Burnsky",
+        "Alexandru Nelus",
+        "Rohit Paturi",
+        "Srikanth Vishnubhotla",
+        "Yanjun Qi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-31T23:19:50+00:00",
+      "link": "https://arxiv.org/pdf/2604.00310v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "safety alignment in Multimodal Large Language Models (MLLMs)",
+      "llm_evidence_cn": "多模态大语言模型（MLLM）的安全对齐",
+      "llm_evidence": "多模态大语言模型（MLLM）的安全对齐",
+      "canonical_evidence": "多模态大语言模型（MLLM）的安全对齐",
+      "llm_tldr_en": "Proposes CASA to enhance MLLM safety by predicting safety tokens using internal representations.",
+      "llm_tldr_cn": "提出CASA策略，通过内部表示预测安全标记，增强多模态大模型的安全性。",
+      "llm_tldr": "提出CASA策略，通过内部表示预测安全标记，增强多模态大模型的安全性。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.01840v1",
+      "title": "Not All Tokens See Equally: Perception-Grounded Policy Optimization for Large Vision-Language Models",
+      "abstract": "While Reinforcement Learning from Verifiable Rewards (RLVR) has advanced reasoning in Large Vision-Language Models (LVLMs), prevailing frameworks suffer from a foundational methodological flaw: by distributing identical advantages across all generated tokens, these methods inherently dilute the learning signals essential for optimizing the critical, visually-grounded steps of multimodal reasoning. To bridge this gap, we formulate \\textit{Token Visual Dependency}, quantifying the causal information gain of visual inputs via the Kullback-Leibler (KL) divergence between visual-conditioned and text-only predictive distributions. Revealing that this dependency is highly sparse and semantically pivotal, we introduce Perception-Grounded Policy Optimization (PGPO), which is a novel fine-grained credit assignment framework that dynamically reshapes advantages at the token level. Through a threshold-gated, mass-conserving mechanism, PGPO actively amplifies learning signals for visually-dependent tokens while suppressing gradient noise from linguistic priors. Extensive experiments based on the Qwen2.5-VL series across seven challenging multimodal reasoning benchmarks demonstrate that PGPO boosts models by 18.7% on average. Both theoretical and empirical analyses confirm that PGPO effectively reduces gradient variance, prevents training collapse, and acts as a potent regularizer for robust, perception-grounded multimodal reasoning. Code will be published on https://github.com/Yzk1114/PGPO.",
+      "authors": [
+        "Zekai Ye",
+        "Qiming Li",
+        "Xiaocheng Feng",
+        "Ruihan Chen",
+        "Ziming Li",
+        "Haoyu Ren",
+        "Kun Chen",
+        "Dandan Tu",
+        "Bing Qin"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-04-02T09:53:20+00:00",
+      "link": "https://arxiv.org/pdf/2604.01840v1",
+      "tags": [
+        "keyword:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "perception-grounded policy optimization for Large Vision-Language Models",
+      "llm_evidence_cn": "大型视觉语言模型的感知落地策略优化",
+      "llm_evidence": "大型视觉语言模型的感知落地策略优化",
+      "canonical_evidence": "大型视觉语言模型的感知落地策略优化",
+      "llm_tldr_en": "Introduces Perception-Grounded Policy Optimization to improve visually-grounded reasoning in LVLMs.",
+      "llm_tldr_cn": "引入感知落地策略优化，以提升大型视觉语言模型中基于视觉的推理能力。",
+      "llm_tldr": "引入感知落地策略优化，以提升大型视觉语言模型中基于视觉的推理能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.27999v1",
+      "title": "CLIP-AUTT: Test-Time Personalization with Action Unit Prompting for Fine-Grained Video Emotion Recognition",
+      "abstract": "Personalization in emotion recognition (ER) is essential for an accurate interpretation of subtle and subject-specific expressive patterns. Recent advances in vision-language models (VLMs) such as CLIP demonstrate strong potential for leveraging joint image-text representations in ER. However, CLIP-based methods either depend on CLIP's contrastive pretraining or on LLMs to generate descriptive text prompts, which are noisy, computationally expensive, and fail to capture fine-grained expressions, leading to degraded performance. In this work, we leverage Action Units (AUs) as structured textual prompts within CLIP to model fine-grained facial expressions. AUs encode the subtle muscle activations underlying expressions, providing localized and interpretable semantic cues for more robust ER. We introduce CLIP-AU, a lightweight AU-guided temporal learning method that integrates interpretable AU semantics into CLIP. It learns generic, subject-agnostic representations by aligning AU prompts with facial dynamics, enabling fine-grained ER without CLIP fine-tuning or LLM-generated text supervision. Although CLIP-AU models fine-grained AU semantics, it does not adapt to subject-specific variability in subtle expressions. To address this limitation, we propose CLIP-AUTT, a video-based test-time personalization method that dynamically adapts AU prompts to videos from unseen subjects. By combining entropy-guided temporal window selection with prompt tuning, CLIP-AUTT enables subject-specific adaptation while preserving temporal consistency. Our extensive experiments on three challenging video-based subtle ER datasets, BioVid, StressID, and BAH, indicate that CLIP-AU and CLIP-AUTT outperform state-of-the-art CLIP-based FER and TTA methods, achieving robust and personalized subtle ER.",
+      "authors": [
+        "Muhammad Osama Zeeshan",
+        "Masoumeh Sharafi",
+        "Benoît Savary",
+        "Alessandro Lameiras Koerich",
+        "Marco Pedersoli",
+        "Eric Granger"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-30T03:39:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.27999v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "test-time personalization with vision-language models",
+      "llm_evidence_cn": "视觉语言模型的测试时个性化",
+      "llm_evidence": "视觉语言模型的测试时个性化",
+      "canonical_evidence": "视觉语言模型的测试时个性化",
+      "llm_tldr_en": "Uses Action Units as prompts for personalized video emotion recognition using CLIP.",
+      "llm_tldr_cn": "利用动作单元作为提示词，通过CLIP实现个性化的视频情感识别。",
+      "llm_tldr": "利用动作单元作为提示词，通过CLIP实现个性化的视频情感识别。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Personalized LLM",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.27500v1",
+      "title": "Streamlined Open-Vocabulary Human-Object Interaction Detection",
+      "abstract": "Open-vocabulary human-object interaction (HOI) detection aims to localize and recognize all human-object interactions in an image, including those unseen during training. Existing approaches usually rely on the collaboration between a conventional HOI detector and a Vision-Language Model (VLM) to recognize unseen HOI categories. However, feature fusion in this paradigm is challenging due to significant gaps in cross-model representations. To address this issue, we introduce SL-HOI, a StreamLined open-vocabulary HOI detection framework based solely on the powerful DINOv3 model. Our design leverages the complementary strengths of DINOv3's components: its backbone for fine-grained localization and its text-aligned vision head for open-vocabulary interaction classification. Moreover, to facilitate smooth cross-attention between the interaction queries and the vision head's output, we propose first feeding both the interaction queries and the backbone image tokens into the vision head, effectively bridging their representation gaps. All DINOv3 parameters in our approach are frozen, with only a small number of learnable parameters added, allowing a fast adaptation to the HOI detection task. Extensive experiments show that SL-HOI achieves state-of-the-art performance on both the SWiG-HOI and HICO-DET benchmarks, demonstrating the effectiveness of our streamlined model architecture. Code is available at https://github.com/MPI-Lab/SL-HOI.",
+      "authors": [
+        "Chang Sun",
+        "Dongliang Liao",
+        "Changxing Ding"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-29T03:31:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.27500v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Vision-Language Model (VLM) for open-vocabulary interaction recognition",
+      "llm_evidence_cn": "用于开放词汇交互识别的视觉语言模型 (VLM)",
+      "llm_evidence": "用于开放词汇交互识别的视觉语言模型 (VLM)",
+      "canonical_evidence": "用于开放词汇交互识别的视觉语言模型 (VLM)",
+      "llm_tldr_en": "Introduces SL-HOI, a streamlined framework using DINOv3 for open-vocabulary human-object interaction detection.",
+      "llm_tldr_cn": "引入 SL-HOI，一个利用 DINOv3 进行开放词汇人机交互检测的精简框架。",
+      "llm_tldr": "引入 SL-HOI，一个利用 DINOv3 进行开放词汇人机交互检测的精简框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.28366v1",
+      "title": "AutoCut: End-to-end advertisement video editing based on multimodal discretization and controllable generation",
+      "abstract": "Short-form videos have become a primary medium for digital advertising, requiring scalable and efficient content creation. However, current workflows and AI tools remain disjoint and modality-specific, leading to high production costs and low overall efficiency. To address this issue, we propose AutoCut, an end-to-end advertisement video editing framework based on multimodal discretization and controllable editing. AutoCut employs dedicated encoders to extract video and audio features, then applies residual vector quantization to discretize them into unified tokens aligned with textual representations, constructing a shared video-audio-text token space. Built upon a foundation model, we further develop a multimodal large language model for video editing through combined multimodal alignment and supervised fine-tuning, supporting tasks covering video selection and ordering, script generation, and background music selection within a unified editing framework. Finally, a complete production pipeline converts the predicted token sequences into deployable long video outputs. Experiments on real-world advertisement datasets show that AutoCut reduces production cost and iteration time while substantially improving consistency and controllability, paving the way for scalable video creation.",
+      "authors": [
+        "Milton Zhou",
+        "Sizhong Qin",
+        "Yongzhi Li",
+        "Quan Chen",
+        "Peng Jiang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-30T12:35:11+00:00",
+      "link": "https://arxiv.org/pdf/2603.28366v1",
+      "tags": [
+        "keyword:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Multimodal discretization and shared video-audio-text token space for video editing",
+      "llm_evidence_cn": "用于视频编辑的多模态离散化和共享视音频文本标记空间",
+      "llm_evidence": "用于视频编辑的多模态离散化和共享视音频文本标记空间",
+      "canonical_evidence": "用于视频编辑的多模态离散化和共享视音频文本标记空间",
+      "llm_tldr_en": "An end-to-end video editing framework using multimodal discretization to align video, audio, and text tokens.",
+      "llm_tldr_cn": "一种端到端视频编辑框架，通过多模态离散化对齐视音频和文本标记。",
+      "llm_tldr": "一种端到端视频编辑框架，通过多模态离散化对齐视音频和文本标记。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.28134v1",
+      "title": "Robust Remote Sensing Image-Text Retrieval with Noisy Correspondence",
+      "abstract": "As a pivotal task that bridges remote visual and linguistic understanding, Remote Sensing Image-Text Retrieval (RSITR) has attracted considerable research interest in recent years. However, almost all RSITR methods implicitly assume that image-text pairs are matched perfectly. In practice, acquiring a large set of well-aligned data pairs is often prohibitively expensive or even infeasible. In addition, we also notice that the remote sensing datasets (e.g., RSITMD) truly contain some inaccurate or mismatched image text descriptions. Based on the above observations, we reveal an important but untouched problem in RSITR, i.e., Noisy Correspondence (NC). To overcome these challenges, we propose a novel Robust Remote Sensing Image-Text Retrieval (RRSITR) paradigm that designs a self-paced learning strategy to mimic human cognitive learning patterns, thereby learning from easy to hard from multi-modal data with NC. Specifically, we first divide all training sample pairs into three categories based on the loss magnitude of each pair, i.e., clean sample pairs, ambiguous sample pairs, and noisy sample pairs. Then, we respectively estimate the reliability of each training pair by assigning a weight to each pair based on the values of the loss. Further, we respectively design a new multi-modal self-paced function to dynamically regulate the training sequence and weights of the samples, thus establishing a progressive learning process. Finally, for noisy sample pairs, we present a robust triplet loss to dynamically adjust the soft margin based on semantic similarity, thereby enhancing the robustness against noise. Extensive experiments on three popular benchmark datasets demonstrate that the proposed RRSITR significantly outperforms the state-of-the-art methods, especially in high noise rates. The code is available at: https://github.com/MSFLabX/RRSITR",
+      "authors": [
+        "Qiya Song",
+        "Yiqiang Xie",
+        "Yuan Sun",
+        "Renwei Dian",
+        "Xudong Kang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-30T07:55:07+00:00",
+      "link": "https://arxiv.org/pdf/2603.28134v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "robust remote sensing image-text retrieval with noisy correspondence",
+      "llm_evidence_cn": "带噪声对应的鲁棒遥感图文检索",
+      "llm_evidence": "带噪声对应的鲁棒遥感图文检索",
+      "canonical_evidence": "带噪声对应的鲁棒遥感图文检索",
+      "llm_tldr_en": "Proposes a robust framework for remote sensing image-text retrieval to handle mismatched data pairs.",
+      "llm_tldr_cn": "提出一种鲁棒的遥感图文检索框架，用于处理数据对不匹配的噪声对应问题。",
+      "llm_tldr": "提出一种鲁棒的遥感图文检索框架，用于处理数据对不匹配的噪声对应问题。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "State of the art methods in composed image retrieval and multimodal learning",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.27645v1",
+      "title": "OpenDPR: Open-Vocabulary Change Detection via Vision-Centric Diffusion-Guided Prototype Retrieval for Remote Sensing Imagery",
+      "abstract": "Open-vocabulary change detection (OVCD) seeks to recognize arbitrary changes of interest by enabling generalization beyond a fixed set of predefined classes. We reformulate OVCD as a two-stage pipeline: first generate class-agnostic change proposals using visual foundation models (VFMs) such as SAM and DINOv2, and then perform category identification with vision-language models (VLMs) such as CLIP. We reveal that category identification errors are the primary bottleneck of OVCD, mainly due to the limited ability of VLMs based on image-text matching to represent fine-grained land-cover categories. To address this, we propose OpenDPR, a training-free vision-centric diffusion-guided prototype retrieval framework. OpenDPR leverages diffusion models to construct diverse prototypes for target categories offline, and to perform similarity retrieval with change proposals in the visual space during inference. The secondary bottleneck lies in change localization, due to the inherent lack of change priors in VFMs. To bridge this gap, we design a spatial-to-change weakly supervised change detection module named S2C to adapt their strong spatial modeling capabilities for change localization. Integrating the pretrained S2C into OpenDPR leads to an optional weakly supervised variant named OpenDPR-W, which further improves OVCD with minimal supervision. Experimental results on four benchmark datasets demonstrate that the proposed methods achieve state-of-the-art performance under both supervision modes. Code is available at https://github.com/guoqi2002/OpenDPR.",
+      "authors": [
+        "Qi Guo",
+        "Jue Wang",
+        "Yinhe Liu",
+        "Yanfei Zhong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-29T11:43:02+00:00",
+      "link": "https://arxiv.org/pdf/2603.27645v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Vision-centric prototype retrieval using VLMs like CLIP for change detection",
+      "llm_evidence_cn": "利用CLIP等视觉语言模型进行以视觉为中心的原型检索",
+      "llm_evidence": "利用CLIP等视觉语言模型进行以视觉为中心的原型检索",
+      "canonical_evidence": "利用CLIP等视觉语言模型进行以视觉为中心的原型检索",
+      "llm_tldr_en": "OpenDPR improves open-vocabulary change detection using diffusion-guided prototype retrieval with VLMs.",
+      "llm_tldr_cn": "OpenDPR通过扩散引导的原型检索和视觉语言模型，提升了开放词汇变化检测的性能。",
+      "llm_tldr": "OpenDPR通过扩散引导的原型检索和视觉语言模型，提升了开放词汇变化检测的性能。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.28458v2",
+      "title": "HISA: Efficient Hierarchical Indexing for Fine-Grained Sparse Attention",
+      "abstract": "Token-level sparse attention mechanisms, exemplified by DeepSeek Sparse Attention (DSA), achieve fine-grained key selection by scoring every historical key for each query through a lightweight indexer, then computing attention only on the selected subset. While the downstream sparse attention itself scales favorably, the indexer must still scan the entire prefix for every query, introducing an per-layer bottleneck that grows prohibitively with context length. We propose HISA (Hierarchical Indexed Sparse Attention), a plug-and-play replacement for the indexer that rewrites the search path from a flat token scan into a two-stage hierarchical procedure: (1) a block-level coarse filtering stage that scores pooled block representations to discard irrelevant regions, followed by (2) a token-level refinement stage that applies the original indexer exclusively within the retained candidate blocks. HISA preserves the identical token-level top-sparse pattern consumed by the downstream Sparse MLA operator and requires no additional training. On kernel-level benchmarks, HISA achieves up to speedup at 64K context. On Needle-in-a-Haystack and LongBench, we directly replace the indexer in DeepSeek-V3.2 and GLM-5 with our HISA indexer, without any finetuning. HISA closely matches the original DSA in quality, while substantially outperforming block-sparse baselines.",
+      "authors": [
+        "Yufei Xu",
+        "Fanxu Meng",
+        "Fan Jiang",
+        "Yuxuan Wang",
+        "Ruijie Zhou",
+        "Zhaohui Wang",
+        "Jiexi Wu",
+        "Zhixin Pan",
+        "Xiaojuan Tang",
+        "Wenjie Pei",
+        "Tongxuan Liu",
+        "Di yin",
+        "Xing Sun",
+        "Muhan Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-30T13:59:51+00:00",
+      "link": "https://arxiv.org/pdf/2603.28458v2",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "hierarchical indexing for efficient search and retrieval",
+      "llm_evidence_cn": "用于高效搜索和检索的分层索引",
+      "llm_evidence": "用于高效搜索和检索的分层索引",
+      "canonical_evidence": "用于高效搜索和检索的分层索引",
+      "llm_tldr_en": "Proposes a hierarchical indexing mechanism to accelerate sparse attention in long-context models.",
+      "llm_tldr_cn": "提出了一种分层索引机制，以加速长上下文模型中的稀疏注意力计算。",
+      "llm_tldr": "提出了一种分层索引机制，以加速长上下文模型中的稀疏注意力计算。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "dense retrieval systems",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.28444v1",
+      "title": "Entropic Claim Resolution: Uncertainty-Driven Evidence Selection for RAG",
+      "abstract": "Current Retrieval-Augmented Generation (RAG) systems predominantly rely on relevance-based dense retrieval, sequentially fetching documents to maximize semantic similarity with the query. However, in knowledge-intensive and real-world scenarios characterized by conflicting evidence or fundamental query ambiguity, relevance alone is insufficient for resolving epistemic uncertainty. We introduce Entropic Claim Resolution (ECR), a novel inference-time algorithm that reframes RAG reasoning as entropy minimization over competing semantic answer hypotheses. Unlike action-driven agentic frameworks (e.g., ReAct) or fixed-pipeline RAG architectures, ECR sequentially selects atomic evidence claims by maximizing Expected Entropy Reduction (EER), a decision-theoretic criterion for the value of information. The process dynamically terminates when the system reaches a mathematically defined state of epistemic sufficiency (H <= epsilon, subject to epistemic coherence). We integrate ECR into a production-grade multi-strategy retrieval pipeline (CSGR++) and analyze its theoretical properties. Our framework provides a rigorous foundation for uncertainty-aware evidence selection, shifting the paradigm from retrieving what is most relevant to retrieving what is most discriminative.",
+      "authors": [
+        "Davide Di Gioia"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-30T13:49:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.28444v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reframes RAG reasoning beyond relevance-based dense retrieval",
+      "llm_evidence_cn": "重构 RAG 推理，超越基于相关性的密集检索",
+      "llm_evidence": "重构 RAG 推理，超越基于相关性的密集检索",
+      "canonical_evidence": "重构 RAG 推理，超越基于相关性的密集检索",
+      "llm_tldr_en": "Introduces an uncertainty-driven algorithm to improve evidence selection in dense retrieval-based RAG systems.",
+      "llm_tldr_cn": "提出 ECR 算法，通过最小化熵来优化 RAG 系统在密集检索中的证据选择。",
+      "llm_tldr": "提出 ECR 算法，通过最小化熵来优化 RAG 系统在密集检索中的证据选择。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Dense Retrieval",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.27993v1",
+      "title": "Progressive Prompt-Guided Cross-Modal Reasoning for Referring Image Segmentation",
+      "abstract": "Referring image segmentation aims to localize and segment a target object in an image based on a free-form referring expression. The core challenge lies in effectively bridging linguistic descriptions with object-level visual representations, especially when referring expressions involve detailed attributes and complex inter-object relationships. Existing methods either rely on cross-modal alignment or employ Semantic Segmentation Prompts, but they often lack explicit reasoning mechanisms for grounding language descriptions to target regions in the image. To address these limitations, we propose PPCR, a Progressive Prompt-guided Cross-modal Reasoning framework for referring image segmentation. PPCR explicitly structures the reasoning process as a Semantic Understanding-Spatial Grounding-Instance Segmentation pipeline. Specifically, PPCR first employs multimodal large language models (MLLMs) to generate Semantic Segmentation Prompt that capture key semantic cues of the target object. Based on this semantic context, Spatial Segmentation Prompt are further generated to reason about object location and spatial extent, enabling a progressive transition from semantic understanding to spatial grounding. The Semantic and Spatial Segmentation prompts are then jointly integrated into the segmentation module to guide accurate target localization and segmentation. Extensive experiments on standard referring image segmentation benchmarks demonstrate that PPCR consistently outperforms existing methods. The code will be publicly released to facilitate reproducibility.",
+      "authors": [
+        "Jiachen Li",
+        "Hongyun Wang",
+        "Jinyu Xu",
+        "Wenbo Jiang",
+        "Yanchun Ma",
+        "Yongjian Liu",
+        "Qing Xie",
+        "Bolong Zheng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-30T03:33:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.27993v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "cross-modal reasoning for grounding language to image regions",
+      "llm_evidence_cn": "将语言描述与图像区域关联的跨模态推理",
+      "llm_evidence": "将语言描述与图像区域关联的跨模态推理",
+      "canonical_evidence": "将语言描述与图像区域关联的跨模态推理",
+      "llm_tldr_en": "Proposes a progressive reasoning framework for referring image segmentation to bridge language and vision.",
+      "llm_tldr_cn": "提出一种渐进式推理框架，用于指代性图像分割，以桥接语言和视觉表示。",
+      "llm_tldr": "提出一种渐进式推理框架，用于指代性图像分割，以桥接语言和视觉表示。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.28807v1",
+      "title": "SafeClaw-R: Towards Safe and Secure Multi-Agent Personal Assistants",
+      "abstract": "LLM-based multi-agent systems (MASs) are transforming personal productivity by autonomously executing complex, cross-platform tasks. Frameworks such as OpenClaw demonstrate the potential of locally deployed agents integrated with personal data and services, but this autonomy introduces significant safety and security risks. Unintended actions from LLM reasoning failures can cause irreversible harm, while prompt injection attacks may exfiltrate credentials or compromise the system. Our analysis shows that 36.4% of OpenClaw's built-in skills pose high or critical risks. Existing approaches, including static guardrails and LLM-as-a-Judge, lack reliable real-time enforcement and consistent authority in MAS settings. To address this, we propose SafeClaw-R, a framework that enforces safety as a system-level invariant over the execution graph by ensuring that actions are mediated prior to execution, and systematically augments skills with safe counterparts. We evaluate SafeClaw-R across three representative domains: productivity platforms, third-party skill ecosystems, and code execution environments. SafeClaw-R achieves 95.2% accuracy in Google Workspace scenarios, significantly outperforming regex baselines (61.6%), detects 97.8% of malicious third-party skill patterns, and achieves 100% detection accuracy in our adversarial code execution benchmark. These results demonstrate that SafeClaw-R enables practical runtime enforcement for autonomous MASs.",
+      "authors": [
+        "Haoyu Wang",
+        "Zibo Xiao",
+        "Yedi Zhang",
+        "Christopher M. Poskitt",
+        "Jun Sun"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-03-28T05:03:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.28807v1",
+      "tags": [
+        "query:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Safe and secure multi-agent personal assistants integrated with personal data",
+      "llm_evidence_cn": "集成个人数据的安全多智能体个人助手",
+      "llm_evidence": "集成个人数据的安全多智能体个人助手",
+      "canonical_evidence": "集成个人数据的安全多智能体个人助手",
+      "llm_tldr_en": "Proposes SafeClaw-R to address safety and security risks in LLM-based personal multi-agent systems.",
+      "llm_tldr_cn": "提出SafeClaw-R框架，解决基于大模型的个人多智能体系统中的安全与隐私风险。",
+      "llm_tldr": "提出SafeClaw-R框架，解决基于大模型的个人多智能体系统中的安全与隐私风险。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Personalized LLM",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.28603v1",
+      "title": "ELViS: Efficient Visual Similarity from Local Descriptors that Generalizes Across Domains",
+      "abstract": "Large-scale instance-level training data is scarce, so models are typically trained on domain-specific datasets. Yet in real-world retrieval, they must handle diverse domains, making generalization to unseen data critical. We introduce ELViS, an image-to-image similarity model that generalizes effectively to unseen domains. Unlike conventional approaches, our model operates in similarity space rather than representation space, promoting cross-domain transfer. It leverages local descriptor correspondences, refines their similarities through an optimal transport step with data-dependent gains that suppress uninformative descriptors, and aggregates strong correspondences via a voting process into an image-level similarity. This design injects strong inductive biases, yielding a simple, efficient, and interpretable model. To assess generalization, we compile a benchmark of eight datasets spanning landmarks, artworks, products, and multi-domain collections, and evaluate ELViS as a re-ranking method. Our experiments show that ELViS outperforms competing methods by a large margin in out-of-domain scenarios and on average, while requiring only a fraction of their computational cost. Code available at: https://github.com/pavelsuma/ELViS/",
+      "authors": [
+        "Pavel Suma",
+        "Giorgos Kordopatis-Zilos",
+        "Yannis Kalantidis",
+        "Giorgos Tolias"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-30T15:53:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.28603v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Image-to-image similarity model for cross-domain retrieval",
+      "llm_evidence_cn": "跨域检索的图像到图像相似度模型",
+      "llm_evidence": "跨域检索的图像到图像相似度模型",
+      "canonical_evidence": "跨域检索的图像到图像相似度模型",
+      "llm_tldr_en": "Introduces ELViS, a visual similarity model using local descriptors to improve cross-domain image retrieval.",
+      "llm_tldr_cn": "引入ELViS模型，利用局部描述符匹配提升跨域图像检索的泛化能力。",
+      "llm_tldr": "引入ELViS模型，利用局部描述符匹配提升跨域图像检索的泛化能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Composed Image Retrieval (CIR) techniques and benchmarks",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.28737v1",
+      "title": "ParaSpeechCLAP: A Dual-Encoder Speech-Text Model for Rich Stylistic Language-Audio Pretraining",
+      "abstract": "We introduce ParaSpeechCLAP, a dual-encoder contrastive model that maps speech and text style captions into a common embedding space, supporting a wide range of intrinsic (speaker-level) and situational (utterance-level) descriptors (such as pitch, texture and emotion) far beyond the narrow set handled by existing models. We train specialized ParaSpeechCLAP-Intrinsic and ParaSpeechCLAP-Situational models alongside a unified ParaSpeechCLAP-Combined model, finding that specialization yields stronger performance on individual style dimensions while the unified model excels on compositional evaluation. We further show that ParaSpeechCLAP-Intrinsic benefits from an additional classification loss and class-balanced training. We demonstrate our models' performance on style caption retrieval, speech attribute classification and as an inference-time reward model that improves style-prompted TTS without additional training. ParaSpeechCLAP outperforms baselines on most metrics across all three applications. Our models and code are released at https://github.com/ajd12342/paraspeechclap .",
+      "authors": [
+        "Anuj Diwan",
+        "Eunsol Choi",
+        "David Harwath"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS",
+        "cs.AI",
+        "cs.CL",
+        "cs.SD"
+      ],
+      "published": "2026-03-30T17:50:07+00:00",
+      "link": "https://arxiv.org/pdf/2603.28737v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "compositional evaluation of dual-encoder contrastive model",
+      "llm_evidence_cn": "双编码器对比模型的组合性评估",
+      "llm_evidence": "双编码器对比模型的组合性评估",
+      "canonical_evidence": "双编码器对比模型的组合性评估",
+      "llm_tldr_en": "Introduces ParaSpeechCLAP for stylistic audio-text pretraining with a focus on compositional evaluation.",
+      "llm_tldr_cn": "引入 ParaSpeechCLAP 进行音频-文本预训练，重点关注组合性评估。",
+      "llm_tldr": "引入 ParaSpeechCLAP 进行音频-文本预训练，重点关注组合性评估。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Compositional Learning",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

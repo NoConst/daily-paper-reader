@@ -6,73 +6,77 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-05
-- 运行时间：2026-04-05 20:13:28 UTC
+- 最新运行日期：2026-04-06
+- 运行时间：2026-04-06 20:00:36 UTC
 - 运行状态：成功
-- 本次总论文数：17
-- 精读区：6
+- 本次总论文数：19
+- 精读区：8
 - 速读区：11
 
 ### 今日简报（AI）
-今日深度复盘 17 篇 AI 论文，聚焦多模态大模型在组合类比推理与精准视觉感知上的核心突破。
-满分论文 CARV 揭示了模型在复杂逻辑下的推理短板，而强化学习驱动的精准裁剪框架显著提升了 MLLM 的细节捕捉能力。
-建议优先研读多模态推理基准与 RAG 不确定性优化方向，以应对日益复杂的跨模态交互需求。
-- 详情：[/202604/05/README](/202604/05/README)
+今日精选 19 篇前沿论文，深度剖析单向量嵌入的性能瓶颈与语言预训练对视觉
+- 详情：[/202604/06/README](/202604/06/README)
 
 ### 精读区论文标签
-1. [CARV: A Diagnostic Benchmark for Compositional Analogical Reasoning in Multimodal LLMs](/202604/05/2603.27958v1-carv-a-diagnostic-benchmark-for-compositional-analogical-reasoning-in-multimodal-llms)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：多模态大模型组合类比推理的诊断基准
-2. [Learning to Focus and Precise Cropping: A Reinforcement Learning Framework with Information Gaps and Grounding Loss for MLLMs](/202604/05/2603.27494v1-learning-to-focus-and-precise-cropping-a-reinforcement-learning-framework-with-information-gaps-and-grounding-loss-for-mllms)  
+1. [On Strengths and Limitations of Single-Vector Embeddings](/202604/06/2603.29519v1-on-strengths-and-limitations-of-single-vector-embeddings)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：增强多模态大模型（MLLM）在复杂视觉场景中的感知和推理能力
-3. [LongCat-Next: Lexicalizing Modalities as Discrete Tokens](/202604/05/2603.27538v1-longcat-next-lexicalizing-modalities-as-discrete-tokens)  
+   evidence：密集检索中单向量嵌入质量的分析
+2. [Language-Pretraining-Induced Bias: A Strong Foundation for General Vision Tasks](/202604/06/2604.01833v1-language-pretraining-induced-bias-a-strong-foundation-for-general-vision-tasks)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：在共享离散空间中表示多模态信息的统一框架
-4. [Efficient Inference of Large Vision Language Models](/202604/05/2603.27960v1-efficient-inference-of-large-vision-language-models)  
+   evidence：通过桥接训练将LLM参数与视觉任务对齐
+3. [Synapse: Evolving Job-Person Fit with Explainable Two-phase Retrieval and LLM-guided Genetic Resume Optimization](/202604/06/2604.02539v1-synapse-evolving-job-person-fit-with-explainable-two-phase-retrieval-and-llm-guided-genetic-resume-optimization)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：大型视觉语言模型推理加速技术的综述
-5. [Robust Multimodal Safety via Conditional Decoding](/202604/05/2604.00310v1-robust-multimodal-safety-via-conditional-decoding)  
+   evidence：使用密集检索的多阶段语义招聘系统
+4. [FusionBERT: Multi-View Image-3D Retrieval via Cross-Attention Visual Fusion and Normal-Aware 3D Encoder](/202604/06/2604.02583v1-fusionbert-multi-view-image-3d-retrieval-via-cross-attention-visual-fusion-and-normal-aware-3d-encoder)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型（MLLM）的安全对齐
-6. [Not All Tokens See Equally: Perception-Grounded Policy Optimization for Large Vision-Language Models](/202604/05/2604.01840v1-not-all-tokens-see-equally-perception-grounded-policy-optimization-for-large-vision-language-models)  
+   evidence：多视图图像-3D多模态检索框架
+5. [Do Audio-Visual Large Language Models Really See and Hear?](/202604/06/2604.02605v1-do-audio-visual-large-language-models-really-see-and-hear)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：大型视觉语言模型的感知落地策略优化
+   evidence：音视频大语言模型（AVLLM）的机械可解释性研究
+6. [V2X-QA: A Comprehensive Reasoning Dataset and Benchmark for Multimodal Large Language Models in Autonomous Driving Across Ego, Infrastructure, and Cooperative Views](/202604/06/2604.02710v1-v2x-qa-a-comprehensive-reasoning-dataset-and-benchmark-for-multimodal-large-language-models-in-autonomous-driving-across-ego-infrastructure-and-cooperative-views)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：自动驾驶领域多模态大模型基准测试
+7. [Unified and Efficient Approach for Multi-Vector Similarity Search](/202604/06/2604.02815v1-unified-and-efficient-approach-for-multi-vector-similarity-search)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：用于细粒度语义检索的多向量相似度搜索
+8. [CoME-VL: Scaling Complementary Multi-Encoder Vision-Language Learning](/202604/06/2604.03231v1-come-vl-scaling-complementary-multi-encoder-vision-language-learning)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：扩展对比学习与自监督视觉编码器在视觉语言模型中的融合
 
 ### 速读区论文标签
-1. [CLIP-AUTT: Test-Time Personalization with Action Unit Prompting for Fine-Grained Video Emotion Recognition](/202604/05/2603.27999v1-clip-autt-test-time-personalization-with-action-unit-prompting-for-fine-grained-video-emotion-recognition)  
+1. [Domain-Invariant Prompt Learning for Vision-Language Models](/202604/06/2603.28555v1-domain-invariant-prompt-learning-for-vision-language-models)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：视觉语言模型的测试时个性化
-2. [Robust Remote Sensing Image-Text Retrieval with Noisy Correspondence](/202604/05/2603.28134v1-robust-remote-sensing-image-text-retrieval-with-noisy-correspondence)  
+   evidence：针对CLIP等视觉语言模型的领域不变提示学习
+2. [AMIGO: Agentic Multi-Image Grounding Oracle Benchmark](/202604/06/2603.28662v1-amigo-agentic-multi-image-grounding-oracle-benchmark)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：带噪声对应的鲁棒遥感图文检索
-3. [Entropic Claim Resolution: Uncertainty-Driven Evidence Selection for RAG](/202604/05/2603.28444v1-entropic-claim-resolution-uncertainty-driven-evidence-selection-for-rag)  
+   evidence：针对视觉相似图像库的目标识别基准测试
+3. [Calibrated Fusion for Heterogeneous Graph-Vector Retrieval in Multi-Hop QA](/202604/06/2603.28886v1-calibrated-fusion-for-heterogeneous-graph-vector-retrieval-in-multi-hop-qa)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：重构 RAG 推理，超越基于相关性的密集检索
-4. [ELViS: Efficient Visual Similarity from Local Descriptors that Generalizes Across Domains](/202604/05/2603.28603v1-elvis-efficient-visual-similarity-from-local-descriptors-that-generalizes-across-domains)  
+   evidence：结合了密集相似度与基于图的相关性信号
+4. [PAR$^2$-RAG: Planned Active Retrieval and Reasoning for Multi-Hop Question Answering](/202604/06/2603.29085v1-par2-rag-planned-active-retrieval-and-reasoning-for-multi-hop-question-answering)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：跨域检索的图像到图像相似度模型
-5. [Streamlined Open-Vocabulary Human-Object Interaction Detection](/202604/05/2603.27500v1-streamlined-open-vocabulary-human-object-interaction-detection)  
+   evidence：用于多跳问答的迭代检索与推理
+5. [SegRGB-X: General RGB-X Semantic Segmentation Model](/202604/06/2603.28023v1-segrgb-x-general-rgb-x-semantic-segmentation-model)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：用于开放词汇交互识别的视觉语言模型 (VLM)
-6. [OpenDPR: Open-Vocabulary Change Detection via Vision-Centric Diffusion-Guided Prototype Retrieval for Remote Sensing Imagery](/202604/05/2603.27645v1-opendpr-open-vocabulary-change-detection-via-vision-centric-diffusion-guided-prototype-retrieval-for-remote-sensing-imagery)  
+   evidence：使用模态感知CLIP的通用任意模态语义分割
+6. [Aligning Multimodal Sequential Recommendations via Robust Direct Preference Optimization with Sparse MoE](/202604/06/2603.29259v1-aligning-multimodal-sequential-recommendations-via-robust-direct-preference-optimization-with-sparse-moe)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：利用CLIP等视觉语言模型进行以视觉为中心的原型检索
-7. [Progressive Prompt-Guided Cross-Modal Reasoning for Referring Image Segmentation](/202604/05/2603.27993v1-progressive-prompt-guided-cross-modal-reasoning-for-referring-image-segmentation)  
+   evidence：多模态序列推荐与基于偏好的对齐
+7. [Few-shot Writer Adaptation via Multimodal In-Context Learning](/202604/06/2603.29450v1-few-shot-writer-adaptation-via-multimodal-in-context-learning)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：将语言描述与图像区域关联的跨模态推理
-8. [ParaSpeechCLAP: A Dual-Encoder Speech-Text Model for Rich Stylistic Language-Audio Pretraining](/202604/05/2603.28737v1-paraspeechclap-a-dual-encoder-speech-text-model-for-rich-stylistic-language-audio-pretraining)  
+   evidence：用于个性化书写者适配的多模态上下文学习
+8. [Mind the Gap: A Framework for Assessing Pitfalls in Multimodal Active Learning](/202604/06/2603.29677v1-mind-the-gap-a-framework-for-assessing-pitfalls-in-multimodal-active-learning)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：双编码器对比模型的组合性评估
-9. [AutoCut: End-to-end advertisement video editing based on multimodal discretization and controllable generation](/202604/05/2603.28366v1-autocut-end-to-end-advertisement-video-editing-based-on-multimodal-discretization-and-controllable-generation)  
+   evidence：多模态主动学习基准测试与模态集成
+9. [OPRO: Orthogonal Panel-Relative Operators for Panel-Aware In-Context Image Generation](/202604/06/2603.27637v1-opro-orthogonal-panel-relative-operators-for-panel-aware-in-context-image-generation)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：用于视频编辑的多模态离散化和共享视音频文本标记空间
-10. [HISA: Efficient Hierarchical Indexing for Fine-Grained Sparse Attention](/202604/05/2603.28458v2-hisa-efficient-hierarchical-indexing-for-fine-grained-sparse-attention)  
+   evidence：预训练扩散Transformer的上下文图像生成
+10. [Large Language Models in Game Development: Implications for Gameplay, Playability, and Player Experience](/202604/06/2603.27896v1-large-language-models-in-game-development-implications-for-gameplay-playability-and-player-experience)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：用于高效搜索和检索的分层索引
-11. [SafeClaw-R: Towards Safe and Secure Multi-Agent Personal Assistants](/202604/05/2603.28807v1-safeclaw-r-towards-safe-and-secure-multi-agent-personal-assistants)  
+   evidence：游戏开发中用于个性化的LLM集成
+11. [RAAP: Retrieval-Augmented Affordance Prediction with Cross-Image Action Alignment](/202604/06/2603.29419v1-raap-retrieval-augmented-affordance-prediction-with-cross-image-action-alignment)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：集成个人数据的安全多智能体个人助手
+   evidence：结合密集对应关系的检索增强示能预测框架
 
 
 <div class="dpr-home-promo-card">

@@ -1,0 +1,729 @@
+Title: On Strengths and Limitations of Single-Vector Embeddings
+
+URL Source: https://arxiv.org/pdf/2603.29519v1
+
+Published Time: Wed, 01 Apr 2026 00:50:11 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# On Strengths and Limitations of Single-Vector Embeddings 
+
+Archish S 1 Mihir Agarwal 1 Ankit Garg 1 Neeraj Kayal 1 Kirankumar Shiragur 1
+
+## Abstract 
+
+Recent work (Weller et al., 2025) intro-duced a naturalistic dataset called LIMIT and showed empirically that a wide range of popular single-vector embedding models suf-fer substantial drops in retrieval quality, rais-ing concerns about the reliability of single-vector embeddings for retrieval. Although (Weller et al., 2025) proposed limited dimen-sionality as the main factor contributing to this, we show that dimensionality alone can-not explain the observed failures. We ob-serve that by results in (Alon et al., 2016), 
+
+2k + 1 -dimensional vector embeddings suf-fice for top-k retrieval. This result points to other drivers of poor performance. Control-ling for tokenization artifacts and linguistic similarity between attributes yields only mod-est gains. In contrast, we find that domain shift and misalignment between embedding similarities and the task’s underlying notion of relevance are major contributors; finetun-ing mitigates these effects and can improve recall substantially. Even with finetuning, however, single-vector models remain markedly weaker than mul-tivector representations, pointing to funda-mental limitations. Moreover, finetuning single-vector models on LIMIT-like datasets leads to catastrophic forgetting (performance on MSMARCO drops by more than 40%), whereas forgetting for multi-vector models is bare minimum. To better understand the gap between per-formance of single-vector and multi-vector models, we study the drowning in documents paradox (Reimers & Gurevych, 2021; Jacob et al., 2025): as the corpus grows, relevant documents are increasingly “drowned out” 
+
+> 1
+
+Microsoft Research India, Bengaluru, India. Correspondence to: Mihir Agrawal <mihiragar-wal@microsoft.com>. 
+
+because embedding similarities behave, in part, like noisy statistical proxies for rele-vance. Through experiments and mathemat-ical calculations on toy mathematical mod-els, we illustrate why single-vector models are more susceptible to drowning effects com-pared to multi-vector models. 
+
+## 1. Introduction 
+
+What are the most relevant documents 1 for a given query? This question lies at the heart of information retrieval. Over the past decade, a family of methods known as dense retrieval have become prominent. Dense retrieval learns neural models that map both queries and documents to vector embeddings in a shared d-dimensional Euclidean space. Similarity - typically measured via cosine similarity 2 - serves as a proxy for relevance and enables retrieval by nearest-neighbor search. Dense retrieval has gained traction because embeddings can capture aspects of semantic meaning beyond lexical overlap. It has achieved strong performance in applications such as web search 3, especially when combined with comple-mentary retrieval signals and efficient vector indexes. This success has fueled extensive work on embedding architectures, training objectives and procedures, and scalable indexing methods. Despite this progress, our conceptual understanding of the capabilities and limitations of single-vector embeddings remains incom-plete. Recent work (Weller et al., 2025) introduced LIMIT, a naturalistic but synthetically generated dataset, and found that single-vector embeddings produced by existing state of the art neural models 
+
+> 1
+
+The object corpus can sometimes consist of images or ads rather than text documents, in which case the goal is to retrieve the most relevant images or ads, respectively. 
+
+> 2
+
+When vectors are normalized, cosine similarity is equiv-alent to Euclidean distance up to a monotone transforma-tion. Some communities prefer cosine similarity for sim-plicity, while others (e.g. vector indexing) favor Euclidean distance for its geometric intuition and connections to var-ious algorithmic techniques. 
+
+> 3
+
+Vector embeddings are also widely used in image search and ad selection. 
+
+1
+
+> arXiv:2603.29519v1 [cs.IR] 31 Mar 2026 Title Suppressed Due to Excessive Size
+
+perform strikingly poorly on it. Given the widespread adoption and strong real-world results of single-vector embeddings, this failure mode has drawn significant attention. Why do vector embeddings break down so severely on LIMIT despite performing well in many practical settings? In this work, we investigate several candidate explanations for LIMIT’s difficulty, including one proposed by (Weller et al., 2025). LIMIT dataset. The LIMIT dataset introduced in (Weller et al., 2025) creates a simple, real-world nat-ural language task with q = 1000 queries and n =50 , 000 documents. Documents correspond to profiles of people with a list of attributes they like, e.g. “Jon Durben likes Quokkas and Apples”. In this example, the list of attributes liked by a person Jon has length 
+
+ℓ = 2 but in the actual dataset we have ℓ = 48 for all persons. Queries are simple questions asking who likes a specific attribute, e.g. “Who likes Quokkas?”. Docu-ment D is relevant to a query Q if the attribute in Q is contained in D4. In this case there is a natural ground truth measure of relevance: for query set Q and a doc-ument set D the underlying combinatorial relevance is the fraction of attributes in Q that are present in D5,i.e. rel set (Q, D ) := |Q ∩ D||Q| . (1) As discussed earlier in the introduction, beyond intro-ducing the dataset, the authors of (Weller et al., 2025) observed that embeddings produced by state-of-the-art neural models perform strikingly poorly on this dataset. To explain this behavior, their theoretical work establishes a connection between the dimension-ality required to capture relevance information and an analytic quantity known as the sign-rank of a matrix formed out of the relevance data (see Definition 2.1). In the worst case, relevance matrices—which may not arise in practical settings—can have high sign-rank. Through this connection, high sign-rank implies that                           
+
+> 4The queries and documents in the LIMIT dataset are essentially sets over a particular universe of attributes U
+> and moreover each query Qhas length ℓQ= 1 and each document Dhas length ℓD= 48 .For understanding the underlying phenomenon we will study datasets where with different attribute universe Uand differing values of ℓQ
+> and ℓDbut the underlying characteristic is like the LIMIT dataset. Accordingly, we will say that a dataset is a LIMIT-like dataset if all queries and documents correspond to sets (possibly of differing lengths and over a different set of attributes) and relevance of a document Dto query Qis determined by rel set (Q, D )being above a certain threshold (possibly query-dependent).
+> 5The corresponding notion of distance is the fraction of elements of Qthat are absent in D, i.e. |Q\D||Q|.
+
+embeddings must be high-dimensional for cosine sim-ilarity to capture the relevance matrix. Building on this insight, the authors suggest that the relatively low dimensionality of embeddings used in practice may ex-plain the poor performance of popular neural models on the LIMIT dataset, hinting that the LIMIT dataset itself may have high sign-rank. 1.1. Our contributions In our work, we develop a deeper understanding of the limitations of single-vector embeddings and study how various parameters influence their performance. We further contrast these findings with multi-vector embeddings, arguing that multi-vector representations outperform single-vector embeddings across multiple aspects. As a first step, we focus on understanding the role of dimensionality for single-vector embeddings. Role of dimensionality In our first result, we show that when the relevance matrix is k-sparse—that is, for each query there are at most k relevant documents— the sign-rank of the matrix is upper bounded. In par-ticular, results from (Alon et al., 2016) imply that em-beddings of dimension at most 2k + 1 suffice to repre-sent such a relevance matrix. Since the LIMIT dataset has sparsity of k = 2 , this implies that embeddings of dimension 5 are sufficient for this dataset. Conse-quently, this shows that the explanation proposed by (Weller et al., 2025), namely that poor performance is due to inherently high-dimensional requirements, does not apply to the LIMIT dataset that they introduce. We further note that even when the total number of relevant documents is large, if the retrieval objective is to ensure that top k retrieved documents are relevant, a dimensionality of 2k + 1 again suffices. We note that these upper bounds apply only to the problem of cap-turing the relevance matrix over a fixed, known set of queries and documents 6, and is most meaningful when 
+
+k is small. Additionally, we show that the classical Johnson– Lindenstrauss lemma (Johnson & Lindenstrauss, 1984) yields an upper bound of O(min( ℓ2 
+
+> Q
+
+· ℓ2 
+
+> D
+
+· log |U |; |U |)) 
+
+on the dimensionality required for a simple, canonical embedding model for LIMIT-like datasets, where ℓQ
+
+and ℓD denote the lengths of queries and documents, respectively. Details appear in Section 2. In summary, the main takeaway is the following: 
+
+> 6Note that in practice, we need to learn models which can generate embeddings for new queries and documents. This is not captured in the mathematical model studied in (Weller et al., 2025) and we show that in their mathemati-cal model, low dimensions suffice in various settings.
+
+2Title Suppressed Due to Excessive Size 
+
+Low-dimensional single-vector embeddings for LIMIT-like datasets exist whenever at least one of the following quantities is small: the sparsity of the relevance matrix, the number of the documents to be retrieved, the length of queries and documents, or the size of the attribute universe. Following this result, in our second set of contributions, we shift focus to complementary factors and study the role of tokenization, linguistic structure, domain shift, and the drowning phenomenon, in the context of LIMIT-like datasets, on the performance of both single- and multi-vector embeddings. Multi-vector em-beddings, together with the associated Chamfer dis-tance (Khattab & Zaharia, 2020; Santhanam et al., 2022a), provide richer representations, and our experi-ments demonstrate their superiority over single-vector embeddings across these aspects. Role of tokenizer and linguistic aspects of attributes. The LIMIT dataset was primarily designed to be nat-ural. While the chosen attributes are natural, this choice poses challenges for modern embedding mod-els: many attributes are tokenized into multiple tokens rather than a single token, leading to token overlap across different attributes. Moreover, certain attribute pairs - such as iced tea and black tea - are linguistically similar, so a query for one attribute can cause the re-triever to fetch documents corresponding to the other. To isolate the impact of these factors, we control for tokenization and linguistic similarity by selecting at-tributes that are single-token nouns and by avoid-ing semantically similar attribute pairs. This change yields only modest improvements for single-vector em-beddings; for example, Recall@10 increases from ap-proximately 1% to 3% . In contrast, multi-vector em-beddings exhibit substantial gains: Recall@2 improves from 27% on the LIMIT dataset to 96% in the single-token attribute setting, highlighting the superiority of the multi-vector approach. To further test this, we track how the angles between embeddings of attributes change when we train single-vector and multi-vector models on LIMIT-like datasets. The changes of angles in the single-vector setting is erratic, with no clear pat-tern. Whereas for multi-vector models, there is a clear pattern with the angles increasing somewhere in the range of 35 ◦ to 45 ◦. See Section 3 for more details. In summary, the main takeaway here is the following: Tokenization and linguistic similarity impact performance of embedding models on LIMIT-like datasets; controlling for these factors leads to modest gains for single-vector embeddings, while multi-vector embeddings show greater improvements. Role of Domain shift and distance function misalign-ment. The documents in the LIMIT dataset are a fairly long (of length ℓ = 48 ) list of attributes / items. While the queries and documents in LIMIT are per-fectly valid and even natural English sentences yet it seems rather rare for documents in real-world settings to be a long list of (unrelated) items. It is reason-able to expect that current embedding models might not have seen such examples during its training phase. Hence the LIMIT dataset represents some sort of a do-main shift with input set having the underlying com-binatorial structure of a set system 7 that might be rather rare in real datasets. The empirical results of (Weller et al., 2025) show that current embedding models are unable to handle this kind of domain shift accompanied with a combinatorial relevance measure that could perhaps be poorly aligned with the rele-vance for naturally occurring queries and documents. It is therefore natural to try to finetune existing mod-els to see if the finetuning enables them to handle this domain shift and makes the cosine similarity between embeddings better aligned with the combinatorial rel-evance given by (Equation 1). We finetune existing single vector embedding models 8 and observe that fine-tuning significantly improves the retrieval quality. For example, Recall@10 improves from about 1% to about 
+
+40% for the single-vector embeddings. At the same time, for multi-vector embeddings Recall@10 improves from 40% to 98% with finetuning. While finetun-ing improves recall on LIMIT-like datasets, it also in-duces catastrophic forgetting—the phenomenon where a model loses performance on previously learned tasks when adapted to a new domain. In particular, we ob-serve that finetuning single-vector embedding models on LIMIT-like datasets leads to substantial forgetting on MS MARCO, with Recall@100 dropping by more than 40% . In contrast, multi-vector embedding mod-els are significantly more robust, experiencing only about a 1% drop. Thus, even with finetuning, single-vector models remain weaker than multi-vector repre-sentations, both in terms of achievable performance gains and robustness to catastrophic forgetting, point-ing to fundamental limitations of single-vector embed-ding models. We also perform finetuning and evalua-tion on several other LIMIT-like datasets; see Section 3 for further details. In summary, the main takeway is the following: 
+
+> 7The ability of machine learning models to handle such domain shifts is known as out of distribution generalization ability.
+> 8As usual, for the purposes of finetuning the LIMIT data is randomly split into training and test sets and finetuning of model is done on the training set while evaluation is done on the test set.
+
+3Title Suppressed Due to Excessive Size 
+
+The poor performance of embedding models on LIMIT stems from a domain shift. Finetuning substantially improves retrieval, but even after finetuning, single-vector models lag far behind multi-vector embeddings, which achieve significant performance gains and exhibit greater robustness to catastrophic forgetting. Drowning in documents paradox (Reimers &Gurevych, 2021; Jacob et al., 2025). Drowning in documents is a well observed phenomenon for many neural models where the quality of retrieval decreases as we increase the size of the corpus - even if the added documents are mostly irrelevant. We do a ex-perimental and theoretical comparison of single-vector and multi-vector models with respect to drowning on LIMIT-like datasets. In terms of theoretical results, in the special setting where the query has length 
+
+1 and each document has length n, we show that the probability that a randomly sampled negative document attains a higher similarity score than a relevant document is of the order of exp ( −Θ( d/n )) 
+
+for a toy mathematical model of single-vector em-beddings, while this probability is much smaller for multi-vector embeddings, exp ( −Θ( d/ log( n))) . We corroborate this findings with experiments as well. See Sections A.3, A.4 and 3 and Figure 1 for details. Furthermore, we perform a preliminary experiment to validate this prediction on real datasets by merging a chunk of documents from MS MARCO passages dataset (of size 1M) into the SciFact dataset, and observe that Recall@10 drops by roughly 20% for single-vector embeddings. In summary, the main takeway is the following: Single-vector models are more susceptible to drowning effects than multi-vector models. The reason is that the scores of relevant and irrelavant documents are much better separated in multi-vector models compared to single-vector models. 1.2. Related Work A long line of work studies the expressiveness and em-pirical performance of dense retrieval models based on bi-encoders that map queries and documents to single-vector embeddings scored by cosine similarity. Recently, Dense Passage Retrieval (DPR) (Karpukhin et al., 2020) helped catalyze widespread adoption of this paradigm, and subsequent training innova-tions such as ANN-mined hard negatives (Xiong et al., 2021) and cross-encoder distillation / joint retriever–reranker training (Qu et al., 2021; Ren et al., 2021) further improved in-domain effectiveness. At the same time, heterogeneous benchmarks such as BEIR (Thakur et al., 2021) highlighted brittleness under distribution shift, motivating efforts aimed at stronger zero-shot generalization such as unsuper-vised contrastive pretraining (e.g., Contriever) (Izac-ard et al., 2022; Lei et al., 2023) and large-scale dual encoders (e.g., GTR) (Ni et al., 2022). Despite these advances, multiple analyses show that single-vector dense retrievers can fail in systematic ways: performance may degrade due to tokenization and lexical sensitivity artifacts (Ram et al., 2023; Sciavolino et al., 2021), domain mismatch (Thakur et al., 2021), fine-grained queries or ones with log-ical operations (Xu et al., 2025; Malaviya et al., 2023), multi-intent queries/diverse targets (Chen et al., 2025) and geometric/representational patholo-gies (e.g., anisotropy and related degeneracies) that constrain what cosine similarity can express (Etha-yarajh, 2019; Li et al., 2020; Gao et al., 2021). More fundamentally, recent work formalizes an inher-ent “single-vector bottleneck” for embedding-based re-trieval where relevance is set-structured/combinatorial in a way that cannot be captured by any small-dimensional embedding, even with powerful encoders and contrastive training (Weller et al., 2025). They also construct a dataset (LIMIT) on which all the pop-ular dense retrieval models perform poorly. An alternative paradigm - multi-vector or late-interaction retrieval - addresses these expressiveness limits by representing each text as a set of token-level vectors and scoring via a set-matching operator such as Chamfer/MaxSim. ColBERT (Khattab & Zaharia, 2020) and ColBERTv2 (Santhanam et al., 2022a) instantiate this approach and substantially improve ranking quality over single-vector methods on many benchmarks. While late interaction increases indexing and scoring cost, systems work has narrowed the practicality gap via specialized execution and compression (e.g., PLAID) (Santhanam et al., 2022b) and reductions of multi-vector search to single-vector ANN primitives (e.g., MUVERA) (Jayaram et al., 2024). These developments complement our findings: multi-vector representations paired with Chamfer-style scoring naturally encode the set-structured similarity underlying LIMIT-like tasks better than single-vector models. 
+
+## 2. Upper Bounds on Dimensionality 
+
+Notation. Given a set of q queries and n documents, the ground-truth relevance matrix R ∈ {0, 1}q×n
+
+captures the relevance information in the natural way: 4Title Suppressed Due to Excessive Size 
+
+Rij is 1 if document j is relevant to query i and 0
+
+otherwise. Sign rank. Let us recall the notion of sign rank (Alon et al., 2016; Weller et al., 2025). It will enable us to reason about the dimensionality of embeddings needed to represent a relevance matrix R.Definition 2.1 (Signed Relevance Matrix and Sign Rank). For any real-valued matrix M ∈ Rq×n, the signed matrix for M - denoted sgn( M ) - is defined as: 
+
+sgn( M )ij =
+
+{
+
+−1 if Mij ≤ 0,
+
++1 if Mij > 0. (2) For a Binary relevance matrix R ∈ { 0, 1}q×n we have, 
+
+sgn( R) := (2 · R − 1q×n)
+
+where 1q×n denotes the q × n matrix all of whose en-tries are 1. The sign rank of a matrix R - denoted 
+
+rank ±(sgn( R)) - is defined as 
+
+rank ±(sgn( R)) = min   
+
+> M:shape( M)=shape( R)
+
+{rank( M ) : sign( M ) = sgn( R)}.
+
+(Weller et al., 2025) observe / highlight that rank ±(R)
+
+almost exactly captures the required dimension for the embeddings of the underlying query and document ob-jects 9. Specifically: Proposition 2.2. (Proposition 2 of (Weller et al., 2025)). Given a binary relevance matrix R, the di-mension of embeddings required to capture the rela-tionships in R is at least rank ±(sgn( R)) − 1 and at most rank ±(sgn( R)) .In the LIMIT dataset each query has k = 2 relevant documents. This means that the corresponding Bi-nary relevance matrix R is k = 2 row sparse, i.e. each row in R has at most k = 2 nonzero entries. We observe that for such relevance matrices, a result of (Alon et al., 2016) can be immediately used to bound 
+
+rank ±(sgn( R)) . Specifically, we have: Observation 2.3. For the LIMIT dataset, there exist embeddings of dimension d = 2 · k + 1 = 5 that can capture the query-document relevance information. For completeness, we include a proof in Section A.1. For a retrieval task, if we only want the top-k retrieved 
+
+> 9Of course sign rank is a well studied notion with many connections to machine learning, but the observation that it can be used to capture dimension required for informa-tion retrieval seems not been observed before.
+
+results to be relevant and do not care about the rank-ing of the remaining documents, then the correspond-ing relevance matrix effectively can be made sparse so that the above observation again applies. Hence we also have: Observation 2.4. For any dataset with q queries and n
+
+documents, let R ∈ { 0, 1}q×n be the binary relevancy matrix. Then there exist embeddings of dimension 
+
+d = 2 · k + 1 such that for any query, the top-k docu-ments with the highest cosine similarity scores will be relevant. Existing popular models generate embeddings of dimension which are in the hundreds if not in the thousands. This means that dimensionality of (em-beddings of) the popular models cannot explain the poor performance of these models on the LIMIT dataset. Low dimensional embeddings without sparsity assump-tion. The above discussion pertained to existence of low-dimension embeddings when the relevancy matrix is sparse or we only care about the correctness of top-k
+
+retrieved results. Even without the sparsity assump-tion, if we are working with LIMIT-like datasets in which queries and documents are sets of attributes, we can still generate low-dimensional embeddings. Proposition 2.5. We first construct a set of |U | unit vectors in d-dimensional Euclidean space Rd which are pairwise almost orthogonal. Johnson-Lindenstrauss lemma (Johnson & Lindenstrauss, 1984) implies that arandom set of vectors has this property (with high probability) but deterministic constructions based on error correcting codes or set systems with small intersection (cf. (DeVore, 2007)) can also alternately be used. We assign one vector from this set to each token in U . For any query (resp. document), the em-bedding is simply the normalized sum of the assigned vectors for each of the tokens in the query (resp. document). When d is >> min( ℓ2 
+
+> Q
+
+· ℓ2 
+
+> D
+
+· log( |U |), |U |)
+
+then for every query such embeddings induce the same ordering on documents as induced by the set-theoretic relevance function of equation (1). Proof details are in Section A.2. 
+
+## 3. Experimental Results 
+
+In this section, we share the results of our experiem-nts on evaluation and training of single-vector and multi-vector models on various LIMIT-like datasets. 5Title Suppressed Due to Excessive Size 
+
+Role of tokenizer and linguistic aspects of attributes. In LIMIT, many attributes are split across multiple tokens, and different attributes can share the same lexical components while encoding distinct entities; for example, iced tea vs. black tea, or apple pie vs. apple slices. To test how much tokenization and linguistic aspects determine the poor performance of models on LIMIT, we create a new dataset called Atomic LIMIT. We replace the attributes with noun-based variants that already exist as single tokens in the tokenizer’s vocabulary. In addition, we try to make the attributes linguistically dissimilar as far as possible. In Table 1, we can see that the performance of single-vector model on Atomic LIMIT is better than LIMIT but still pretty bad. At the same time the multi-vector model has almost perfect performance on Atomic LIMIT (Table 2). This suggests that the tokenization and linguistic aspects are largely responsible for poor performance of multi-vector models on LIMIT like datasets whereas several other issues plague single vector models. To test this further, we track the angles between the embeddings of various attributes as we finetune models on LIMIT like datasets. As we can see in Table 3, the embeddings of attributes become consistently more orthogonal after fine-tuning of multi-vector model (GTE-ModernColBERT-v1) but the behaviour for single-vector model (Qwen3-Embedding-0.6B) is erratic. Fine-tuning of single-vector models. We evaluate the performance of single vector models after fine-tuning. We finetune the Qwen3-Embedding-0.6B model using the standard QWEN fine-tuning pipeline. For each query, we construct a small training batch by pairing it with two positive documents and thirty randomly sampled negatives, and train for one epoch. The different training datasets used in Table 4 are described in detail in Section B. While the fine-tuning single-vector models on LIMIT like datasets improves performance on LIMIT like datasets, it leads to catastrophic forgetting and the performance on MS MARCO drops substantially, see Table 5. Moreover, the single-vector fine-tuning is not always robust to changes in the attributes. If we finetune on LIMIT, performance on Atomic LIMIT remains abysmal. However fine-tuning on Two LIMIT (which consists of queries containing two attributes) does improve performance on Atomic LIMIT (Table 6).     
+
+> 10 None indicates the vanilla Qwen3-Embedding-0.6B (1024 dim) (no fine-tuning) used on testing dataset.
+> 11 None indicates the vanilla GTE-ModernColBERT-v1 (128 dim) (no fine-tuning) used on testing dataset.
+
+Fine-tuning of multi-vector models. Compared to single-vector models, multi-vector models have far superior performance on LIMIT like datasets and fine-tuning multi-vector models gives perfect performance (Table 7). Furthermore, catastrophic forgetting in multi-vector models is almost negligible (Table 8). Drowning in documents paradox (Reimers &Gurevych, 2021; Jacob et al., 2025). Drowning in documents is a well observed phenomenon for many neural models where the quality of retrieval decreases as we increase the size of the corpus - even if the added documents are mostly irrelevant. We do a experimental and theoretical comparison of single-vector and multi-vector models with respect to drowning on LIMIT-like datasets. We experimentally observe that the distribution of scores of a given query with irrelevant documents is approximately Gaussian. Given this observation, the drowning probability for a given query, i.e. the probability that a irrelevant document will have a higher score than a relevant document, is determined by something we call the goodness metric. The goodness metric G := μ+−μ− 
+
+> σ−
+
+,where μ+ is the mean of scores of relevant documents, 
+
+μ− is mean of scores of irrelevant documents and σ− is standard deviation of scores of irrelavant documents. The drowning probability is roughly exp (−Θ( G2)) . In terms of theory, we build simple toy mathematical embedding models and compare the goodness met-rics of single-vector and multi-vector models. The goodness for multi-vector models is far superior than that of single-vector models (and hence the drowning probability is much lower). See Sections A.3 and A.4 for details. We corroborate this with experiments on LIMIT as well (see Figure 1). 
+
+## Impact Statement 
+
+This paper presents work whose goal is to advance the field of Machine Learning, specifically understanding the capabilities and limitations of single-vector embed-dings for retrieval tasks. There are many potential so-cietal consequences of our work, none which we feel must be specifically highlighted here. 
+
+## References 
+
+Alon, N., Moran, S., and Yehudayoff, A. Sign rank versus VC dimension. pp. 106–119, 2016. URL http: //proceedings.mlr.press/v49/alon16.html. Chen, H.-T., Liu, X., Ravfogel, S., and Choi, E. Beyond single embeddings: Capturing diverse tar-gets with multi-query retrieval. arXiv preprint 6Title Suppressed Due to Excessive Size 0.25 0.30 0.35 0.40 0.45 
+
+> Single-Vector Goodness Metrics: [-1.02, 1.44]
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+> Qwen3-Embedding-0.6B
+
+Query: Who likes Levels?      
+
+> Negative
+> Positive
+> 0.20 0.25 0.30 0.35 0.40 0.45
+> Single-Vector Goodness Metrics: [0.15, 2.01]
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+
+Query: Who likes Stand-up Comedy?       
+
+> 0.20 0.25 0.30 0.35 0.40 0.45 0.50
+> Single-Vector Goodness Metrics: [-0.60, 1.03]
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+
+Query: Who likes Holland Lops?             
+
+> 0.875 0.880 0.885 0.890 0.895 0.900
+> Multi-Vector Goodness Metrics: [8.74, 11.78]
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+> GTE-ModernColBERT-v1
+> 0.87 0.88 0.89 0.90
+> Multi-Vector Goodness Metrics: [8.16, 8.76]
+> 0
+> 100
+> 200
+> 300
+> 400
+> 500
+> 0.86 0.87 0.88 0.89 0.90
+> Multi-Vector Goodness Metrics: [13.16, 14.14]
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+> 350
+
+Figure 1. Similarity scores of relevant (positive) and irrelevant (negative) documents for select queries from LIMIT using Single-vector Qwen3-Embedding-0.6B and Multi-vector GTE-ModernColBERT-v1 models 
+
+Training Dataset Testing Dataset Recall@2 Recall@10 Recall@50 Recall@100 None 10 LIMIT 0.0075 0.0115 0.0215 0.0265 None Atomic LIMIT 0.0215 0.0305 0.0535 0.071 
+
+Table 1. Single-vector evaluation using Qwen3-Embedding-0.6B (1024 dim) 
+
+Training Dataset Testing Dataset Recall@2 Recall@10 Recall@50 Recall@100 None 11 LIMIT 0.2740 0.3945 0.5275 0.5930 None Atomic LIMIT 0.968 0.982 0.987 0.992 
+
+Table 2. Multi-vector evaluation using GTE-ModernColBERT-v1 (128 dim) Attribute 1 Attribute 2 Single-vector Single-vector Multi-vector finetuned on LIMIT (Train) finetuned on Permuted LIMIT finetuned on LIMIT (Train) Before After Before After Before After apple pie apple slices 39 .59 ◦ 43 .28 ◦ 39 .59 ◦ 47 .81 ◦ 14 .69 ◦ 55 .35 ◦
+
+black tea iced tea 33 .11 ◦ 47 .38 ◦ 33 .11 ◦ 36 .36 ◦ 16 .35 ◦ 58 .55 ◦
+
+feta cheese wrestling 61 .61 ◦ 44 .83 ◦ 61 .61 ◦ 52 .86 ◦ 20 .22 ◦ 61 .61 ◦
+
+astronomy the space age 47 .01 ◦ 54 .55 ◦ 47 .01 ◦ 45 .33 ◦ 15 .01 ◦ 50 .51 ◦
+
+Table 3. Angle between (select) attribute embeddings before and after fine-tuning 
+
+arXiv:2511.02770, 2025. doi: 10.48550/arXiv.2511. 02770. URL https://arxiv.org/abs/2511.02770. DeVore, R. A. Deterministic constructions of com-pressed sensing matrices. Journal of Complexity, 23 (4–6):918–925, 2007. doi: 10.1016/j.jco.2007.02.002. Ethayarajh, K. How contextual are contextualized word representations? comparing the geometry of BERT, ELMo, and GPT-2 embeddings. In Proceed-ings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th Inter-national Joint Conference on Natural Language Pro-cessing (EMNLP-IJCNLP), pp. 55–65, Hong Kong, China, 2019. Association for Computational Lin-7Title Suppressed Due to Excessive Size 
+
+Training Dataset Testing Dataset Recall@2 Recall@10 Recall@50 Recall@100 None LIMIT 0.0075 0.0115 0.0215 0.0265 LIMIT (Train) LIMIT (Test) 0.1245 0.397 1 1Split LIMIT (Train) Split LIMIT (Test) 0.0475 0.180 1 1Synthetic LIMIT LIMIT 0.0685 0.2805 0.9775 1Permuted LIMIT LIMIT 0.0665 0.2575 0.9975 1Fresh LIMIT LIMIT 0.188 0.389 0.7385 0.8605 Two LIMIT LIMIT 0.284 0.5705 0.8555 0.8655 Two LIMIT Extended LIMIT 0.235 0.529 0.8125 0.8195 None Three LIMIT 0.2792 0.2667 0.2398 0.2297 Two LIMIT Three LIMIT 0.8457 0.8291 0.8991 0.9061 
+
+Table 4. Single-vector evaluation using fine-tuned Qwen3-Embedding-0.6B (1024 dim)                             
+
+> Training Dataset Testing Dataset Recall@10 Recall@100 MRR@10 MRR@100 NDGC@10 NDCG@100 None MS MARCO 0.3684 0.6314 0.1860 0.1966 0.2272 0.2827 LIMIT MS MARCO 0.1569 0.3808 0.0697 0.0779 0.0894 0.1349 Two LIMIT MS MARCO 0.0935 0.2281 0.0408 0.0457 0.0528 0.0800
+
+Table 5. Catastrophic forgetting upon fine-tuning Qwen3-Embedding-0.6B (1024 dim) on LIMIT like datasets 
+
+Training Dataset Testing Dataset Recall@2 Recall@10 Recall@50 Recall@100 LIMIT Atomic LIMIT 0 0 0 0Two LIMIT Atomic LIMIT 0.217 0.3275 0.448 0.5045 
+
+Table 6. Single-vector evaluation using fine-tuned Qwen3-Embedding-0.6B (1024 dim) 
+
+Training Dataset Testing Dataset Recall@2 Recall@10 Recall@50 Recall@100 LIMIT (Train) LIMIT (Test) 1 1 1 1Two LIMIT LIMIT 1 1 1 1LIMIT Atomic LIMIT 0.9990 0.9995 0.9995 0.9995 Two LIMIT Atomic LIMIT 1 1 1 1
+
+Table 7. Multi-vector evaluation (Chamfer) using fine-tuned GTE-ModernColBERT-v1 (128 dim)                      
+
+> Training Dataset Testing Dataset Recall@10 Recall@100 MRR@10 MRR@100 NDGC@10 NDCG@100 None MS MARCO 0.6510 0.8303 0.3801 0.3886 0.4424 0.4826 LIMIT MS MARCO 0.6176 0.8201 0.3506 0.3596 0.4122 0.4567
+
+Table 8. Catastrophic forgetting upon fine-tuning GTE-ModernColBERT-v1 (128 dim) on LIMIT 
+
+guistics. doi: 10.18653/v1/D19-1006. URL https: //aclanthology.org/D19-1006/. Gao, T., Yao, X., and Chen, D. Simcse: Simple contrastive learning of sentence embeddings. In EMNLP, 2021. Izacard, G., Caron, M., Hosseini, L., Riedel, S., Bo-janowski, P., Joulin, A., and Grave, E. Unsuper-vised dense information retrieval with contrastive learning. Transactions on Machine Learning Re-search, August 2022. URL https://openreview.net/ forum?id=jKN1pXi7b0. Jacob, M., Lindgren, E., Zaharia, M., Carbin, M., Khattab, O., and Drozdov, A. Drowning in Doc-uments: Consequences of scaling reranker inference. In Proceedings of the 4th Workshop on Reaching Ef-ficiency in Neural Information Retrieval (ReNeuIR) at SIGIR ’25, 2025. URL https://arxiv.org/abs/ 2411.11767. Accepted to ReNeuIR 2025 Workshop at SIGIR 2025. Jayaram, R., Dhulipala, L., et al. Muvera: Multi-vector retrieval via fixed dimensional encodings. arXiv preprint arXiv:2405.19504, 2024. URL https: //arxiv.org/abs/2405.19504. 8Title Suppressed Due to Excessive Size 
+
+Johnson, W. B. and Lindenstrauss, J. Extensions of Lipschitz mappings into a Hilbert space. Contemp. Math., 26:189–206, 1984. Karpukhin, V., Oguz, B., Min, S., Lewis, P., Wu, L., Edunov, S., Chen, D., and Yih, W.-t. Dense passage retrieval for open-domain question answering. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), pp. 6769–6781, 2020. Khattab, O. and Zaharia, M. Colbert: Efficient and effective passage search via contextualized late in-teraction over bert. In SIGIR, pp. 39–48, 2020. Lei, Y., Ding, L., Cao, Y., Zan, C., Yates, A., and Tao, D. Unsupervised dense retrieval with relevance-aware contrastive pre-training. In Rogers, A., Boyd-Graber, J., and Okazaki, N. (eds.), Find-ings of the Association for Computational Linguis-tics: ACL 2023, pp. 10932–10940, Toronto, Canada, July 2023. Association for Computational Linguis-tics. doi: 10.18653/v1/2023.findings-acl.695. URL https://aclanthology.org/2023.findings-acl.695. Li, B., Zhou, H., He, J., Wang, M., Yang, Y., and Li, L. On the sentence embeddings from pre-trained language models. In Webber, B., Cohn, T., He, Y., and Liu, Y. (eds.), Proceedings of the 2020 Conference on Empirical Methods in Natu-ral Language Processing (EMNLP), pp. 9119–9130, Online, November 2020. Association for Computa-tional Linguistics. URL https://aclanthology.org/ 2020.emnlp-main.733/. Malaviya, C., Shaw, P., Chang, M.-W., Lee, K., and Toutanova, K. Quest: A retrieval dataset of entity-seeking queries with implicit set operations. arXiv preprint arXiv:2305.11694, 2023. doi: 10.48550/ arXiv.2305.11694. URL https://arxiv.org/abs/2305. 11694. Ni, J., Qu, C., Lu, J., Dai, Z., Hernandez Abrego, G., Ma, J., Zhao, V., Luan, Y., Hall, K., Chang, M.-W., and Yang, Y. Large dual encoders are gen-eralizable retrievers. In Goldberg, Y., Kozareva, Z., and Zhang, Y. (eds.), Proceedings of the 2022 Con-ference on Empirical Methods in Natural Language Processing, pp. 9844–9855, Abu Dhabi, United Arab Emirates, December 2022. Association for Computational Linguistics. doi: 10.18653/v1/2022. emnlp-main.669. URL https://aclanthology.org/ 2022.emnlp-main.669/. Qu, Y., Ding, Y., Liu, J., Liu, K., Ren, R., Zhao, W. X., Dong, D., Wu, H., and Wang, H. Rock-etQA: An optimized training approach to dense passage retrieval for open-domain question answer-ing. In Toutanova, K., Rumshisky, A., Zettlemoyer, L., Hakkani-Tur, D., Beltagy, I., Bethard, S., Cot-terell, R., Chakraborty, T., and Zhou, Y. (eds.), Proceedings of the 2021 Conference of the North American Chapter of the Association for Compu-tational Linguistics: Human Language Technolo-gies, pp. 5835–5847, Online, June 2021. Associa-tion for Computational Linguistics. doi: 10.18653/ v1/2021.naacl-main.466. URL https://aclanthology. org/2021.naacl-main.466/. Ram, O., Bezalel, L., Zicher, A., Belinkov, Y., Berant, J., and Globerson, A. What are you token about? dense retrieval as distributions over the vocabulary. In Rogers, A., Boyd-Graber, J., and Okazaki, N. (eds.), Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Vol-ume 1: Long Papers), pp. 2481–2498, Toronto, Canada, July 2023. Association for Computational Linguistics. doi: 10.18653/v1/2023.acl-long.140. URL https://aclanthology.org/2023.acl-long.140/. Reimers, N. and Gurevych, I. The curse of dense low-dimensional information retrieval for large index sizes. In Zong, C., Xia, F., Li, W., and Navigli, R. (eds.), Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natu-ral Language Processing (Volume 2: Short Papers), pp. 605–611, Online, August 2021. Association for Computational Linguistics. doi: 10.18653/v1/2021. acl-short.77. URL https://aclanthology.org/2021. acl-short.77/. Ren, R., Qu, Y., Liu, J., Zhao, W. X., She, Q., Wu, H., Wang, H., and Wen, J.-R. RocketQAv2: Ajoint training method for dense passage retrieval and passage re-ranking. In Moens, M.-F., Huang, X., Specia, L., and Yih, S. W.-t. (eds.), Proceed-ings of the 2021 Conference on Empirical Methods in Natural Language Processing, pp. 2825–2835, On-line and Punta Cana, Dominican Republic, Novem-ber 2021. Association for Computational Linguis-tics. doi: 10.18653/v1/2021.emnlp-main.224. URL https://aclanthology.org/2021.emnlp-main.224/. Santhanam, K., Khattab, O., and Potts, C. Colbertv2: Effective and efficient retrieval via lightweight late interaction. In NAACL, 2022a. Santhanam, K., Khattab, O., Potts, C., and Zaharia, M. Plaid: An efficient engine for late interaction retrieval. In CIKM, 2022b. URL https://arxiv.org/ abs/2205.09707. 9Title Suppressed Due to Excessive Size 
+
+Sciavolino, C., Zhong, Z., Lee, J., and Chen, D. Sim-ple entity-centric questions challenge dense retriev-ers. In Moens, M.-F., Huang, X., Specia, L., and Yih, S. W.-t. (eds.), Proceedings of the 2021 Con-ference on Empirical Methods in Natural Language Processing, pp. 6138–6148, Online and Punta Cana, Dominican Republic, November 2021. Association for Computational Linguistics. doi: 10.18653/v1/ 2021.emnlp-main.496. URL https://aclanthology. org/2021.emnlp-main.496/. Thakur, N., Nie, Y., Rezaeinia, S., Hofstätter, S., Kothuri, R., Dandekar, R., Lin, J., et al. Beir: A heterogeneous benchmark for zero-shot evaluation of information retrieval models. In Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval, pp. 2786–2790, 2021. Weller, O., Boratko, M., Naim, I., and Lee, J. On the theoretical limitations of embedding-based retrieval. 2025. URL https://arxiv.org/abs/2508.21038. Xiong, L., Xiong, C., Li, Y., Tang, K.-F., Liu, J., Ben-nett, P. N., Ahmed, J., and Overwijk, A. Approx-imate nearest neighbor negative contrastive learn-ing for dense text retrieval. In International Con-ference on Learning Representations (ICLR), 2021. URL https://openreview.net/forum?id=zeFrfgyZln. Poster. Xu, L., Su, Z., Yu, M., Li, J., Meng, F., and Zhou, J. Dense retrievers can fail on simple queries: Revealing the granularity dilemma of embeddings. In Christodoulopoulos, C., Chakraborty, T., Rose, C., and Peng, V. (eds.), Findings of the Asso-ciation for Computational Linguistics: EMNLP 2025, pp. 19295–19305, Suzhou, China, Novem-ber 2025. Association for Computational Linguistics. ISBN 979-8-89176-335-7. doi: 10.18653/v1/2025. findings-emnlp.1051. URL https://aclanthology. org/2025.findings-emnlp.1051/. 
+
+## A. Proofs 
+
+A.1. Proof of Proposition 4 Notation #2. Let C = ( Q, D) be a corpus with |Q| = q
+
+queries and |D| = n documents. Let Rk ∈ { 0, 1}q×n
+
+be the binary relevance matrix, where (Rk)i,j = 1 iff document Dj is relevant to query Qi. Assume that for every query Qi, there are at most k relevant docu-ments, i.e. each row of Rk has at most k ones. Define the associated sign matrix 
+
+S := 2 Rk − 1q×n ∈ {± 1}q×n,
+
+so that Si,j = +1 iff (Rk)i,j = 1 and Si,j = −1 other-wise. Proposition A.1. There exists a real matrix M ∈ Rq×n
+
+with rank( M ) ≤ 2k + 1 such that sgn( M ) = S en-trywise. In particular, rank ±(S) ≤ 2k + 1 . Conse-quently (by Proposition 2), there exist embeddings 
+
+ui, v j ∈ R2k+1 such that 
+
+sgn( ⟨ui, v j ⟩) = Si,j 
+
+for all i ∈ { 1, . . . , q }, j ∈ { 1, . . . , n }. Hence, if a retriever ranks documents by ⟨ui, v j ⟩, then for each query Qi all relevant documents receive positive score and all irrelevant documents receive negative score, so top-k retrieval achieves perfect recall whenever each query has ≤ k relevant documents. Proof. We follow the construction implicit in (Alon et al., 2016). Fix a row index i ∈ { 1, . . . , q } and con-sider the sign pattern (Si, 1, . . . , S i,n ) ∈ {± 1}n. Since row i of Rk has at most k ones, row i of S has at most k
+
+entries equal to +1 . Therefore, row i contains at most 
+
+k contiguous blocks of +1 ’s, and thus the number of sign changes in the sequence (Si, 1, . . . , S i,n ) is at most 
+
+2k.Let ti, 1 < t i, 2 < · · · < t i,s i be the indices in {1, . . . , n −
+
+1} where a sign change occurs, i.e. Si,t i,ℓ ̸ = Si,t i,ℓ +1 ,and note that si ≤ 2k. Define half-integers 
+
+ri,ℓ := ti,ℓ + 12 (ℓ = 1 , . . . , s i),
+
+and define the polynomial 
+
+Gi(x) := Si, 1 ·
+
+> si
+
+∏
+
+> ℓ=1
+
+(ri,ℓ − x).
+
+Then deg( Gi) = si ≤ 2k, and Gi(j)̸ = 0 for every in-teger j ∈ { 1, . . . , n } because all roots are half-integers. Moreover, for integer j, the sign of the factor (ri,ℓ − j)
+
+flips exactly when j passes from ti,ℓ to ti,ℓ + 1 , so 
+
+sgn( Gi(j)) flips exactly at the sign-change positions of the row. Since Gi(1) has sign Si, 1 (all factors are positive at x = 1 ), we obtain 
+
+sgn( Gi(j)) = Si,j for all j ∈ { 1, . . . , n }.
+
+Now define a real matrix M ∈ Rq×n by Mi,j := Gi(j).Then sgn( M ) = S entrywise. Also, since each Gi has degree at most 2k, we can write 
+
+Gi(x) = 
+
+> 2k
+
+∑
+
+> m=0
+
+ai,m xm,
+
+padding with zeros if deg( Gi) < 2k. Let A ∈ Rq×(2 k+1) 
+
+be defined by Ai,m +1 = ai,m and let V ∈ Rn×(2 k+1) be 10 Title Suppressed Due to Excessive Size 
+
+the Vandermonde-type matrix Vj,m +1 = jm. Then 
+
+M = AV ⊤, and hence rank( M ) ≤ 2k + 1 . Therefore 
+
+rank ±(S) ≤ 2k + 1 by definition of sign rank. Finally, Proposition 2 converts rank ±(S) ≤ 2k + 1 
+
+into the existence of embeddings ui, v j ∈ R2k+1 with 
+
+sgn( ⟨ui, v j ⟩) = Si,j . This implies that every relevant pair has positive inner product and every irrelevant pair has negative inner product; since each query has at most k relevant documents, top-k retrieval returns all relevant documents (perfect recall). A.2. Proof of Proposition 5 Proof. We view each query/document as a subset of the universe of tokens U . First observe that d = |U |
+
+dimensions trivially suffice: assign to each token u ∈ U
+
+the canonical unit vector eu ∈ R|U |, and for any set 
+
+X ⊆ U define ˜E(X) := ∑ 
+
+> u∈X
+
+eu. Then for any Q, D 
+
+we have ⟨ ˜E(Q), ˜E(D)⟩ = |Q ∩ D|, so for a fixed query 
+
+Q the ordering of documents by inner product agrees exactly with the ordering by |Q ∩ D|, equivalently by rel set (Q, D ) = |Q ∩ D|/|Q|.We now reduce the dimension using a Johnson– Lindenstrauss type projection. Let d be a parameter to be chosen later. By the Johnson–Lindenstrauss lemma (equivalently, by standard concentration for random vectors), there exist unit vectors ˆe1, . . . , ˆe|U | ∈ Rd such that for all i̸ = j,
+
+|⟨ ˆei, ˆej ⟩| ≤ ε, where ε = O
+
+(√ log |U |
+
+d
+
+)
+
+, (3) and ⟨ˆei, ˆei⟩ = 1 .For any X ⊆ U , define the (unnormalized) sum em-bedding ˜E(X) := ∑ 
+
+> u∈X
+
+ˆeu and the normalized em-bedding E(X) := ˜E(X)/∥ ˜E(X)∥2.Fix a query Q with |Q| ≤ ℓQ and a document D with 
+
+|D| ≤ ℓD . Write i := |Q ∩ D|, q := |Q|, and m := |D|.Expanding the dot product, 
+
+⟨ ˜E(Q), ˜E(D)⟩ = ∑
+
+> a∈Q
+
+∑
+
+> b∈D
+
+⟨ˆea, ˆeb⟩ = i + ∑ 
+
+> a∈Q, b ∈Da̸=b
+
+⟨ˆea, ˆeb⟩,
+
+so by (3), 
+
+∣∣∣⟨ ˜E(Q), ˜E(D)⟩ − i
+
+∣∣∣ ≤ ε (qm − i) ≤ ε qm ≤ ε ℓ QℓD .
+
+(4) Similarly, 
+
+∥ ˜E(Q)∥22 = ∑
+
+> a∈Q
+
+∑
+
+> b∈Q
+
+⟨ˆea, ˆeb⟩ = q + ∑ 
+
+> a,b ∈Qa̸=b
+
+⟨ˆea, ˆeb⟩,
+
+hence |∥ ˜E(Q)∥22 − q| ≤ εq (q − 1) ≤ εℓ 2
+
+> Q
+
+, and likewise 
+
+|∥ ˜E(D)∥22 − m| ≤ εℓ 2 
+
+> D
+
+. Therefore (for εℓ Q, εℓ D suffi-ciently small), 
+
+∥ ˜E(Q)∥2 = √q (1 ± O(εℓ Q)) ,
+
+∥ ˜E(D)∥2 = √m (1 ± O(εℓ D )) .
+
+Combining this with (4) yields 
+
+⟨E(Q), E (D)⟩ = ⟨ ˜E(Q), ˜E(D)⟩∥ ˜E(Q)∥2 ∥ ˜E(D)∥2
+
+= i
+
+√qm ± O(ε √qm )
+
+⊆ i
+
+√qm ± O
+
+(
+
+ε √ℓQℓD
+
+)
+
+. (5) This matches the bound stated in the appendix of the earlier version. Choose d so that ε ≤ 1 
+
+> c ℓ QℓD
+
+for a sufficiently large ab-solute constant c. Since ε = O(√ log |U |/d ), it suffices to take 
+
+d = Ω (ℓ2 
+
+> Q
+
+ℓ2 
+
+> D
+
+log |U |).
+
+With this choice, the additive error term in (5) is at most 14 · 1√ℓQℓD
+
+, and hence for any fixed query Q, doc-uments are ordered by ⟨E(Q), E (D)⟩ in the same way as by the main term |Q∩D|
+
+√|Q|| D| .Finally, to match the paper’s set-theoretic relevance rel set (Q, D ) = |Q∩D||Q| exactly for variable document lengths, we can rescale documents by their length: de-fine E′(D) := √|D| E(D) (equivalently, do not nor-malize the document sum). Then (5) implies 
+
+⟨E(Q), E ′(D)⟩ = |Q ∩ D|
+
+√|Q| ± O
+
+(
+
+ε |D| √|Q|
+
+)
+
+,
+
+so for fixed Q this is strictly monotone in |Q ∩ D|
+
+(hence in rel set (Q, D )) once d satisfies the same asymp-totic lower bound above. Therefore, for each query Q
+
+there exists a threshold τ (Q) such that the induced or-dering (or thresholding) agrees with the relevance rule dist set (Q, D ) ≤ τ (Q), yielding the claimed sufficiency. Taking the better of the two constructions ( d = |U | or the JL-based bound) gives 
+
+d = O(min {|U |, ℓ 2
+
+> Q
+
+ℓ2 
+
+> D
+
+log |U |}) ,
+
+as required. A.3. A simple model for Single-vector embeddings Let {va}Ma=1 ⊂ RD be i.i.d. random unit vectors dis-tributed uniformly on the unit sphere SD−1. A query 11 Title Suppressed Due to Excessive Size 
+
+is a set Q ⊆ [M ] with |Q| = m and a document is a set S ⊆ [M ] with |S| = n. Define the (unnormalized) sum embeddings 
+
+˜q = ∑
+
+> a∈Q
+
+va, ˜d = ∑
+
+> b∈S
+
+vb, (6) and the normalized single-vector embeddings 
+
+q = ˜q
+
+∥˜q∥ , d = ˜d
+
+∥ ˜d∥ . (7) We score query–document pairs by cosine similarity 
+
+s(Q, S ) := q⊤d ∈ [−1, 1] . (8) We call (Q, S ) negative if Q ∩ S = ∅, and positive if 
+
+|Q ∩ S| = K for a fixed K ≥ 1.A.3.1. Negative case: exact mean and variance Lemma A.2 (Negative cosine statistics). If Q ∩ S =
+
+∅, then q and d are independent and uniformly dis-tributed on SD−1, and 
+
+E[s(Q, S )] = 0 , Var( s(Q, S )) = 1
+
+D . (9) Proof. Since Q ∩ S = ∅ and the attribute vectors {va}
+
+are independent, ˜q and ˜d are independent. Moreover, ˜q
+
+is a sum of i.i.d. rotationally invariant random vectors; hence ˜q is rotationally invariant, and so is its direction 
+
+q = ˜ q/ ∥˜q∥. Therefore q ∼ Unif( SD−1), and similarly 
+
+d ∼ Unif( SD−1). Independence of ˜q and ˜d implies independence of q and d.For the mean, by symmetry d d
+
+= −d, hence q⊤d d
+
+=
+
+−(q⊤d) and E[q⊤d] = 0 .For the variance, condition on q and apply a rotation sending q to e1. Rotational invariance of d implies 
+
+q⊤d d
+
+= e⊤ 
+
+> 1
+
+d = d1. Since ∥d∥2 = ∑Dk=1 d2 
+
+> k
+
+= 1 and by symmetry E[d21] = · · · = E[d2 
+
+> D
+
+], we have D E[d21] = 
+
+E[ ∑ Dk=1 d2
+
+> k
+
+] = 1 , so E[d21] = 1 /D . Thus Var( q⊤d) = 
+
+E[( q⊤d)2] = 1 /D .A.3.2. Goodness metric We define the goodness metric as 
+
+G := μ+ − μ−
+
+σ−
+
+,μ± := E[s(Q, S ) | positive/negative ],σ2 
+
+> −
+
+:= Var( s(Q, S ) | negative ). (10) By Lemma A.2, μ− = 0 and σ− = 1 /√D, hence 
+
+G = √D μ +. (11) A.3.3. Positive case with fixed overlap K:decomposition and approximation Assume |Q∩S| = K. Write the shared and non-shared parts as 
+
+˜q = U + X, ˜d = U + Y, (12) where U = ∑Ki=1 ui is the sum of the K shared at-tribute vectors, X is the sum of the m − K query-only vectors, and Y is the sum of the n − K document-only vectors. Under the model, the vectors {ui}, those in 
+
+X, and those in Y are i.i.d. uniform on SD−1 and mutually independent across groups. Expanding the unnormalized dot product gives 
+
+˜q⊤ ˜d = ( U +X)⊤(U +Y ) = U ⊤U +U ⊤Y +X⊤U +X⊤Y. 
+
+(13) By independence and symmetry of cross terms, 
+
+E[˜ q⊤ ˜d] = E[U ⊤U ] = K, 
+
+E∥˜q∥2 = m, E∥ ˜d∥2 = n. (14) Since s(Q, S ) = ˜q⊤ ˜d
+
+∥˜q∥ ∥ ˜d∥ , a standard high-dimensional concentration approximation replaces ∥˜q∥ and ∥ ˜d∥ by their typical scales √m and √n, yielding 
+
+μ+ = E[s(Q, S ) | | Q ∩ S| = K] ≈ K
+
+√mn . (15) Combining (11) and (15) gives the corresponding ap-proximation for the goodness metric: 
+
+G ≈ √D K
+
+√mn = K
+
+√ Dmn . (16) A.4. A simple model for Multi-vector embeddings Let {va}Ma=1 ⊂ RD be i.i.d. random unit vectors dis-tributed uniformly on the unit sphere SD−1. A query is a set Q ⊆ [M ] with |Q| = m and a document is a set S ⊆ [M ] with |S| = n. We will assume that the parameters satisfy n << 2D , which is usually the case in practice. Define the multi-vector embeddings 
+
+q = ( va)a∈Q , d = ( vb)b∈S . (17) We score query - document pairs by Chamfer similarity ch (Q, S ) := 1
+
+m
+
+∑
+
+> a∈Q
+
+max  
+
+> b∈S
+
+⟨va, v b⟩. (18) As before, we call (Q, S ) negative if Q ∩ S = ∅, and positive if |Q ∩ S| = K for a fixed K ≥ 1. For simplic-ity, we do approximate calculations and do not give proofs. These are standard calculations in the proba-bility literature and can be turned into proofs. 12 Title Suppressed Due to Excessive Size 
+
+A.4.1. Negative case: mean and variance If Q ∩ S = ∅, then E[ch (Q, S )] ∼ Θ
+
+(√ log( n)
+
+> D
+
+)
+
+, and 
+
+Var( ch (Q, S )) ∼ Θ
+
+( 1 
+
+> Dm log( n)
+
+)
+
+. This is because, for random unit vectors va, v b, ⟨va, v b⟩ ∼ N (0 , 1/D ). Now if you max b∈S ⟨va, v b⟩ is a max of n Gaussians which has a Gumbel distribution with mean Θ
+
+(√ log( n)
+
+> D
+
+)
+
+and variance Θ
+
+( 1log( n)D
+
+)
+
+. Further when we consider, 
+
+> 1
+> m
+
+∑ 
+
+> a∈Q
+
+max b∈S ⟨va, v b⟩, this is mean of random vari-ables with Gumbel distributions. However the random variables are not independent. If they were indepen-dent, one would have variance exactly Θ
+
+( 1log( n)mD 
+
+)
+
+but note that there is still some independence aris-ing from the random query token vectors. So we get mean exactly Θ
+
+(√ log( n)
+
+> D
+
+)
+
+and variance approx-imately Θ
+
+( 1log( n)mD 
+
+)
+
+.A.4.2. Positive case with fixed overlap K
+
+Assume |Q ∩ S| = K. In this case, the query tokens, which are matched will contribute 1 and others con-tribute negligible. So the Chamfer score in this will be atleast K/m with high probability. A.4.3. Goodness metric We can see that the goodness metric in the multi-vector case is ∼ K/m   
+
+> Θ
+> (√ 1log( n)mD
+> )
+
+= Θ 
+
+(
+
+K
+
+√ Dm log( n)
+
+)
+
+.So we can see that for multi-vector embeddings we require a much smaller dimension to achieve a decent goodness compared to single-vector embeddings. 
+
+## B. Experiments 
+
+B.1. LIMIT Dataset The LIMIT dataset introduced by (Weller et al., 2025) represents each document as a short synthetic per-son profile: a list of discrete “like” attributes (items a person likes). Queries are simple natural-language prompts of the form “who likes x,” where x is a single attribute drawn from a fixed vocabulary of |V| = 1848 
+
+unique attributes. The construction enforces two re-alism constraints: (i) each profile contains fewer than 50 attributes, and (ii) each query references exactly one attribute. Each query has exactly k = 2 rel-evant documents. To maximize combinatorial over-lap among relevance judgments, (Weller et al., 2025) use a dense qrel pattern in which each query corre-sponds to an unordered pair of documents drawn from a small core set. Concretely, they select N = 46 
+
+core documents so that the number of unordered pairs, (46 2
+
+) = 1035 , slightly exceeds 1000, and then instanti-ate 1000 single-attribute queries whose relevance sets follow this pairwise pattern. The full release con-tains 50,000 documents and 1000 such single-attribute queries; documents are assigned random first and last names and padded with additional attributes so that all documents have equal length. A small variant re-tains only the 46 core documents that participate in at least one of the 1000 dense-pattern queries. We follow the LIMIT construction and treat the 1000 dense-pattern queries as a held-out test set. For train-ing, we use an additional set of 848 single-attribute queries drawn from the same vocabulary and gener-ated with the same procedure, together with the full 50,000-document pool. B.2. Split LIMIT We define Split LIMIT by retaining the full 50,000 document corpus from LIMIT and splitting the 1000 LIMIT queries into 800 for training and 200 for test-ing. The split is random but fixed with a published seed for exact reproducibility. Each query continues to have exactly k = 2 relevant documents. B.3. Atomic LIMIT We define Atomic LIMIT as a variant of LIMIT in which each attribute is replaced with a noun-based variant that exists as a single token in the tokenizer’s vocabulary. The replacement is performed determinis-tically, thereby preserving the ordering of the original attributes. Each query continues to have exactly k = 2 
+
+relevant documents. Atomic LIMIT allows us to study the effect of tokenization in detail. B.4. Permuted LIMIT We introduce Permuted LIMIT, a training variant that keeps the query set identical to the 1000 LIMIT test queries, but applies a controlled remapping to the doc-ument attributes. Let π be a permutation over the sub-set of attributes that appear in the 1000 queries. For each document, we replace every occurrence of a “seen” attribute a by π(a), leaving attributes that never ap-pear in the 1000 queries unchanged. We additionally generate two extra within-document permutations to reduce positional cues; for example, A B C D yields 
+
+π(A) π(B) C D, C π(B) π(A) D, and C D π(A) π(B). 13 Title Suppressed Due to Excessive Size 
+
+B.5. Fresh LIMIT We introduce Fresh LIMIT, a training variant that keeps the query set identical to the 1000 LIMIT test queries and constructs a new corpus of 50k docu-ments by using a independently sampled dense qrel pattern. Unlike Permuted LIMIT, which remaps at-tributes through permutation, Fresh LIMIT regener-ates the entire mapping based on a newly sampled combination of relevant documents. Specifically, we construct a fresh set of N ′ = 46 documents and assign relevance pairs preserving the 2-sparsity. B.6. Extended LIMIT We introduce Extended LIMIT, a larger corpus vari-ant that retains the first 50k documents of the orig-inal LIMIT dataset and augments it with new docu-ments which are generated by sampling from the same attribute distribution as LIMIT while ensuring that none of the new entries appear in the existing qrels. B.7. Two LIMIT We define Two LIMIT by keeping the original 50,000 document pool from LIMIT unchanged and replac-ing single-attribute queries with two-attribute conjunc-tions. Concretely, let V2 be the set of 1,848 admissible attributes designated for pairwise querying. We enu-merate all unordered pairs of distinct attributes from 
+
+V2, yielding (1848 2
+
+) queries of the form “who likes x and 
+
+y”. A document is relevant to a query (x, y ) if at least one of the attributes x or y appears in that document. 14

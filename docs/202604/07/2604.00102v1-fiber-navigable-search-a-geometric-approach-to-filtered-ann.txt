@@ -1,0 +1,920 @@
+Title: Fiber-Navigable Search: A Geometric Approach to Filtered ANN
+
+URL Source: https://arxiv.org/pdf/2604.00102v1
+
+Published Time: Thu, 02 Apr 2026 00:04:04 GMT
+
+Number of Pages: 22
+
+Markdown Content:
+# Fiber-Navigable Search: A Geometric Approach to Filtered ANN 
+
+## Thuong Dang ∗
+
+## March 2026 
+
+Abstract 
+
+We present a geometric framework for filtered approximate nearest neighbor (ANN) search. Filtering a proximity graph by a metadata predicate produces a subgraph—a fiber —whose connectivity and geometry can differ sharply from the full graph. Using local signals, we propose a two-phase search algorithm that combines full-graph exploration with filtered-neighbor descent when the local geometry is favorable. These signals also classify search failures into three regimes: topological cuts, geometric folds, and genuine basins. A key observation is that all three share a common resolution: restarting the search in a fiber-present cluster near the query. To support this, we introduce a lightweight anchor structure that identifies such regions and restarts the search accordingly. We show empirically that the method outperforms FAISS HNSW on filtered search and the three failure regimes separate cleanly and shift predictably with filter selectivity. 
+
+# Contents 
+
+1 Introduction 2
+
+1.1 Contributions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+
+2 Related Work 33 Geometric Framework 4
+
+3.1 Problem Setting . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43.2 Fibers over Metadata . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43.3 Local Signals . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 53.4 Algorithm Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 63.5 Geometric Motivation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+
+4 Index Construction 9
+
+4.1 Proximity Graph . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 94.2 Anchor Atlas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10 4.3 Complexity and Scaling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11 
+
+5 Search Algorithms 11 
+
+5.1 Walk Strategy 1: Beam Search . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12 5.2 Walk Strategy 2: Drift-Guided Search . . . . . . . . . . . . . . . . . . . . . . . . . . 13 5.3 Complexity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 
+
+> ∗Contact: dangt@uni-duesseldorf.de. Open to collaboration on benchmark implementation and large-scale evalu-ation.
+
+1
+
+> arXiv:2604.00102v1 [cs.DB] 31 Mar 2026
+
+6 Experimental Setup 15 7 Results 16 8 Stall Regime Analysis 17 
+
+8.1 Stall Regimes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 8.2 Methodology . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18 8.3 Results by Selectivity Bin . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 8.4 Termination Reasons . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 8.5 Stall Point Diagnostics . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20 
+
+9 Conclusion 20 
+
+# 1 Introduction 
+
+Nearest neighbor search in high-dimensional spaces is central to modern retrieval systems, including product recommendation, semantic search, and retrieval-augmented generation (RAG). As datasets grow to millions or billions of vectors, exact search becomes too expensive. Approximate nearest neighbor (ANN) algorithms are therefore essential for large-scale vector retrieval. Among ANN approaches, graph-based methods dominate due to their strong recall–latency tradeoffs. These methods build a proximity graph over the dataset and answer queries by greedily walking through the graph. The two most influential methods are HNSW [9] and Vamana (the graph construction algorithm behind DiskANN [12]). HNSW builds a hierarchical small-world graph with logarithmic search time. Vamana builds a flat graph with bounded out-degree and is designed for disk-resident datasets. Both achieve high recall on standard benchmarks and are widely used in production. In practice, however, queries rarely come without constraints. A user searching for similar products may require a specific category, price range, or brand. A document retrieval system may restrict results to a particular language or date range. This setting is known as filtered approximate nearest neighbor search : given a query vector q and a predicate S on metadata, find the approximate nearest neighbors of q among only points whose metadata satisfies S.The core difficulty is structural: filtering removes nodes and edges from the graph. A graph that is easy to navigate in full may become hard to navigate once filtered. Edges needed for greedy descent may vanish, leaving disconnected regions and local minima that trap the search. Existing systems use one of three strategies. Post-filtering retrieves the top-N unfiltered results and discards non-matching points—this fails when the true filtered neighbors are far from the unfiltered ones. Pre-filtering restricts search to matching points, but the resulting subgraph can be disconnected, trapping the search at local minima. Traversal-time filtering walks the full graph but only collects matching results; under selective filters, the walk converges in a region shaped by the full graph, which may be far from the true filtered neighbors. All three strategies treat filtering as an operational constraint—they decide when to apply the predicate but rely on standard greedy search for navigation. None accounts for how filtering changes the geometry of the search space. As a result, algorithm design is largely heuristic, and it remains unclear why certain queries fail or how failures relate to filter selectivity. In this paper, we propose a geometric approach. We view the filtered subset of the graph as a fiber over the metadata predicate and introduce two local signals— fiber density (the fraction of neighbors that pass the filter), and drift (the average tendency of the filtered neighborhood toward or away from the query)—that describe its geometry during traversal. These signals drive a search 2algorithm that switches between fiber descent (greedy search restricted to filtered neighbors) and full-graph exploration. They also classify search failures into three regimes: topological cuts (the fiber is locally disconnected), geometric folds (the fiber is present but slopes away from the query), and genuine basins (true local minima on the fiber). A key finding is that all three regimes share a common fix: restarting the search in a fiber-present region near the query. This leads to a simple algorithm that achieves strong filtered recall without building filter-aware graph construction. 
+
+## 1.1 Contributions 
+
+This paper makes the following contributions: 1. A geometric framework and failure taxonomy for filtered graph search. We formal-ize filtered ANN search using a fibered view of the dataset and introduce two local signals— 
+
+fiber density , and drift —that describe the filtered region’s geometry during traversal. These signals classify failures at stall points (nodes where the walk stops without finding enough re-sults) into three regimes: topological cuts , geometric folds , and genuine basins . We introduce the boundary-improving set to diagnose what happens outside the fiber at stall points, and show empirically that the three regimes separate cleanly on every diagnostic axis and shift predictably with filter selectivity. 2. A drift-guided two-phase search algorithm. The drift signal drives a two-phase traver-sal: the algorithm begins with fiber descent (greedy search restricted to filtered neighbors) when drift is negative, and falls back to full-graph beam exploration when drift turns non-negative. Phase switching is dynamic—the algorithm re-enters fiber descent whenever the drift becomes favorable again. This separation between fiber navigation and full-graph navi-gation avoids the need for filter-aware index construction. 3. An anchor-based restart mechanism. When a walk stalls, all three failure regimes share a common fix: restarting in a fiber-present region near the query. To support this, we introduce a lightweight anchor atlas —a clustering-based structure that identifies fiber-present regions near the query in O(|S|) time using per-cluster metadata statistics and an inverted cluster index. 4. Experimental validation. On a real-world dataset of 105,100 vectors with 24 metadata fields, our method outperforms FAISS HNSW under both post-filtering and traversal-time filtering, with near-zero failure rate across 10,000 test queries spanning filter selectivities from <0.01% to ∼21%. 
+
+Paper outline. Section 2 reviews prior work on filtered approximate nearest neighbor search. Section 3 introduces the geometric framework and the local signals used to characterize filtered search. Section 4 describes index construction and the anchor atlas. Section 5 presents the search algorithms. Sections 6 and 7 describe the experimental setup and report the results. Section 8 analyzes stall regimes empirically. Section 9 concludes and discusses future directions. 
+
+# 2 Related Work 
+
+Filtered approximate nearest neighbor search (FANNS) has attracted significant attention in recent years. Existing approaches can be broadly categorized based on how they integrate filtering with the underlying vector index. 3Filter-aware index construction. Several systems incorporate filter information directly into the index structure. Filtered-DiskANN [4] introduces two algorithms that modify the Vamana graph construction to account for label constraints, improving navigability of filter-induced subgraphs. UNG [2] further integrates label-set relationships with vector proximity through a unified navigating graph. Earlier hybrid query systems such as HQANN [15] and NHQ [13] combine vector similarity with attribute information during index construction. 
+
+Predicate-agnostic graph methods. Instead of modifying the graph for each filter, predicate-agnostic methods attempt to maintain robustness under filtering. ACORN [10] expands neighbor lists during HNSW construction to preserve connectivity when nodes are removed by filters. 
+
+Index-agnostic search strategies. Other approaches leave the index unchanged and adapt the search procedure. RWalks [1] diffuses attribute information across the graph via random walks, enabling efficient filtered search without modifying the index structure. AIRSHIP [16] performs constrained search on proximity graphs by integrating UDF filtering directly into the search proce-dure, and proposes three optimizations: starting point selection, multi-direction search, and biased priority queue selection, all without modifying the underlying graph. Our approach shares this search-time perspective but differs in that it uses explicit local signals to guide traversal and a structured, metadata-aware restart mechanism. 
+
+Range-filtered ANN. Some work focuses specifically on range predicates. SeRF [17] builds segment graphs for range filtering, while WoW [14] introduces incremental window-based indexing. 
+
+Benchmarks and surveys. Recent studies emphasize the need for systematic evaluation of filtered ANN methods. Iff et al. [5] provide a large-scale benchmark of filtered vector search algorithms, and Lin et al. [8] present a comprehensive survey of FANNS techniques. 
+
+# 3 Geometric Framework 
+
+We note that the geometric perspective is not required to implement the algorithm; all quantities reduce to simple graph statistics. However, it provides a useful lens for understanding why filtered search fails and directly motivates the design of the algorithmic components. 
+
+## 3.1 Problem Setting 
+
+Data. Let X = {x1, . . . , x n} ⊂ Rd. Each point carries metadata across F fields, with field f
+
+taking values in a discrete set Vf . The metadata map m : X → Q 
+
+> f
+
+Vf sends each point to its metadata tuple. A filter predicate specifies, for a subset of fields, a set of allowed values per field: 
+
+S = {fi1 ∈ A1, . . . , f is ∈ As} where Aj ⊆ Vfij . A point satisfies S when fij (x) ∈ Aj for all 
+
+j = 1 , . . . , s ; unconstrained fields are unrestricted. 
+
+Proximity graph. A global graph G = ( X, E ) (e.g. HNSW, Vamana, kNN-graph) provides an adjacency list N (x) for every point. 
+
+## 3.2 Fibers over Metadata 
+
+Let m : X → M map the dataset into the product metadata space as described in Section 3.1. For a filter predicate S, the fiber is 
+
+XS = {x ∈ X | x satisfies S}.
+
+The fiber subgraph GS = ( XS , E ∩ (XS × XS )) is the subgraph of G induced by XS . Standard greedy or beam search on G performs discrete descent on the potential V (x) = d(q, x ). However, 4navigability of G does not imply navigability of GS : the fiber subgraph may lose edges critical for descent toward q.We model the dataset as a discrete fibered space: 
+
+• The base space is the metadata space M.
+
+• The fiber above each metadata value u ∈ M is the set of points {x : m(x) = u} together with their embedding coordinates. 
+
+• The filter S selects a union of such fibers. 
+
+Shoes 
+
+US 
+
+Jacket 
+
+EU 
+
+> Points
+> Product
+> Region
+
+Figure 1: Fibers over metadata. In the figure above, points in the embedding space (top) project onto product values and then onto region values. Each vertical thread is a fiber: the left fiber m−1(“US” , “Shoes”) consists of all points with product= Shoes and region= US; the right fiber m−1(“EU” , “Jacket”) consists of all points with product= Jacket and region= EU. A filter selects one or more fibers. 
+
+## 3.3 Local Signals 
+
+Every graph search performs discrete gradient descent on the potential V (x) = d(q, x ). Under filter 
+
+S, the filtered neighborhood is NS (x) = {y ∈ N (x) | y satisfies S} = N (x) ∩ XS . We next define two local signals that characterize the local geometry of the fiber at a node x:
+
+Fiber density. ρS (x) = |NS (x)|/|N (x)|. It is a topological signal measuring how much of the local connectivity survives filtering. Low density indicates that the fiber is locally sparse or discon-nected, while high density indicates that the fiber structure is intact and navigable. 
+
+Drift. When |NS (x)| > 0, we define drift( x) = 1
+
+|NS (x)|
+
+X 
+
+> y∈NS(x)
+
+ V (y) − V (x).
+
+Drift measures the average tendency of the neighborhood —whether the region collectively slopes toward the query or not. It is the discrete Laplacian of V restricted to the fiber. Negative drift indicates a wide descent valley (Figure 2b); non-negative drift might indicate a narrow ridge (Figure 2a). 5(a) drift( x) > 0: stall region (b) drift( x) < 0: wide region for descent. 
+
+Figure 2: Drift and potential best descent direction (bold lines) as filtered neighborhood diagnostics. 
+
+## 3.4 Algorithm Overview 
+
+We outline the search algorithm at a high level so that the reader has a concrete picture to anchor the subsequent analysis. The algorithm admits two instantiations, corresponding to different levels of engagement with the fiber geometry: 
+
+Beam search (cluster-level navigation). The simpler variant uses only the atlas structure. The anchor atlas selects a fiber-present cluster near q, a standard beam search walks the full graph from the seed while passively collecting filtered points, and when the walk converges the atlas transitions to the next cluster. This version navigates between clusters but is geometry-unaware 
+
+within a cluster: it does not use drift during the walk. 
+
+Drift-guided search (cluster- and fiber-level navigation). The full variant adds intra-cluster geometric navigation via the drift signal. From each restart, the walk alternates between fiber descent (Phase 1) and full-graph beam search (Phase 2), re-entering Phase 1 whenever the drift turns favorable. This version navigates both between and within clusters, exploiting the fiber structure at every expansion step. Both variants share the outer restart loop and the anchor atlas. The guided variant achieves higher recall with a smaller beam by spending its expansion budget on drift-identified productive regions rather than blind beam exploration. Given a query q and a metadata filter S, the algorithm proceeds as follows: 1. Cluster selection. The anchor atlas—a set of k-means clusters augmented with per-cluster metadata statistics—identifies clusters that contain points matching S and lie close to q. Seed points are drawn from the top-scoring clusters. 2. Local walk. From these seeds, a walk explores the full proximity graph G (which is always navigable), collecting any encountered points that match S. Two walk strategies are available: 6• Beam search : a standard beam search on G that passively collects filtered points along the way. 
+
+• Drift-guided search : a two-phase walk that descends on filtered neighbors when the drift signal is favorable (Phase 1) (Figure 3), queuing the top Kf filtered neighbors that are closer to the query at each step, and falls back to full-graph beam search when it is not (Phase 2). The phases are not a one-way progression: when Phase 2 traversal encounters a region where drift turns negative and filtered neighbors reappear, the algorithm re-enters Phase 1 and resumes fiber descent. 3. Restart. If a walk terminates without collecting enough results, the atlas provides seeds from the next-best cluster and a new walk begins. A small jump budget (typically 3–4 restarts) suffices. 
+
+Figure 3: Local descent. The two local signals defined in Section 3.3—fiber density, and drift—drive every decision in this loop: drift governs phase switching within a walk, fiber density characterizes stall points, and both inform the restart mechanism. The next subsection develop the geometric perspective that motivates these choices. 
+
+## 3.5 Geometric Motivation 
+
+The algorithm design is guided by an analogy with differential geometry (see e.g., [7]). A smooth manifold is usually too complex to describe with a single coordinate system, so one covers it with an 
+
+atlas of overlapping charts , each providing local coordinates in which calculus is tractable. When a chart’s coordinates break down—such as near the boundary of its domain—one transitions to an overlapping chart via a transition function and continues (Figure 4). A fiber bundle π : E → B
+
+adds a further layer: over each point x ∈ B, the fiber π−1(x) is diffeomorphic to a fixed space 
+
+F , called the typical fiber (Figure 6). The total space E is locally (but not necessarily globally) a product B × F . Navigation on the bundle requires both moving along the base and keeping track of how the fibers are attached. Our filtered search problem instantiates this picture on a discrete, finite structure. Table 1 records the dictionary. 7Table 1: Correspondence between differential geometry and filtered graph search. 
+
+Differential geometry Filtered graph search Role 
+
+Chart Cluster (anchor region) Local region with tractable geometry Atlas Anchor atlas Collection of charts covering the space Transition function Anchor restart Map from one chart to another Fiber over a point m−1(u) for u ∈ M Points with metadata value u
+
+Fiber connectivity Fiber density How much of the fiber is present locally Laplacian of V on fiber drift( x) Whether the region slopes toward the query 
+
+Figure 4: Transition function to glue charts in differential geometry.    
+
+> (a) Fiber over metadata inside a cluster (b) Fiber over a point xin differential geometry
+
+Figure 5: Discrete and continuous fiber structures. 
+
+Fiber connectivity. In a smooth fiber bundle π : E → B, every fiber is homeomorphic to the typical fiber F —so if F is connected, all fibers are. In our discrete setting, the situation is worse: filtering can disconnect or entirely eliminate the fiber locally. 8Drift as the discrete Laplacian. In Rn, Laplacian of a function is the sum of its second derivatives. In general, it measures how different a point is from the average of its neighbors. Drift is the discrete analogue restricted to the fiber: negative drift means the filtered neighborhood is on average closer to the query, indicating a favorable region for descent. 
+
+# 4 Index Construction 
+
+The index consists of a proximity graph and an anchor atlas. The search algorithm is graph-agnostic: it operates on any graph exposing a GetNeighbors interface. The anchor atlas requires no filter-aware modifications. 
+
+## 4.1 Proximity Graph 
+
+We introduce the α-kNN graph : a symmetrized k-nearest-neighbor graph with selective α-RNG (relative neighborhood graph) degree capping—a simplified version of DiskANN [12]. Construction proceeds in three stages: 
+
+Algorithm 1: α-kNN Graph Construction Require: Vectors {ˆx1, . . . , ˆxn} (normalized), degree k, max degree Rmax , relaxation α > 1
+
+Ensure: Adjacency lists N (x) for all x 
+
+> 1:
+
+Stage 1: Directed kNN  
+
+> 2:
+
+Compute k nearest neighbors for each point using cosine similarity  
+
+> 3:
+
+N (x) ← kNN( x) for all x {directed, degree exactly k} 
+
+> 4:
+
+Stage 2: Symmetrization  
+
+> 5:
+
+for each edge ( i, j ) ∈ G do  
+
+> 6:
+
+Add reverse edge ( j, i ) if not present  
+
+> 7:
+
+end for {Degree increases; hub nodes may have degree ≫ k} 
+
+> 8:
+
+Stage 3: Selective α-RNG Pruning  
+
+> 9:
+
+for each node i with |N (i)| > R max do  
+
+> 10:
+
+Sort N (i) by distance to i 
+
+> 11:
+
+kept ← ∅  
+
+> 12:
+
+for each p ∈ N (i) in distance order do  
+
+> 13:
+
+if ∀ q ∈ kept : d(i, p ) < α · d(q, p ) then  
+
+> 14:
+
+kept ← kept ∪ { p} 
+
+> 15:
+
+end if  
+
+> 16:
+
+if |kept | ≥ Rmax then  
+
+> 17:
+
+break  
+
+> 18:
+
+end if  
+
+> 19:
+
+end for  
+
+> 20:
+
+N (i) ← kept  
+
+> 21:
+
+end for {Nodes with |N (i)| ≤ Rmax are unchanged }
+
+Design rationale. Symmetrization ensures navigability: if A can reach B, then B can reach A,enabling the walk to explore in both directions. However, symmetrization creates hub nodes with degree far exceeding k (up to 500 × on a 100k dataset). The selective α-RNG pruning caps only over-degree nodes, preserving local connectivity for typical nodes while eliminating pathological hubs. The α > 1 relaxation retains directionally diverse edges rather than keeping only the nearest, 9providing coverage across different approach directions—beneficial for Phase 1 fiber descent, which needs filtered neighbors in the descent direction toward q.
+
+Graph-agnostic search. The guided search algorithm (Section 5) depends only on the Get-Neighbors interface, not on the graph construction method. To validate this, we also evaluate on the base layer (level 0) of a FAISS HNSW index, extracted without modification. Using the same HNSW graph that FAISS searches with its own hierarchical algorithm, our guided search substan-tially outperforms both FAISS’s post-filter and traversal-filter strategies. This confirms that the improvement derives from the search algorithm and anchor atlas, not from the choice of base graph. 
+
+## 4.2 Anchor Atlas 
+
+The anchor atlas is a lightweight clustering-based structure that supports efficient seed selection for filtered queries. It consists of K clusters (obtained via k-means on the embedding vectors), augmented with per-cluster metadata statistics and an inverted index for fast cluster pruning. 
+
+Storage. For each cluster c and each metadata field f , the atlas stores: 
+
+• members [c][ f ][ v]: the list of point indices in c with value v in field f .Storage is O(nF ) (Lemma 4.1), where F is the number of metadata fields. 
+
+Scope note. For clarity, we describe the atlas operations for single-value conjunctive filters S =
+
+{f1 = v1, . . . , f m = vm}; the extension to set-valued predicates fi ∈ Ai replaces each membership check with a set lookup over Ai.
+
+Inverted cluster index. To avoid scanning all K clusters at query time, the atlas maintains an inverted index: 
+
+cluster index [f ][ v] = {C | ∃ x ∈ C, f (x) = v},
+
+mapping each (field, value) pair to the set of clusters containing at least one matching point. For filter S, the candidate clusters are obtained by intersecting m posting lists: 
+
+Cmatch =
+
+> m
+
+\
+
+> i=1
+
+cluster index [fi][ vi].
+
+This costs O(|S|) regardless of K. For selective filters, |Cmatch | ≪ K: a rare value like “Chem. cosmetics” matches 3–5 clusters out of 324 in our experiment (Section 6), reducing subsequent scoring cost by two orders of magnitude. 
+
+Anchor selection. At query time, given query q and filter S, the atlas: (1) retrieves Cmatch 
+
+via the inverted index; (2) discards already-processed clusters; (3) ranks remaining clusters by similarity score between q and cluster centroid; and (4) seeds are drawn until the seed budget is filled. 10 4.3 Complexity and Scaling 
+
+Index construction cost. The proximity graph dominates indexing time: k-NN computation costs O(n2 · d) brute-force (reducible with approximate methods), symmetrization is O(|E|), and selective α-RNG pruning is O(n·Rmax log Rmax ). The anchor atlas is cheap by comparison: k-means runs in O(n · K · d · Titer ), and building the per-cluster hash tables, members lists, and inverted index requires a single O(n · F ) pass over the metadata, where F is the number of metadata fields. 
+
+Space. Lemma 4.1 (Atlas storage) . Let each of the n points be assigned to exactly one of K clusters, and let each point carry metadata across F fields. The total storage for members , and cluster index 
+
+is O(n · F ), independent of the vocabulary sizes |Vf | and the number of clusters K.Proof. Each point xi belongs to one cluster c(xi) and has one value f (xi) per field. For each field 
+
+f , point xi contributes: 
+
+• one entry in the list members [c(xi)][ f ][ f (xi)], 
+
+• at most one insertion of c(xi) into cluster index [f ][ f (xi)] (deduplicated). Summing over n points and F fields, each structure contains at most n · F non-zero entries. Only non-zero entries are stored. The graph stores O(n · ¯R) edges. The anchor atlas stores members lists totaling O(n · F ) entries. The inverted index tables is sparse: only non-zero entries are stored, so their size is also O(n · F )(Lemma 4.1). When metadata is sparse (not all fields are populated for every point), only non-empty field values contribute, and the bound tightens to O(Pni=1 Fi) where Fi is the number of non-empty fields for point xi.
+
+Scaling the anchor atlas. With K = ⌈√n⌉ clusters, the brute-force cosine computation over 
+
+Cmatch is negligible for n ≤ 10 6. When the dataset scales, there will be two viable options 
+
+• We can build a hierarchical anchor structure : two-level k-means with K1 = n1/4 super-clusters, each containing K2 = n1/4 sub-clusters. The inverted index operates at both levels: first identify matching super-clusters in O(|S|), then search within them. Each level is small enough for brute-force cosine, avoiding the filtered graph search problem entirely while keeping the total anchor scoring cost at O(n1/4 · d) per query 
+
+• We can also fix K to a moderate constant (e.g., K ∈ [100 , 1000]) independent of n. The anchor atlas becomes a coarser but cheaper structure, and the graph walk compensates with local exploration. This is justified by two observations. First, the complexity analysis in Section 5 shows that walk cost dominates query time over anchor scoring, so even a brute-force scan over all K clusters adds negligible overhead when K is bounded. Second, the anchor atlas does not need to identify the optimal fiber-present region—it needs to land the walk in a 
+
+sufficiently good region where the fiber exists and the graph can take over. 
+
+# 5 Search Algorithms 
+
+Both search strategies share the outer restart loop (Algorithm 2). They differ in how a single walk is executed. 
+
+Algorithm 2: Outer Search Loop with Anchor Restarts 
+
+11 Require: Query q, filter S, result size k, jump budget J, walk procedure Walk , seed budget ns,cluster budget Cmax 
+
+Ensure: Approximate k-NN of q in XS 
+
+> 1:
+
+results ← ∅ , processed ← ∅  
+
+> 2:
+
+for j = 0 , 1, . . . , J do  
+
+> 3:
+
+Anchor selection:  
+
+> 4:
+
+Retrieve candidate clusters Cmatch via inverted index  
+
+> 5:
+
+Discard clusters in processed  
+
+> 6:
+
+Rank remaining by similarity score  
+
+> 7:
+
+seeds ← ∅  
+
+> 8:
+
+for each cluster c in top-Cmax ranked clusters do  
+
+> 9:
+
+if |seeds | ≥ ns then  
+
+> 10:
+
+break  
+
+> 11:
+
+end if  
+
+> 12:
+
+Sample filter-matching points from c via members intersection  
+
+> 13:
+
+Add sampled points to seeds; add c to processed  
+
+> 14:
+
+end for  
+
+> 15:
+
+if no seeds found then  
+
+> 16:
+
+break  
+
+> 17:
+
+end if  
+
+> 18:
+
+walk results ← Walk (q, seeds , S ) 
+
+> 19:
+
+results ← results ∪ walk results {deduplicate, keep best similarity } 
+
+> 20:
+
+if |results | ≥ k then  
+
+> 21:
+
+break {enough results collected } 
+
+> 22:
+
+end if  
+
+> 23:
+
+end for  
+
+> 24:
+
+return top-k from results by similarity 
+
+## 5.1 Walk Strategy 1: Beam Search 
+
+Algorithm 3: Beam Search Walk (Passive Filtered Collection) Require: Query q, seeds, filter conditions S, beam width B
+
+Ensure: Filtered results collected along walk  
+
+> 1:
+
+candidates ← { (cos( q, s ), s ) : s ∈ seeds }, sorted descending  
+
+> 2:
+
+candidates ← candidates[: B] {keep top B} 
+
+> 3:
+
+expanded ← ∅ , results ← ∅  
+
+> 4:
+
+while ∃ unexpanded node in candidates do  
+
+> 5:
+
+x ← best unexpanded node in candidates  
+
+> 6:
+
+expanded ← expanded ∪ { x} 
+
+> 7:
+
+for each y ∈ N (x) not yet seen do  
+
+> 8:
+
+Compute cos( q, y ) 
+
+> 9:
+
+Add (cos( q, y ), y ) to candidates  
+
+> 10:
+
+if y matches filter S then  
+
+> 11:
+
+results ← results ∪ { (cos( q, y ), y )} 
+
+> 12:
+
+end if  
+
+> 13:
+
+end for  
+
+> 14:
+
+Sort candidates descending; keep top B {prune beam }
+
+12 15: end while  
+
+> 16:
+
+return results 
+
+## 5.2 Walk Strategy 2: Drift-Guided Search 
+
+Algorithm 4: Drift-Guided Walk (Two-Phase Navigation) Require: Query q, seeds, filter conditions S, beam width B, frontier width Kf , stall budget T
+
+Ensure: Filtered results collected along walk  
+
+> 1:
+
+Initialize potential cache: V (s) ← 1 − cos( q, s ) for each seed s 
+
+> 2:
+
+frontier ← { (V (s), s ) : s ∈ seeds } sorted ascending {Phase 1 queue } 
+
+> 3:
+
+beam ← ∅ { Phase 2 queue } 
+
+> 4:
+
+phase ← 1, stall ← 0, results ← {}  
+
+> 5:
+
+while expansion budget not exhausted do  
+
+> 6:
+
+— Node Selection —  
+
+> 7:
+
+if phase = 1 then  
+
+> 8:
+
+x ← pop best unexpanded from frontier  
+
+> 9:
+
+if frontier exhausted then  
+
+> 10:
+
+phase ← 2; seed beam from all seen unexpanded nodes; continue  
+
+> 11:
+
+end if  
+
+> 12:
+
+else  
+
+> 13:
+
+x ← pop best unexpanded from beam  
+
+> 14:
+
+if beam exhausted then  
+
+> 15:
+
+break {walk converged } 
+
+> 16:
+
+end if  
+
+> 17:
+
+if V (x) > V (k) then  
+
+> 18:
+
+break {cannot improve top-k} 
+
+> 19:
+
+end if  
+
+> 20:
+
+if stall ≥ T then  
+
+> 21:
+
+break {fiber too sparse, defer to restart } 
+
+> 22:
+
+end if  
+
+> 23:
+
+end if  
+
+> 24:
+
+— Expand x — 
+
+> 25:
+
+for each unseen y ∈ N (x) do  
+
+> 26:
+
+V (y) ← 1 − cos( q, y ); cache V (y) 
+
+> 27:
+
+if y matches filter then  
+
+> 28:
+
+results[ y] ← cos( q, y ) 
+
+> 29:
+
+end if  
+
+> 30:
+
+end for  
+
+> 31:
+
+— Fiber Diagnostics —  
+
+> 32:
+
+NS (x) ← { y ∈ N (x) : y matches filter } 
+
+> 33:
+
+ρS (x) ← | NS (x)|/|N (x)| 
+
+> 34:
+
+drift( x) ← 1 
+
+> |NS(x)|
+
+P 
+
+> y∈NS(x)
+
+ V (y) − V (x) 
+
+> 35:
+
+new filtered ← count of new filter-matching neighbors found  
+
+> 36:
+
+Update stall counter: reset if new filtered > 0, else increment  
+
+> 37:
+
+— Phase Logic —  
+
+> 38:
+
+if phase = 1 then  
+
+> 39:
+
+if drift < 0 then 
+
+13 40: candidates ← { y ∈ NS (x) : V (y) < V (x), y unexpanded }, sorted by V 
+
+> 41:
+
+Push top Kf candidates onto frontier  
+
+> 42:
+
+else  
+
+> 43:
+
+phase ← 2; seed beam from N (x) ∪ frontier; clear frontier  
+
+> 44:
+
+end if  
+
+> 45:
+
+else if phase = 2 then  
+
+> 46:
+
+Add unseen neighbors of x to beam; sort and prune to B 
+
+> 47:
+
+if drift < 0 and new filtered > 0 then  
+
+> 48:
+
+Rebuild frontier from beam’s filtered unexpanded nodes  
+
+> 49:
+
+if frontier non-empty then  
+
+> 50:
+
+phase ← 1; clear beam  
+
+> 51:
+
+end if  
+
+> 52:
+
+end if  
+
+> 53:
+
+end if  
+
+> 54:
+
+end while  
+
+> 55:
+
+return results 
+
+Phase 1 (Fiber Descent). When drift( x) < 0, the filtered neighborhood slopes toward q. Only filtered, descending neighbors are queued (at most Kf per step). This is cheap: every expansion targets a filter-matching, query-approaching point. 
+
+Phase 2 (Full-Graph Beam). When drift( x) ≥ 0, the fiber is flat, uphill, or absent. The walk falls back to standard beam search on the full graph with passive result collection. Three termination conditions: (a) beam converged, (b) best candidate’s potential exceeds k-th best result 
+
+V(k), (c) stall budget T exhausted. 
+
+Phase Switching. Phase 2 → Phase 1 re-entry requires drift < 0 and new filtered > 0, ensuring the fiber is actively producing results, not merely theoretically present. 
+
+## 5.3 Complexity 
+
+Let R = |N (x)| denote the graph degree. Each expansion in either phase computes cosine similarity for unseen neighbors at cost O(R·d), which dominates. The drift computation uses cached potentials and costs O(|NS (x)|) ⊆ O(R)—effectively free. The phases differ in frontier management: 
+
+• Phase 1: frontier insertion costs O(Kf log |frontier |) per step. Since the frontier contains only filtered descending neighbors, |frontier | ≤ Kf · H1 where H1 is the number of Phase 1 hops. With Kf = 5, this is negligible. 
+
+• Phase 2: beam pruning costs O(B log B) per step, identical to standard beam search. The total cost per walk is O (H1 + H2) · R · d + H2 · B log B, where H1 and H2 are the hops spent in each phase. When the fiber is dense, H1 ≫ H2 and the walk avoids the B log B beam overhead entirely. When the fiber is sparse, Phase 2 dominates but the stall budget T bounds H2, ensuring the walk terminates and defers to anchor restarts rather than exhausting the expansion budget. 14 Anchor scoring cost. With the inverted cluster index, each restart first retrieves the set of matching clusters Cmatch in O(|S|) via set intersection, then computes cosine similarity only for those clusters at cost O(|Cmatch | · d). Across J restarts (with |Cmatch | shrinking as processed clusters are excluded), the total anchor overhead per query is O(|Cmatch | · d)—independent of the total number of clusters K. For selective filters ( |Cmatch | ≪ K), this is negligible compared to the walk cost. 
+
+Total query cost. Filter membership is checked inline via metadata dict lookup at O(|S|) per node, cached so each node is checked at most once. Over a walk visiting H · R nodes, this adds 
+
+O(H · R · | S|). Combining with the walk and anchor costs: 
+
+O
+
+
+
+(H1 + H2) · R · d
+
+| {z }
+
+> similarity (dominates)
+
++ ( H1 + H2) · R · | S|
+
+| {z }
+
+> filter checking
+
++ |Cmatch | · d
+
+| {z }
+
+> anchor scoring
+
+
+
+.
+
+Since |S| is usually small compared to d, filter checking is negligible relative to similarity compu-tation. 
+
+Scaling. At large scale, the walk cost grows only through the graph degree R and the number of hops needed for convergence—both are independent of n for fixed graph construction parameters. The anchor scoring cost depends on |Cmatch |, which grows sublinearly with K = √n since selective filters match a diminishing fraction of clusters. Two strategies keep anchor scoring negligible: a hierarchical anchor structure (Section 4.3) that reduces scoring to O(n1/4 · d) per query, or fixing 
+
+K to a moderate constant and relying on the walk to compensate for coarser cluster placement. In either case, the overall query cost remains dominated by the walk. 
+
+# 6 Experimental Setup 
+
+Dataset. H&M product embeddings: n = 105 ,100 vectors in d = 2048 dimensions with 24 categorical metadata fields (product group, colour, department, section, garment group, etc.) [11]. Ground truth: 10,000 test queries with conjunctive match filters and precomputed nearest filtered neighbors under cosine similarity. Filter selectivity ranges from < 0.01% (e.g., “Chem. cosmetics”) to ∼21% (e.g., “Dusty Light”). 
+
+Our configurations. α-kNN graph with k=64 (mean degree ∼128), K=324 clusters, jump bud-get J=3, seeds drawn from up to 5 clusters per restart ( Cmax = 5), and ns = 10. Beam search: 
+
+B=40. Guided search: B=2 (Phase 2), Kf =5, stall budget T =100, max hops per walk 100. Source code is available at [3]. 
+
+Graph statistics. The two graph variants exhibit different structural profiles on this dataset: Graph Total edges Mean deg. Min deg. Max deg. Memory 
+
+α-kNN 8.7 M 82.8 19 128 34.8 MB HNSW base 2.2 M 20.8 1 126 8.7 MB The base layer HNSW is taken from FAISS with M = 64. From the table, the α-kNN graph has 4 × the edges and 4 × the mean degree of the HNSW base graph. Higher connectivity benefits passive filtered collection: each expansion exposes more neighbors, increasing the probability of 15 encountering a filter-matching point. The HNSW graph, by contrast, is aggressively pruned for efficient unfiltered greedy descent—its minimum degree of 1 means some nodes have a single edge, creating potential dead ends for filtered navigation. Despite this disadvantage, guided search on the HNSW graph still achieves high recall, confirming that the anchor atlas and drift-guided phase switching compensate for sparse graph structure. 
+
+HNSW baselines. We use FAISS’s HNSW implementation as a baseline [6] with M =64 (base-layer degree ∼128, matching our graph) and efSearch =400: 
+
+• Post-filter: retrieve k×20 unfiltered results, discard non-matching points. 
+
+• Traversal-filter: traversal-time filtering via IDSelectorBatch in SearchParametersHNSW .FAISS evaluates sel->is member() during candidate processing, collecting only filter-matching points as results while navigating the full graph. 
+
+# 7 Results 
+
+The table below compares our results with FAISS’s HNSW baseline methods for filtered search. Note that beam search uses the single-phase walk strategy described in Section 5.1, whereas guided search uses the drift-guided two-phase algorithm presented in Section 5.2. Table 2: Recall@25 on 10,000 queries. Beam search uses B=40. Guided search uses B=2. HNSW uses efSearch =400. Latency is measured on Apple M1. Our implementation uses Python with NumPy; FAISS uses optimized C++. Method Recall@25 ≥ 0.8 = 1 .0 Zero recall Latency FAISS HNSW post-filter 0.313 24.1% 21.2% 44 .8% 3.7 ms FAISS HNSW traversal-filter 0.489 38.8% 27.1 % 25 .1% 3.4 ms Beam search, HNSW base ( B=40) 0.652 33.4% 21.2% 0.07% 9.6 ms Guided search, HNSW base ( B=2) 0.680 37.2% 10.5% 0.06% 19.0 ms Beam search, α-kNN base ( B=40) 0.717 45.1% 21.7% 0.09% 14.3 ms Guided search, α-kNN base ( B=2) 0.781 60.1% 20.5% 0.05 % 31.9 ms Table 3: Walk statistics ( k=25, 10,000 queries). 
+
+Guided search α-kNN ( B=2 ) Beam search α-kNN ( B=40 )
+
+Mean walks 1.72 1.97 Resolved in 1 walk 60.6% 45.3% Mean hops 151.4 84.4 
+
+Recall progression (queries needing ≥ j walks): 
+
+After walk 1 0.648 0.550 After walk 2 0.543 0.508 After walk 3 0.672 0.643 After walk 4 0.804 0.795 16 Note that walk 1 recall is high because it includes the 60.6% of queries that resolve in a single walk. Those might be easy queries with favorable fiber geometry. Queries reaching walk 2 and beyond are progressively harder, so the conditional recall dips before the restart mechanism recovers it. 
+
+Key observations. 
+
+1. Guided search with a 20 × smaller beam (B=2 vs. B=40) outperforms standard beam search on α-kNN graph and on HNSW base graph, confirming that drift-directed fiber descent is more efficient than blind beam exploration for filtered collection. 2. All of our methods outperform traditional HNSW recall. The anchor atlas bypasses the entry-point bottleneck that causes traditional HNSW to miss geometrically distant fibers. 3. Half of the queries resolve in a single walk. For queries that require multiple walks, the anchor restart mechanism progressively recovers recall: the hardest queries (those reaching walk 4) recover from ∼0.54 after walk 2 to ∼0.80 after walk 4 (Table 3). 
+
+Why HNSW fails on selective filters. When filtered nearest neighbors are geometrically distant from unfiltered nearest neighbors, both strategies degrade: 
+
+• Post-filter: the top-N unfiltered results contain few or zero matching points. Example: aquery whose overall nearest neighbors are garments (cos ≈ 0.90) but whose nearest shoes are at cos ≈ 0.22—no shoes appear in the top 500. 
+
+• Traversal-filter: the HNSW walk starts from a hierarchical entry point and converges in the high-similarity region. With traversal-time filtering, it cannot bridge the graph distance to the distant fiber-present region—a topological cut , exactly as predicted by the geometric framework. Our approach bypasses this bottleneck: the anchor atlas seeds the walk directly in a fiber-present region near q, avoiding the entry-point funnel entirely. 
+
+# 8 Stall Regime Analysis 
+
+The geometric framework predicts three distinct failure modes for filtered graph search, each char-acterized by local signals at the stall point. This section validates those predictions empirically by classifying every walk termination across 1,000 queries and examining how the distribution of stall regimes varies with filter selectivity. 
+
+## 8.1 Stall Regimes 
+
+A stall point x∗ is the last node expanded by a walk before termination—the node whose neigh-borhood was fully explored but failed to yield sufficient progress. Note that by the time the walk reaches x∗, it has already exited Phase 1 (which requires negative drift) and entered Phase 2. This means the drift at x∗ is non-negative, and it is unlikely that descent toward q via fil-tered points remains available. The diagnostic question is: does the full graph know a better direction that the fiber cannot access? To answer this, we introduce the boundary-improving set 
+
+B−(x∗) = {y ∈ N (x∗) \ XS | V (y) < V (x∗)}, which contains neighbors outside the filter that would improve the potential. 17 Three regimes are possible. If the fiber is locally absent ( ρS low), the walk exhausted its budget without finding filtered neighbors—a topological cut (Figure 6a)). If the fiber is present but slopes away from q (ρS high, |B−| > 0), the descent directions pass through unfiltered territory—a 
+
+geometric fold (Figure 6b). If no neighbor, filtered or otherwise, offers improvement ( ρS high, 
+
+|B−| = 0), the walk has reached a true local minimum—a genuine basin (Figure 6c). Condition Interpretation Regime 
+
+ρS (x∗) low Fiber locally disconnected Topological Cut 
+
+ρS (x∗) high, |B−(x∗)| > 0 Fiber present, geometry misaligned Geometric Fold 
+
+ρS (x∗) high, |B−(x∗)| = 0 Genuine local basin Genuine Basin   
+
+> (a) Topological cut (b) Geometric fold (c) Genuine basin
+
+Figure 6: Stall regimes. 
+
+All Failures Reduce to Restarting. The three stall regimes share a common resolution: the walk needs a better starting point in a region where the fiber is present near q. Topological cuts need a region where filtered points exist. Geometric folds need to approach q from a different direction. Genuine basins need a different basin of attraction. In all cases, the remedy is: jump to a new region with metadata present near q and restart. 
+
+## 8.2 Methodology 
+
+A stall point is classified as a topological cut when ρS (x∗) < σ/ 2, where σ = |XS |/n is the global filter selectivity. This threshold identifies nodes where the fiber is locally depleted relative to the global baseline: if fewer than half the expected fraction of neighbors match the filter, the fiber is considered locally disconnected. When ρS (x∗) ≥ σ/ 2 and |B−(x∗)| > 0, the stall is classified as a 
+
+geometric fold ; when ρS (x∗) ≥ σ/ 2 and |B−(x∗)| = 0, it is classified as a genuine basin .For this analysis, we increase the maximum hops per walk from 100 to 500 to allow the stall budget ( T =100) to trigger independently of the hop limit and set B = 4 to have slightly more exploration. All other parameters remain as in Section 6. At each walk termination, we record the stall point x∗: the last expanded node before the walk stopped. At x∗ we compute fiber density 
+
+ρS (x∗), drift, the boundary-improving set B−(x∗), the potential V (x∗), and the termination reason. Each stall is classified into one of three regimes following the criteria in Section 8.1: topological cut (ρS low), geometric fold ( ρS high, |B−| > 0), or genuine basin ( ρS high, |B−| = 0). Queries are binned by filter selectivity |XS |/n into five ranges from < 0.1% to > 20%. 18 8.3 Results by Selectivity Bin 
+
+Table 4 reports search performance and stall regime distribution across selectivity bins. Table 4: Search performance and stall regime distribution by filter selectivity (guided search, B=4, 
+
+k=25, α-kNN graph, 1000 queries). 
+
+Selectivity N Recall Hops Walks TopCut Fold Basin 
+
+< 0.1% 184 0.884 371.9 2.38 98.4% 1.6% 0.0% 0.1–1% 232 0.733 396.6 1.93 92.6% 7.4% 0.0% 1–5% 299 0.837 246.5 1.30 70.4% 29.1% 0.5% 5–20% 189 0.914 103.3 1.03 47.7% 48.7% 3.6% 
+
+> 20% 96 0.959 37.9 1.01 25.8% 53.6% 20.6% The regime distribution shifts systematically with selectivity, confirming the framework’s pre-dictions. At the rarest filters ( < 0.1%), nearly all stalls (98.4%) are topological cuts: the fiber is so sparse that the walk simply cannot find filtered neighbors locally. As selectivity increases, topological cuts give way to geometric folds. At > 20% selectivity, folds dominate (53.6%) and genuine basins appear (20.6%). Notably, the lowest recall occurs not at the rarest filters but in the 0 .1–1% bin (0.733 vs. 0.884 for < 0.1%). This is because recall is measured as a fraction of the ground truth set. At extreme sparsity, the ground truth set itself is very small (often fewer than k=25 matching points in the entire dataset), so finding even a modest number of filtered points yields high fractional recall. The 0.1–1% bin is the hardest regime in absolute terms: the fiber is sparse enough to cause topological cuts (92.6%) but the ground truth set is large enough that missing points significantly reduces recall. The underlying mechanism is that geometric folds require the fiber to be present in order to be misaligned. When the fiber is absent ( ρS ≈ 0), the only possible failure is topological: there is no fiber structure in the local neighborhood to be geometrically unfavorable. As the fiber becomes denser, it exists at the stall point but may slope away from q—a fold. At high density, the fiber is both present and well-connected, so stalls reflect genuine local minima of the potential on the fiber rather than structural damage. 
+
+## 8.4 Termination Reasons 
+
+Table 5 shows how termination reasons shift with selectivity. Table 5: Walk termination reason distribution by filter selectivity. 
+
+Selectivity Early stop Stall budget Max hops 
+
+< 0.1% 0.2% 96.1% 3.7% 0.1–1% 17.2% 72.1% 10.5% 1–5% 54.4% 37.1% 8.2% 5–20% 90.8% 5.1% 4.1% 
+
+> 20% 97.9% 2.1% 0.0% The pattern is consistent with the regime classification and now reveals three distinct termi-nation behaviors. At rare filters ( < 0.1%), the stall budget dominates (96.1%): the walk explores 19 the full graph productively but encounters no filtered neighbors for 100 consecutive expansions. As selectivity increases, early stopping takes over: the walk collects enough high-quality filtered results that the k-th best potential gates further exploration, indicating healthy fiber descent. Max hops termination is rare across all bins, confirming that the stall budget effectively identifies fiber-sparse regions and triggers restarts before the expansion budget is exhausted. 
+
+## 8.5 Stall Point Diagnostics 
+
+Table 6 reports mean diagnostic values at the stall point x∗, aggregated by regime. Table 6: Mean diagnostic values at stall point x∗ by regime. 
+
+Regime Count ρS |B−| Drift V (x∗) Recall 
+
+Topological cut 1237 0.0024 20.5 0.0890 0.4046 0.762 Geometric fold 300 0.1612 13.8 0.0716 0.3731 0.945 Genuine basin 29 0.6689 0.0 0.1078 0.2407 0.992 The three regimes separate cleanly along every diagnostic axis: 
+
+Fiber density. Topological cuts occur at ρS = 0 .0024—essentially zero. The fiber does not exist locally. Geometric folds occur at ρS = 0 .161: the fiber is present and navigable, but misaligned. Genuine basins occur at ρS = 0 .669: the fiber is dense and well-connected. 
+
+Boundary-improving set. Topological cuts have the largest |B−| (20.5): many unfiltered neigh-bors would improve the potential, confirming that the full graph has descent directions that the fiber cannot access. Geometric folds also have positive |B−| (13.8): improving directions exist outside the fiber, but unlike topological cuts, the fiber itself is present—it simply does not align with those directions. Genuine basins have |B−| = 0 exactly: no neighbor, filtered or unfiltered, offers improvement. The walk has reached a true local minimum. 
+
+Potential at stall. Topological cuts stall farthest from q (V = 0 .405): the walk cannot approach because the fiber is absent in the region near q. Geometric folds stall closer ( V = 0 .373): the walk approaches q on the full graph but the fiber neighborhood does not follow. Genuine basins stall closest ( V = 0 .241): the walk converges to the actual neighborhood of q on the fiber. 
+
+Recall. The recall progression across regimes (0 .762 → 0.945 → 0.992) reflects the severity of each failure mode. Topological cuts are the hardest to recover from because the fiber must be found in a completely different region; anchor restarts address this but cannot always recover full recall within the jump budget. Geometric folds are milder: the fiber exists nearby, and a restart from a different direction typically resolves the misalignment. Genuine basins require minimal recovery—the walk has already found most of the nearest filtered neighbors. 
+
+# 9 Conclusion 
+
+We presented a geometric framework for filtered approximate nearest neighbor search. Two local signals—fiber density, and drift—drive a two-phase search algorithm that begins with descent on filtered neighbors and falls back to full-graph exploration when the local geometry is unfavorable. 20 When the walk stalls, a lightweight anchor atlas restarts the search in a fiber-present region near the query. These same signals classify search failures into three regimes: topological cuts, geomet-ric folds, and genuine basins. The empirical analysis confirmed that the three regimes separate cleanly and shift predictably with filter selectivity: rare filters fail topologically, common filters fail geometrically. On a real-world dataset with filter selectivities spanning three orders of magnitude, the method outperforms FAISS HNSW under both post-filtering and traversal-time filtering, with near-zero failure rate. 
+
+Limitations. Our experiments use only one real-world dataset (105,100 vectors, 24 categorical metadata fields). Validation on larger-scale datasets and different domains would strengthen the generality claim. The implementation is in Python; a compiled implementation would be needed to evaluate latency competitively against production systems. 
+
+Future directions. The geometric framework is not tied to any specific base graph, though our results suggest a preference for graphs with dense local structure—characterizing which graph fam-ilies best support fiber descent is an open question. The anchor atlas currently handles conjunctive filters with single-value equality constraints; extending to set-valued predicates within a field is mechanically straightforward (Section 4.2) but has not been evaluated. Range predicates would require additional per-cluster structures such as histograms or min/max bounds. The hierarchical anchor structure described in Section 4.3 offers a path for scaling to larger datasets but requires empirical validation. The stall classification threshold between low and high ρS is currently heuris-tic; a principled, data-dependent threshold—perhaps derived from the global selectivity and graph degree—would make the diagnostic framework more robust. Finally, we plan to benchmark against recent filtered search methods such as Filtered-DiskANN and ACORN on standard evaluation datasets. 
+
+# References 
+
+[1] Anas Ait Aomar, Karima Echihabi, Marco Arnaboldi, Ioannis Alagiannis, Damien Hilloulin, and Manal Cherkaoui. Rwalks: Random walks as attribute diffusers for filtered vector search. 
+
+Proceedings of the ACM on Management of Data , 2025. [2] Yuzheng Cai, Jiayang Shi, Yizhuo Chen, and Weiguo Zheng. Navigating labels and vectors: A unified approach to filtered approximate nearest neighbor search. Proceedings of the ACM on Management of Data , 2024. [3] Thuong Dang. Fiber-navigable search: Source code, 2026. https://github.com/ thuongtuandang/fibered_ann .[4] Siddharth Gollapudi, Neel Karia, Varun Sivashankar, Ravishankar Krishnaswamy, Nikit Beg-wani, Swapnil Raz, Yiyong Lin, Yin Zhang, Neelam Mahapatro, Premkumar Srinivasan, Amit Singh, and Harsha Vardhan Simhadri. Filtered-diskann: Graph algorithms for approximate nearest neighbor search with filters. In Proceedings of the ACM Web Conference (WWW) ,2023. [5] Patrick Iff, Paul Bruegger, Marcin Chrapek, David Kochergin, Maciej Besta, and Torsten Hoe-fler. Benchmarking filtered approximate nearest neighbor search algorithms on transformer-based embedding vectors. arXiv preprint arXiv:2507.21989 , 2025. 21 [6] Jeff Johnson, Matthijs Douze, and Herv´ e J´ egou. Billion-scale similarity search with GPUs. 
+
+IEEE Transactions on Big Data , 7(3):535–547, 2019. [7] John M. Lee. Introduction to Smooth Manifolds , volume 218 of Graduate Texts in Mathematics .Springer, 2nd edition, 2013. [8] Yanjun Lin, Kai Zhang, Zhenying He, Yinan Jing, and X. Sean Wang. Survey of filtered approximate nearest neighbor search over the vector-scalar hybrid data. arXiv preprint arXiv:2505.06501 , 2025. [9] Yu. A. Malkov and D. A. Yashunin. Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs. IEEE Transactions on Pattern Analysis and Machine Intelligence , 42(4):824–836, 2020. [10] Liana Patel, Peter Kraft, Carlos Guestrin, and Matei Zaharia. Acorn: Performant and predicate-agnostic search over vector embeddings and structured data. Proceedings of the ACM on Management of Data , 2:1–27, 2024. [11] Qdrant. Ann filtered retrieval datasets, 2022. https://github.com/qdrant/ ann-filtering-benchmark-datasets .[12] Suhas Jayaram Subramanya, Fnu Devvrit, Harsha Vardhan Simhadri, Ravishankar Krish-naswamy, and Rohan Kadekodi. Diskann: Fast accurate billion-point nearest neighbor search on a single node. In Advances in Neural Information Processing Systems (NeurIPS) , 2019. [13] Mengzhao Wang, Lingwei Lv, Xiaoliang Xu, Yuxiang Wang, Qiang Yue, and Jiongkang Ni. An efficient and robust framework for approximate nearest neighbor search with attribute constraint. In Advances in Neural Information Processing Systems (NeurIPS) , 2023. [14] Ziqi Wang, Jingzhe Zhang, and Wei Hu. Wow: A window-to-window incremental index for range-filtering approximate nearest neighbor search. Proceedings of the ACM on Management of Data , 2025. [15] Wei Wu, Junlin He, Yu Qiao, Guoheng Fu, Li Liu, and Jin Yu. Hqann: Efficient and robust similarity search for hybrid queries with structured and unstructured constraints. In Proceed-ings of the 31st ACM International Conference on Information and Knowledge Management (CIKM) , 2022. [16] Weijie Zhao, Shulong Tan, and Ping Li. Constrained approximate similarity search on prox-imity graph. arXiv preprint arXiv:2210.14958 , 2022. [17] Chaoji Zuo, Miao Qiao, Wenchao Zhou, Feifei Li, and Dong Deng. Serf: Segment graph for range-filtering approximate nearest neighbor search. Proceedings of the ACM on Management of Data , 2024. 22

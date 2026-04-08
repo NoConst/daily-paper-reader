@@ -6,100 +6,106 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-07
-- 运行时间：2026-04-07 20:13:29 UTC
+- 最新运行日期：2026-04-08
+- 运行时间：2026-04-08 20:22:35 UTC
 - 运行状态：成功
-- 本次总论文数：26
-- 精读区：15
+- 本次总论文数：28
+- 精读区：17
 - 速读区：11
 
 ### 今日简报（AI）
-今日深度研读 26 篇 AI 论文，重点攻克高效检索适配与多目标可控生成两大满分前沿课题。
-推荐关注“先对齐后训练”的检索优化新范式，以及能同时兼顾多个控制目标的通用语言模型架构。
-建议优先研读两篇 10 分论文，掌握提升模型检索效率与生成可控性的核心技术。
-- 详情：[/202604/07/README](/202604/07/README)
+今日深度复盘 28 篇前沿论文，重点聚焦组合图像检索（CIR）在语义锚定与微调优化上的满分突破。
+研究揭示了超越传统搜索的新范式，并同步推出 AI 生成图像的个性化度量指标与医疗 VLM 的稀疏专家模型。
+建议优先研读 CIR 领域的两篇满分论文，掌握多模态检索从底层逻辑到性能提升的核心路径。
+- 详情：[/202604/08/README](/202604/08/README)
 
 ### 精读区论文标签
-1. [Align then Train: Efficient Retrieval Adapter Learning](/202604/07/2604.03403v1-align-then-train-efficient-retrieval-adapter-learning)  
+1. [Beyond Semantic Search: Towards Referential Anchoring in Composed Image Retrieval](/202604/08/2604.05393v1-beyond-semantic-search-towards-referential-anchoring-in-composed-image-retrieval)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：用于处理复杂查询的密集检索系统的高效检索适配器
-2. [One Model for All: Multi-Objective Controllable Language Models](/202604/07/2604.04497v1-one-model-for-all-multi-objective-controllable-language-models)  
+   evidence：对象锚定的组合图像检索及基准测试
+2. [WRF4CIR: Weight-Regularized Fine-Tuning Network for Composed Image Retrieval](/202604/08/2604.05583v1-wrf4cir-weight-regularized-fine-tuning-network-for-composed-image-retrieval)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：通过对齐个人人类偏好来创建个性化大语言模型
-3. [Task-Centric Personalized Federated Fine-Tuning of Language Models](/202604/07/2604.00050v2-task-centric-personalized-federated-fine-tuning-of-language-models)  
+   evidence：组合图像检索 (CIR) 与视觉语言预训练微调
+3. [MI-Pruner: Crossmodal Mutual Information-guided Token Pruner for Efficient MLLMs](/202604/08/2604.03072v1-mi-pruner-crossmodal-mutual-information-guided-token-pruner-for-efficient-mllms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：以任务为中心的语言模型个性化联邦微调
-4. [Jagle: Building a Large-Scale Japanese Multimodal Post-Training Dataset for Vision-Language Models](/202604/07/2604.02048v1-jagle-building-a-large-scale-japanese-multimodal-post-training-dataset-for-vision-language-models)  
+   evidence：多模态大模型的高效推理
+4. [Stabilizing Unsupervised Self-Evolution of MLLMs via Continuous Softened Retracing reSampling](/202604/08/2604.03647v1-stabilizing-unsupervised-self-evolution-of-mllms-via-continuous-softened-retracing-resampling)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于视觉语言模型的大规模多模态后训练数据集
-5. [SelRoute: Query-Type-Aware Routing for Long-Term Conversational Memory Retrieval](/202604/07/2604.02431v1-selroute-query-type-aware-routing-for-long-term-conversational-memory-retrieval)  
+   evidence：多模态大语言模型的无监督自我进化
+5. [User Simulator-Guided Multi-Turn Preference Optimization for Reasoning LLM-based Conversational Recommendation](/202604/08/2604.03671v1-user-simulator-guided-multi-turn-preference-optimization-for-reasoning-llm-based-conversational-recommendation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于对话记忆的密集检索模型
-6. [Token Warping Helps MLLMs Look from Nearby Viewpoints](/202604/07/2604.02870v1-token-warping-helps-mllms-look-from-nearby-viewpoints)  
+   evidence：基于大模型的对话式推荐，用于个性化用户偏好
+6. [Are LLM-Based Retrievers Worth Their Cost? An Empirical Study of Efficiency, Robustness, and Reasoning Overhead](/202604/08/2604.03676v1-are-llm-based-retrievers-worth-their-cost-an-empirical-study-of-efficiency-robustness-and-reasoning-overhead)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：通过Token扭曲改进多模态大模型的视觉推理
-7. [V-Reflection: Transforming MLLMs from Passive Observers to Active Interrogators](/202604/07/2604.03307v1-v-reflection-transforming-mllms-from-passive-observers-to-active-interrogators)  
+   evidence：基于LLM的检索器和密集检索基准的实证研究
+7. [High-Stakes Personalization: Rethinking LLM Customization for Individual Investor Decision-Making](/202604/08/2604.04300v1-high-stakes-personalization-rethinking-llm-customization-for-individual-investor-decision-making)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：将多模态大模型转变为针对细粒度任务的主动询问者
-8. [CoLA: Cross-Modal Low-rank Adaptation for Multimodal Downstream Tasks](/202604/07/2604.03314v1-cola-cross-modal-low-rank-adaptation-for-multimodal-downstream-tasks)  
+   evidence：针对个人投资者决策的个性化大模型系统
+8. [A Patch-based Cross-view Regularized Framework for Backdoor Defense in Multimodal Large Language Models](/202604/08/2604.04488v1-a-patch-based-cross-view-regularized-framework-for-backdoor-defense-in-multimodal-large-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：使用跨模态LoRA适配多模态基础模型
-9. [MMP-Refer: Multimodal Path Retrieval-augmented LLMs For Explainable Recommendation](/202604/07/2604.03666v1-mmp-refer-multimodal-path-retrieval-augmented-llms-for-explainable-recommendation)  
+   evidence：专注于多模态大语言模型（MLLM）的安全与防御机制
+9. [Firebolt-VL: Efficient Vision-Language Understanding with Cross-Modality Modulation](/202604/08/2604.04579v2-firebolt-vl-efficient-vision-language-understanding-with-cross-modality-modulation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：结合多模态路径检索与大语言模型的个性化推荐
-10. [Multimodal Structure Learning: Disentangling Shared and Specific Topology via Cross-Modal Graphical Lasso](/202604/07/2604.03953v1-multimodal-structure-learning-disentangling-shared-and-specific-topology-via-cross-modal-graphical-lasso)  
+   evidence：具有跨模态调制的低功耗视觉语言模型
+10. [MG$^2$-RAG: Multi-Granularity Graph for Multimodal Retrieval-Augmented Generation](/202604/08/2604.04969v1-mg2-rag-multi-granularity-graph-for-multimodal-retrieval-augmented-generation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：使用统一的视觉语言编码器将多模态特征对齐到共享潜空间
-11. [Many Preferences, Few Policies: Towards Scalable Language Model Personalization](/202604/07/2604.04144v1-many-preferences-few-policies-towards-scalable-language-model-personalization)  
+   evidence：用于多模态检索的多粒度图
+11. [Document Optimization for Black-Box Retrieval via Reinforcement Learning](/202604/08/2604.05087v1-document-optimization-for-black-box-retrieval-via-reinforcement-learning)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：可扩展的语言模型个性化
-12. [Beyond Standard Benchmarks: A Systematic Audit of Vision-Language Model's Robustness to Natural Semantic Variation Across Diverse Tasks](/202604/07/2604.04473v1-beyond-standard-benchmarks-a-systematic-audit-of-vision-language-models-robustness-to-natural-semantic-variation-across-diverse-tasks)  
+   evidence：黑盒密集检索的文档优化
+12. [A Multi-Agent Approach to Validate and Refine LLM-Generated Personalized Math Problems](/202604/08/2604.05160v1-a-multi-agent-approach-to-validate-and-refine-llm-generated-personalized-math-problems)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：视觉语言模型（VLM）鲁棒性的系统审计
-13. [Firebolt-VL: Efficient Vision-Language Understanding with Cross-Modality Modulation](/202604/07/2604.04579v1-firebolt-vl-efficient-vision-language-understanding-with-cross-modality-modulation)  
+   evidence：LLM生成的个性化数学问题
+13. [Thinking Diffusion: Penalize and Guide Visual-Grounded Reasoning in Diffusion Multimodal Language Models](/202604/08/2604.05497v1-thinking-diffusion-penalize-and-guide-visual-grounded-reasoning-in-diffusion-multimodal-language-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型的高效视觉语言理解
-14. [Beyond Hard Negatives: The Importance of Score Distribution in Knowledge Distillation for Dense Retrieval](/202604/07/2604.04734v1-beyond-hard-negatives-the-importance-of-score-distribution-in-knowledge-distillation-for-dense-retrieval)  
+   evidence：用于视觉接地推理的扩散多模态大语言模型
+14. [Let Geometry GUIDE: Layer-wise Unrolling of Geometric Priors in Multimodal LLMs](/202604/08/2604.05695v1-let-geometry-guide-layer-wise-unrolling-of-geometric-priors-in-multimodal-llms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：密集检索中的知识蒸馏
-15. [MemMachine: A Ground-Truth-Preserving Memory System for Personalized AI Agents](/202604/07/2604.04853v1-memmachine-a-ground-truth-preserving-memory-system-for-personalized-ai-agents)  
+   evidence：多模态大语言模型的渐进式几何先验注入框架
+15. [Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity](/202604/08/2604.05764v1-generative-retrieval-overcomes-limitations-of-dense-retrieval-but-struggles-with-identifier-ambiguity)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：个性化AI智能体的记忆系统
+   evidence：密集检索的局限性及其生成式替代方案
+16. [Masking or Mitigating? Deconstructing the Impact of Query Rewriting on Retriever Biases in RAG](/202604/08/2604.06097v1-masking-or-mitigating-deconstructing-the-impact-of-query-rewriting-on-retriever-biases-in-rag)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：查询重写对 RAG 中密集检索器偏差的影响
+17. [MMEmb-R1: Reasoning-Enhanced Multimodal Embedding with Pair-Aware Selection and Adaptive Control](/202604/08/2604.06156v1-mmemb-r1-reasoning-enhanced-multimodal-embedding-with-pair-aware-selection-and-adaptive-control)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：使用多模态大模型增强推理的多模态嵌入
 
 ### 速读区论文标签
-1. [GISTBench: Evaluating LLM User Understanding via Evidence-Based Interest Verification](/202604/07/2603.29112v1-gistbench-evaluating-llm-user-understanding-via-evidence-based-interest-verification)  
+1. [CLPIPS: A Personalized Metric for AI-Generated Image Similarity](/202604/08/2604.01234v1-clpips-a-personalized-metric-for-ai-generated-image-similarity)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：评估大语言模型在个性化推荐中的用户理解和兴趣验证能力
-2. [AGFT: Alignment-Guided Fine-Tuning for Zero-Shot Adversarial Robustness of Vision-Language Models](/202604/07/2603.29410v1-agft-alignment-guided-fine-tuning-for-zero-shot-adversarial-robustness-of-vision-language-models)  
+   evidence：适应人类判断的个性化图像相似度度量
+2. [Sparse Spectral LoRA: Routed Experts for Medical VLMs](/202604/08/2604.01310v1-sparse-spectral-lora-routed-experts-for-medical-vlms)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：视觉语言模型的零样本鲁棒性微调
-3. [LinguDistill: Recovering Linguistic Ability in Vision- Language Models via Selective Cross-Modal Distillation](/202604/07/2604.00829v2-lingudistill-recovering-linguistic-ability-in-vision--language-models-via-selective-cross-modal-distillation)  
+   evidence：使用混合专家模型的参数高效型医疗视觉语言模型
+3. [STABLE: Efficient Hybrid Nearest Neighbor Search via Magnitude-Uniformity and Cardinality-Robustness](/202604/08/2604.01617v1-stable-efficient-hybrid-nearest-neighbor-search-via-magnitude-uniformity-and-cardinality-robustness)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：将预训练语言模型适配为视觉语言模型
-4. [HippoCamp: Benchmarking Contextual Agents on Personal Computers](/202604/07/2604.01221v1-hippocamp-benchmarking-contextual-agents-on-personal-computers)  
+   evidence：大规模异构数据的混合最近邻搜索
+4. [Language-Pretraining-Induced Bias: A Strong Foundation for General Vision Tasks](/202604/08/2604.01833v2-language-pretraining-induced-bias-a-strong-foundation-for-general-vision-tasks)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：在个人文件和用户画像上评估智能体
-5. [Fiber-Navigable Search: A Geometric Approach to Filtered ANN](/202604/07/2604.00102v1-fiber-navigable-search-a-geometric-approach-to-filtered-ann)  
+   evidence：模态适配学习器，将LLM参数与视觉任务对齐
+5. [IDDM: Identity-Decoupled Personalized Diffusion Models with a Tunable Privacy-Utility Trade-off](/202604/08/2604.00903v1-iddm-identity-decoupled-personalized-diffusion-models-with-a-tunable-privacy-utility-trade-off)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：过滤式近似最近邻搜索的几何方法
-6. [Adapting Text LLMs to Speech via Multimodal Depth Up-Scaling](/202604/07/2604.00489v1-adapting-text-llms-to-speech-via-multimodal-depth-up-scaling)  
+   evidence：具有隐私权衡的个性化文本到图像扩散模型
+6. [Brainstacks: Cross-Domain Cognitive Capabilities via Frozen MoE-LoRA Stacks for Continual LLM Learning](/202604/08/2604.01152v1-brainstacks-cross-domain-cognitive-capabilities-via-frozen-moe-lora-stacks-for-continual-llm-learning)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：通过多模态深度上采样将文本大模型适配至语音
-7. [AceTone: Bridging Words and Colors for Conditional Image Grading](/202604/07/2604.00530v1-acetone-bridging-words-and-colors-for-conditional-image-grading)  
+   evidence：使用冻结适配器堆栈进行持续大语言模型学习的模块化架构
+7. [BidirLM: From Text to Omnimodal Bidirectional Encoders by Adapting and Composing Causal LLMs](/202604/08/2604.02045v1-bidirlm-from-text-to-omnimodal-bidirectional-encoders-by-adapting-and-composing-causal-llms)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：基于视觉语言模型的多模态条件图像调色
-8. [TALENT: Target-aware Efficient Tuning for Referring Image Segmentation](/202604/07/2604.00609v1-talent-target-aware-efficient-tuning-for-referring-image-segmentation)  
+   evidence：将因果LLM适配并组合成全模态双向编码器
+8. [Neuro-RIT: Neuron-Guided Instruction Tuning for Robust Retrieval-Augmented Language Model](/202604/08/2604.02194v1-neuro-rit-neuron-guided-instruction-tuning-for-robust-retrieval-augmented-language-model)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：视觉语言指代图像分割的高效微调
-9. [Revisiting Human-in-the-Loop Object Retrieval with Pre-Trained Vision Transformers](/202604/07/2604.00809v1-revisiting-human-in-the-loop-object-retrieval-with-pre-trained-vision-transformers)  
+   evidence：用于鲁棒检索增强模型的神经元引导指令微调
+9. [ContextBudget: Budget-Aware Context Management for Long-Horizon Search Agents](/202604/08/2604.01664v1-contextbudget-budget-aware-context-management-for-long-horizon-search-agents)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：人在回路的目标检索与相关性反馈
-10. [ReFormeR: Learning and Applying Explicit Query Reformulation Patterns](/202604/07/2604.01417v1-reformer-learning-and-applying-explicit-query-reformulation-patterns)  
+   evidence：基于大模型的搜索智能体与上下文管理
+10. [Scaling Coding Agents via Atomic Skills](/202604/08/2604.05013v1-scaling-coding-agents-via-atomic-skills)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：用于改进检索上下文的查询重构模式
-11. [Riemannian and Symplectic Geometry for Hierarchical Text-Driven Place Recognition](/202604/07/2604.01598v1-riemannian-and-symplectic-geometry-for-hierarchical-text-driven-place-recognition)  
+   evidence：复杂任务的可组合原子技能
+11. [Right at My Level: A Unified Multilingual Framework for Proficiency-Aware Text Simplification](/202604/08/2604.05302v1-right-at-my-level-a-unified-multilingual-framework-for-proficiency-aware-text-simplification)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：用于定位的文本驱动相似性检索
+   evidence：使用LLM进行个性化文本简化
 
 
 <div class="dpr-home-promo-card">

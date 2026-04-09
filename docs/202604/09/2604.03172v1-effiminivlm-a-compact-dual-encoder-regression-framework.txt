@@ -1,0 +1,151 @@
+Title: EffiMiniVLM: A Compact Dual-Encoder Regression Framework
+
+URL Source: https://arxiv.org/pdf/2604.03172v1
+
+Published Time: Mon, 06 Apr 2026 00:57:41 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# EffiMiniVLM: A Compact Dual-Encoder Regression Framework 
+
+## Yin-Loon Khor ∗ Yi-Jie Wong ∗† Yan Chai Hum †
+
+## Universiti Malaya Universiti Tunku Abdul Rahman Universiti Tunku Abdul Rahman Kuala Lumpur 50603, Malaysia Selangor 43000, Malaysia Selangor 43000, Malaysia 
+
+yinloonkhor@gmail.com yjwong1999@gmail.com humyc@utar.edu.my  
+
+> ∗
+
+indicates co-first author, † indicates corresponding author 
+
+## Abstract 
+
+Predicting product quality from multimodal item informa-tion is critical in cold-start scenarios, where user inter-action history is unavailable and predictions must rely on images and textual metadata. However, existing vi-sion–language models typically depend on large architec-tures and/or extensive external datasets, resulting in high computational cost. To address this, we propose Effi-MiniVLM, a compact dual-encoder vision–language regres-sion framework that integrates an EfficientNet-B0 image en-coder and a MiniLM-based text encoder with a lightweight regression head. To improve training sample efficiency, we introduce a weighted Huber loss that leverages rating counts to emphasize more reliable samples, yielding con-sistent performance gains. Trained using only 20% of the Amazon Reviews 2023 dataset, the proposed model contains 27.7M parameters and requires 6.8 GFLOPs, yet achieves a CES score of 0.40 with the lowest resource cost in the benchmark. Despite its small size, it remains competi-tive with significantly larger models, achieving compara-ble performance while being approximately 4× to 8× more resource-efficient than other top-5 methods and being the only approach that does not use external datasets. Further analysis shows that scaling the data to 40% alone allows our model to overtake other methods, which use larger mod-els and datasets, highlighting strong scalability despite the model’s compact design. 
+
+Keywords: vision-language model, multimodal regres-sion, product quality scoring, resource-efficient, dataset scaling 
+
+## 1. Introduction 
+
+Predicting product quality from multimodal item informa-tion is closely related to the cold-start recommendation set-ting, where reliable user-side interaction history may be limited or unavailable. In such scenarios, product qual-ity must be inferred primarily from item-side signals, such as images and textual metadata, rather than collaborative behavioural patterns. This makes the task both practi-cally important and technically challenging, since visual appearance and textual descriptions often provide comple-mentary but noisy evidence about product quality and user perception. Recent multimodal learning approaches have demonstrated the effectiveness of combining vision and language representations for downstream prediction tasks [2, 3, 8, 9, 12, 18]. However, strong performance is often associated with increasingly large backbones and high com-putational cost [6]. In practical settings, especially under competition or deployment constraints, predictive accuracy alone is insufficient and resource efficiency is also a criti-cal consideration. Therefore, an effective solution should achieve a favourable trade-off between predictive quality and computational cost. Despite this need, relatively lim-ited work has focused on lightweight multimodal regres-sion models tailored to item-only product quality predic-tion. This gap motivates the development of compact ar-chitectures that can operate effectively under strict resource constraints. To address this challenge, we develop EffiMiniVLM, a compact dual-encoder regression framework that combines an EfficientNet-B0 image encoder with a MiniLM-based text encoder to jointly model product images and meta-data. Instead of relying on large-scale architectures or ex-ternal training data, our design focuses on maintaining a lightweight and efficient pipeline while still capturing use-ful multimodal information for rating prediction. The ex-perimental results show that this resource-efficient design remains competitive and further analysis suggests that the framework retains substantial headroom for improvement as the training data scale increases. This work is submitted as our solution to the CVPR 2026 Challenge on Efficient VLM for Multimodal Creative Quality Scoring. 1 
+
+> 1Code available at https : / / github . com / yinloonkhor / CVPR2026-EffiMiniVLM .
+> arXiv:2604.03172v1 [cs.CV] 3 Apr 2026
+
+## 2. Related Works 
+
+2.1. Multimodal Learning 
+
+Prior work in multimodal learning explores a spectrum of fusion strategies, ranging from coordinated (late fusion) to fully joint architectures. Early approaches often adopt late fusion, where modality-specific encoders are trained inde-pendently and combined at the representation or decision level. This paradigm is exemplified by dual-encoder models such as CLIP [12], which learn aligned embeddings via con-trastive objectives. Follow-up works, including FILIP [18], extend this design with finer-grained matching while main-taining encoder independence. In contrast, intermediate and early fusion approaches introduce explicit cross-modal in-teraction, as in cross-attention architectures (e.g., ViLBERT [9]) and unified transformers (e.g., UNITER [3]), enabling richer token-level alignment. More recent vision–language models further integrate generative objectives and large lan-guage models, as seen in approaches such as BLIP-2 [8] and PaLI [2], which couple pretrained vision encoders with powerful language decoders to support multimodal reason-ing and instruction following. Despite its simplicity, late fusion remains widely adopted due to its scalability and ef-ficiency: independent encoding supports large-scale train-ing and fast retrieval via nearest-neighbour search [6, 12], facilitates modular design and transfer [11, 19], and avoids the quadratic cost of cross-modal attention. These prop-erties make late fusion a dominant paradigm in modern multimodal learning and a key foundation for recent vi-sion–language models. 
+
+2.2. Product Rating Prediction 
+
+Product rating prediction has been widely studied using both product- and review-side information. Early meth-ods rely on contextual signals, including user history and review context, to improve prediction accuracy. For in-stance, Amirifar et al. [1] show that such context-aware ap-proaches benefit from user- and review-level information, but are less suitable for strict cold-start scenarios where these signals are unavailable at inference time. They fur-ther propose a three-stage framework that combines general product attributes with customer-salient features extracted from reviews via named entity recognition, demonstrating that enhanced product-side features improve rating estima-tion [1]. More recently, multimodal learning has emerged as a promising direction for capturing complementary sig-nals from different data sources. Su et al. [13] show that combining textual, visual, and structured inputs yields con-sistent improvements over unimodal models in vehicle rat-ing prediction, while Han et al. [4] demonstrate in a re-lated regression task that integrating text and image features via attention and contrastive learning improves prediction quality with efficient representations. Taken together, these findings suggest that multimodal item representations are particularly advantageous in cold-start settings where col-laborative user signals are absent. However, relatively lim-ited work has focused on lightweight multimodal regres-sion models specifically tailored for item-only product rat-ing prediction. 
+
+## 3. Methodology 
+
+3.1. Model Architecture 
+
+Unlike other teams, our proposed model, EffiMiniVLM, is designed with efficiency as the primary objective. The model has the lowest resource cost of 0.1, containing only 27.7M parameters and requiring merely 6.8 GFLOPs. De-spite this extremely small computational footprint, Effi-MiniVLM achieves a final CES score of 0.4 and is the only model within the top five positions with a resource cost be-low 0.4. This result demonstrates that carefully designed lightweight architectures can remain competitive with sig-nificantly larger models. EffiMiniVLM follows a simple yet effective design. It is a dual-encoder vision–language regression model that pre-dicts product quality scores from both image and text in-puts. For the visual branch, EffiMiniVLM employs a pre-trained EfficientNet-B0 [14] to extract compact and dis-criminative image features. This backbone is selected for its strong balance between representational capacity and com-putational efficiency. For the textual branch, a pretrained MiniLMv2-L6-H384 transformer encoder [16] processes product metadata to produce dense semantic embeddings that capture contextual and descriptive information not di-rectly observable from images. The visual and textual em-beddings are concatenated to form a joint multimodal rep-resentation, which is then passed to a lightweight multilayer perceptron regression head to predict a scalar product qual-ity score. No ensembling or advanced multimodal fusion module is used. By leveraging the complementary nature of visual and textual information, the model integrates vi-sual cues from product images with semantic information extracted from structured textual metadata within a unified multimodal framework. An overview of the model is shown in Figure 1. To improve robustness in real-world scenarios, Effi-MiniVLM is designed to handle incomplete multimodal in-puts. When image data are unavailable, the model can still operate using only the textual branch, enabling reli-able predictions under missing-modality conditions. Over-all, EffiMiniVLM integrates an efficient convolutional im-age encoder, a compact transformer-based text encoder and a lightweight fusion-based regression head into a flexible and resource-efficient multimodal prediction framework. Figure 1. Model architecture of the proposed EffiMiniVLM. 
+
+3.2. Dataset 
+
+For this challenge, we utilize only the Amazon Reviews 2023 dataset for training [5] without any additional data. We select 25 categories and preprocess them carefully in ac-cordance with the challenge’s input constraints. Each train-ing instance is constructed by concatenating the main cate-gory, title, features and description of an item. To improve data quality, we keep only samples with complete essen-tial metadata, including the main category, title, features, description, average rating and rating number. We adopt a preprocessing strategy similar to that in [5], which includes removing special characters such as tabs, newlines and car-riage returns, as well as excluding instances with contextual or item metadata shorter than 30 characters. Due to com-putational constraints, only 20% of the full training set is used. Following evidence that balanced distributions ben-efit smaller models [17], we apply per-category sampling with a 10,000-sample minimum. Specifically, each cate-gory contributes max(20% × n, 10,000) samples, where n is the filtered category size. This prevents domination by high-volume categories and ensures diverse product cov-erage. The resulting dataset is split into training, valida-tion and test sets in an 8:1:1 ratio, yielding approximately 2.1 million processed instances in total, including about 1.6 million training instances. 
+
+3.3. Training Details 
+
+In the training process, we use the BERT tokenizer with a maximum input length of 256 tokens. Each training in-stance contains one image, which is resized to 224x224 and normalized with ImageNet statistics. The proposed Effi-MiniVLM model contains 27.7M active parameters and re-quires 6.8 GFLOPs, thereby maintaining a lightweight de-sign. No additional acceleration or compression techniques are used and no external data beyond the competition-provided dataset are incorporated. The model is trained for up to 10 epochs with a batch size of 32, a dropout rate of 0.1 and a learning rate of 2 × 10 −5. A cosine learning-rate scheduler with a warmup ratio of 0.1 is employed, while gradient clipping with a maximum norm of 1.0 is applied for stability. To preserve label distribution during parti-tioning, stratification is performed according to the average rating, with rare rating values appearing 50 times or fewer grouped into a shared rare bucket. For optimization, we use a weighted Huber loss in which per-sample weights are derived from the logarithm of the rating number, normal-ized by the training-set mean and clipped at 5.0 to place greater emphasis on items with more ratings. The weight-ing scheme is formally defined as follows. For fair evalua-tion, the validation and test sets are assessed using the un-weighted Huber loss. Model performance is measured us-ing the Pearson Linear Correlation Coefficient (PLCC) and checkpoint selection is based on the best validation PLCC. Early stopping with a patience of one epoch is applied and most models converge after approximately four epochs. Let ri be the rating number for sample i in the training set. The mean logarithmic rating number over all N training samples is defined as: 
+
+μ = 1
+
+N
+
+> N
+
+X
+
+> j=1
+
+log(1 + rj ) (1) Accordingly, the weight assigned to sample i is com-puted as: 
+
+wi = min 
+
+ log(1 + ri)
+
+μ , 5.0
+
+
+
+(2) Then the weighted training loss for a batch of size B is given by: 
+
+L = 1
+
+B
+
+> B
+
+X
+
+> i=1
+
+wi · Huber(ˆ yi, y i) (3) where ˆyi denotes the predicted rating and yi denotes the ground-truth average rating. 
+
+## 4. Results and Discussions 
+
+4.1. Experimental Results 
+
+To evaluate the effect of the proposed rating-count-based weighted Huber loss, we conduct a targeted compari-son against the baseline setting using EfficientNet-B0 and MiniLM-L6-H384 on a 5% subset of the training data, comprising approximately 420k samples without balanced main-category sampling. As shown in Table 1, introducing the weighted Huber loss improves the training PLCC from 0.3336 to 0.3649 and the validation PLCC from 0.3205 to 0.3306. This indicates that emphasizing samples with larger rating number provides a modest but consistent benefit. 
+
+Table 1. Effect of weighted Huber loss on EffiMiniVLM          
+
+> Method Model Size (M) Train PLCC Valid PLCC
+> Baseline 27.7 0.3336 0.3205 Weighted Huber Loss 27.7 0.3649 0.3306
+
+To further investigate the impact of data scale and text encoder choice, Table 2 compares different configurations. The first three rows report results on the workshop devel-opment set for models trained with increasing amounts of data. The last two rows report workshop test-set results for the 1.6M-sample setting with different text encoders. The results show that performance improves consistently as the training data size increases, and replacing MiniLM-L6-H384 with MiniLMv2-L6-H384-distilled-from-BERT-Large further improves performance, achieving the best re-sults of 0.36 PLCC and 0.40 CES. 
+
+4.2. Efficiency Analysis 
+
+To assess the runtime efficiency of the proposed solution, we measure inference performance on a Dell Pro Max 16 
+
+Table 2. Performance comparison of different data scales and text encoders on the workshop development and test sets                  
+
+> Data Size Model PLCC CES
+> Workshop development set
+> 195k (1%) MiniLM-L6-H384 0.30 0.33 470k (5%) MiniLM-L6-H384 0.32 0.36 871k (10%) MiniLM-L6-H384 0.33 0.36
+> Workshop test set
+> 1.6M (20%) MiniLM-L6-H384 0.35 0.39 1.6M (20%) MiniLMv2-L6-H384-distilled-from-BERT-Large 0.36 0.40
+
+Table 3. Efficiency metrics of EffiMiniVLM                    
+
+> Metric Value
+> Total Parameters (M) 27.7 Active Parameters (M) 27.7 FLOPs (G) 6.8 Hardware Dell Pro Max 16 (NVIDIA RTX PRO 2000 Blackwell GPU) Batch size 32 Timing scope End-to-end Warmup batches 5Measured batches 762 Measured samples 24,361 Measured input tokens 4,840,498 Total runtime (s) 63.16 Latency (ms/sample) 2.59 Latency (ms/token) 0.0130 Throughput (samples/s) 385.68 Throughput (tokens/s) 76,633.66 Peak VRAM allocated (MB) 454.06 Peak VRAM reserved (MB) 678.00 Acceleration techniques None
+
+platform equipped with a single NVIDIA RTX PRO 2000 Blackwell GPU. Table 3 summarizes the complete set of ef-ficiency metrics and experimental settings. All efficiency results are obtained using end-to-end inference timing with a batch size of 32 and five warm-up batches before mea-surement. The reported metrics are computed over 24,361 test samples, comprising a total of 4,840,498 input tokens. EffiMiniVLM contains 27.7M total parameters, all of which are active during inference, with a computational cost of 6.8 GFLOPs. The model achieves a total run-time of 63.16 s, corresponding to an average inference la-tency of 2.59 ms/sample and 0.0130 ms/token. The mea-sured throughput reaches 385.68 samples/s and 76,633.66 tokens/s. In addition, GPU memory usage remains low, with a peak allocated VRAM of 454.06 MB and a peak re-served VRAM of 678.00 MB. Overall, these results indicate that EffiMiniVLM delivers strong inference efficiency with low memory overhead, supporting the resource-efficient ob-jective of the challenge. 
+
+4.3. Quantitative and Qualitative Advantages 
+
+Quantitative Analysis : Since our primary objective is to maximize resource efficiency, our method achieves the low-est resource cost on the leaderboard, at only 0.1. In com-Figure 2. Extrapolation of the scaling behaviour with increasing training data 
+
+parison, teams ps3336 and skywalker5165 obtain a simi-lar PLCC score of 0.37, which is only 0.01 higher than our score, while requiring approximately four times more computational resources. A similar pattern can also be ob-served in the higher performance regime. For example, team wleach achieves the same final score of CES 0.40 as our method, but with an eightfold increase in resource cost. In contrast, the top three teams on the leaderboard report resource costs ranging from 0.46 to 0.55, which is approximately around the median resource cost across all submissions. This highlights that competitive performance is typically associated with substantially higher computa-tional budgets, whereas our method operates in a signifi-cantly lower resource regime. We further analyze the effect of training data scaling. As shown in Figure 2, increasing the training data from 1% to 20% leads to a consistent improvement in PLCC, from 0.30 to 0.35. Empirical studies on neural scaling laws [7] suggest that model performance follows a sublinear power-law relationship with data size, with diminishing gains as model capacity becomes the limiting factor. Motivated by this behavior, we extrapolate the PLCC curve beyond the measured regime using a saturating power-law model. Ex-trapolation to 100% data usage yields an estimated PLCC in the range of 0.365 to 0.402. When translated to the CES metric, this corresponds to a range of 0.4015 to 0.4422, with a most likely estimate of approximately 0.4235. This CES score of ˜ 0.42 is sufficient to rival even the 3 rd spot on the leaderboard with the lowest resource cost of 0.1. In fact, for exploratory purposes, we evaluated the im-pact of dataset scaling on a custom train/validation split based on the provided training set. As shown in Table 4, we observed that increasing the dataset utilization rate to 40% improved model performance, achieving PLCC and CES scores of 0.3884 and 0.4272, respectively. These re-sults demonstrate the viability of dataset scaling and align with our extrapolation results in Figure 2, although they are based on a different evaluation set. Nevertheless, Table 4 presents the results of scaling the dataset from 10% to 40% on a custom train/validation split, indicating the potential for further improvement with more data. 
+
+Qualitative Analysis : An important observation is that our approach is the only method achieving a final CES score of 0.40 or higher without using additional training datasets. This constraint is primarily due to limited computational re-sources, yet the results demonstrate that competitive per-formance can still be achieved under strict efficiency con-straints. Moreover, our current implementation does not in-corporate techniques such as knowledge distillation or the use of external datasets, which are adopted by several top-performing teams. This suggests that the current results do not yet reflect the full potential of the proposed framework. For instance, the extrapolation is based on EffiMiniVLM using MiniLM-L6-H384 as the text encoder. Replacing it with MiniLMv2-L6-H384-distilled-from-BERT-Large, as indicated in Table 2, already provides measurable improve-ments. Also, Table 4 demonstrates that our model can be further improved simply by scaling the dataset. Given its extremely low resource requirement, we believe that our EffiMiniVLM framework provides a strong foundation and could achieve even higher scores when combined with larger-scale training data. 
+
+4.4. Novelty Degree 
+
+To the best of our knowledge, the proposed method is the first to combine EfficientNet with MiniLM for a lightweight multimodal regression task. However, we observe similar models that use MiniLM for lightweight multimodal lan-guage modeling [15] and visual question answering (VQA) [10]. The research work in [15] uses EfficientDet for the visual branch, totaling 53.2M parameters. Meanwhile, re-search work [10] uses a Vision Transformer (ViT) with 86M parameters as the vision encoder, coupling with MiniLM. In both cases, our proposed EffiMiniVLM with 27.7M pa-rameters is significantly smaller than these two models, al-though the use cases differ. 
+
+## 5. Conclusions 
+
+In this work, we present EffiMiniVLM, a lightweight vi-sion–language regression model designed with efficiency as the primary objective. Despite using only 27.7M param-eters and 6.8 GFLOPs, our method achieves a final CES score of 0.40 while maintaining the lowest resource cost of 0.1 among all submissions. These results demonstrate that carefully designed compact multimodal architectures can remain competitive with significantly larger models. Our experiments further show that performance consistently im-proves as training data increases, suggesting that the cur-rent model has not yet reached its capacity limit. Extrapo-Table 4. Post-Challenge Exploration of the Impact of Dataset Scaling on a Custom Train/Validation Split                          
+
+> Model Data Used Custom Val PLCC Custom Val CES Test PLCC Test CES MiniLM-L6-H384-uncased 871K (10%) 0.3511 0.3862 0.33 0.36 MiniLM-L6-H384-uncased 1.6M (20%) 0.3635 0.3999 0.35 0.39 MiniLMv2-L6-H384-distilled-from-BERT-Large 1.6M (20%) 0.3648 0.4013 0.36 0.40 MiniLMv2-L6-H384-distilled-from-BERT-Large 3.3M (40%) 0.3884 0.4274 ––
+
+lation based on neural scaling behaviour indicates that Ef-fiMiniVLM could achieve even higher performance when trained on the full dataset. Future work will explore scal-ing the training data, incorporating additional datasets and applying knowledge distillation to further improve perfor-mance while maintaining strong resource efficiency. 
+
+## References 
+
+[1] Tolou Amirifar, Salim Lahmiri, and Masoumeh Kazemi Zan-jani. An nlp-deep learning approach for product rating pre-diction based on online reviews and product features. IEEE Transactions on Computational Social Systems , 11(6):8156– 8168, 2024. 2 [2] Xi Chen, Xiao Wang, Soravit Changpinyo, AJ Piergiovanni, Piotr Padlewski, Daniel Salz, Sebastian Goodman, Adam Grycner, Basil Mustafa, Lucas Beyer, Alexander Kolesnikov, Joan Puigcerver, Nan Ding, Keran Rong, Hassan Akbari, Gaurav Mishra, Linting Xue, Ashish Thapliyal, James Brad-bury, Weicheng Kuo, Mojtaba Seyedhosseini, Chao Jia, Burcu Karagol Ayan, Carlos Riquelme, Andreas Steiner, Anelia Angelova, Xiaohua Zhai, Neil Houlsby, and Radu Soricut. Pali: A jointly-scaled multilingual language-image model. arXiv preprint , 2023. 1, 2 [3] Yen-Chun Chen, Linjie Li, Licheng Yu, Ahmed El Kholy, Faisal Ahmed, Zhe Gan, Yu Cheng, and Jingjing Liu. Uniter: Universal image-text representation learning. In Computer Vision – ECCV 2020 , pages 104–120, Cham, 2020. Springer International Publishing. 1, 2 [4] Wei Han, Hui Chen, Zhen Hai, Soujanya Poria, and Lidong Bing. SANCL: Multimodal review helpfulness prediction with selective attention and natural contrastive learning. In 
+
+Proceedings of the 29th International Conference on Com-putational Linguistics , pages 5666–5677, Gyeongju, Repub-lic of Korea, 2022. International Committee on Computa-tional Linguistics. 2 [5] Yupeng Hou, Jiacheng Li, Zhankui He, An Yan, Xiusi Chen, and Julian McAuley. Bridging language and items for re-trieval and recommendation. arXiv preprint , 2024. 3 [6] Jeff Johnson, Matthijs Douze, and Herv´ e J´ egou. Billion-scale similarity search with gpus. IEEE Transactions on Big Data , 7(3):535–547, 2021. 1, 2 [7] Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B. Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. Scaling laws for neural language models. arXiv preprint , 2020. 5 [8] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. BLIP-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In Pro-ceedings of the 40th International Conference on Machine Learning , pages 19730–19742. PMLR, 2023. 1, 2 [9] Jiasen Lu, Dhruv Batra, Devi Parikh, and Stefan Lee. Vil-bert: Pretraining task-agnostic visiolinguistic representations for vision-and-language tasks. In Advances in Neural Infor-mation Processing Systems . Curran Associates, Inc., 2019. 1, 2 [10] Abtahi Noor, Raiyan Habib Mahe, Azwad Aziz, Amitabha Chakrabarty, Ridwan Noor Tasin, Md Fahim Ul Islam, and Rafeed Rahman. Lightweight visual question answering (VQA) model for skin disease detection. In 2025 7th In-ternational Conference on Electrical Information and Com-munication Technology (EICT) , pages 1–6, 2025. 5 [11] Hieu Pham, Zihang Dai, Golnaz Ghiasi, Kenji Kawaguchi, Hanxiao Liu, Adams Wei Yu, Jiahui Yu, Yi-Ting Chen, Minh-Thang Luong, Yonghui Wu, Mingxing Tan, and Quoc V. Le. Combined scaling for zero-shot transfer learn-ing. Neurocomputing , 555:126658, 2023. 2 [12] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. Learning transferable visual models from natural language supervision. In Proceedings of the 38th International Conference on Machine Learning ,pages 8748–8763. PMLR, 2021. 1, 2 [13] Hanqi Su, Binyang Song, and Faez Ahmed. Multi-modal machine learning for vehicle rating predictions using image, text, and parametric data. In Volume 2: 43rd Computers and Information in Engineering Conference (CIE) . American So-ciety of Mechanical Engineers, 2023. 2 [14] Mingxing Tan and Quoc Le. EfficientNet: Rethinking model scaling for convolutional neural networks. In Proceedings of the 36th International Conference on Machine Learning ,pages 6105–6114. PMLR, 2019. 2 [15] Jianfeng Wang, Xiaowei Hu, Pengchuan Zhang, Xiujun Li, Lijuan Wang, Lei Zhang, Jianfeng Gao, and Zicheng Liu. Minivlm: A smaller and faster vision-language model. arXiv preprint , 2021. 5 [16] Wenhui Wang, Hangbo Bao, Shaohan Huang, Li Dong, and Furu Wei. Minilmv2: Multi-head self-attention relation dis-tillation for compressing pretrained transformers. In Find-ings of the Association for Computational Linguistics: ACL-IJCNLP 2021 , pages 2140–2151, 2021. 2 [17] Yi Jie Wong, Jing Jie Tan, Mau-Luen Tham, Ban-Hoe Kwan, and Yan Chai Hum. Tri-axial scaling in aerial object detec-tion: Model size, dataset size and quality, and test-time in-ference in the cadot challenge. In 2025 IEEE International Conference on Image Processing Workshops (ICIPW) , pages 25–30, 2025. 3 [18] Lewei Yao, Runhui Huang, Lu Hou, Guansong Lu, Minzhe Niu, Hang Xu, Xiaodan Liang, Zhenguo Li, Xin Jiang, and Chunjing Xu. Filip: Fine-grained interactive language-image pre-training. arXiv preprint , 2021. 1, 2 [19] Xiaohua Zhai, Xiao Wang, Basil Mustafa, Andreas Steiner, Daniel Keysers, Alexander Kolesnikov, and Lucas Beyer. Lit: Zero-shot transfer with locked-image text tuning. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vi-sion and Pattern Recognition (CVPR) , pages 18123–18133, 2022. 2

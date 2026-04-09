@@ -1,0 +1,908 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-04-09T20:10:05.262174+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 32,
+    "deep_cap": 6,
+    "deep_selected": 12,
+    "quick_candidates": 45,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2604.05764v2",
+      "title": "Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity",
+      "abstract": "While dense retrieval models, which embed queries and documents into a shared low-dimensional space, have gained widespread popularity, they were shown to exhibit important theoretical limitations and considerably lag behind traditional sparse retrieval models in certain settings. Generative retrieval has emerged as an alternative approach to dense retrieval by using a language model to predict query-document relevance directly. In this paper, we demonstrate strengths and weaknesses of generative retrieval approaches using a simple synthetic dataset, called LIMIT, that was previously introduced to empirically demonstrate the theoretical limitations of embedding-based retrieval but was not used to evaluate generative retrieval. We close this research gap and show that generative retrieval achieves the best performance on this dataset without any additional training required (0.92 and 0.99 R@2 for SEAL and MINDER, respectively), compared to dense approaches (< 0.03 Recall@2) and BM25 (0.86 R@2). However, we then proceed to extend the original LIMIT dataset by adding simple hard negative samples and observe the performance degrading for all the models including the generative retrieval models (0.51 R@2) as well as BM25 (0.21 R@2). Error analysis identifies a failure in the decoding mechanism, caused by the inability to produce identifiers that are unique to relevant documents. Future generative retrieval must address these issues, either by designing identifiers that are more suitable to the decoding process or by adapting decoding and scoring algorithms to preserve relevance signals.",
+      "authors": [
+        "Adrian Bracher",
+        "Svitlana Vakulenko"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-07T12:08:00+00:00",
+      "link": "https://arxiv.org/pdf/2604.05764v2",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Evaluation of dense retrieval systems and their theoretical limitations",
+      "llm_evidence_cn": "评估密集检索系统及其理论局限性",
+      "llm_evidence": "评估密集检索系统及其理论局限性",
+      "canonical_evidence": "评估密集检索系统及其理论局限性",
+      "llm_tldr_en": "Investigates generative retrieval's ability to address the theoretical shortcomings of dense retrieval systems.",
+      "llm_tldr_cn": "研究了生成式检索在解决密集检索系统理论缺陷方面的能力。",
+      "llm_tldr": "研究了生成式检索在解决密集检索系统理论缺陷方面的能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "dense retrieval systems",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.07201v1",
+      "title": "BRIDGE: Multimodal-to-Text Retrieval via Reinforcement-Learned Query Alignment",
+      "abstract": "Multimodal retrieval systems struggle to resolve image-text queries against text-only corpora: the best vision-language encoder achieves only 27.6 nDCG@10 on MM-BRIGHT, underperforming strong text-only retrievers. We argue the bottleneck is not the retriever but the query -- raw multimodal queries entangle visual descriptions, conversational noise, and retrieval intent in ways that systematically degrade embedding similarity. We present \\textbf{BRIDGE}, a two-component system that resolves this mismatch without multimodal encoders. \\textbf{FORGE} (\\textbf{F}ocused Retrieval Query Generato\\textbf{r}) is a query alignment model trained via reinforcement learning, which distills noisy multimodal queries into compact, retrieval-optimized search strings. \\textbf{LENS} (\\textbf{L}anguage-\\textbf{E}nhanced \\textbf{N}eural \\textbf{S}earch) is a reasoning-enhanced dense retriever fine-tuned on reasoning-intensive retrieval data to handle the intent-rich queries FORGE produces. Evaluated on MM-BRIGHT (2,803 queries, 29 domains), BRIDGE achieves \\textbf{29.7} nDCG@10, surpassing all multimodal encoder baselines including Nomic-Vision (27.6). When FORGE is applied as a plug-and-play aligner on top of Nomic-Vision, the combined system reaches \\textbf{33.3} nDCG@10 -- exceeding the best text-only retriever (32.2) -- demonstrating that \\textit{query alignment} is the key bottleneck in multimodal-to-text retrieval. https://github.com/mm-bright/multimodal-reasoning-retrieval",
+      "authors": [
+        "Mohamed Darwish Mounis",
+        "Mohamed Mahmoud",
+        "Shaimaa Sedek",
+        "Mahmoud Abdalla",
+        "Mahmoud SalahEldin Kasem",
+        "Abdelrahman Abdallah",
+        "Hyun-Soo Kang"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.CV"
+      ],
+      "published": "2026-04-08T15:28:21+00:00",
+      "link": "https://arxiv.org/pdf/2604.07201v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "multimodal-to-text retrieval resolving image-text queries",
+      "llm_evidence_cn": "解决图文查询的多模态到文本检索",
+      "llm_evidence": "解决图文查询的多模态到文本检索",
+      "canonical_evidence": "解决图文查询的多模态到文本检索",
+      "llm_tldr_en": "Presents BRIDGE to align multimodal queries with text corpora using reinforcement learning for better retrieval.",
+      "llm_tldr_cn": "提出BRIDGE系统，通过强化学习对齐多模态查询与文本语料库，优化检索效果。",
+      "llm_tldr": "提出BRIDGE系统，通过强化学习对齐多模态查询与文本语料库，优化检索效果。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Composed Image Retrieval (CIR) techniques and benchmarks",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.04780v1",
+      "title": "CLEAR: Unlocking Generative Potential for Degraded Image Understanding in Unified Multimodal Models",
+      "abstract": "Image degradation from blur, noise, compression, and poor illumination severely undermines multimodal understanding in real-world settings. Unified multimodal models that combine understanding and generation within a single architecture are a natural fit for this challenge, as their generative pathway can model the fine-grained visual structure that degradation destroys. Yet these models fail to leverage their own generative capacity on degraded inputs. We trace this disconnect to two compounding factors: existing training regimes never ask the model to invoke generation during reasoning, and the standard decode-reencode pathway does not support effective joint optimization. We present CLEAR, a framework that connects the two capabilities through three progressive steps: (1) supervised fine-tuning on a degradation-aware dataset to establish the generate-then-answer reasoning pattern; (2) a Latent Representation Bridge that replaces the decode-reencode detour with a direct, optimizable connection between generation and reasoning; (3) Interleaved GRPO, a reinforcement learning method that jointly optimizes text reasoning and visual generation under answer-correctness rewards. We construct MMD-Bench, covering three degradation severity levels across six standard multimodal benchmarks. Experiments show that CLEAR substantially improves robustness on degraded inputs while preserving clean-image performance. Our analysis further reveals that removing pixel-level reconstruction supervision leads to intermediate visual states with higher perceptual quality, suggesting that task-driven optimization and visual quality are naturally aligned.",
+      "authors": [
+        "Xiangzhao Hao",
+        "Zefeng Zhang",
+        "Zhenyu Zhang",
+        "Linhao Yu",
+        "Yao Chen",
+        "Yiqian Zhang",
+        "Haiyun Guo",
+        "Shuohuan Wang",
+        "Yu Sun"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-06T15:54:00+00:00",
+      "link": "https://arxiv.org/pdf/2604.04780v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Unified Multimodal Models for image understanding",
+      "llm_evidence_cn": "用于图像理解的统一多模态模型",
+      "llm_evidence": "用于图像理解的统一多模态模型",
+      "canonical_evidence": "用于图像理解的统一多模态模型",
+      "llm_tldr_en": "Presents CLEAR to improve degraded image understanding by leveraging generative potential in multimodal models.",
+      "llm_tldr_cn": "提出CLEAR框架，通过利用多模态模型的生成潜力来提升对退化图像的理解能力。",
+      "llm_tldr": "提出CLEAR框架，通过利用多模态模型的生成潜力来提升对退化图像的理解能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.05268v1",
+      "title": "Region-R1: Reinforcing Query-Side Region Cropping for Multi-Modal Re-Ranking",
+      "abstract": "Multi-modal retrieval-augmented generation (MM-RAG) relies heavily on re-rankers to surface the most relevant evidence for image-question queries. However, standard re-rankers typically process the full query image as a global embedding, making them susceptible to visual distractors (e.g., background clutter) that skew similarity scores. We propose Region-R1, a query-side region cropping framework that formulates region selection as a decision-making problem during re-ranking, allowing the system to learn to retain the full image or focus only on a question-relevant region before scoring the retrieved candidates. Region-R1 learns a policy with a novel region-aware group relative policy optimization (r-GRPO) to dynamically crop a discriminative region. Across two challenging benchmarks, E-VQA and InfoSeek, Region-R1 delivers consistent gains, achieving state-of-the-art performances by increasing conditional Recall@1 by up to 20%. These results show the great promise of query-side adaptation as a simple but effective way to strengthen MM-RAG re-ranking.",
+      "authors": [
+        "Chan-Wei Hu",
+        "Zhengzhong Tu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-04-07T00:05:12+00:00",
+      "link": "https://arxiv.org/pdf/2604.05268v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-modal retrieval-augmented generation and re-ranking",
+      "llm_evidence_cn": "多模态检索增强生成与重排序",
+      "llm_evidence": "多模态检索增强生成与重排序",
+      "canonical_evidence": "多模态检索增强生成与重排序",
+      "llm_tldr_en": "Uses reinforcement learning for query-side region cropping to improve multi-modal re-ranking performance.",
+      "llm_tldr_cn": "利用强化学习进行查询端区域裁剪，以提升多模态重排序性能。",
+      "llm_tldr": "利用强化学习进行查询端区域裁剪，以提升多模态重排序性能。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、多模态大模型及个性化模型和密集检索相关论文, especially work that connects or combines: Compositional Learning; Composed Image Retrieval (CIR) techniques and benchmarks; Multimodal Large Language Models (MLLM) for vision-language tasks; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; Dense Retrieval; Personalized LLM; State of the art methods in composed image retrieval and multimodal learning; dense retrieval systems.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.05818v1",
+      "title": "WikiSeeker: Rethinking the Role of Vision-Language Models in Knowledge-Based Visual Question Answering",
+      "abstract": "Multi-modal Retrieval-Augmented Generation (RAG) has emerged as a highly effective paradigm for Knowledge-Based Visual Question Answering (KB-VQA). Despite recent advancements, prevailing methods still primarily depend on images as the retrieval key, and often overlook or misplace the role of Vision-Language Models (VLMs), thereby failing to leverage their potential fully. In this paper, we introduce WikiSeeker, a novel multi-modal RAG framework that bridges these gaps by proposing a multi-modal retriever and redefining the role of VLMs. Rather than serving merely as answer generators, we assign VLMs two specialized agents: a Refiner and an Inspector. The Refiner utilizes the capability of VLMs to rewrite the textual query according to the input image, significantly improving the performance of the multimodal retriever. The Inspector facilitates a decoupled generation strategy by selectively routing reliable retrieved context to another LLM for answer generation, while relying on the VLM's internal knowledge when retrieval is unreliable. Extensive experiments on EVQA, InfoSeek, and M2KR demonstrate that WikiSeeker achieves state-of-the-art performance, with substantial improvements in both retrieval accuracy and answer quality. Our code will be released on https://github.com/zhuyjan/WikiSeeker.",
+      "authors": [
+        "Yingjian Zhu",
+        "Xinming Wang",
+        "Kun Ding",
+        "Ying Wang",
+        "Bin Fan",
+        "Shiming Xiang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL",
+        "cs.IR"
+      ],
+      "published": "2026-04-07T12:52:38+00:00",
+      "link": "https://arxiv.org/pdf/2604.05818v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "redefining the role of Vision-Language Models in multi-modal RAG",
+      "llm_evidence_cn": "重新定义视觉语言模型在多模态RAG中的角色",
+      "llm_evidence": "重新定义视觉语言模型在多模态RAG中的角色",
+      "canonical_evidence": "重新定义视觉语言模型在多模态RAG中的角色",
+      "llm_tldr_en": "A framework using VLMs as refiners and inspectors to improve knowledge-based visual question answering.",
+      "llm_tldr_cn": "一种将视觉语言模型作为精炼器和检查器的框架，旨在提升基于知识的视觉问答性能。",
+      "llm_tldr": "一种将视觉语言模型作为精炼器和检查器的框架，旨在提升基于知识的视觉问答性能。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.06376v1",
+      "title": "MTA-Agent: An Open Recipe for Multimodal Deep Search Agents",
+      "abstract": "Multimodal large language models (MLLMs) have demonstrated strong capabilities in visual understanding, yet they remain limited in complex, multi-step reasoning that requires deep searching and integrating visual evidence with external knowledge. In this work, we address this challenge by constructing high-quality, verified multi-hop vision-language training data for multimodal deep-search agents. We propose a Multi-hop Tool-Augmented Agent for Evidence-based QA Synthesis (MTA-Agent), which automatically selects tools and their parameters to retrieve and validate evidence from both visual and textual sources and generates structured multi-hop question-answer trajectories. Starting from diverse VQA seed datasets, our pipeline produces a large-scale training dataset, MTA-Vision-DeepSearch, containing 21K high-quality multi-hop examples. The data is filtered through a multi-stage verification process to ensure factual consistency and answer uniqueness. Using MTA-Vision-DeepSearch, a 32B open-source multimodal search agent achieves state-of-the-art performance, reaching an average of 54.63\\% across six challenging benchmarks, outperforming GPT-5 (51.86\\%), Gemini-2.5-Pro (50.98\\%), and Gemini-3-Pro (54.46\\%) under the same tool settings. We further show that training on our data improves both reasoning depth and tool-use behavior, increasing the average number of steps from 2.27 to 4.28, and leading to more systematic and persistent search strategies. Additionally, we demonstrate that training can be performed without real-time tool calls by replaying cached interactions, significantly reducing training cost. Importantly, we present MTA-Agent as a fully open recipe for multimodal deep search: we release the entire dataset, training trajectories, and implementation details to enable reproducibility and future research on open multimodal search agents.",
+      "authors": [
+        "Xiangyu Peng",
+        "Can Qin",
+        "An Yan",
+        "Xinyi Yang",
+        "Zeyuan Chen",
+        "Ran Xu",
+        "Chien-Sheng Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-07T19:01:45+00:00",
+      "link": "https://arxiv.org/pdf/2604.06376v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multimodal large language models (MLLMs) for vision-language tasks",
+      "llm_evidence_cn": "用于视觉语言任务的多模态大语言模型 (MLLM)",
+      "llm_evidence": "用于视觉语言任务的多模态大语言模型 (MLLM)",
+      "canonical_evidence": "用于视觉语言任务的多模态大语言模型 (MLLM)",
+      "llm_tldr_en": "Proposes a tool-augmented agent to synthesize multi-hop vision-language data for MLLM training.",
+      "llm_tldr_cn": "提出一种工具增强智能体，为MLLM训练合成多跳视觉语言数据。",
+      "llm_tldr": "提出一种工具增强智能体，为MLLM训练合成多跳视觉语言数据。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.06912v1",
+      "title": "Q-Zoom: Query-Aware Adaptive Perception for Efficient Multimodal Large Language Models",
+      "abstract": "MLLMs require high-resolution visual inputs for fine-grained tasks like document understanding and dense scene perception. However, current global resolution scaling paradigms indiscriminately flood the quadratic self-attention mechanism with visually redundant tokens, severely bottlenecking inference throughput while ignoring spatial sparsity and query intent. To overcome this, we propose Q-Zoom, a query-aware adaptive high-resolution perception framework that operates in an efficient coarse-to-fine manner. First, a lightweight Dynamic Gating Network safely bypasses high-resolution processing when coarse global features suffice. Second, for queries demanding fine-grained perception, a Self-Distilled Region Proposal Network (SD-RPN) precisely localizes the task-relevant Region-of-Interest (RoI) directly from intermediate feature spaces. To optimize these modules efficiently, the gating network uses a consistency-aware generation strategy to derive deterministic routing labels, while the SD-RPN employs a fully self-supervised distillation paradigm. A continuous spatio-temporal alignment scheme and targeted fine-tuning then seamlessly fuse the dense local RoI with the coarse global layout. Extensive experiments demonstrate that Q-Zoom establishes a dominant Pareto frontier. Using Qwen2.5-VL-7B as a primary testbed, Q-Zoom accelerates inference by 2.52 times on Document & OCR benchmarks and 4.39 times in High-Resolution scenarios while matching the baseline's peak accuracy. Furthermore, when configured for maximum perceptual fidelity, Q-Zoom surpasses the baseline's peak performance by 1.1% and 8.1% on these respective benchmarks. These robust improvements transfer seamlessly to Qwen3-VL, LLaVA, and emerging RL-based thinking-with-image models. Project page is available at https://yuhengsss.github.io/Q-Zoom/.",
+      "authors": [
+        "Yuheng Shi",
+        "Xiaohuan Pei",
+        "Linfeng Wen",
+        "Minjing Dong",
+        "Chang Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-04-08T10:12:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.06912v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Adaptive perception for Multimodal Large Language Models",
+      "llm_evidence_cn": "多模态大模型的自适应感知",
+      "llm_evidence": "多模态大模型的自适应感知",
+      "canonical_evidence": "多模态大模型的自适应感知",
+      "llm_tldr_en": "Develops a query-aware framework for efficient high-resolution processing in MLLMs.",
+      "llm_tldr_cn": "提出Q-Zoom框架，通过查询感知的自适应感知提升多模态大模型的高分辨率处理效率。",
+      "llm_tldr": "提出Q-Zoom框架，通过查询感知的自适应感知提升多模态大模型的高分辨率处理效率。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.06928v1",
+      "title": "Leveraging LLMs and Heterogeneous Knowledge Graphs for Persona-Driven Session-Based Recommendation",
+      "abstract": "Session-based recommendation systems (SBRS) aim to capture user's short-term intent from interaction sequences. However, the common assumption of anonymous sessions limits personalization, particularly under sparse or cold-start conditions. Recent advances in LLM-augmented recommendation have shown that LLMs can generate rich item representations, but modeling user personas with LLMs remains challenging due to anonymous sessions. In this work, we propose a persona-driven SBRS framework that explicitly models latent user personas inferred from a heterogeneous knowledge graph (KG) and integrates them into a data-driven recommendation pipeline.Our framework adopts a two-stage architecture consisting of personalized information extraction and personalized information utilization, inspired by recent chain-of-thought recommendation approaches. In the personalized information extraction stage, we construct a heterogeneous KG that integrates time-independent user-item, item-item, item-feature association, and metadata from DBpedia. We then learn latent user personas in an unsupervised manner using a Heterogeneous Deep Graph Infomax (HDGI) objective over a KG initialized with LLM-derived item embeddings. In the personalized information utilization stage, the learned persona representations together with LLM-derived item embeddings are incorporated into a modified architecture of data-driven SBRS to generate a candidate set of relevant items, followed by reranking using the base sequential model to emphasize short-term session intent. Unlike prior approaches that rely solely on sequence modeling or text-based user representations, our method grounds user persona modeling in structured relational signals derived from a KG. Experiments on Amazon Books and Amazon Movies & TV demonstrate that our approach consistently improves over sequential models with user embeddings derived using session history.",
+      "authors": [
+        "Muskan Gupta",
+        "Suraj Thapa",
+        "Jyotsana Khatri"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-08T10:40:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.06928v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Persona-driven recommendation using LLMs for personalization",
+      "llm_evidence_cn": "利用大语言模型进行画像驱动的个性化推荐",
+      "llm_evidence": "利用大语言模型进行画像驱动的个性化推荐",
+      "canonical_evidence": "利用大语言模型进行画像驱动的个性化推荐",
+      "llm_tldr_en": "Integrates latent user personas from knowledge graphs into LLM-based recommendation for better personalization.",
+      "llm_tldr_cn": "将知识图谱中的潜在用户画像集成到大模型推荐中，以增强个性化效果。",
+      "llm_tldr": "将知识图谱中的潜在用户画像集成到大模型推荐中，以增强个性化效果。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Personalized LLM",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.07079v1",
+      "title": "MARVEL: Multimodal Adaptive Reasoning-intensiVe Expand-rerank and retrievaL",
+      "abstract": "Multimodal retrieval over text corpora remains a fundamental challenge: the best vision-language encoder achieves only 27.6 nDCG@10 on MM-BRIGHT, a reasoning-intensive multimodal retrieval benchmark, underperforming strong text-only systems. We argue that effective multimodal retrieval requires three tightly integrated capabilities that existing approaches address only in isolation: expanding the query's latent intent, retrieving with a model trained for complex reasoning, and reranking via explicit step-by-step reasoning over candidates. We introduce \\textbf{MARVEL} (\\textbf{M}ultimodal \\textbf{A}daptive \\textbf{R}easoning-intensi\\textbf{V}e \\textbf{E}xpand-rerank and retrieva\\textbf{L}), a unified pipeline that combines LLM-driven query expansion, \\textbf{MARVEL-Retriever} -- a reasoning-enhanced dense retriever fine-tuned for complex multimodal queries -- and GPT-4o-based chain-of-thought reranking with optional multi-pass reciprocal rank fusion. Evaluated on MM-BRIGHT across 29 technical domains, MARVEL achieves \\textbf{37.9} nDCG@10, surpassing the best multimodal encoder by \\textbf{+10.3 points} and outperforming all single-stage baselines in 27 of 29 domains and matching or approaching the best baseline in the remaining two highly-specialized domains (Crypto, Quantum Computing), demonstrating that reasoning-intensive multimodal retrieval is best addressed through a unified expand-retrieve-rerank framework. https://github.com/mm-bright/multimodal-reasoning-retrieval",
+      "authors": [
+        "Mahmoud SalahEldin Kasem",
+        "Mohamed Mahmoud",
+        "Mostafa Farouk Senussi",
+        "Mahmoud Abdalla",
+        "Abdelrahman Abdallah",
+        "Hyun-Soo Kang"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-08T13:35:09+00:00",
+      "link": "https://arxiv.org/pdf/2604.07079v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multimodal retrieval pipeline combining LLM expansion and reasoning",
+      "llm_evidence_cn": "结合LLM扩展和推理的多模态检索流水线",
+      "llm_evidence": "结合LLM扩展和推理的多模态检索流水线",
+      "canonical_evidence": "结合LLM扩展和推理的多模态检索流水线",
+      "llm_tldr_en": "A unified pipeline for reasoning-intensive multimodal retrieval using query expansion and reranking.",
+      "llm_tldr_cn": "一种结合查询扩展和重排序的统一流水线，用于处理推理密集型多模态检索任务。",
+      "llm_tldr": "一种结合查询扩展和重排序的统一流水线，用于处理推理密集型多模态检索任务。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、多模态大模型及个性化模型和密集检索相关论文, especially work that connects or combines: Compositional Learning; Composed Image Retrieval (CIR) techniques and benchmarks; Multimodal Large Language Models (MLLM) for vision-language tasks; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; Dense Retrieval; Personalized LLM; State of the art methods in composed image retrieval and multimodal learning; dense retrieval systems.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.07102v1",
+      "title": "The Impact of Steering Large Language Models with Persona Vectors in Educational Applications",
+      "abstract": "Activation-based steering can personalize large language models at inference time, but its effects in educational settings remain unclear. We study persona vectors for seven character traits in short-answer generation and automated scoring on the ASAP-SAS benchmark across three models spanning two architectures. Persona steering lowers answer quality overall, with much larger effects on open-ended English Language Arts (ELA) prompts than on factual science prompts; interpretive and argumentative tasks are up to 11x more sensitive. On the scoring side, we observe predictable valence-aligned calibration shifts: evil and impolite scorers grade more harshly, while good and optimistic scorers grade more leniently. ELA tasks are 2.5-3x more susceptible to scorer personalization than science tasks, and the Mixture-of-Experts model shows roughly 6x larger calibration shifts than the dense models. To our knowledge, this is the first study to systematically examine the effects of activation-steered persona traits in educational generation and scoring, and the results highlight the need for task-aware and architecture-aware calibration when deploying steered models in educational settings.",
+      "authors": [
+        "Yongchao Wu",
+        "Aron Henriksson"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-04-08T13:55:32+00:00",
+      "link": "https://arxiv.org/pdf/2604.07102v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Personalizing LLMs with persona vectors",
+      "llm_evidence_cn": "使用人格向量个性化大语言模型",
+      "llm_evidence": "使用人格向量个性化大语言模型",
+      "canonical_evidence": "使用人格向量个性化大语言模型",
+      "llm_tldr_en": "Investigates the impact of persona-based steering on LLM performance and calibration in education.",
+      "llm_tldr_cn": "研究了人格向量引导对大语言模型在教育场景下生成质量和评分校准的影响。",
+      "llm_tldr": "研究了人格向量引导对大语言模型在教育场景下生成质量和评分校准的影响。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Personalized LLM",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.07220v1",
+      "title": "HIVE: Query, Hypothesize, Verify An LLM Framework for Multimodal Reasoning-Intensive Retrieval",
+      "abstract": "Multimodal retrieval models fail on reasoning-intensive queries where images (diagrams, charts, screenshots) must be deeply integrated with text to identify relevant documents -- the best multimodal model achieves only 27.6 nDCG@10 on MM-BRIGHT, underperforming even strong text-only retrievers (32.2). We introduce \\textbf{HIVE} (\\textbf{H}ypothesis-driven \\textbf{I}terative \\textbf{V}isual \\textbf{E}vidence Retrieval), a plug-and-play framework that injects explicit visual-text reasoning into a retriever via LLMs. HIVE operates in four stages: (1) initial retrieval over the corpus, (2) LLM-based compensatory query synthesis that explicitly articulates visual and logical gaps observed in top-$k$ candidates, (3) secondary retrieval with the refined query, and (4) LLM verification and reranking over the union of candidates. Evaluated on the multimodal-to-text track of MM-BRIGHT (2,803 real-world queries across 29 technical domains), HIVE achieves a new state-of-the-art aggregated nDCG@10 of \\textbf{41.7} -- a \\textbf{+9.5} point gain over the best text-only model (DiVeR: 32.2) and \\textbf{+14.1} over the best multimodal model (Nomic-Vision: 27.6), where our reasoning-enhanced base retriever contributes 33.2 and the HIVE framework adds a further \\textbf{+8.5} points -- with particularly strong results in visually demanding domains (Gaming: 68.2, Chemistry: 42.5, Sustainability: 49.4). Compatible with both standard and reasoning-enhanced retrievers, HIVE demonstrates that LLM-mediated visual hypothesis generation and verification can substantially close the multimodal reasoning gap in retrieval. https://github.com/mm-bright/multimodal-reasoning-retrieval",
+      "authors": [
+        "Mahmoud Abdalla",
+        "Mahmoud SalahEldin Kasem",
+        "Mohamed Mahmoud",
+        "Mostafa Farouk Senussi",
+        "Abdelrahman Abdallah",
+        "Hyun-Soo Kang"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-08T15:41:42+00:00",
+      "link": "https://arxiv.org/pdf/2604.07220v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM framework for multimodal reasoning-intensive retrieval",
+      "llm_evidence_cn": "用于多模态推理密集型检索的大语言模型框架",
+      "llm_evidence": "用于多模态推理密集型检索的大语言模型框架",
+      "canonical_evidence": "用于多模态推理密集型检索的大语言模型框架",
+      "llm_tldr_en": "HIVE uses LLMs to bridge visual-text reasoning gaps in multimodal retrieval systems.",
+      "llm_tldr_cn": "HIVE利用大语言模型弥补了多模态检索系统中的视觉-文本推理差距。",
+      "llm_tldr": "HIVE利用大语言模型弥补了多模态检索系统中的视觉-文本推理差距。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、多模态大模型及个性化模型和密集检索相关论文, especially work that connects or combines: Compositional Learning; Composed Image Retrieval (CIR) techniques and benchmarks; Multimodal Large Language Models (MLLM) for vision-language tasks; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; Dense Retrieval; Personalized LLM; State of the art methods in composed image retrieval and multimodal learning; dense retrieval systems.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.07343v1",
+      "title": "Personalized RewardBench: Evaluating Reward Models with Human Aligned Personalization",
+      "abstract": "Pluralistic alignment has emerged as a critical frontier in the development of Large Language Models (LLMs), with reward models (RMs) serving as a central mechanism for capturing diverse human values. While benchmarks for general response quality are prevalent, evaluating how well reward models account for individual user preferences remains an open challenge. To bridge this gap, we introduce Personalized RewardBench, a novel benchmark designed to rigorously assess reward models' capacity to model personalized preferences. We construct chosen and rejected response pairs based on strict adherence to (or violation of) user-specific rubrics, ensuring that preference distinctions are uniquely tailored to the individual. In particular, human evaluations confirm that the primary discriminative factor between pairs is strictly personal preference, with both responses maintaining high general quality (e.g., correctness, relevance and helpfulness). Extensive testing reveals that existing state-of-the-art reward models struggle significantly with personalization, peaking at an accuracy of just 75.94%. Crucially, because an effective reward model benchmark should predict a reward model's performance on downstream tasks, we conduct experiments demonstrating that our benchmark exhibits a significantly higher correlation with downstream performance in both Best-of-N (BoN) sampling and Proximal Policy Optimization (PPO) compared to existing baselines. These findings establish Personalized RewardBench as a robust and accurate proxy for evaluating reward models' performance in downstream applications.",
+      "authors": [
+        "Qiyao Ma",
+        "Dechen Gao",
+        "Rui Cai",
+        "Boqi Zhao",
+        "Hanchu Zhou",
+        "Junshan Zhang",
+        "Zhe Zhao"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-04-08T17:55:00+00:00",
+      "link": "https://arxiv.org/pdf/2604.07343v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Evaluating reward models for LLM personalization and human alignment",
+      "llm_evidence_cn": "评估大语言模型个性化和人类对齐的奖励模型",
+      "llm_evidence": "评估大语言模型个性化和人类对齐的奖励模型",
+      "canonical_evidence": "评估大语言模型个性化和人类对齐的奖励模型",
+      "llm_tldr_en": "Personalized RewardBench evaluates how well reward models capture individual user preferences.",
+      "llm_tldr_cn": "Personalized RewardBench评估了奖励模型捕捉个人用户偏好的能力。",
+      "llm_tldr": "Personalized RewardBench评估了奖励模型捕捉个人用户偏好的能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Personalized LLM",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2604.01915v1",
+      "title": "Enhancing Medical Visual Grounding via Knowledge-guided Spatial Prompts",
+      "abstract": "Medical Visual Grounding (MVG) aims to identify diagnostically relevant phrases from free-text radiology reports and localize their corresponding regions in medical images, providing interpretable visual evidence to support clinical decision-making. Although recent Vision-Language Models (VLMs) exhibit promising multimodal reasoning ability, their grounding remains insufficient spatial precision, largely due to a lack of explicit localization priors when relying solely on latent embeddings. In this work, we analyze this limitation from an attention perspective and propose KnowMVG, a Knowledge-prior and global-local attention enhancement framework for MVG in VLMs that explicitly strengthens spatial awareness during decoding. Specifically, we present a knowledge-enhanced prompting strategy that encodes phrase related medical knowledge into compact embeddings, together with a global-local attention that jointly leverages coarse global information and refined local cues to guide precise region localization. localization. This design bridges high-level semantic understanding and fine-grained visual perception without introducing extra textual reasoning overhead. Extensive experiments on four MVG benchmarks demonstrate that our KnowMVG consistently outperforms existing approaches, achieving gains of 3.0% in AP50 and 2.6% in mIoU over prior state-of-the-art methods. Qualitative and ablation studies further validate the effectiveness of each component.",
+      "authors": [
+        "Yifan Gao",
+        "Tao Zhou",
+        "Yi Zhou",
+        "Ke Zou",
+        "Yizhe Zhang",
+        "Huazhu Fu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-02T11:31:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.01915v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Vision-Language Models (VLMs) for medical grounding",
+      "llm_evidence_cn": "用于医学定位的视觉语言模型（VLM）",
+      "llm_evidence": "用于医学定位的视觉语言模型（VLM）",
+      "canonical_evidence": "用于医学定位的视觉语言模型（VLM）",
+      "llm_tldr_en": "Enhances medical visual grounding in VLMs using knowledge-guided spatial prompts.",
+      "llm_tldr_cn": "利用知识引导的空间提示增强视觉语言模型在医学影像定位中的表现。",
+      "llm_tldr": "利用知识引导的空间提示增强视觉语言模型在医学影像定位中的表现。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Vision-Language Pre-training (VLP) techniques and models",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2604.01915v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.03014v1",
+      "title": "User-Aware Conditional Generative Total Correlation Learning for Multi-Modal Recommendation",
+      "abstract": "Multi-modal recommendation (MMR) enriches item representations by introducing item content, e.g., visual and textual descriptions, to improve upon interaction-only recommenders. The success of MMR hinges on aligning these content modalities with user preferences derived from interaction data, yet dominant practices based on disentangling modality-invariant preference-driving signals from modality-specific preference-irrelevant noises are flawed. First, they assume a one-size-fits-all relevance of item content to user preferences for all users, which contradicts the user-conditional fact of preferences. Second, they optimize pairwise contrastive losses separately toward cross-modal alignment, systematically ignoring higher-order dependencies inherent when multiple content modalities jointly influence user choices. In this paper, we introduce GTC, a conditional Generative Total Correlation learning framework. We employ an interaction-guided diffusion model to perform user-aware content feature filtering, preserving only personalized features relevant to each individual user. Furthermore, to capture complete cross-modal dependencies, we optimize a tractable lower bound of the total correlation of item representations across all modalities. Experiments on standard MMR benchmarks show GTC consistently outperforms state-of-the-art, with gains of up to 28.30% in NDCG@5. Ablation studies validate both conditional preference-driven feature filtering and total correlation optimization, confirming the ability of GTC to model user-conditional relationships in MMR tasks. The code is available at: https://github.com/jingdu-cs/GTC.",
+      "authors": [
+        "Jing Du",
+        "Zesheng Ye",
+        "Congbo Ma",
+        "Feng Liu",
+        "Flora. D. Salim"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI"
+      ],
+      "published": "2026-04-03T12:56:58+00:00",
+      "link": "https://arxiv.org/pdf/2604.03014v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "User-aware multi-modal recommendation and alignment",
+      "llm_evidence_cn": "用户感知的多模态推荐与对齐",
+      "llm_evidence": "用户感知的多模态推荐与对齐",
+      "canonical_evidence": "用户感知的多模态推荐与对齐",
+      "llm_tldr_en": "Aligns multi-modal content with user preferences for personalized recommendation systems.",
+      "llm_tldr_cn": "将多模态内容与用户偏好对齐，以改进个性化多模态推荐系统。",
+      "llm_tldr": "将多模态内容与用户偏好对齐，以改进个性化多模态推荐系统。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、多模态大模型及个性化模型和密集检索相关论文, especially work that connects or combines: Compositional Learning; Composed Image Retrieval (CIR) techniques and benchmarks; Multimodal Large Language Models (MLLM) for vision-language tasks; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; Dense Retrieval; Personalized LLM; State of the art methods in composed image retrieval and multimodal learning; dense retrieval systems.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.02444v1",
+      "title": "OmniTQA: A Cost-Aware System for Hybrid Query Processing over Semi-Structured Data",
+      "abstract": "While recent advances in large language models have significantly improved Text-to-SQL and table question answering systems, most existing approaches assume that all query-relevant information is explicitly represented in structured schemas. In practice, many enterprise databases contain hybrid schemas where structured attributes coexist with free-form textual fields, requiring systems to reason over both types of information. To address this challenge, we introduce OmniTQA, a cost-aware hybrid query processing framework that operates over both structured and semi-structured data. OmniTQA treats semantic reasoning as a first-class query operator, seamlessly integrating LLM-based semantic operations with classical relational operators into an executable directed acyclic graph. To manage the high latency and cost of LLM inference, it extends classical query optimization with data-aware planning, combining atomic query decomposition and operator reordering to minimize semantic workload. The framework also features a dual-engine execution architecture that dynamically routes tasks between a relational database and an LLM module, using operator-aware batching to scale efficiently. Extensive experiments across a diverse suite of structured and semi-structured table question answering benchmarks demonstrate that OmniTQA consistently outperforms existing symbolic, semantic, and hybrid baselines in both accuracy and cost efficiency. These gains are particularly pronounced for complex queries, large tables and multi-relation schemas.",
+      "authors": [
+        "Nima Shahbazi",
+        "Seiji Maekawa",
+        "Nikita Bhutani",
+        "Estevam Hruschka"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-04-02T18:16:11+00:00",
+      "link": "https://arxiv.org/pdf/2604.02444v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "integrating LLM-based semantic operations with relational operators",
+      "llm_evidence_cn": "将基于LLM的语义操作与关系运算符集成",
+      "llm_evidence": "将基于LLM的语义操作与关系运算符集成",
+      "canonical_evidence": "将基于LLM的语义操作与关系运算符集成",
+      "llm_tldr_en": "A system for hybrid query processing over structured and semi-structured data using LLMs.",
+      "llm_tldr_cn": "一种利用大语言模型对结构化和半结构化数据进行混合查询处理的系统。",
+      "llm_tldr": "一种利用大语言模型对结构化和半结构化数据进行混合查询处理的系统。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.01960v1",
+      "title": "BBC: Improving Large-k Approximate Nearest Neighbor Search with a Bucket-based Result Collector",
+      "abstract": "Although Approximate Nearest Neighbor (ANN) search has been extensively studied, large-k ANN queries that aim to retrieve a large number of nearest neighbors remain underexplored, despite their numerous real-world applications. Existing ANN methods face significant performance degradation for such queries. In this work, we first investigate the reasons for the performance degradation of quantization-based ANN indexes: (1) the inefficiency of existing top-k collectors, which incurs significant overhead in candidate maintenance, and (2) the reduced pruning effectiveness of quantization methods, which leads to a costly re-ranking process. To address this, we propose a novel bucket-based result collector (BBC) to enhance the efficiency of existing quantization-based ANN indexes for large-k ANN queries. BBC introduces two key components: (1) a bucket-based result buffer that organizes candidates into buckets by their distances to the query. This design reduces ranking costs and improves cache efficiency, enabling high performance maintenance of a candidate superset and a lightweight final selection of top-k results. (2) two re-ranking algorithms tailored for different types of quantization methods, which accelerate their re-ranking process by reducing either the number of candidate objects to be re-ranked or cache misses. Extensive experiments on real-world datasets demonstrate that BBC accelerates existing quantization-based ANN methods by up to 3.8x at recall@k = 0.95 for large-k ANN queries.",
+      "authors": [
+        "Ziqi Yin",
+        "Gao Cong",
+        "Kai Zeng",
+        "Jinwei Zhu",
+        "Bin Cui"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.DS"
+      ],
+      "published": "2026-04-02T12:22:38+00:00",
+      "link": "https://arxiv.org/pdf/2604.01960v1",
+      "tags": [
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Improving large-k approximate nearest neighbor search for retrieval",
+      "llm_evidence_cn": "改进检索中的大k值近似最近邻搜索",
+      "llm_evidence": "改进检索中的大k值近似最近邻搜索",
+      "canonical_evidence": "改进检索中的大k值近似最近邻搜索",
+      "llm_tldr_en": "Proposes a bucket-based result collector to optimize large-k ANN queries in dense retrieval systems.",
+      "llm_tldr_cn": "提出一种基于桶的结果收集器，以优化密集检索系统中的大k值近似最近邻查询。",
+      "llm_tldr": "提出一种基于桶的结果收集器，以优化密集检索系统中的大k值近似最近邻查询。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "dense retrieval systems",
+      "matched_requirement_id": "req-9",
+      "selection_source": "carryover_cache",
+      "paper_id": "2604.01960v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.03172v1",
+      "title": "EffiMiniVLM: A Compact Dual-Encoder Regression Framework",
+      "abstract": "Predicting product quality from multimodal item information is critical in cold-start scenarios, where user interaction history is unavailable and predictions must rely on images and textual metadata. However, existing vision-language models typically depend on large architectures and/or extensive external datasets, resulting in high computational cost. To address this, we propose EffiMiniVLM, a compact dual-encoder vision-language regression framework that integrates an EfficientNet-B0 image encoder and a MiniLM-based text encoder with a lightweight regression head. To improve training sample efficiency, we introduce a weighted Huber loss that leverages rating counts to emphasize more reliable samples, yielding consistent performance gains. Trained using only 20% of the Amazon Reviews 2023 dataset, the proposed model contains 27.7M parameters and requires 6.8 GFLOPs, yet achieves a CES score of 0.40 with the lowest resource cost in the benchmark. Despite its small size, it remains competitive with significantly larger models, achieving comparable performance while being approximately 4x to 8x more resource-efficient than other top-5 methods and being the only approach that does not use external datasets. Further analysis shows that scaling the data to 40% alone allows our model to overtake other methods, which use larger models and datasets, highlighting strong scalability despite the model's compact design.",
+      "authors": [
+        "Yin-Loon Khor",
+        "Yi-Jie Wong",
+        "Yan Chai Hum"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-03T16:48:59+00:00",
+      "link": "https://arxiv.org/pdf/2604.03172v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Compact dual-encoder vision-language framework for multimodal regression",
+      "llm_evidence_cn": "用于多模态回归的紧凑型双编码器视觉语言框架",
+      "llm_evidence": "用于多模态回归的紧凑型双编码器视觉语言框架",
+      "canonical_evidence": "用于多模态回归的紧凑型双编码器视觉语言框架",
+      "llm_tldr_en": "EffiMiniVLM is a lightweight vision-language framework for predicting quality in cold-start scenarios.",
+      "llm_tldr_cn": "EffiMiniVLM是一个轻量级的视觉语言框架，用于冷启动场景下的质量预测。",
+      "llm_tldr": "EffiMiniVLM是一个轻量级的视觉语言框架，用于冷启动场景下的质量预测。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Vision-Language Pre-training (VLP) techniques and models",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.02948v1",
+      "title": "CrossWeaver: Cross-modal Weaving for Arbitrary-Modality Semantic Segmentation",
+      "abstract": "Multimodal semantic segmentation has shown great potential in leveraging complementary information across diverse sensing modalities. However, existing approaches often rely on carefully designed fusion strategies that either use modality-specific adaptations or rely on loosely coupled interactions, thereby limiting flexibility and resulting in less effective cross-modal coordination. Moreover, these methods often struggle to balance efficient information exchange with preserving the unique characteristics of each modality across different modality combinations. To address these challenges, we propose CrossWeaver, a simple yet effective multimodal fusion framework for arbitrary-modality semantic segmentation. Its core is a Modality Interaction Block (MIB), which enables selective and reliability-aware cross-modal interaction within the encoder, while a lightweight Seam-Aligned Fusion (SAF) module further aggregates the enhanced features. Extensive experiments on multiple multimodal semantic segmentation benchmarks demonstrate that our framework achieves state-of-the-art performance with minimal additional parameters and strong generalization to unseen modality combinations.",
+      "authors": [
+        "Zelin Zhang",
+        "Kedi Li",
+        "Huiqi Liang",
+        "Tao Zhang",
+        "Chuanzhi Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-03T10:32:02+00:00",
+      "link": "https://arxiv.org/pdf/2604.02948v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "multimodal fusion framework for cross-modal coordination",
+      "llm_evidence_cn": "用于跨模态协调的多模态融合框架",
+      "llm_evidence": "用于跨模态协调的多模态融合框架",
+      "canonical_evidence": "用于跨模态协调的多模态融合框架",
+      "llm_tldr_en": "CrossWeaver is a fusion framework for arbitrary-modality semantic segmentation, advancing multimodal learning.",
+      "llm_tldr_cn": "CrossWeaver 是一种用于任意模态语义分割的融合框架，推动了多模态学习的发展。",
+      "llm_tldr": "CrossWeaver 是一种用于任意模态语义分割的融合框架，推动了多模态学习的发展。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.02091v1",
+      "title": "Optimizing RAG Rerankers with LLM Feedback via Reinforcement Learning",
+      "abstract": "Rerankers play a pivotal role in refining retrieval results for Retrieval-Augmented Generation. However, current reranking models are typically optimized on static human annotated relevance labels in isolation, decoupled from the downstream generation process. This isolation leads to a fundamental misalignment: documents identified as topically relevant by information retrieval metrics often fail to provide the actual utility required by the LLM for precise answer generation. To bridge this gap, we introduce ReRanking Preference Optimization (RRPO), a reinforcement learning framework that directly aligns reranking with the LLM's generation quality. By formulating reranking as a sequential decision-making process, RRPO optimizes for context utility using LLM feedback, thereby eliminating the need for expensive human annotations. To ensure training stability, we further introduce a reference-anchored deterministic baseline. Extensive experiments on knowledge-intensive benchmarks demonstrate that RRPO significantly outperforms strong baselines, including the powerful list-wise reranker RankZephyr. Further analysis highlights the versatility of our framework: it generalizes seamlessly to diverse readers (e.g., GPT-4o), integrates orthogonally with query expansion modules like Query2Doc, and remains robust even when trained with noisy supervisors.",
+      "authors": [
+        "Yuhang Wu",
+        "Xiangqing Shen",
+        "Fanfan Wang",
+        "Cangqi Zhou",
+        "Zhen Wu",
+        "Xinyu Dai",
+        "Rui Xia"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.IR"
+      ],
+      "published": "2026-04-02T14:19:47+00:00",
+      "link": "https://arxiv.org/pdf/2604.02091v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Optimizing RAG Rerankers with LLM Feedback",
+      "llm_evidence_cn": "利用大模型反馈优化RAG重排序器",
+      "llm_evidence": "利用大模型反馈优化RAG重排序器",
+      "canonical_evidence": "利用大模型反馈优化RAG重排序器",
+      "llm_tldr_en": "Introduces RRPO to align reranking models with LLM generation quality using reinforcement learning.",
+      "llm_tldr_cn": "引入RRPO框架，利用强化学习使重排序模型与大模型的生成质量保持一致。",
+      "llm_tldr": "引入RRPO框架，利用强化学习使重排序模型与大模型的生成质量保持一致。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Dense Retrieval",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.03653v1",
+      "title": "Imagine Before Concentration: Diffusion-Guided Registers Enhance Partially Relevant Video Retrieval",
+      "abstract": "Partially Relevant Video Retrieval (PRVR) aims to retrieve untrimmed videos based on text queries that describe only partial events. Existing methods suffer from incomplete global contextual perception, struggling with query ambiguity and local noise induced by spurious responses. To address these issues, we propose DreamPRVR, which adopts a coarse-to-fine representation learning paradigm. The model first generates global contextual semantic registers as coarse-grained highlights spanning the entire video and then concentrates on fine-grained similarity optimization for precise cross-modal matching. Concretely, these registers are generated by initializing from the video-centric distribution produced by a probabilistic variational sampler and then iteratively refined via a text-supervised truncated diffusion model. During this process, textual semantic structure learning constructs a well-formed textual latent space, enhancing the reliability of global perception. The registers are then adaptively fused with video tokens through register-augmented Gaussian attention blocks, enabling context-aware feature learning. Extensive experiments show that DreamPRVR outperforms state-of-the-art methods. Code is released at https://github.com/lijun2005/CVPR26-DreamPRVR.",
+      "authors": [
+        "Jun Li",
+        "Xuhang Lou",
+        "Jinpeng Wang",
+        "Yuting Wang",
+        "Yaowei Wang",
+        "Shu-Tao Xia",
+        "Bin Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.IR",
+        "cs.MM"
+      ],
+      "published": "2026-04-04T09:05:14+00:00",
+      "link": "https://arxiv.org/pdf/2604.03653v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Cross-modal matching and representation learning for video retrieval",
+      "llm_evidence_cn": "视频检索中的跨模态匹配与表示学习",
+      "llm_evidence": "视频检索中的跨模态匹配与表示学习",
+      "canonical_evidence": "视频检索中的跨模态匹配与表示学习",
+      "llm_tldr_en": "DreamPRVR uses diffusion-guided registers for coarse-to-fine partially relevant video retrieval.",
+      "llm_tldr_cn": "DreamPRVR采用扩散引导寄存器，实现了由粗到精的部分相关视频检索。",
+      "llm_tldr": "DreamPRVR采用扩散引导寄存器，实现了由粗到精的部分相关视频检索。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、多模态大模型及个性化模型和密集检索相关论文, especially work that connects or combines: Compositional Learning; Composed Image Retrieval (CIR) techniques and benchmarks; Multimodal Large Language Models (MLLM) for vision-language tasks; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; Dense Retrieval; Personalized LLM; State of the art methods in composed image retrieval and multimodal learning; dense retrieval systems.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.04603v1",
+      "title": "Cardinality Estimation for High Dimensional Similarity Queries with Adaptive Bucket Probing",
+      "abstract": "In this work, we address the problem of cardinality estimation for similarity search in high-dimensional spaces. Our goal is to design a framework that is lightweight, easy to construct, and capable of providing accurate estimates with satisfying online efficiency. We leverage locality-sensitive hashing (LSH) to partition the vector space while preserving distance proximity. Building on this, we adopt the principles of classical multi-probe LSH to adaptively explore neighboring buckets, accounting for distance thresholds of varying magnitudes. To improve online efficiency, we employ progressive sampling to reduce the number of distance computations and utilize asymmetric distance computation in product quantization to accelerate distance calculations in high-dimensional spaces. In addition to handling static datasets, our framework includes updating algorithm designed to efficiently support large-scale dynamic scenarios of data updates.Experiments demonstrate that our methods can accurately estimate the cardinality of similarity queries, yielding satisfying efficiency.",
+      "authors": [
+        "Zhonghan Chen",
+        "Qintian Guo",
+        "Ruiyuan Zhang",
+        "Xiaofang Zhou"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-04-06T11:46:47+00:00",
+      "link": "https://arxiv.org/pdf/2604.04603v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "cardinality estimation for high dimensional similarity queries",
+      "llm_evidence_cn": "高维相似性查询的基数估计",
+      "llm_evidence": "高维相似性查询的基数估计",
+      "canonical_evidence": "高维相似性查询的基数估计",
+      "llm_tldr_en": "Addresses efficiency in high-dimensional similarity search, relevant to dense retrieval system optimization.",
+      "llm_tldr_cn": "解决高维相似性搜索的效率问题，与密集检索系统的优化相关。",
+      "llm_tldr": "解决高维相似性搜索的效率问题，与密集检索系统的优化相关。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "dense retrieval systems",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.02289v1",
+      "title": "Omni123: Exploring 3D Native Foundation Models with Limited 3D Data by Unifying Text to 2D and 3D Generation",
+      "abstract": "Recent multimodal large language models have achieved strong performance in unified text and image understanding and generation, yet extending such native capability to 3D remains challenging due to limited data. Compared to abundant 2D imagery, high-quality 3D assets are scarce, making 3D synthesis under-constrained. Existing methods often rely on indirect pipelines that edit in 2D and lift results into 3D via optimization, sacrificing geometric consistency. We present Omni123, a 3D-native foundation model that unifies text-to-2D and text-to-3D generation within a single autoregressive framework. Our key insight is that cross-modal consistency between images and 3D can serve as an implicit structural constraint. By representing text, images, and 3D as discrete tokens in a shared sequence space, the model leverages abundant 2D data as a geometric prior to improve 3D representations. We introduce an interleaved X-to-X training paradigm that coordinates diverse cross-modal tasks over heterogeneous paired datasets without requiring fully aligned text-image-3D triplets. By traversing semantic-visual-geometric cycles (e.g., text to image to 3D to image) within autoregressive sequences, the model jointly enforces semantic alignment, appearance fidelity, and multi-view geometric consistency. Experiments show that Omni123 significantly improves text-guided 3D generation and editing, demonstrating a scalable path toward multimodal 3D world models.",
+      "authors": [
+        "Chongjie Ye",
+        "Cheng Cao",
+        "Chuanyu Pan",
+        "Yiming Hao",
+        "Yihao Zhi",
+        "Yuanming Hu",
+        "Xiaoguang Han"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-04-02T17:29:38+00:00",
+      "link": "https://arxiv.org/pdf/2604.02289v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multimodal large language models for unified text, image, and 3D",
+      "llm_evidence_cn": "用于统一文本、图像和3D的多模态大模型",
+      "llm_evidence": "用于统一文本、图像和3D的多模态大模型",
+      "canonical_evidence": "用于统一文本、图像和3D的多模态大模型",
+      "llm_tldr_en": "Presents Omni123, a 3D-native foundation model unifying text-to-2D and 3D generation.",
+      "llm_tldr_cn": "提出Omni123，一个统一文本到2D和3D生成的原生3D基础模型。",
+      "llm_tldr": "提出Omni123，一个统一文本到2D和3D生成的原生3D基础模型。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Multimodal Large Language Models (MLLM) for vision-language tasks",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2604.02289v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.03657v1",
+      "title": "Love Me, Love My Label: Rethinking the Role of Labels in Prompt Retrieval for Visual In-Context Learning",
+      "abstract": "Visual in-context learning (VICL) enables visual foundation models to handle multiple tasks by steering them with demonstrative prompts. The choice of such prompts largely influences VICL performance, standing out as a key challenge. Prior work has made substantial progress on prompt retrieval and reranking strategies, but mainly focuses on prompt images while overlooking labels. We reveal these approaches sometimes get visually similar but label-inconsistent prompts, which potentially degrade VICL performance. On the other hand, higher label consistency between query and prompts preferably indicates stronger VICL results. Motivated by these findings, we develop a framework named LaPR (Label-aware Prompt Retrieval), which highlights the role of labels in prompt selection. Our framework first designs an image-label joint representation for prompts to incorporate label cues explicitly. Besides, to handle unavailable query labels at test time, we introduce a mixture-of-expert mechanism to the dual encoders with query-adaptive routing. Each expert is expected to capture a specific label mode, while the router infers query-adaptive mixture weights and helps to learn label-aware representation. We carefully design alternative optimization for experts and router, with a VICL performance-guided contrastive loss and a label-guided contrastive loss, respectively. Extensive experiments show promising and consistent improvement of LaPR on in-context segmentation, detection, and colorization tasks. Moreover, LaPR generalizes well across feature extractors and cross-fold scenarios, suggesting the importance of label utilization in prompt retrieval for VICL. Code is available at https://github.com/luotc-why/CVPR26-LaPR.",
+      "authors": [
+        "Tianci Luo",
+        "Haohao Pan",
+        "Jinpeng Wang",
+        "Niu Lian",
+        "Xinrui Chen",
+        "Bin Chen",
+        "Shu-Tao Xia",
+        "Chun Yuan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.IR",
+        "cs.MM"
+      ],
+      "published": "2026-04-04T09:18:31+00:00",
+      "link": "https://arxiv.org/pdf/2604.03657v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "label-aware prompt retrieval for visual in-context learning",
+      "llm_evidence_cn": "用于视觉上下文学习的标签感知提示检索",
+      "llm_evidence": "用于视觉上下文学习的标签感知提示检索",
+      "canonical_evidence": "用于视觉上下文学习的标签感知提示检索",
+      "llm_tldr_en": "Develops a label-aware prompt retrieval framework to improve visual in-context learning performance.",
+      "llm_tldr_cn": "开发了一种标签感知提示检索框架，以提高视觉上下文学习的性能。",
+      "llm_tldr": "开发了一种标签感知提示检索框架，以提高视觉上下文学习的性能。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Dense Retrieval",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

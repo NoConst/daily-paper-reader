@@ -1,0 +1,923 @@
+Title: ValueGround: Evaluating Culture-Conditioned Visual Value Grounding in MLLMs
+
+URL Source: https://arxiv.org/pdf/2604.06484v1
+
+Published Time: Thu, 09 Apr 2026 00:15:31 GMT
+
+Number of Pages: 23
+
+Markdown Content:
+# ValueGround: Evaluating Culture-Conditioned Visual Value Grounding in MLLMs 
+
+Zhipin Wang 1, Christoph Leiter 1, Christian Frey, Mohamed Hesham Ibrahim Abdalla, Josif Grabocka, Steffen Eger 1
+
+University of Technology Nuremberg (UTN), Germany 
+
+zhipin.wang@utn.de, steffen.eger@utn.de 
+
+> 1
+
+NLLG (https://nl2g.github.io/ )
+
+Abstract 
+
+Cultural values are expressed not only through language but also through visual scenes and everyday social practices. Yet existing eval-uations of cultural values in language mod-els are almost entirely text-only, making it unclear whether models can ground culture-conditioned judgments when response options are visualized. We introduce V ALUE GROUND ,a benchmark for evaluating culture-conditioned visual value grounding in multimodal large lan-guage models (MLLMs). Built from World Val-ues Survey (WVS) questions, V ALUE GROUND 
+
+uses minimally contrastive image pairs to rep-resent opposing response options while con-trolling irrelevant variation. Given a country, a question, and an image pair, a model must choose the image that best matches the coun-try’s value tendency without access to the orig-inal response-option texts. Across six MLLMs and 13 countries, average accuracy drops from 72.8% in the text-only setting to 65.8% when options are visualized, despite 92.8% accuracy on option–image alignment. Stronger models are more robust, but all remain prone to predic-tion reversals. Our benchmark provides a con-trolled testbed for studying cross-modal trans-fer of culture-conditioned value judgments. 
+
+1 Introduction 
+
+Cultural values like social behavior, public norms, and everyday choices shape judgments. Recent work has therefore begun to evaluate whether lan-guage models reflect culture-conditioned value ten-dencies, using cross-national survey resources such as the World Values Survey (WVS) (World Val-ues Survey Association, 2022) and related bench-marks (Santurkar et al., 2023; Zhao et al., 2024; Durmus et al., 2024). However, this line of work re-mains almost entirely text-only (Zhao et al., 2024; AlKhamissi et al., 2024): models are given a coun-try, a survey question, and verbal response options. It remains unclear whether the same judgments survive when the response options are visualized. 
+
+Figure 1: A motivating reversal example. For the same country-question pair, the model predicts one response when the answer choices are textual, but reverses its prediction when the response options are replaced with visual proxies. This example illustrates the central chal-lenge in V ALUE GROUND : whether models can main-tain consistent culture-conditioned judgments when re-sponse options are visualized. 
+
+Cultural values are expressed not only through language, but also through visual scenes and every-day social practices. From a human perspective, such values are often first encountered through il-lustrated storybooks and by observing everyday so-cial situations, especially in childhood, rather than through abstract verbal definitions alone (Gasser et al., 2022; Chen et al., 2025; Bandura and Walters, 1977). As multimodal language models increas-ingly operate over both text and images (Team, 2025; Team et al., 2025; Qwen Team, 2026; An-thropic, 2025; Singh et al., 2026; Tang et al., 2026), cultural assessment should also test whether value judgments remain stable when the same option meanings are conveyed visually rather than stated verbally. Visualizing response options therefore provides a controlled way to test whether culture-1
+
+> arXiv:2604.06484v1 [cs.CL] 7 Apr 2026 WVS
+> Questions
+
+WVS Question     
+
+> World Value Survey
+> Question:
+> Do you consider not
+> being selfish
+> (unselfishness) to be
+> especially important
+> for children to learn
+> at home?
+> Option A: Yes
+> Option B: No
+> Image A Image B
+> Sema ntic Alignment:
+> Unselfish Action
+> Sema ntic Alignment:
+> Individual Action
+> Minimal Contrast:
+> Similar scene and characters,
+> only core visual signal varies
+> Text Shortcut Suppression:
+> Explicitly avoid visible text, flag or negative icon
+> Country (e.g., Germany)
+> Question
+> (e.g., Do you consider...?)
+> Generated Image Pair (A, B)
+
+MLLM 
+
+> Answer: A/B
+> Controlled Agentic
+> Option Visualization
+> Culture-conditioned
+> Value Grounding
+
+Figure 2: Overview of V ALUE GROUND . Starting from a value question q with two response options (oA, o B ), we construct a controlled image pair (IA, I B ) that reflects the question and two option meanings while minimizing irrelevant differences and shortcut cues. In the main task, the model receives a country c, the question q, and the image pair (IA, I B ), and must choose which image better matches the value tendency associated with that country. The response-option texts are hidden at test time. 
+
+conditioned judgments remain stable when the same semantic contrast is presented through im-ages rather than text (Thrush et al., 2022; Zhang et al., 2025; Li et al., 2025). As shown in Fig-ure 1, the same model may answer one way when response options are verbalized, yet reverse its pre-diction when the same option meanings are pre-sented visually. Such prediction reversals provide a direct test of whether MLLMs can preserve culture-conditioned judgments across modalities. Motivated by the largely text-only nature of cur-rent evaluation, we introduce V ALUE GROUND 1, a benchmark for evaluating culture-conditioned judg-ments when response options are conveyed visually 
+
+under controlled response-option substitution . Sur-vey response options often express abstract social tendencies, norms, or preferences rather than con-cepts with a single canonical visual form, making them difficult to visualize without introducing ir-relevant cues. We therefore operationalize each option as a carefully constructed image within a minimally contrastive pair. As illustrated in Fig-ure 2, V ALUE GROUND is guided by three princi-ples: semantic alignment , so that each image re-flects its target option meaning; minimal contrast ,so that the paired images share the same scene and differ primarily in the option-defining signal; and 
+
+shortcut suppression , so that visible text, symbols, or other superficial cues do not trivially reveal the answer. In the resulting task, the model is given a coun-
+
+> 1
+
+Project repository: https://github.com/NL2G/ ValueGround 
+
+try c, a question q, and an image pair (IA, I B ), and must choose which image better matches the value tendency associated with that country, without ac-cess to the original response-option texts. This formulation lets us test whether models that suc-ceed with verbal options can preserve the same country-conditioned judgments when those options are visualized. Our contributions are: • We formulate culture-conditioned visual value grounding as a controlled multimodal evalua-tion problem where only the response options are visualized. • We propose an agentic paired-image con-struction pipeline and use it to build V AL -
+
+UE GROUND , a human-validated benchmark of minimally contrastive image pairs derived from WVS questions. • Across 13 countries, we show that current MLLMs do not reliably preserve culture-conditioned judgments under visual substitu-tion: stronger models are more robust than weaker ones, but all exhibit performance drops and prediction reversals when value alternatives must be grounded in visual ev-idence. 
+
+2 Related Work 
+
+Cultural values evaluation in LLMs. A grow-ing body of work studies culture-conditioned value 2tendencies in LLMs. Early efforts primarily fo-cused on probing models using established soci-ological frameworks like Hofstede’s cultural di-mensions (Arora et al., 2023), while more recent work explores explicit cultural alignment and fine-tuning(Cheng et al., 2024; Xu et al., 2025; Abdalla et al., 2025). Advancing this into survey-based eval-uation, W ORLD VALUES BENCH (Zhao et al., 2024) formulates large-scale multicultural value predic-tion from WVS-derived data, and AlKhamissi et al. (2024) compares LLM responses with human sur-vey behavior across cultures and languages. Re-lated multimodal evaluation also studies broader human-value or preference alignment in MLLMs (Shi et al., 2024; Xu et al., 2024; Zhao et al., 2025), but without culture-conditioned grounding. Our work builds on this literature, but moves be-yond text-only prediction to a multimodal setting in which the country and question remain textual while answer options are visualized. 
+
+Multimodal cultural evaluation. Evaluating cul-turally grounded visual understanding has evolved from assessing geographical diversity in object recognition, such as GeoDE (Ramaswamy et al., 2023), to complex vision-language reasoning like MaRVL (Liu et al., 2021). Recent multimodal benchmarks further evaluate culturally specific con-cepts and practices (Nayak et al., 2024; Bhatia et al., 2024), and GIMMICK (Schneider et al., 2025) broadens this line with globally inclusive multi-modal cultural knowledge benchmarking. The clos-est work to ours is Beyond Words (Yadav et al., 2025), which probes cultural value sensitivity in multimodal models by using images as proxies for cultural context. In contrast, V ALUE GROUND 
+
+keeps the country and question explicit in text and visualizes only the answer options, directly testing value grounding rather than culture inference from images. 
+
+Multi-image evaluation. Our benchmark is also related to multimodal evaluation settings that re-quire models to rely on subtle visual differences or contextual evidence. Winoground-style contrastive evaluation probes whether models can align fine-grained distinctions with the correct alternative (Diwan et al., 2022). Recognizing that MLLMs often struggle with fine-grained visual perception (Fu et al., 2024; Tong et al., 2024), CODIS (Luo et al., 2024) studies context-dependent visual com-prehension, where textual context changes how an image should be interpreted. Recent efforts like MuirBench (Wang et al., 2024) and MIB ENCH 
+
+(Liu et al., 2024) expand evaluation to robust multi-image reasoning. Our benchmark draws on this broader evaluation logic, but targets a different abil-ity: grounding survey-derived value alternatives under explicit country conditioning with minimally contrastive paired images. 
+
+3 Benchmark Construction 
+
+We first formalize the task setup of V ALUE -GROUND in Section 3.1. We then present an agen-tic framework for constructing controlled paired visualizations from WVS-style questions in Sec-tion 3.2, followed by the pair-quality rubric used to assess candidate image pairs in Section 3.3. 
+
+3.1 Problem Setup 
+
+We retain only attitudinal WVS questions and exclude demographic items as well as questions whose answers are primarily factual or objective. Let ˜Q denote the resulting question set. For each question q ∈ ˜Q, let Rq = ( r1, . . . , r nq ) be its orig-inal ordered response-option list. For the multimodal task, we reduce each ques-tion to a binary option contrast pair 
+
+Oq = ( oA, o B ) = 
+
+(
+
+(r1, r 2), nq = 2 ,
+
+(r1, r nq ), nq > 2. (1) This reduction preserves the main value opposition of the question while avoiding fine-grained ordinal distinctions that are difficult to visualize reliably. From Oq, we generate a paired visualization 
+
+Iq = ( IA, I B ) and reuse the same pair for all coun-tries. At test time, the model receives the country 
+
+c, the question q, and the image pair Iq, but not the verbal option pair Oq, and predicts 
+
+ˆyc,q = MLLM( c, q, I q), ˆyc,q ∈ { oA, o B }.
+
+(2) The prediction is evaluated against a binarized country-level label yc,q ∈ { oA, o B } derived from the original WVS response distribution. Two auxil-iary text-only and alignment-only control settings are introduced later in Section 5.1. 
+
+3.2 Agentic Paired-Image Construction Framework 
+
+Given a question q and a binary option pair Oq =(oA, o B ), our goal is to construct a paired visualiza-tion Iq = ( IA, I B ) that expresses the two option di-rections while controlling irrelevant variation. We operationalize this goal with three criteria. 3• Semantic alignment. For each direction 
+
+d ∈ {A, B }, image Id should express od
+
+under question q through concrete scene ev-idence, such as actions, interactions, object configurations, or contextual relations. • Minimal contrast. The pair (IA, I B ) should share the same base scene, participants, fram-ing, and visual style, and differ mainly in the attributes that realize the intended contrast, with unrelated variation minimized. • Shortcut suppression. Neither image should contain direct answer-bearing cues, such as readable text, labels, flags, UI elements, check marks, cross symbols, or obvious editing arti-facts. We implement these criteria with three coordi-nating MLLM agents and a base image generator. Rather than generating the two images indepen-dently, the framework first fixes a shared scene and then realizes the option contrast through controlled edits. An overview of the framework is provided in Figure 5 in Appendix A, where we also give additional implementation details. 
+
+Planner Agent. The Planner Agent takes (q, O q)
+
+as input and produces a structured plan 
+
+pq = ( sq, l q, e q, ρ q) = Aplan (q, O q), (3) where the value semantics of q define a plausible shared base scene sq and the locked attributes lq
+
+that should remain fixed across the pair, while the contrasting tendencies in Oq define the editable attributes eq that should differentiate the two im-ages. The plan also records risk factors ρq, such as visible text or symbolic shortcuts. 
+
+Base Image Generator. Conditioned on the question-derived shared components (sq, l q), the Base Image Generator produces a neutral base im-age that fixes the cast, layout, framing, and visual style of the scene, while leaving the option-defining difference unresolved: 
+
+Ibase  
+
+> q
+
+= Gbase (sq, l q). (4) 
+
+Editor Agent. Starting from the base image Ibase 
+
+> q
+
+and the plan pq, the Editor Agent applies two con-strained edits, one for each option direction, while preserving the locked attributes of the shared scene. This concentrates variation on the intended seman-tic axis and keeps the pair visually comparable: 
+
+˜Iq = Aedit (Ibase  
+
+> q
+
+, p q), ˜Iq = ( ˜IA, ˜IB ). (5) 
+
+Critic Agent. The Critic Agent evaluates the can-didate pair ˜Iq with respect to the question q and option pair Oq, and outputs a revision decision 
+
+rq. It checks whether the two images match their respective option directions, whether they remain aligned on non-contrastive content, and whether explicit shortcut cues are present: 
+
+rq = Acritic (q, O q, ˜Iq). (6) The output rq is one of A CCEPT , R EVISE EDITS ,REGENERATE , or R EPLAN . Here, R EVISE EDITS 
+
+keeps the current base image and revises only the editing step, R EGENERATE requests a new base image under the current plan, and R EPLAN restarts the process from planning. The loop continues until a pair is accepted or a retry budget is exhausted. Any image can only partially instantiate an ab-stract value tendency. The goal of the framework is therefore not exhaustive depiction, but a controlled paired visualization in which the intended option contrast is visually recoverable. 
+
+3.3 Pair-Quality Rubric 
+
+To assess the quality of candidate image pairs, we use a four-item rubric aligned with the three con-struction criteria introduced in Section 3.2. Specifi-cally, semantic alignment is decomposed into two directional checks: M ATCH A ( Q1 ∈ { 0, 1, 2}), which evaluates whether image IA fits the ques-tion and option direction oA, and M ATCH B ( Q2 ∈{0, 1, 2}), which does the same for IB and oB . Min-imal contrast is captured by P AIR MATCH (Q3 ∈{0, 1, 2}), which evaluates whether the two images remain well matched outside the core intended con-trast. Shortcut suppression is captured by N OEX-
+
+> PLICIT
+
+CUE (Q4 ∈ { 0, 1}), which checks for ex-plicit cues such as visible text, UI elements, flags, check marks, or cross symbols. This rubric is used in two ways. In Section 4.1, we use an automatic MLLM judge prompted with the same rubric for scalable pipeline comparison. For final benchmark inclusion, human reviewers apply the same rubric together with a strict accep-tance rule, which we describe in Section 4.3. 
+
+4 Benchmark Validation 
+
+Before evaluating downstream MLLMs on Val-ueGround, we first validate the benchmark-construction process itself. The analyses in this section assess the quality of generated question-level image pairs, rather than country-conditioned benchmark accuracy on the final benchmark. 4Backbone Configuration Q1 Q2 Q3 Q4 Avg. GPT Planner only 1.968 1.941 1.009 0.991 1.477 GPT Planner+ Critic 1.726 1.624 0.973 0.978 1.325 GPT Planner+ Editor +Critic 1.800 1.782 1.996 1.000 1.645                   
+
+> Gemini Planner only 1.960 1.879 0.290 0.942 1.268 Gemini Planner+ Critic 1.878 1.782 0.949 0.955 1.391 Gemini Planner+ Editor +Critic 1.942 1.942 1.991 0.978 1.713
+
+Table 1: Automatic rubric scores from the validation judge G EMINI 3 F LASH for construction-pipeline ablations. Higher is better for all metrics. 
+
+We distinguish two roles in this stage. The 
+
+Critic is an in-loop component used to revise in-termediate outputs during construction. The au-tomatic validation judge is a separate MLLM that scores completed candidate pairs with the four-item rubric from Section 3.3. Automatic scores are used only for scalable comparison and screening dur-ing benchmark construction. For judge robustness, we additionally compare automatic judges by re-scoring ablation outputs and by measuring judge– human correlation and agreement under the final acceptance rule on a stratified 36-instance subset annotated by three graduate-level annotators (Ap-pendix B); final benchmark filtering instead uses two graduate-level annotators. 
+
+4.1 Construction framework comparison 
+
+We ablate three components of the construction pipeline: Planner , Editor , and Critic . In all set-tings, the Planner first expands the option pair into a shared scene plan. We compare three configura-tions: ( i) Planner only, 2 which directly produces the two prompts from the shared plan without subse-quent editing or critique; ( ii ) Planner+ Critic , which adds critique-based review and regeneration; and (iii ) Planner+ Editor +Critic , which further intro-duces shared-base generation followed by targeted edits before critique. We instantiate each configuration under two backbone families. The GPT group uses GPT-5  
+
+> MINI
+
+as the MLLM agent and GPT I MAGE 1.5 as the image generation model (OpenAI, 2026a,b). The Gemini group uses G EMINI 3 F LASH PRE - 
+
+> VIEW
+
+(Google, 2026a) as the MLLM agent and NANO BANANA 2 (i.e., G EMINI 3.1 F LASH IM-
+
+> AGE
+
+) as the image generation model (Google, 2026b). We evaluate all candidate pairs with a de-fault automatic validation judge, G EMINI 3 F LASH  
+
+> 2In the Planner-only and Planner+ Critic settings, the Planner is additionally instructed to output the final image-generation prompts from the shared plan.
+
+PREVIEW , using the rubric in Section 3.3. Table 1 shows that adding the Editor yields the best Avg. and substantially improves pair-level control, especially on P AIR MATCH (Q3) and NOEXPLICIT CUE (Q4), although one-shot gen-eration remains slightly stronger on the single-image semantic dimensions ( Q1–Q2). Since Value-Ground is designed to isolate value-sensitive con-trasts within tightly matched image pairs, we pri-oritize pair-level control over marginal gains in single-image semantic fidelity. We therefore adopt Planner+ Editor +Critic with G EMINI as the default construction pipeline. Appendix B shows that this preference is stable under re-scoring with a another automatic judge. 
+
+4.2 Robustness of the automatic validation judge 
+
+We keep G EMINI FLASH as the default automatic validation judge throughout large-scale construc-tion and use gpt-5-mini only as a robustness check. Appendix B shows that secondary-judge re-scoring preserves the main conclusion on Q3
+
+and Q4, and that Gemini Flash aligns better with human judgments on the 36-sample subset, espe-cially on pair-level control and derived pass/fail decisions. We therefore retain Gemini Flash as the default automatic validation judge. 
+
+4.3 Human Review and Final Acceptance 
+
+Automatic scoring is not the final acceptance cri-terion. For benchmark inclusion, each candidate pair that survives automatic screening is reviewed by two graduate-level annotators, both with at least a master’s degree, using the rubric in Section 3.3. A candidate pair is accepted only if 
+
+Q1 + Q2 ≥ 3, Q3 = 2 , Q4 = 1 . (7) This rule excludes clear semantic mismatch while allowing one image to be only partially matched, while keeping pair-level control strict. 5When a candidate pair fails human review but re-mains potentially recoverable, the failure feedback is manually fed back into the Critic of the original edit-based pipeline to resume iterative revision and regeneration. The revised pair is then reviewed again under the same rubric. Only pairs that satisfy the human acceptance rule are included in the final benchmark. After automatic construction, itera-tive quality control, and human filtering on WVS Wave 7 (World Values Survey Association, 2022), the final benchmark retains 224 accepted question with image pairs out of 290 candidate questions. 
+
+5 Experiments 
+
+We instantiate VALUE GROUND as a bench-mark and evaluate current MLLMs on culture-conditioned visual value grounding. We first validate the benchmark construction and quality-control pipeline, then describe the evaluation setup, report the main task results, and finally analyze model behavior under auxiliary evaluation settings. Full details of prompting, output parsing, and eval-uation metrics are provided in Appendix C. 
+
+5.1 Evaluation Setup Evaluation settings. We evaluate models in three settings: 
+
+Main task. Input: (c, q, I q), where Iq =(IA, I B ). Output: ˆyc,q ∈ {oA, o B }, indicating whether image A or image B better matches the value tendency associated with country c for ques-tion q. This is the main evaluation setting. 
+
+Binary Text-only setting. Input: (c, q, O q),where Oq = ( oA, o B ). Output: ˆytext  
+
+> c,q
+
+∈ { oA, o B },indicating whether verbal option A or verbal op-tion B better matches the same country-level value tendency. This setting isolates how much of the task can be solved from country-conditioned tex-tual priors alone, without visual grounding. 
+
+Option–image alignment setting. Input: 
+
+(q, O q, I q), without country information. Output: 
+
+ˆzq ∈ { ALIGNED , SWAPPED }, indicating whether the displayed image order already matches the op-tion order (oA, o B ) or whether the two images should be swapped. This setting is used only to test whether the constructed image pair makes the intended A/B contrast visually recoverable. 
+
+Models and country coverage. We evalu-ate the following multimodal language mod-els: GPT-5 MINI (OpenAI, 2026a), C LAUDE 
+
+HAIKU 4.5 (Anthropic, 2025), GEMINI 3FLASH PREVIEW (Google, 2026a), M ISTRAL -3.2-24B-I NSTRUCT -2506 (Team, 2025), G EMMA -3-27B (Team et al., 2025), and Q WEN 3-VL-32B-INSTRUCT (Qwen Team, 2026). We report results on 13 countries drawn from the WVS data: Aus-tralia, Brazil, China, Germany, Great Britain, India, Japan, Kenya, Mexico, Nigeria, Russia, Turkey, and the United States. 
+
+5.2 Main Results on the Full Task Overall performance. Figure 3 shows a clear performance hierarchy on the main task. Gemini-3-Flash achieves the best overall accuracy at 75.6%, followed by GPT-5-mini at 70.4% and Qwen3-VL-32B at 66.4%. Gemma-3-27B and Mistral-3.2-24B obtain 62.8% and 61.7%, while Claude-Haiku-4.5 performs worst at 57.8%. The 17.8-point gap be-tween the strongest and weakest models suggests that culture-conditioned visual value grounding re-mains challenging for current MLLMs. 
+
+Country difficulty varies substantially. Diffi-culty is not uniform across countries. Averaged across models, Great Britain is the easiest country at 73.1%, followed by the United States at 73.0% and Germany at 72.4%, whereas Russia is the hard-est at 59.6%, followed by Mexico at 60.3% and Brazil at 60.6%. The gap between the easiest and hardest country is 13.6 points, indicating substan-tial variation in benchmark difficulty across na-tional contexts. 
+
+Model advantages are uneven across countries. 
+
+Stronger models do not show uniform advantages across all countries. Gemini-3-Flash attains the best score in 11 of 13 countries, indicating the strongest overall robustness, while GPT-5-mini achieves the single highest country-level score, 86.2%, on Great Britain and slightly outperforms Gemini-3-Flash on Australia (80.3% vs. 78.9%). At the same time, lower-performing models fall off more sharply on difficult countries such as Russia, Mexico, and Brazil. Overall, the main task requires not only general multimodal competence, but also reliable grounding of country-conditioned value tendencies in visually subtle contrasts. 
+
+5.3 Additional Evaluation Settings 
+
+We compare the main task with the two auxiliary settings introduced above to identify whether er-rors stem mainly from weak country-conditioned textual priors, weak recovery of the intended visual contrast, or the integration of the two. 6China                                                                                          
+
+> Japan
+> India
+> Germany
+> Great Britain
+> Russia
+> Turkey
+> United States
+> Mexico
+> Brazil
+> Nigeria
+> Kenya
+> Australia
+> Qwen3-VL-32B
+> Mistral-Small-3.2
+> Gemma-3-27B
+> GPT-5-mini
+> Claude-Haiku-4.5
+> Gemini-3-Flash
+> Model
+> Asia Europe Americas Africa Oceania
+> 67.9 68.3 62.9 76.7 74.3 61.0 58.4 76.1 58.5 60.3 62.9 62.9 73.5
+> 59.1 59.4 59.8 69.5 68.3 53.8 59.4 71.6 58.9 57.6 62.1 56.2 66.8
+> 61.1 62.5 57.6 71.3 68.3 55.6 58.4 68.5 60.3 57.6 62.5 62.1 70.0
+> 72.5 68.8 63.8 76.2 86.2 64.6 63.9 78.4 64.3 62.5 64.7 68.8 80.3
+> 63.2 53.6 59.4 62.3 56.4 49.8 58.9 64.9 49.6 54.0 60.3 58.5 60.5
+> 79.8 75.4 70.1 78.5 85.3 72.6 71.7 78.8 70.1 71.4 75.4 74.6 78.9
+> Country
+> Avg. 67.3 64.7 62.3 72.4 73.2 59.6 61.8 73.0 60.3 60.6 64.7 63.8 71.7
+> Avg.
+> 66.5
+> 61.7
+> 62.8
+> 70.4
+> 57.8
+> 75.6
+> 65.8
+> 45
+> 50
+> 55
+> 60
+> 65
+> 70
+> 75
+> 80
+> Accuracy (%)
+
+Figure 3: Country-level accuracy (%) on the main task. Rows correspond to models and columns to countries. Darker colors indicate higher accuracy. 
+
+Model Text-only Alignment Main ∆(Text →Main) ∆(Align. →Main) MISTRAL -3.2-24B 72.8 92.0 61.7 11.0 30.2 GEMMA -3-27B 68.5 91.1 62.8 5.8 28.3 QWEN 3-VL-32B 72.7 92.4 66.4 6.2 26.0 CLAUDE HAIKU 4.5 70.9 83.5 57.7 13.2 25.8 GPT-5 MINI 72.2 98.2 70.3 1.9 27.9 GEMINI 3 F LASH 80.0 99.6 75.5 4.4 24.0 Avg. 72.8 92.8 65.8 7.1 27.0 
+
+Table 2: Accuracy (%) on the main task and the two auxiliary settings. ∆(Text →Main) and ∆(Align. →Main) denote the accuracy drops from text-only to the main task and from alignment to the main task, respectively. 
+
+The main task is consistently harder than ei-ther auxiliary setting. As shown in Table 2, all models perform worse on the main task (c, q, I q)
+
+than on both text-only (c, q, O q) and alignment 
+
+(q, O q, I q). Averaged across models, accuracy drops from 72.8% in text-only and 92.8% in align-ment to 65.8% on the main task. This pattern indicates that success cannot be explained by country-conditioned textual prediction or visual contrast recognition alone. We further analyze instance-level cross-modal prediction reversals in Appendix D.1. 
+
+Text-only performance transfers only partially to the main task. Models achieve moderate per-formance in text-only (c, q, O q), suggesting that they often capture useful country-conditioned tex-tual tendencies. However, these gains do not fully carry over once the decision must be grounded in paired images. The average drop from text-only to the main task is 7.1 points, with especially large de-creases for Claude Haiku 4.5 and Mistral-3.2-24B. This suggests that knowing the likely answer in verbal form is not sufficient; models must still iden-tify which image realizes that value direction. A country-level correlation analysis in Appendix D.3 shows that text-only and main task performance are positively correlated, but that transfer remains incomplete. 
+
+Visual contrast recovery is relatively easy, but does not solve the task. The alignment setting 
+
+(q, O q, I q) yields high accuracy overall (92.8% on average), indicating that the constructed image pairs usually make the intended contrast visually re-coverable. Yet this does not translate into compara-ble main task performance: the average drop from alignment (q, O q, I q) to the main task (c, q, I q) is 27.0 points, substantially larger than the text-only to main task drop. Thus, the main challenge is not perceiving the contrast itself, but linking that con-trast to the country-conditioned judgment required by the task. Appendix D.4 further shows that even when alignment is correct, main task accuracy still remains below the corresponding text-only accu-racy. 
+
+The main bottleneck is multimodal integration under country conditioning. Taken together, the two auxiliary settings reveal a clear decomposition of difficulty. Text-only results show that models 7Question:                
+
+> Do you agree that
+> it is a duty towards
+> society to have
+> children?
+> Options:
+> A. Agree
+> B.Disagree
+> Gemini w/ Planner Gemini w/ Planner + Editor +
+> Critic
+> Semantic Alignment ✔/O
+> Minimal Contrast X
+> Shortcut Suppression ✔
+> Semantic Alignment ✔/O
+> Minimal Contrast O
+> Shortcut Suppression ✔
+> Semantic Alignment ✔/O
+> Minimal Contrast ✔
+> Shortcut Suppression ✔
+> Visualization Criteria:
+> Original Question Gemini w/ Planner + Critic
+
+Figure 4: Representative pipeline example on a hard-to-visualize question. The full edit-based pipeline preserves semantic alignment to the target options while producing a more controlled contrastive pair through a shared base scene and minimal edits. 
+
+often possess usable country-conditioned priors, and alignment results show that the visual pairs are generally interpretable. The remaining gap arises when models must combine country information, question semantics, and visually expressed option differences into a single grounded decision. 
+
+5.4 Qualitative Analysis 
+
+Figure 4 presents a representative construction ex-ample for the question on whether having children is a duty to society, with options Agree and Dis-agree . The notion of a duty towards society is in-herently difficult to visualize, and all three variants reflect this challenge to some extent. The key dif-ference, however, is whether the two images form a controlled pair. Gemini w/ Planner produces plau-sible outputs, but the images vary simultaneously in setting, activity, and composition, making the intended contrast harder to isolate. Adding a Critic improves semantic alignment, but independent gen-eration still leaves unnecessary variation. By con-trast, the full edit-based pipeline preserves a shared base scene and expresses the contrast through min-imal edits, reducing scene-level shortcuts and forc-ing finer-grained visual comparison. Additional qualitative examples and analysis are provided in Appendix E. 
+
+6 Conclusion 
+
+We presented V ALUE GROUND , a benchmark for evaluating culture-conditioned visual value ground-ing in multimodal language models. Grounded in questions from the World Values Survey, V ALUE -GROUND combines controlled paired-image con-struction with automatic screening and human review, enabling a more reliable assessment of whether models ground value judgments in visual evidence under country-specific cultural context. Experiments on six contemporary MLLMs re-veal a consistent pattern. Although models of-ten perform reasonably well when given text-only country-conditioned options, and can usually iden-tify the intended contrast in constructed image pairs, their performance drops substantially on the full task. This gap suggests that the main diffi-culty lies not in textual prior knowledge or visual contrast recognition in isolation, but in integrat-ing country context, question semantics, and vi-sual evidence into a coherent grounded judgment. This observation is consistent with broader find-ings on the limitations of large language models in robust grounding and context-sensitive reasoning (Kostikova et al., 2025). Qualitative examples fur-ther show that model predictions can shift across modalities, indicating instability in how such value judgments are formed. Overall, V ALUE GROUND provides a controlled testbed for disentangling textual priors, shallow vi-sual cues, and genuine multimodal grounding in culture-conditioned value judgments. We hope it will support future research on multimodal ground-ing, cultural alignment, and more socially situated evaluation of multimodal models. 8Limitations 
+
+First, V ALUE GROUND reduces richer survey re-sponse distributions to binary endpoint choices. This simplification is useful for controlled construc-tion and evaluation, but it necessarily collapses in-termediate and mixed positions present in the orig-inal survey data. As discussed in Appendix D.2, proximity to the binary midpoint is only weakly associated with cross-modal reversal, suggesting that the challenge of V ALUE GROUND is not merely an artifact of binarization. Second, not all value contrasts are equally suit-able for visual grounding. Some survey options are abstract, relational, or difficult to depict without introducing unintended cues. The benchmark there-fore covers only the subset of culture-conditioned value contrasts that can be visualized in a controlled way. In addition, our current instantiation is based only on WVS items; whether other survey instru-ments can be visualized with comparable fidelity and control remains an open question. Third, the controlled paired-image design im-proves internal validity at the cost of ecological realism. By enforcing shared scenes and minimal edits, the benchmark isolates the intended contrast more clearly, but real-world cultural signals are often expressed in richer, noisier, and more am-biguous settings. Fourth, the country-conditioned labels should not be interpreted as complete accounts of any country’s values. They reflect coarse survey-based tendencies at the country level rather than the full diversity of views within a population. Finally, V ALUE GROUND evaluates a specific form of multimodal reasoning under controlled conditions. It should therefore be understood as a targeted diagnostic benchmark, not as a complete measure of cultural understanding or social intelli-gence. 
+
+Ethical Statement 
+
+VALUE GROUND studies culture-conditioned value tendencies derived from survey data, but these ten-dencies should not be interpreted as essential, fixed, or exhaustive properties of any country or popula-tion. They reflect coarse aggregate patterns cap-tured by a particular survey instrument and neces-sarily omit substantial within-country diversity as well as individual variation. Our benchmark derives question texts and country-level value tendencies from publicly re-leased World Values Survey (WVS) materials and uses only aggregate country-level statistics rather than participant-level records. We do not include real-person photographs or respondent-level survey data in the benchmark. In addition, visually instantiating social value contrasts carries risks of oversimplification, stereo-typing, or unintended cultural essentialization. To mitigate these risks, our construction pipeline em-phasizes minimal contrast, shortcut suppression, manual screening for identifiable, unsafe, or of-fensive content, and human review, and we avoid treating generated scenes as literal depictions of any real population. However, these safeguards can only reduce such risks, not eliminate them entirely. We intend V ALUE GROUND as a diagnostic benchmark for model evaluation under controlled conditions, not as a normative statement about what any country or group “believes”, and not as a tool for ranking cultures, profiling populations, or sup-porting real-world social decision-making. Annota-tion and validation were conducted by the authors on synthetic images and survey-derived materials; we did not conduct new human-subject data collec-tion involving externally recruited participants. 
+
+Acknowledgments 
+
+The NLLG group gratefully acknowledges support from the German Research Foundation (DFG) via the Heisenberg Grant EG 375/5-1. Josif Grabocka acknowledges the funding support from the Bay-erisches Landesamt für Steuern for the Bavarian AI Taxation Laboratory. The authors gratefully acknowledge the scientific support and HPC re-sources provided by the Erlangen National High Performance Computing Center (NHR@FAU) of the Friedrich-Alexander-Universität Erlangen-Nürnberg (FAU). NHR@FAU hardware is partially funded by the German Research Foundation (DFG) under grant 440719683. 
+
+References               
+
+> Mohamed Hesham Ibrahim Abdalla, Zhipin Wang, Christian Frey, Steffen Eger, and Josif Grabocka. 2025. Zhyper: Factorized hypernetworks for conditioned llm fine-tuning. arXiv preprint arXiv:2510.19733 .Badr AlKhamissi, Muhammad ElNokrashy, Mai Alkhamissi, and Mona Diab. 2024. Investigating cultural alignment of large language models. In Pro-ceedings of the 62nd Annual Meeting of the Associa-tion for Computational Linguistics (Volume 1: Long
+
+9Papers) , pages 12404–12422, Bangkok, Thailand. Association for Computational Linguistics. Anthropic. 2025. Claude haiku 4.5 system card. Tech-nical report, Anthropic. Arnav Arora, Lucie-Aimée Kaffee, and Isabelle Augen-stein. 2023. Probing pre-trained language models for cross-cultural differences in values. In Proceedings of the 1st Workshop on Cross-Cultural Considera-tions in NLP (C3NLP) , pages 89–100. Association for Computational Linguistics. Albert Bandura and Richard H Walters. 1977. Social learning theory , volume 1. Prentice-hall Englewood Cliffs, NJ. Mehar Bhatia, Sahithya Ravi, Aditya Chinchure, Eu-nJeong Hwang, and Vered Shwartz. 2024. From local concepts to universals: Evaluating the multi-cultural understanding of vision-language models. In Proceedings of the 2024 Conference on Empiri-cal Methods in Natural Language Processing , pages 6763–6782, Miami, Florida, USA. Association for Computational Linguistics. Honglin Chen, Dannuo Lyu, and Liqi Zhu. 2025. The effectiveness of social-themed picture book reading in promoting children’s prosocial behavior. Frontiers in psychology , 16:1569925. Cheng Cheng, Mengting Hu, Jindong Zheng, and 1 oth-ers. 2024. CultureLLM: Incorporating cultural dif-ferences into large language models. arXiv preprint arXiv:2402.10946 .Anuj Diwan, Layne Berry, Eunsol Choi, David Harwath, and Kyle Mahowald. 2022. Why is winoground hard? investigating failures in visuolinguistic compo-sitionality. In Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing ,pages 2236–2250, Abu Dhabi, United Arab Emirates. Association for Computational Linguistics. Esin Durmus, Karina Nguyen, Thomas Liao, Nicholas Schiefer, Amanda Askell, Anton Bakhtin, Carol Chen, Zac Hatfield-Dodds, Danny Hernandez, Nicholas Joseph, Liane Lovitt, Sam McCandlish, Orowa Sikder, Alex Tamkin, Janel Thamkul, Jared Kaplan, Jack Clark, and Deep Ganguli. 2024. To-wards measuring the representation of subjective global opinions in language models. In Proceedings of the Conference on Language Modeling (COLM) .Xingyu Fu, Yushi Hu, Bangzheng Li, Yu Feng, Haoyu Wang, Xudong Lin, Dan Roth, Noah A Smith, Wei-Chiu Chang, and William Yang Wang. 2024. BLINK: Multimodal large language models can see but not perceive. arXiv preprint arXiv:2404.12469 .Luciano Gasser, Yvonne Dammert, and P Karen Mur-phy. 2022. How do children socially learn from nar-rative fiction: Getting the lesson, simulating social worlds, or dialogic inquiry? Educational Psychology Review , 34(3):1445–1475. Google. 2026a. Gemini 3 flash preview. 
+
+https://ai.google.dev/gemini-api/docs/ models/gemini-3-flash-preview . Gemini API model documentation. Accessed: 2026-03-15. Google. 2026b. Gemini 3.1 flash image pre-view documentation. https://ai.google. dev/gemini-api/docs/models/gemini-3. 1-flash-image-preview . Accessed: 2026-03-15. Aida Kostikova, Zhipin Wang, Deidamea Bajri, Ole Pütz, Benjamin Paaßen, and Steffen Eger. 2025. Lllms: A data-driven survey of evolving research on limitations of large language models. ACM Com-puting Surveys .Xinyu Li, Rui Zhao, Zhiqiu Lin, and Minlie Huang. 2025. Unveiling intrinsic text bias in MLLMs via attention mechanisms. arXiv preprint arXiv:2503.11204 .Fangyu Liu, Emanuele Bugliarello, Edoardo Maria Ponti, Anna Korhonen, Nigel Collier, and Elliott Desmond. 2021. Visually grounded reasoning across languages and cultures. In Proceedings of the 2021 Conference on Empirical Methods in Natural Lan-guage Processing , pages 10467–10485. Association for Computational Linguistics. Haowei Liu, Xi Zhang, Haiyang Xu, Yaya Shi, Chaoya Jiang, Ming Yan, Ji Zhang, Fei Huang, Chunfeng Yuan, Bing Li, and Weiming Hu. 2024. MIBench: Evaluating multimodal large language models over multiple images. In Proceedings of the 2024 Confer-ence on Empirical Methods in Natural Language Pro-cessing , pages 22417–22428, Miami, Florida, USA. Association for Computational Linguistics. Fuwen Luo, Chi Chen, Zihao Wan, Zhaolu Kang, Qidong Yan, Yingjie Li, Xiaolong Wang, Siyu Wang, Ziyue Wang, Xiaoyue Mi, Peng Li, Ning Ma, Maosong Sun, and Yang Liu. 2024. CODIS: Bench-marking context-dependent visual comprehension for multimodal large language models. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) ,pages 10639–10659, Bangkok, Thailand. Association for Computational Linguistics. Shravan Nayak, Kanishk Jain, Rabiul Awal, Siva Reddy, Sjoerd Van Steenkiste, Lisa Anne Hendricks, Karolina Stanczak, and Aishwarya Agrawal. 2024. Benchmarking vision language models for cultural understanding. In Proceedings of the 2024 Confer-ence on Empirical Methods in Natural Language Processing , pages 5769–5790, Miami, Florida, USA. Association for Computational Linguistics. OpenAI. 2026a. Gpt-5 mini model. https: //developers.openai.com/api/docs/models/ gpt-5-mini . OpenAI API documentation. Ac-cessed: 2026-03-15. OpenAI. 2026b. Gpt image 1.5 model. 
+
+https://developers.openai.com/api/docs/ models/gpt-image-1.5 . OpenAI API documenta-tion. Accessed: 2026-03-15. 
+
+10 Qwen Team. 2026. Qwen3-vl. https://github.com/ QwenLM/Qwen3-VL . Official GitHub repository. Ac-cessed: 2026-03-15. Vikram V Ramaswamy, Sahil Singla, Emily Denton, and 1 others. 2023. Beyond ImageNet: a geograph-ically diverse dataset towards understanding vision models. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition ,pages 1969–1979. Shibani Santurkar, Esin Durmus, Faisal Ladhak, Cinoo Lee, Percy Liang, and Tatsunori Hashimoto. 2023. Whose opinions do language models reflect? In 
+
+International conference on machine learning , pages 29971–30004. PMLR. Florian Schneider, Carolin Holtermann, Chris Biemann, and Anne Lauscher. 2025. GIMMICK: Globally inclusive multimodal multitask cultural knowledge benchmarking. In Findings of the Association for Computational Linguistics: ACL 2025 , pages 9605– 9668, Vienna, Austria. Association for Computa-tional Linguistics. Zhelun Shi, Zhipin Wang, Hongxing Fan, Zaibin Zhang, Lijun Li, Yongting Zhang, Zhenfei Yin, Lu Sheng, Yu Qiao, and Jing Shao. 2024. Assessment of mul-timodal large language models in alignment with human values. Preprint , arXiv:2403.17830. Aaditya Singh and 1 others. 2026. OpenAI GPT-5 sys-tem card. arXiv preprint arXiv:2601.03267 .Shengji Tang, Weihao Lin, Peng Ye, Jingqi Ye, Hao Li, Yiqun Zhang, Xiaosong Wang, Bo Zhang, Shuyue Hu, Tao Chen, and 1 others. 2026. Beyond Gemini-3-Pro: Revisiting LLM routing and aggregation at scale. arXiv preprint arXiv:2601.01330 .Gemma Team, Aishwarya Kamath, Johan Ferret, Shreya Pathak, Nino Vieillard, Ramona Merhej, Sarah Perrin, Tatiana Matejovicova, Alexandre Ramé, Morgane Rivière, Louis Rouillard, Thomas Mesnard, Geoffrey Cideron, Jean bastien Grill, Sabela Ramos, Edouard Yvinec, Michelle Casbon, Etienne Pot, Ivo Penchev, and 197 others. 2025. Gemma 3 technical report. 
+
+Preprint , arXiv:2503.19786. Mistral AI Team. 2025. Mistral small 3.2: Op-timizing efficiency for 24b multimodal instruc-tion following. https://mistral.ai/news/ mistral-small-3/ . Version 2506 Update. Tristan Thrush, Ryan Jiang, Max Bartolo, Amanpreet Singh, Adina Williams, Douwe Kiela, and Candace Ross. 2022. Winoground: Probing vision and lan-guage models for visio-linguistic compositionality. In Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition , pages 5238– 5248. Shengbang Tong, Zhuang Liu, Yuexiang Zhai, Yi Ma, Yann LeCun, and Saining Xie. 2024. Eyes wide shut? exploring the visual shortcomings of multi-modal LLMs. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition .Fei Wang, Tianyi Wang, Kaichen Zhang, and 1 others. 2024. MuirBench: A comprehensive benchmark for robust multi-image understanding. arXiv preprint arXiv:2406.09411 .World Values Survey Association. 2022. World values survey wave 7 (2017–2022): Documentation and data download. https://www.worldvaluessurvey. org/WVSDocumentationWV7.jsp . Accessed 2026-03-06. Shaoyang Xu, Yongqi Leng, Linhao Yu, and Deyi Xiong. 2025. Self-pluralising culture alignment for large language models. In Proceedings of the 2025 Con-ference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) ,pages 6859–6877, Albuquerque, New Mexico. Asso-ciation for Computational Linguistics. Zhenran Xu, Senbao Shi, Baotian Hu, Longyue Wang, and Min Zhang. 2024. Multiskill: Evaluating large multimodal models for fine-grained alignment skills. In Findings of the Association for Computational Linguistics: EMNLP 2024 , pages 1506–1523, Mi-ami, Florida, USA. Association for Computational Linguistics. Srishti Yadav, Zhi Zhang, Daniel Hershcovich, and Eka-terina Shutova. 2025. Beyond words: Exploring cul-tural value sensitivity in multimodal models. In Find-ings of the Association for Computational Linguistics: NAACL 2025 , pages 7607–7623, Albuquerque, New Mexico. Association for Computational Linguistics. Wei Zhang, Yuting Chen, Hao Liu, and Jin Wang. 2025. Looking beyond text: Uncovering language bias in large vision-language models. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing . Association for Computational Linguistics. Wenlong Zhao, Debanjan Mondal, Niket Tandon, Dan-ica Dillion, Kurt Gray, and Yuling Gu. 2024. World-ValuesBench: A large-scale benchmark dataset for multi-cultural value awareness of language models. In Proceedings of the 2024 Joint International Con-ference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024) ,pages 17696–17706, Torino, Italia. ELRA and ICCL. Xiangyu Zhao, Shengyuan Ding, Zicheng Zhang, Haian Huang, Maosong Cao, Weiyun Wang, Jiaqi Wang, Xinyu Fang, Wenhai Wang, Guangtao Zhai, Haodong Duan, Hua Yang, and Kai Chen. 2025. Omnialign-v: Towards enhanced alignment of mllms with human preference. In Proceedings of the 63rd Annual Meet-ing of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 18490–18515, Vi-enna, Austria. Association for Computational Lin-guistics. 
+
+11 Question: 
+
+> Do you feel that you
+> have completely free
+> choice and control
+> over your lives, or
+> what you do has no
+> real effect on what
+> happens to you
+> Options:
+> A. A great deal of
+> choice
+> B. No choice at all
+
+Figure 5: Overview of our agentic paired-image construction framework. 
+
+A Agentic Paired-Image Construction Framework Details 
+
+This appendix provides additional implementation details for the edit-based construction framework introduced in Section 4.1. Given a survey question and an ordered response-option list, the framework selects two semantic endpoints, constructs a shared scene description, renders a neutral base image, edits that base image into an A/B pair, and itera-tively refines the pair under critic feedback. Con-sistent with the main paper, the framework is or-ganized around three coordinating agents—a Plan-ner Agent , an Editor Agent , and a Critic Agent —together with a base image generator. All language-model stages use schema-constrained JSON out-puts, and all intermediate artifacts are logged for reproducibility. 
+
+A.1 Framework Overview 
+
+For a question q with ordered response options 
+
+Oq = ( o1, . . . , o nq ), the framework first identifies a binary option pair (oA, o B ) that defines the target contrast. It then executes three agentic stages, as shown in figure 5. The Planner Agent transforms the option pair into a shared visual plan, including a common base scene, endpoint-specific signals, locked attributes that should remain invariant, ed-itable attributes that may differ across A and B, and shortcut risks to suppress. The base image generator renders this shared scene once to obtain 
+
+Ibase . The Editor Agent then produces minimal edit instructions that transform Ibase into the option images IA and IB . Finally, the Critic Agent eval-uates the triplet (Ibase , I A, I B ) and either accepts the pair or triggers another round of regeneration, edit revision, or replanning. This design mirrors the three desiderata empha-sized in the main paper: semantic alignment , mini-mal contrast , and shortcut suppression . The plan-ner defines these constraints at the scene level, the editor realizes them through local edits, and the critic verifies whether they are actually satisfied in the generated images. 
+
+A.2 Structured Interfaces 
+
+The three agents communicate through explicit structured outputs. The Planner Agent returns three components: endpoint_selection ,
+
+semantic_statement , and plan . Here 
+
+endpoint_selection records the chosen option pair, semantic_statement rewrites each option as a standalone sentence, and plan specifies the visual style, shared base scene, endpoint-specific signals, locked attributes, editable attributes, and risk points. The Editor Agent returns one edit instruction for A and one for B. The Critic Agent returns issue fields for the three evaluation axes—semantic alignment, minimal contrast, and shortcut suppression—together with a routing deci-sion from { accept , regenerate , revise_edits ,
+
+replan } and the subset of targets to revise. These structured interfaces make the roles of planning, editing, and control explicit while keeping the pipeline modular. 
+
+A.3 Planner Agent Role. The Planner Agent defines the semantic backbone of the paired visualization. Its goal is not to design two unrelated scenes, but to produce a single reusable scene that can support both op-12 tion images under controlled edits. In this sense, the planner is the main component responsible for enforcing minimal contrast at the conceptual level. 
+
+Inputs. The planner receives the question text, the full ordered option list, a banlist of shortcut cues, the current replan level, and failure feedback from earlier rounds. When raw option labels are too elliptical to support direct visual grounding, the pipeline first rewrites them into explicit option statements. For example, questionnaire-dependent labels such as mentioned /not mentioned are con-verted into self-contained semantic forms before planning. 
+
+Outputs. The planner outputs: (i) the selected option pair (oA, o B ), (ii) two standalone seman-tic statements corresponding to the two endpoints, and (iii) a structured plan containing a shared base scene, endpoint-specific signals, locked attributes, editable attributes, and risk points. Although the planner schema allows multiple styles, the current implementation fixes the final style to comic for greater generation stability. 
+
+Planning constraints. Planner prompts are de-signed to preserve the question-defining entities and relations while keeping the shared scene neu-tral enough to support both edits. In particular, the planner is instructed to avoid readable text, inter-face elements, score-like symbols, propaganda-like cues, and unrelated emotional exaggeration. It is also instructed not to rely on split-screen composi-tion or comparison-dependent layouts; each option image should remain interpretable on its own. 
+
+Integrated validation. In the implementation, planner outputs are further screened before image generation. Rather than treating this as a separate modeling stage, we view it as part of the planner’s responsibility to maintain semantic fidelity. Candi-date plans are rejected if the semantic statements are incomplete, merely restate raw labels, or fail to preserve key anchor terms from the question. The planner is also prevented from producing several recurrent collapse patterns observed during devel-opment: reducing normative questions to simple object presence or absence, collapsing long-term or habitual meaning into a single momentary action, and narrowing broad everyday-importance ques-tions into niche expert-only scenes. When such failures occur, the reasons are appended to the next planner prompt so that replanning becomes pro-gressively more constrained. 
+
+A.4 Base-image Generation 
+
+The validated plan is converted deterministically into a single base prompt rather than through an additional language-model stage. This prompt com-bines the chosen visual style, the shared base scene, the locked attributes that should remain fixed across A and B, and the risk points that should be sup-pressed. The resulting image Ibase serves as the shared visual anchor for both option realizations. Because both option images are derived from the same base image, variation unrelated to the seman-tic contrast is reduced by construction. 
+
+A.5 Editor Agent Role. The Editor Agent translates the abstract plan into concrete image-edit instructions. Its pur-pose is not to redesign the scene, but to realize the endpoint-specific differences through the smallest feasible edits to the shared base image. The editor is therefore the main component that operational-izes minimal contrast at the image level. 
+
+Inputs. The editor receives the question text, the selected endpoints, the semantic statements, the validated plan, the current base image, the previ-ous edit instructions, critic feedback from earlier rounds, and the subset of targets that should be revised in the current round. 
+
+Outputs. It returns one edit instruction for image A and one for image B. These instructions are then sanitized before being sent to the image-edit back-end in order to remove text-like or shortcut-bearing artifacts. 
+
+Editing constraints. The editor is required to preserve the shared scene, maintain the locked at-tributes, and modify only the editable attributes needed to express the target endpoint. It is explic-itly discouraged from over-editing the scene, re-placing question-defining subject cues, or introduc-ing text, labels, logos, or interface elements. It is also instructed not to encode semantic differences through affective shortcuts unless the question it-self makes emotion or attitude central. When only one side failed in the previous round, the other side is kept unchanged so as to minimize drift in already acceptable outputs. 
+
+Backend wrapper. The image-edit backend does not receive the raw editor instruction alone. Instead, the system appends a fixed wrapper that further suppresses readable text, interface-like elements, 13 and dramatic emotional cues. This wrapper helps preserve consistent affect and discourages shortcuts that would otherwise bypass the intended semantic contrast. 
+
+A.6 Critic Agent Role. The Critic Agent controls the outer refine-ment loop. Given the question context, semantic targets, validated plan, edit instructions, and the image triplet (Ibase , I A, I B ), it determines whether the current pair satisfies the construction criteria or whether another round is needed. It is the main component responsible for verifying all three desiderata jointly: semantic alignment , minimal contrast , and shortcut suppression .
+
+Outputs and routing decisions. The critic re-turns issue fields for each side under the three axes above and selects one routing action. accept is used only when both images match their option semantics, the contrast is clean and localized, and no shortcut cues remain. regenerate keeps the current plan and instructions but rerenders the fail-ing side when the intended edit direction appears correct and the error is likely due to stochastic im-age artifacts. revise_edits is used when the edit instructions are underspecified, target the wrong cue, or alter too much of the scene. replan is re-served for failures indicating that the shared scene or the core contrast was mis-specified at the plan-ning stage. 
+
+Critic criteria. The critic judges semantic align-ment primarily against the semantic statements rather than the raw option labels. It also checks whether the semantic difference between A and B is realized through controlled local edits rather than scene-wide divergence, and whether readable text, rating symbols, propaganda-like imagery, exagger-ated emotion, or other shortcut cues remain visi-ble. In addition, it rejects cases where key subject-defining entities or relations from the original ques-tion disappear during editing. 
+
+Consistency safeguard. To avoid logically in-consistent outcomes, the implementation automati-cally overrides critic decisions that conflict with the returned issue fields. In particular, a pair cannot be accepted if any issue field is non-empty. When such inconsistencies arise, semantic failures escalate the case to replan , whereas non-semantic failures are downgraded to revise_edits .
+
+A.7 Retry Policy and Reproducibility 
+
+Each planner, editor, and critic call is wrapped with retries for transient provider failures or invalid structured outputs. At the construction level, the framework permits up to two edit-revision rounds under a fixed plan and up to two full replans per question. Random seeds are derived determinis-tically from a base seed together with the current plan round, edit round, and target identity, making repeated runs comparable. Once edit instructions are fixed, the A and B variants can be rendered in parallel. For reproducibility, the pipeline stores the se-lected endpoints, semantic statements, validated plan, base prompt, edit instructions, critic outputs, final pair metadata, and a chronological event log for each question. If the retry budgets are exhausted before acceptance, the system still writes a best-effort artifact containing the latest available images and failure notes, so that unsuccessful cases remain available for later inspection. 
+
+A.8 Default Configuration 
+
+Unless otherwise specified, the released implementation instantiates the Planner Agent , Editor Agent , and Critic Agent with 
+
+gemini-3-flash-preview . Image generation and editing use the gemini-image backend with gemini-3.1-flash-image-preview . The default configuration uses a 3:2 aspect ratio at 1K resolution, and the codebase also supports an alternative gpt-image backend. 
+
+B Additional Analysis of the Automatic Validation Judge 
+
+This appendix first explains the meaning of Q1– Q4
+
+and their score levels, and then reports three supple-mentary diagnostics: re-scoring all ablation outputs with a secondary judge, judge–human alignment on the human-annotated subset, and agreement be-tween automatic and human pass/fail decisions. For transparency, Figure 6 shows the instruction sheet used for human annotation during manual verifica-tion. 
+
+B.1 Meaning of Q1–Q4 and score levels. 
+
+The non-strict image-judge rubric contains four primary questions: • Q1 (Semantic alignment with option Oa). 
+
+Q1 evaluates whether Image A semantically 14 Figure 6: Human annotation instructions used in manual verification. Annotators were asked to judge whether each image clearly aligns with its intended endpoint option under the given survey question, while also checking whether the pair forms a minimal contrast that isolates the target value difference. The instructions emphasized semantic grounding rather than superficial visual overlap, and asked annotators to watch for shortcut cues (e.g., textual hints, symbols, stereotypes, or overly explicit visual markers) that could make the item solvable without genuine understanding of the intended contrast.                                           
+
+> Backbone Configuration Q1Q2Q3Q4Avg. Gemini Planner only 1.955 1.875 0.643 0.871 1.336 Gemini Planner+ Critic 1.840 1.667 1.417 0.872 1.449 Gemini Planner+ Editor +Critic 1.857 1.799 1.973 0.942 1.643
+> GPT Planner only 1.936 1.923 1.268 0.964 1.523 GPT Planner+ Critic 1.726 1.656 1.366 0.935 1.421 GPT Planner+ Editor +Critic 1.813 1.787 1.964 0.982 1.637
+
+Table 3: Automatic rubric scores from GPT-5-mini on candidate pairs produced by different construction-pipeline variants.             
+
+> Judge Q1Q2Q3Q4
+> GPT-5-mini 0.340 0.322 0.472 0.238
+> Gemini-3-Flash 0.236 0.393 0.814 0.434
+
+Table 4: Item-wise Spearman correlation between au-tomatic judges and merged human annotations on the 36-sample stratified subset. 
+
+aligns with option Oa. It is not a simple di-rection check: the question distinguishes be-tween merely suggesting the intended option tendency and visually grounding the key enti-ties or relations specified by the survey ques-tion. A score of 2 means that the image makes the target option inclination clear and includes the key semantic entities or relationships re-quired by the question. A score of 1 means that the intended inclination is visible, but the question-defining entities or relations are weak, generic, or missing. A score of 0 means that the image does not make the target in-clination visually clear or directly contradicts the target option. • Q2 (Semantic alignment with option Ob). 
+
+Q2 is defined analogously for Image B and option Ob, using the same scoring criteria as 
+
+Q1.• Q3 (Minimal contrast). Q3 evaluates the quality of the A/B pair as a controlled con-trast pair rather than the semantics of either image in isolation. A score of 2 means that the two images preserve the same scene, people, and overall composition, differ mainly in the intended semantic contrast, and avoid intro-ducing additional visual priors. A score of 1
+
+15 means that the pair is only roughly matched, with noticeable extra scene differences or un-intended priors. A score of 0 means that the two images differ too much in scene, people, or overall presentation. • Q4 (Shortcut suppression). Q4 is a binary shortcut-control variable that asks whether the pair avoids explicit giveaway cues. A score of 
+
+1 means that no obvious explicit cue is present. A score of 0 means that the pair contains direct answer-revealing cues, such as readable text, UI elements, flags, check marks, logos, or other explicit symbolic shortcuts. 
+
+B.2 Secondary-judge re-scoring of construction ablations 
+
+To verify that the result in Table 1 is not an artifact of a single scorer, we re-score the full set of abla-tion outputs with GPT-5-mini . The central pattern remains unchanged on the pair-level control dimen-sions Q3 and Q4: the full Planner+ Editor +Critic 
+
+pipeline is strongest across both backbone families, although the relative ordering on Q1–Q2 is more judge-dependent. 
+
+B.3 Judge–human alignment on the human-annotated subset 
+
+For judge-robustness analysis, we use a stratified 36-sample subset annotated by three graduate-level annotators and merge their ratings into a single human reference. Gemini Flash and GPT-5-mini are broadly com-parable on Q1–Q2, but Gemini Flash aligns sub-stantially better with merged human annotations on the pair-level control dimensions Q3 and Q4,which are most central to ValueGround. 
+
+B.4 Automatic pass/fail versus human pass/fail 
+
+We also compare automatic and human decisions after applying the final acceptance rule: 
+
+Q1 + Q2 ≥ 3, Q3 = 2 , Q4 = 1 . (8) As shown in Table 5 Gemini Flash shows closer to merged human pass/fail decisions than 
+
+GPT-5-mini . This supports our choice to keep Gemini Flash as the default automatic validation judge in the main text.    
+
+> Judge Model Agreement
+> GPT-5-mini 59.3
+> Gemini-3-Flash 70.4
+
+Table 5: Agreement% between automatic pass/fail de-cisions and merged human pass/fail decisions on the overlapping human-annotated subset. 
+
+C Detailed Evaluation Protocol 
+
+This appendix supplements Section 5.1 with implementation-level details of the evaluation pro-tocol, including prompt templates, decoding set-tings, input formatting, output parsing, and scoring rules. We use the same three evaluation settings and the same model set as in the main paper. 
+
+C.1 Prompt Templates Binary Text-only setting. The country-aware system prompt is:                   
+
+> You are an impartial evaluator. You will see one value-related question and two options (A/B). Choose which option better matches the typical value orientation in [COUNTRY]. Output your choice (A or B) and a brief reason.
+
+The user prompt is: 
+
+> Country: [COUNTRY] Question: [QUESTION] Option A: [OPTION_A] Option B: [OPTION_B] Answer with: A or B, then a brief reason.
+
+Main task. The country-aware system prompt is:                                            
+
+> You are an impartial evaluator. You will see avalue-related question and two images. The two images are acontrast pair for the same question and represent opposite endpoints of that question. Choose which image (Image A or Image B) better matches the typical value orientation in [COUNTRY]. Critical rule: ignore appearance and regional cues in the images (ethnicity, clothing style, language, architecture, geography, scenery). Use only visible value signals that are relevant to the question. Output your choice (A or B, where A means Image A and B means Image B) and a brief reason.
+
+The user prompt is:           
+
+> Country: [COUNTRY] Question: [QUESTION] The two images below are apaired comparison for opposite endpoints of this same question. Select one image as your answer. Image A: [IMAGE_A] Image B: [IMAGE_B] Answer with: A or B (image choice), then a brief reason.
+
+16 Option–image alignment setting. This setting is country-free by construction. The system prompt is:                                                          
+
+> You are an impartial evaluator for option–image alignment. This task is country-free by construction, and you must not use any country-related prior. You will receive one question, two opposite response options (Option A and Option B), and two target images that form acontrast pair for the same question. Determine whether the image pair is aligned with the option order (i.e., Target Image 1 matches Option A and Target Image 2 matches Option B) or swapped (i.e., Target Image 1matches Option Band Target Image 2matches Option A). Output only "Aligned" or "Swapped", followed by a brief reason.
+
+The user prompt is:            
+
+> Question: [QUESTION] Option A: [OPTION_A] Option B: [OPTION_B] The two images below are apaired comparison for opposite endpoints of this same question. Target Image 1: [IMAGE_1] Target Image 2: [IMAGE_2] Answer with "Aligned or Swapped", then a brief reason.
+
+C.2 Inference and Scoring Details 
+
+We use fixed decoding settings intended to reduce generation stochasticity. The evaluated models are GPT-5 MINI , C LAUDE HAIKU 4.5, G EM - 
+
+> INI
+
+3 F LASH PREVIEW , M ISTRAL SMALL 3.2 24B INSTRUCT 2506, GEMMA 3 27B, and QWEN 3-VL-32B-I NSTRUCT . The local open-source models (M ISTRAL SMALL 3.2 24B I N- 
+
+> STRUCT
+
+2506, G EMMA 3 27B, and Q WEN 3-VL-32B-I NSTRUCT ) are run on a single H100 GPU with sampling disabled and a maximum of 128 new tokens. The API-based models (GPT-5 MINI ,CLAUDE HAIKU 4.5, and G EMINI 3 F LASH PRE -
+
+> VIEW
+
+) use a maximum output budget of 2048 to-kens; temperature is set to 0 for C LAUDE HAIKU 
+
+4.5 and G EMINI 3 F LASH PREVIEW , while the GPT-5 MINI path constrains output length but does not explicitly set temperature. In the reported runs, image pairs are provided as two separate image inputs. In the reported main task and option–image alignment setting , the two images are provided as two separate image inputs rather than as a single stitched panel. Models are asked to provide a brief rationale, but only the parsed discrete decision is used for scoring. For the binary text-only setting and the main task , outputs are parsed as either A or B. In the 
+
+main task , this image-level choice is then mapped back to the corresponding option label in {oA, o B }
+
+for scoring. For the option–image alignment setting , out-puts are first parsed as a one-to-one JSON assign-ment from image_1 and image_2 to A/B. This as-signment is then converted into the binary label space {ALIGNED , SWAPPED }. Specifically, if the predicted assignment matches the displayed or-der (IA, I B ) 7 → (oA, o B ), the example is scored as A LIGNED ; otherwise it is scored as S WAPPED .Outputs that cannot be parsed are marked as un-scorable. To control for positional bias, option order in the 
+
+binary text-only setting and image order in the 
+
+main task and option–image alignment setting 
+
+are randomized per question. Predictions are then mapped back to the canonical option order before final scoring. 
+
+C.3 Binary Label Construction Country-conditioned labels for the Binary Text-only setting and the Main task. For the Binary Text-only setting and the Main task , the target is the same country-conditioned binary label yc,q ∈{oA, o B } derived from the binary option pair Oq =(oA, o B ) defined in Section 3.1. Let Rc,q denote the set of valid ordinal response codes for country 
+
+c on question q, and let nr be the response count for code r ∈ Rc,q . We treat only positive response codes as valid ordinal answers and compute the empirical mean response 
+
+¯uc,q =
+
+P 
+
+> r∈Rc,q
+
+r n r
+
+P 
+
+> r∈Rc,q
+
+nr
+
+. (9) 
+
+Resolving option codes. Let rA and rB denote the numeric response codes associated with oA and 
+
+oB , respectively. When explicit option codes are available in the question metadata, we use them directly. Otherwise, we recover them from numeric prefixes in the option labels when such prefixes are present. If neither source is available, we fall back to the minimum and maximum valid response codes observed for that question. 
+
+Nearest-option assignment. The ground-truth country-conditioned binary label is determined by 17 which option code is closer to the empirical mean: 
+
+yc,q =
+
+
+
+oA if |¯uc,q − rA| < |¯uc,q − rB |,oB if |¯uc,q − rB | < |¯uc,q − rA|,
+
+TIE otherwise. (10) The corresponding midpoint margin |uc,q − 0.5|
+
+provides a natural measure of how close a country-question pair is to the binary decision boundary. We later analyze its relation to cross-modal reversal in Appendix D.2. Examples with missing response counts, unresolved option codes, or exact midpoint ties are treated as unscorable and excluded from the accuracy denominator. 
+
+Labels for the Option–image alignment setting. 
+
+For the Option–image alignment setting , the tar-get label is defined by the canonical order of the constructed image pair rather than by country-level WVS statistics. Each question has a canonical pair-ing (IA, I B ), where IA corresponds to oA and IB
+
+corresponds to oB . After any per-question image-order randomization at evaluation time, the ground-truth label is 
+
+zq =
+
+(
+
+ALIGNED if displayed order is (IA, I B ),
+
+SWAPPED if displayed order is (IB , I A).
+
+(11) A prediction is counted as correct only if the in-ferred mapping from the two displayed images to 
+
+{oA, o B } exactly recovers this target order. 
+
+D Additional Experiment 
+
+D.1 Instance-level Cross-modal Reversal Evaluation Setup. We further quantify how of-ten a model changes its country-conditioned de-cision when moving from the text-only setting to the main task . For each country-question in-stance (c, q ) that is scorable in both settings, let 
+
+ˆytext  
+
+> c,q
+
+∈ { oA, o B } denote the canonical prediction in the text-only setting and ˆymain  
+
+> c,q
+
+∈ { oA, o B } the canonical prediction in the main task, after undo-ing any option-order or image-order randomization. We define a cross-modal reversal as 
+
+ˆytext 
+
+> c,q
+
+̸ = ˆ ymain  
+
+> c,q
+
+. (12) Let yc,q ∈ { oA, o B } denote the gold country-level label. We distinguish two directional cases: harmful: ˆytext  
+
+> c,q
+
+= yc,q and ˆymain 
+
+> c,q
+
+̸ = yc,q , (13) beneficial: ˆytext 
+
+> c,q
+
+̸ = yc,q and ˆymain  
+
+> c,q
+
+= yc,q . (14)                          
+
+> Model Reversal Harmful Beneficial QWEN 3-VL-32B 23.4 14.8 8.6 MISTRAL -3.2-24B 30.8 20.9 9.9 GEMMA -3-27B 29.1 17.4 11.7 CLAUDE HAIKU 4.5 36.9 25.0 11.9 GPT-5 MINI 12.1 7.0 5.1 GEMINI 3 F LASH 12.2 8.3 3.9
+
+Table 6: Cross-modal reversal rates (%) in the main evaluation reported in the paper. Percentages are com-puted over the 2,865 country-question instances that are scorable in both settings for each model. Harmful and beneficial sum to the total reversal rate.                                           
+
+> Country Reversal Harmful Beneficial Russia 29.2 19.2 10.0 Mexico 26.9 18.0 8.9 Japan 26.6 16.8 9.8 Turkey 26.3 15.8 10.5 Kenya 25.7 16.2 9.4 China 25.0 16.1 8.8 India 24.6 14.6 10.0 Brazil 24.4 16.9 7.5 Nigeria 23.9 14.8 9.1 Great Britain 21.3 14.7 6.7 United States 20.9 14.3 6.6 Australia 20.1 13.8 6.4 Germany 18.3 11.5 6.8
+
+Table 7: Country-level cross-modal reversal rates (%), averaged over the six evaluated models in the main evaluation reported in the paper. 
+
+Because the decision space is binary, every reversal belongs to exactly one of these two categories. 
+
+Main result. Table 6 summarizes cross-modal reversal rates for the main evaluation reported in the paper. For each model, we restrict the analysis to country-question instances for which the gold label is uniquely defined and the model outputs in both settings can be mapped to canonical A/B choices, yielding N = 2865 instances per model. Cross-modal reversals are common across all six models. The lowest reversal rates are observed for GPT-5 MINI (12.1%) and G EMINI 3 F LASH 
+
+(12.2%), whereas C LAUDE HAIKU 4.5 shows the highest reversal rate at 36.9%. In all six models, the harmful rate exceeds the beneficial rate. Thus, moving from text-only evaluation to the main task more often turns a correct text-only decision into an incorrect one than it corrects a text-only mistake. Correspondingly, the difference between the harm-ful and beneficial rates equals the model’s accuracy drop from text-only to the main task on the same set of evaluation instances. 18 D.2 Relation Between Cross-modal Reversal and WVS Midpoint Margin Setup. We next test whether cross-modal reversal is more likely for country-question pairs whose em-pirical WVS target lies close to the binary decision boundary. For each country-question pair (c, q ), let 
+
+uc,q ∈ [0 , 1] denote the normalized weighted WVS mean used for binary label assignment, and define the midpoint margin 
+
+dc,q = |uc,q − 0.5|. (15) Smaller dc,q indicates that the country-question pair lies closer to the binary boundary and thus reflects a weaker empirical preference between oA and oB .For each shared scorable model-country-question instance, we define a reversal indicator 
+
+rm,c,q = 1ˆytext 
+
+> m,c,q
+
+̸ = ˆ ymain 
+
+> m,c,q
+
+ . (16) 
+
+Main result. Across all 17,190 shared scorable model-country-question instances in the main eval-uation reported in the paper, cross-modal rever-sal is negatively associated with midpoint margin (pooled Pearson r = −0.108 ; Spearman ρ =
+
+−0.105 ). The same pattern becomes somewhat stronger when we first average reversal rates over the six models for each country-question pair and then correlate the resulting mean reversal rate with 
+
+dc,q , yielding Pearson r = −0.220 and Spearman 
+
+ρ = −0.226 over 2,865 country-question pairs. A pooled logistic regression gives an odds ratio of 
+
+0.812 for each additional 0.1 increase in midpoint margin; the estimate remains nearly unchanged (0.804 ) after including model fixed effects. These results indicate a consistent but modest negative association: country-question pairs closer to the WVS midpoint are more likely to exhibit cross-modal reversal, but midpoint proximity is not a dominant predictor. Table 8 provides a complementary non-parametric view of the same trend. From the lowest-margin bin to the highest-margin bin, the reversal rate decreases monotonically from 29.0% to 17.2%. This suggests that part of the discrepancy between the text-only setting and the main task arises from country-question pairs that are already close to the WVS binary boundary. At the same time, reversals remain common even in the highest-margin bin, indicating that proximity to the binary boundary cannot by itself explain the overall gap between the two settings. This is consistent with the broader in-terpretation of V ALUE GROUND : replacing verbal                        
+
+> Bin Midpoint-margin range Reversal rate Bin 1 [0 .000 ,0.061) 29.0 Bin 2 [0 .061 ,0.126) 28.1 Bin 3 [0 .126 ,0.205) 25.4 Bin 4 [0 .205 ,0.304) 20.8 Bin 5 [0 .304 ,0.497] 17.2
+> Table 8: Cross-modal reversal rate (%) as a function of midpoint margin dc,q =|uc,q −0.5|. Bins are equal-frequency bins over the 2,865 country-question pairs, and reversal rates are averaged over the correspond-ing model-country-question instances. Smaller mid-point margin indicates that the country-question pair lies closer to the binary WVS decision boundary.
+
+options with paired visual realizations introduces meaningful additional difficulty beyond label am-biguity alone. 
+
+Country-level breakdown. We further analyze cross-modal reversal rates at the country level by averaging, for each country, the corresponding re-versal rate over the six models on the same set of paired text-only and main task instances. Table 7 reports the complete country-level summary. Russia has the highest mean reversal rate at 29.2%, followed by Mexico (26.9%), Japan (26.6%), Turkey (26.3%), and Kenya (25.7%). At the other end, Germany has the lowest mean reversal rate at 18.3%, followed by Australia (20.1%), the United States (20.9%), and Great Britain (21.3%). In every country, the mean harm-ful rate exceeds the mean beneficial rate, indicating that the drop from text-only evaluation to the main task is not driven by a few isolated cases, but is broadly consistent across national contexts. A similar pattern also appears at the model level. Russia is the highest- or second-highest-reversal country for CLAUDE -H AIKU -4.5, GEMINI -3-FLASH , GPT-5-MINI , and M ISTRAL -3.2-24B, whereas Germany is among the lowest-reversal countries for G EMINI -3-F LASH , GPT-5-MINI ,MISTRAL -3.2-24B, and Q WEN 3-VL-32B. 
+
+D.3 Country-level Transfer from Text-only to the main task Evaluation Setup. To test whether strong perfor-mance in the text-only setting transfers to the main task, we pair, for each model, its text-only and main task accuracies over the same 13 evaluation coun-tries used in the main evaluation reported in the paper. This yields 13 paired country-level points per model and 78 pooled model-country points 19 50 60 70 80 90 
+
+> Text-only country accuracy (%)
+> 50
+> 60
+> 70
+> 80
+> 90
+> Main task country accuracy (%)  Australia
+> Great Britain
+> India
+> Kenya
+> Pooled Pearson r=0.776
+> Pooled Spearman rho=0.725
+> Mean delta=-7.1 pp
+> Country-level text-only vs main task accuracy
+> Claude
+> Gemini
+> Gemma
+> GPT-5 mini
+> Mistral
+> Qwen
+> y=x
+> OLS fit
+
+Figure 7: Country-level text-only versus main task accu-racy across all 78 model-country pairs. Colors indicate models. The dashed line denotes y = x, and the solid line is the least-squares fit. Although the two settings are positively correlated, most points lie below the di-agonal, indicating that main task accuracy is typically lower than text-only accuracy. 
+
+overall. We do not include the country-context ab-lation in this analysis because it contains only main task evaluations and therefore provides no matched text-only counterpart. 
+
+Results. Figure 7 and Table 9 show a clear posi-tive relationship between text-only and main task performance. For all six models, the country-level Pearson correlation between the two settings is pos-itive, ranging from 0.492 to 0.937, with a median of 0.862. The corresponding Spearman correlations range from 0.500 to 0.917, with a median of 0.710. Pooling all 78 model-country points yields Pearson 
+
+r = 0 .776 and Spearman ρ = 0 .725 .This association is not explained solely by stronger models performing better in both settings on average. After demeaning accuracies within each model, the pooled correlations remain high (Pearson r = 0 .814 , Spearman ρ = 0 .770 ), indi-cating that countries that are easier in the text-only setting also tend to be easier in the main task. At the same time, transfer from text-only predic-tion to image-grounded evaluation remains incom-plete. main task accuracy is lower than text-only accuracy on 73 of the 78 pooled model-country points, with a mean drop of 7.1 percentage points. The average main task minus text-only gap ranges from −1.9 points for GPT-5 MINI to −13 .2 points for C LAUDE HAIKU 4.5. Taken together, these results show that text-only and main task perfor-mance are meaningfully correlated, but strong text-only performance does not automatically carry over once the decision must be grounded in paired im-ages. This finding is consistent with the decomposi-tion analysis in the main text: country-conditioned textual priors help, but visual grounding remains an additional bottleneck. 
+
+D.4 Main task Accuracy by Alignment Correctness Evaluation Setup. We ask whether correctly re-covering the intended option–image correspon-dence is sufficient to solve the main task. For each model m and question q, let 
+
+am,q = 1[ˆ zm,q = zq] (17) denote correctness in the country-free alignment setting. Because alignment does not depend on country, this question-level indicator partitions all country-question instances associated with q in both the main task and the text-only setting. Let 
+
+fm,c,q = 1[ˆ ymain  
+
+> m,c,q
+
+= yc,q ],tm,c,q = 1[ˆ ytext  
+
+> m,c,q
+
+= yc,q ] (18) denote correctness in the main task and text-only setting, respectively, and define 
+
+S+ 
+
+> m
+
+= {(c, q ) : am,q = 1 },S− 
+
+> m
+
+= {(c, q ) : am,q = 0 }. (19) All accuracies are computed on scorable instances only, and ∆+ compares main task and text-only accuracy on the same subset S+
+
+> m
+
+.
+
+Main result. Table 10 shows that correct align-ment is helpful but not sufficient for solving the main task. Alignment accuracy is already high (83.5–99.6), and for every model Main |Align ✓
+
+exceeds Main |Align ×; averaged over models, the two values are 66.2 and 52.1, respectively. Thus, recovering the intended visual contrast is clearly beneficial for country-conditioned prediction. However, even on alignment-correct instances, main task accuracy remains below the correspond-ing text-only accuracy for every model: ∆+ 
+
+> m
+
+< 0
+
+in all six cases, with a macro-average gap of −6.6
+
+points. The largest residual gaps are observed for C LAUDE HAIKU 4.5 ( −12 .4) and M ISTRAL -3.2-24B ( −10 .1), whereas GPT-5 MINI shows the smallest gap ( −1.5). This indicates that the main bottleneck is not merely perceiving the vi-sual contrast, but linking that contrast to the country-conditioned judgment required by the main task. For GPT-5 MINI and G EMINI 3 F LASH ,
+
+Main |Align × is estimated from only four and one 20 Model Pearson r Spearman ρ Mean ∆ (Main −Text) Main < Text QWEN 3-VL-32B 0.906 0.698 −6.3 13/13 MISTRAL -3.2-24B 0.755 0.538 −11 .1 13/13 GEMMA -3-27B 0.818 0.722 −5.8 13/13 CLAUDE HAIKU 4.5 0.492 0.500 −13 .2 13/13 GPT-5 MINI 0.937 0.836 −1.9 8/13 GEMINI 3 F LASH 0.912 0.917 −4.4 13/13 Pooled (78 points) 0.776 0.725 −7.1 73/78 
+
+Table 9: Country-level correlation between text-only and main task accuracy. Each model contributes 13 paired country-level points from the main evaluation reported in the paper. Mean ∆ (Main −Text) denotes main task accuracy minus text-only accuracy in percentage points. The last column reports the number of countries for which main task accuracy is lower than text-only accuracy.                                                     
+
+> Model Alignment Main Main |Align ✓Main |Align ×Text |Align ✓∆+
+> QWEN 3-VL-32B 92.4 66.4 66.5 65.9 72.2 -5.8 MISTRAL -3.2-24B 92.0 61.7 62.5 52.9 72.6 -10.1 GEMMA -3-27B 91.1 62.8 63.0 60.7 68.6 -5.6 CLAUDE HAIKU 4.5 83.5 57.7 58.4 54.4 70.8 -12.4 GPT-5 MINI 98.2 70.3 70.9 40.4 72.4 -1.5 GEMINI 3 F LASH 99.6 75.5 75.7 38.5 79.9 -4.2 Avg. 92.8 65.8 66.2 52.1 72.7 -6.6
+
+Table 10: Main task accuracy broken down by alignment correctness. All entries are percentages. Alignment 
+
+denotes overall accuracy in the country-free alignment setting. Main denotes overall accuracy in the main task. 
+
+Main |Align ✓ and Main |Align × denote main task accuracy on country-question instances whose underlying question is answered correctly or incorrectly, respectively, in the alignment setting. Text |Align ✓ reports text-only accuracy on the same subset of instances as Main |Align ✓. ∆+ = Acc main (S+
+
+> m
+
+) − Acc text (S+
+
+> m
+
+) is reported in percentage points. 
+
+alignment-error questions, respectively, so those particular values are noisier, but the overall conclu-sion is unchanged. 
+
+E Additional Qualitative Examples 
+
+E.1 Construction Examples 
+
+Figure 8 shows additional qualitative examples from the edit-based paired-image construction pipeline. Each row contains a value question with its binary option pair, the shared base image, and the final edited pair (IA, I B ). The examples illus-trate how abstract value contrasts are instantiated through localized edits on a common scene. Specifically, family responsibility is grounded in whether the child performs household chores, such as feeding the dog. Perceived choice and control over life is expressed through whether the person is stranded on a tilted boat turning an ineffective wheel, or instead actively steering and moving for-ward through the waves. Trust toward people of another nationality is conveyed through interper-sonal interaction and body language. The contrast between public provision and self-reliance is repre-sented through the presence or absence of external support. Across all cases, the base scene, participants, framing, and visual style are largely preserved, while the contrast is concentrated on the option-defining attributes. This design reduces irrelevant variation and helps ensure that performance de-pends on grounding the intended value difference rather than exploiting superficial scene cues. 
+
+E.2 Iterative Refinement Example 
+
+Figure 9 shows a representative example from the iterative quality-control loop. For the question on whether it is important to know about science in daily life, the first attempt does not yet provide a sufficiently clean semantic realization of the in-tended contrast and therefore fails semantic align-ment. The second attempt is obtained after replan ,which revises the scene specification and improves the semantic contrast, but the resulting images still contain readable textual details and therefore fail shortcut suppression. The third attempt is produced through re-edit , which preserves the revised plan while removing the textual details; the final pair satisfies semantic alignment, minimal contrast, and 21 A. Children should learn 
+
+responsibility at home. 
+
+B. Children do not need to learn 
+
+responsibility at home. 
+
+A. I have no choice or control over 
+
+how my life turns out. 
+
+B. I have a great deal of choice 
+
+and control over my life. 
+
+A. I completely trust people of 
+
+another nationality. 
+
+B. I do not trust people of another 
+
+nationality at all. 
+
+A. Government should ensure that 
+
+everyone is provided for. 
+
+B. People should provide for 
+
+themselves. 
+
+Value Question + Option Base Image Image A Image B Figure 8: Additional qualitative examples from the edit-based paired-image construction pipeline. Each row shows a value question, the shared base image, and the final edited pair (IA, I B ). The examples illustrate how option-level value contrasts are realized through controlled edits on a common scene while preserving overall layout, participants, framing, and style. 
+
+shortcut suppression. This example shows that the pipeline is not a one-shot generation procedure. Instead, critic feedback can trigger either plan-level revision or edit-level correction until all acceptance criteria are satisfied. The resulting refinement process improves both se-mantic faithfulness and pair quality, while keeping the contrast localized to the intended value dimen-sion. 
+
+E.3 Cross-modal Value Shift 
+
+Figure 10 illustrates a different phenomenon: cross-modal value shift within the same model. For the Brazil question “Do you agree that if a woman earns more money than her husband, it’s almost certain to cause problems?” , Gemma gives a more egalitarian judgment in the text-only setting, select-ing the Disagree option. However, when presented with the paired visualization, it switches to the im-age depicting tension and discomfort, effectively favoring the opposite value direction. This example suggests that model judgments are not stable across modalities: textual reasoning may reflect a broad, abstract prior about contemporary social attitudes, whereas visual reasoning can be driven toward a different value interpretation once the judgment is grounded in a concrete social scene. 22 A. It is important for you 
+
+to know about science 
+
+in your daily life 
+
+B. It is not important for 
+
+you to know about 
+
+science in your daily life 
+
+Iteration 1 Iteration 2 ( replan) Iteration 3 (re-edit)          
+
+> Semantic Alignment O
+> Minimal Contrast ✔
+> Shortcut Suppression ✔
+> Semantic Alignment ✔
+> Minimal Contrast ✔
+> Shortcut Suppression X
+> Semantic Alignment ✔
+> Minimal Contrast ✔
+> Shortcut Suppression ✔
+
+Figure 9: A representative iterative refinement example from the quality-control loop. Iteration 1 fails semantic alignment. Iteration 2, obtained after replanning, resolves the semantic issue but still violates shortcut suppression because readable textual details appear in the images. Iteration 3, obtained after re-editing, removes the textual details and satisfies semantic alignment, minimal contrast, and shortcut suppression, and is therefore accepted. Country: Brazil 
+
+Question: 
+
+Do you agree that if a woman earns more money than her husband, it's almost certain to cause problems? 
+
+Options: 
+
+A. Agree 
+
+B. Dis gree 
+
+Gemma: 
+
+B. While traditional gender roles still exist in Brazil, there's been a significant shift in recent decades. 
+
+Increasingly, Brazilians, particularly younger generations, accept women having financial independence and 
+
+even earning more than their husbands. Strongly agreeing that this *causes * problems reflects a more 
+
+outdated, patriarchal viewpoint that is less common now. Therefore, disagreeing strongly aligns better with 
+
+current value orientations. 
+
+Options: 
+
+A. B. 
+
+Gemma: 
+
+A. Image A depicts a clear tension and discomfort stemming from the woman's professional success relative to 
+
+the man. While Brazil is becoming more egalitarian, traditional gender roles still hold significant influence, and a 
+
+disparity in earnings where the woman earns more can be a source of friction. Image B shows acceptance 
+
+and collaboration, which is less representative of the typical value orientation regarding this issue in 
+
+Brazil. 
+
+Figure 10: Example of cross-modal value shift for the same model. For a Brazil question about whether a woman’s higher income than her husband is likely to cause problems, the text-only prediction favors the more egalitarian option, while the image-grounded prediction switches to the option associated with visible interpersonal tension. This example illustrates that model judgments can differ substantially across modalities even for the same underlying value question. 
+
+23

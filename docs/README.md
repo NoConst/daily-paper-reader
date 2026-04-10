@@ -6,91 +6,88 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-09
-- 运行时间：2026-04-09 20:15:25 UTC
+- 最新运行日期：2026-04-10
+- 运行时间：2026-04-10 20:27:07 UTC
 - 运行状态：成功
-- 本次总论文数：23
-- 精读区：12
+- 本次总论文数：22
+- 精读区：11
 - 速读区：11
 
 ### 今日简报（AI）
-今日聚焦 23 篇检索领域前沿进展，深度探讨生成式检索与多模态对齐的性能边界。
-研究揭示生成式检索虽能克服稠密检索局限但仍受标识符歧义困扰，而强化学习正成为优化 RAG 重排序与跨模态查询的核心。
-建议优先研读生成式架构与 RL 优化策略，把握搜索技术从“匹配”向“生成与对齐”演进的趋势。
-- 详情：[/202604/09/README](/202604/09/README)
+今日深挖 22 篇多模态前沿论文，重点聚焦潜空间推理与长视频结构化理解。
+PLUME 与 VideoStir 展现了多模态嵌入与 RAG 的新高度，同时警示了 VLM 存在忽视视觉细节而过度依赖语义锚点的倾向。
+建议优先关注如何通过 Token 封装与结构化检索，提升复杂场景及 3D 环境下的推理效率。
+- 详情：[/202604/10/README](/202604/10/README)
 
 ### 精读区论文标签
-1. [Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity](/202604/09/2604.05764v2-generative-retrieval-overcomes-limitations-of-dense-retrieval-but-struggles-with-identifier-ambiguity)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：评估密集检索系统及其理论局限性
-2. [BRIDGE: Multimodal-to-Text Retrieval via Reinforcement-Learned Query Alignment](/202604/09/2604.07201v1-bridge-multimodal-to-text-retrieval-via-reinforcement-learned-query-alignment)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：解决图文查询的多模态到文本检索
-3. [CLEAR: Unlocking Generative Potential for Degraded Image Understanding in Unified Multimodal Models](/202604/09/2604.04780v1-clear-unlocking-generative-potential-for-degraded-image-understanding-in-unified-multimodal-models)  
+1. [PLUME: Latent Reasoning Based Universal Multimodal Embedding](/202604/10/2604.02073v2-plume-latent-reasoning-based-universal-multimodal-embedding)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于图像理解的统一多模态模型
-4. [Region-R1: Reinforcing Query-Side Region Cropping for Multi-Modal Re-Ranking](/202604/09/2604.05268v1-region-r1-reinforcing-query-side-region-cropping-for-multi-modal-re-ranking)  
+   evidence：多模态大模型中复杂查询意图的通用多模态嵌入
+2. [VideoStir: Understanding Long Videos via Spatio-Temporally Structured and Intent-Aware RAG](/202604/10/2604.05418v1-videostir-understanding-long-videos-via-spatio-temporally-structured-and-intent-aware-rag)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态检索增强生成与重排序
-5. [WikiSeeker: Rethinking the Role of Vision-Language Models in Knowledge-Based Visual Question Answering](/202604/09/2604.05818v1-wikiseeker-rethinking-the-role-of-vision-language-models-in-knowledge-based-visual-question-answering)  
+   evidence：将多模态大语言模型（MLLM）扩展到长视频理解
+3. [PDMP: Rethinking Balanced Multimodal Learning via Performance-Dominant Modality Prioritization](/202604/10/2604.05773v1-pdmp-rethinking-balanced-multimodal-learning-via-performance-dominant-modality-prioritization)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：重新定义视觉语言模型在多模态RAG中的角色
-6. [MTA-Agent: An Open Recipe for Multimodal Deep Search Agents](/202604/09/2604.06376v1-mta-agent-an-open-recipe-for-multimodal-deep-search-agents)  
+   evidence：多模态机器学习的基础与进展
+4. [ValueGround: Evaluating Culture-Conditioned Visual Value Grounding in MLLMs](/202604/10/2604.06484v1-valueground-evaluating-culture-conditioned-visual-value-grounding-in-mllms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于视觉语言任务的多模态大语言模型 (MLLM)
-7. [Q-Zoom: Query-Aware Adaptive Perception for Efficient Multimodal Large Language Models](/202604/09/2604.06912v1-q-zoom-query-aware-adaptive-perception-for-efficient-multimodal-large-language-models)  
+   evidence：评估多模态大模型中文化条件视觉基元的基准
+5. [ReAlign: Optimizing the Visual Document Retriever with Reasoning-Guided Fine-Grained Alignment](/202604/10/2604.07419v1-realign-optimizing-the-visual-document-retriever-with-reasoning-guided-fine-grained-alignment)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型的自适应感知
-8. [Leveraging LLMs and Heterogeneous Knowledge Graphs for Persona-Driven Session-Based Recommendation](/202604/09/2604.06928v1-leveraging-llms-and-heterogeneous-knowledge-graphs-for-persona-driven-session-based-recommendation)  
+   evidence：通过视觉语言模型引导的对齐优化视觉文档检索器
+6. [Multimodal Large Language Models for Multi-Subject In-Context Image Generation](/202604/10/2604.07422v1-multimodal-large-language-models-for-multi-subject-in-context-image-generation)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：利用大语言模型进行画像驱动的个性化推荐
-9. [MARVEL: Multimodal Adaptive Reasoning-intensiVe Expand-rerank and retrievaL](/202604/09/2604.07079v1-marvel-multimodal-adaptive-reasoning-intensive-expand-rerank-and-retrieval)  
+   evidence：用于多主体图像生成的多模态大模型
+7. [Symbiotic-MoE: Unlocking the Synergy between Generation and Understanding](/202604/10/2604.07753v1-symbiotic-moe-unlocking-the-synergy-between-generation-and-understanding)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：结合LLM扩展和推理的多模态检索流水线
-10. [The Impact of Steering Large Language Models with Persona Vectors in Educational Applications](/202604/09/2604.07102v1-the-impact-of-steering-large-language-models-with-persona-vectors-in-educational-applications)  
+   evidence：用于多模态大模型生成与理解的多模态混合专家架构
+8. [HAWK: Head Importance-Aware Visual Token Pruning in Multimodal Models](/202604/10/2604.07812v1-hawk-head-importance-aware-visual-token-pruning-in-multimodal-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：使用人格向量个性化大语言模型
-11. [HIVE: Query, Hypothesize, Verify An LLM Framework for Multimodal Reasoning-Intensive Retrieval](/202604/09/2604.07220v1-hive-query-hypothesize-verify-an-llm-framework-for-multimodal-reasoning-intensive-retrieval)  
+   evidence：多模态大语言模型中的视觉标记剪枝
+9. [ABMAMBA: Multimodal Large Language Model with Aligned Hierarchical Bidirectional Scan for Efficient Video Captioning](/202604/10/2604.08050v1-abmamba-multimodal-large-language-model-with-aligned-hierarchical-bidirectional-scan-for-efficient-video-captioning)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于多模态推理密集型检索的大语言模型框架
-12. [Personalized RewardBench: Evaluating Reward Models with Human Aligned Personalization](/202604/09/2604.07343v1-personalized-rewardbench-evaluating-reward-models-with-human-aligned-personalization)  
+   evidence：用于视频字幕生成的多模态大语言模型 (MLLM)
+10. [InstAP: Instance-Aware Vision-Language Pre-Train for Spatial-Temporal Understanding](/202604/10/2604.08337v1-instap-instance-aware-vision-language-pre-train-for-spatial-temporal-understanding)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：评估大语言模型个性化和人类对齐的奖励模型
+   evidence：用于实例级检索的视觉语言预训练（VLP）
+11. [Entropy-Gradient Grounding: Training-Free Evidence Retrieval in Vision-Language Models](/202604/10/2604.08456v1-entropy-gradient-grounding-training-free-evidence-retrieval-in-vision-language-models)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：视觉语言模型中针对组合查询的证据检索
 
 ### 速读区论文标签
-1. [Enhancing Medical Visual Grounding via Knowledge-guided Spatial Prompts](/202604/09/2604.01915v1-enhancing-medical-visual-grounding-via-knowledge-guided-spatial-prompts)  
+1. [VLMs Need Words: Vision Language Models Ignore Visual Detail In Favor of Semantic Anchors](/202604/10/2604.02486v1-vlms-need-words-vision-language-models-ignore-visual-detail-in-favor-of-semantic-anchors)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于医学定位的视觉语言模型（VLM）
-2. [BBC: Improving Large-k Approximate Nearest Neighbor Search with a Bucket-based Result Collector](/202604/09/2604.01960v1-bbc-improving-large-k-approximate-nearest-neighbor-search-with-a-bucket-based-result-collector)  
+   evidence：视觉语言模型中细粒度视觉感知的分析
+2. [Token-Efficient Multimodal Reasoning via Image Prompt Packaging](/202604/10/2604.02492v1-token-efficient-multimodal-reasoning-via-image-prompt-packaging)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：改进检索中的大k值近似最近邻搜索
-3. [Optimizing RAG Rerankers with LLM Feedback via Reinforcement Learning](/202604/09/2604.02091v1-optimizing-rag-rerankers-with-llm-feedback-via-reinforcement-learning)  
+   evidence：视觉语言模型的高效Token多模态推理
+3. [Contrastive Language-Colored Pointmap Pretraining for Unified 3D Scene Understanding](/202604/10/2604.02546v1-contrastive-language-colored-pointmap-pretraining-for-unified-3d-scene-understanding)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：利用大模型反馈优化RAG重排序器
-4. [Omni123: Exploring 3D Native Foundation Models with Limited 3D Data by Unifying Text to 2D and 3D Generation](/202604/09/2604.02289v1-omni123-exploring-3d-native-foundation-models-with-limited-3d-data-by-unifying-text-to-2d-and-3d-generation)  
+   evidence：用于3D场景理解的视觉语言预训练技术
+4. [Prosocial Persuasion at Scale? Large Language Models Outperform Humans in Donation Appeals Across Levels of Personalization](/202604/10/2604.03202v1-prosocial-persuasion-at-scale-large-language-models-outperform-humans-in-donation-appeals-across-levels-of-personalization)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于统一文本、图像和3D的多模态大模型
-5. [User-Aware Conditional Generative Total Correlation Learning for Multi-Modal Recommendation](/202604/09/2604.03014v1-user-aware-conditional-generative-total-correlation-learning-for-multi-modal-recommendation)  
+   evidence：LLM 在不同个性化水平下的表现
+5. [Principled and Scalable Diversity-Aware Retrieval via Cardinality-Constrained Binary Quadratic Programming](/202604/10/2604.02554v1-principled-and-scalable-diversity-aware-retrieval-via-cardinality-constrained-binary-quadratic-programming)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：用户感知的多模态推荐与对齐
-6. [EffiMiniVLM: A Compact Dual-Encoder Regression Framework](/202604/09/2604.03172v1-effiminivlm-a-compact-dual-encoder-regression-framework)  
+   evidence：检索增强生成中的多样性感知检索
+6. [Lightweight Query Routing for Adaptive RAG: A Baseline Study on RAGRouter-Bench](/202604/10/2604.03455v1-lightweight-query-routing-for-adaptive-rag-a-baseline-study-on-ragrouter-bench)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：用于多模态回归的紧凑型双编码器视觉语言框架
-7. [Imagine Before Concentration: Diffusion-Guided Registers Enhance Partially Relevant Video Retrieval](/202604/09/2604.03653v1-imagine-before-concentration-diffusion-guided-registers-enhance-partially-relevant-video-retrieval)  
+   evidence：RAG 系统中检索策略和查询路由的评估
+7. [Hierarchical Semantic Correlation-Aware Masked Autoencoder for Unsupervised Audio-Visual Representation Learning](/202604/10/2604.04229v1-hierarchical-semantic-correlation-aware-masked-autoencoder-for-unsupervised-audio-visual-representation-learning)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：视频检索中的跨模态匹配与表示学习
-8. [Love Me, Love My Label: Rethinking the Role of Labels in Prompt Retrieval for Visual In-Context Learning](/202604/09/2604.03657v1-love-me-love-my-label-rethinking-the-role-of-labels-in-prompt-retrieval-for-visual-in-context-learning)  
+   evidence：无监督视听表示学习与对齐
+8. [Spatially-Weighted CLIP for Street-View Geo-localization](/202604/10/2604.04357v1-spatially-weighted-clip-for-street-view-geo-localization)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：用于视觉上下文学习的标签感知提示检索
-9. [OmniTQA: A Cost-Aware System for Hybrid Query Processing over Semi-Structured Data](/202604/09/2604.02444v1-omnitqa-a-cost-aware-system-for-hybrid-query-processing-over-semi-structured-data)  
+   evidence：带有空间加权标签的视觉语言对比学习
+9. [Fusion and Alignment Enhancement with Large Language Models for Tail-item Sequential Recommendation](/202604/10/2604.03688v1-fusion-and-alignment-enhancement-with-large-language-models-for-tail-item-sequential-recommendation)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：将基于LLM的语义操作与关系运算符集成
-10. [CrossWeaver: Cross-modal Weaving for Arbitrary-Modality Semantic Segmentation](/202604/09/2604.02948v1-crossweaver-cross-modal-weaving-for-arbitrary-modality-semantic-segmentation)  
+   evidence：个性化建议与用户偏好学习
+10. [Purify-then-Align: Towards Robust Human Sensing under Modality Missing with Knowledge Distillation from Noisy Multimodal Teacher](/202604/10/2604.05584v1-purify-then-align-towards-robust-human-sensing-under-modality-missing-with-knowledge-distillation-from-noisy-multimodal-teacher)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：用于跨模态协调的多模态融合框架
-11. [Cardinality Estimation for High Dimensional Similarity Queries with Adaptive Bucket Probing](/202604/09/2604.04603v1-cardinality-estimation-for-high-dimensional-similarity-queries-with-adaptive-bucket-probing)  
+   evidence：鲁棒的多模态感知与表示间隙缩减
+11. [Purify-then-Align: Towards Robust Human Sensing under Modality Missing with Knowledge Distillation from Noisy Multimodal Teacher](/202604/10/2604.05584v2-purify-then-align-towards-robust-human-sensing-under-modality-missing-with-knowledge-distillation-from-noisy-multimodal-teacher)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：高维相似性查询的基数估计
+   evidence：多模态人体感知与表示差距
 
 
 <div class="dpr-home-promo-card">

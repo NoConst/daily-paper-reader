@@ -1,0 +1,276 @@
+Title: Spike Hijacking in Late-Interaction Retrieval
+
+URL Source: https://arxiv.org/pdf/2604.05253v1
+
+Published Time: Wed, 08 Apr 2026 00:17:15 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Spike Hijacking in Late-Interaction Retrieval 
+
+Karthik Suresh 1, Tushar Vatsa 2, Tracy King 3, Asim Kadav 3 and Michael Friedrich 3
+
+> 1
+
+Adobe, 345 Park Ave, San Jose, CA 95110, USA 
+
+Abstract 
+
+Late-interaction retrieval models rely on hard maximum similarity (MaxSim) to aggregate token-level similarities. Although effective, this winner-take-all pooling rule may structurally bias training dynamics. We provide a mechanistic study of gradient routing and robustness in MaxSim-based retrieval. In a controlled synthetic environment with in-batch contrastive training, we demonstrate that MaxSim induces significantly higher patch-level gradient concentration than smoother alternatives such as Top-k pooling and softmax aggregation. While sparse routing can improve early discrimination, it also increases sensitivity to document length: as the number of document patches grows, MaxSim degrades more sharply than mild smoothing variants. We corroborate these findings on a real-world multi-vector retrieval benchmark, where controlled document-length sweeps reveal similar brittleness under hard max pooling. Together, our results isolate pooling-induced gradient concentration as a structural property of late-interaction retrieval and highlight a sparsity–robustness tradeoff. These findings motivate principled alternatives to hard max pooling in multi-vector retrieval systems. 
+
+Keywords 
+
+Late-Interaction Retrieval, MaxSim Pooling, Contrastive Learning, Gradient Concentration, Robustness to Docu-ment Length 
+
+# 1. Introduction 
+
+Late-interaction retrieval models [ 1 ] have emerged as a powerful alternative to single-vector embedding methods [ 2 , 3 ]. Instead of compressing a query and document into single representations, late-interaction approaches retain token or patch-level embeddings and compute relevance by aggregating fine-grained similarity scores. A widely adopted aggregation rule in such models is hard maximum similarity (MaxSim), where each query token contributes the maximum similarity it achieves over document patches. This winner-take-all formulation has been shown to be both effective and computationally attractive in multi-vector retrieval systems [1, 4, 5]. Despite its empirical success, the structural implications of MaxSim remain underexplored. MaxSim introduces a non-smooth routing mechanism: for each query token, only the highest-scoring document patch contributes to the final score. Under contrastive training with in-batch negatives [ 6 ], this induces a highly selective gradient pathway. While sparsity can enhance discrimination, it can concentrate learning signal on a small subset of document patches, affecting robustness and generalization. We provide a mechanistic analysis of pooling in late-interaction retrieval, answering questions: 1. How does MaxSim based pooling shape gradient routing under contrastive learning? 2. Does this structural property affect robustness, particularly as document length increases? To isolate the effect of pooling, we construct a controlled synthetic retrieval environment in which queries and documents are generated from a shared concept dictionary. Within this setting, we train a small encoder using in-batch InfoNCE [ 6 ] and compare three aggregation strategies: MaxSim, Top-𝑘 
+
+averaging, and temperature-controlled softmax pooling. This controlled setup allows us to measure patch-level gradient concentration and retrieval behavior as document length varies. Our synthetic experiments reveal three findings. First, MaxSim induces significantly higher patch-level gradient concentration than smoother alternatives. Second, although MaxSim achieves competitive 
+
+The 1st Late Interaction Workshop (LIR) @ECIR 2026 
+
+$ karsures@adobe.com (K. Suresh); tvatsa@adobe.com (T. Vatsa); tking@adobe.com (T. King); akadav@adobe.com (A. Kadav); mifriedr@adobe.com (M. Friedrich) 
+
+ 0000-0002-0877-7063 (K. Suresh); 0000-0001-7116-9338 (T. Vatsa)  
+
+> ©2026 Copyright for this paper by its authors. Use permitted under Creative Commons License Attribution 4.0 International (CC BY 4.0).
+
+retrieval quality in moderate-length documents, it exhibits greater sensitivity to increasing document length. Third, mild smoothing (e.g., Top-𝑘 pooling) preserves retrieval performance while reducing gradient concentration and improving length robustness. These results expose a sparsity–robustness tradeoff inherent in pooling design. To validate that this is not confined to the synthetic regime, we conduct controlled document-length sweeps in a real-world multi-vector retrieval benchmark. The empirical trends mirror those observed in the synthetic environment, providing corroborating evidence that hard max pooling induces increased brittleness with respect to document length. Our contributions are as follows: 
+
+• A mechanistic study of gradient routing under hard max pooling in late-interaction retrieval. 
+
+• Introduction of patch-level gradient concentration metrics to quantify pooling-induced sparsity. 
+
+• Demonstration, in a controlled synthetic setting, that MaxSim leads to increased sensitivity to document length compared to mild smoothing alternatives. 
+
+• Empirical validation on a real-world benchmark showing that the sparsity-smoothness trade-off governs pooling robustness across both adversarial and non-adversarial document-length increases. 
+
+# 2. Background and Problem Formulation 
+
+2.1. Late-Interaction Retrieval 
+
+Let a query 𝑞 consist of 𝑇 token embeddings 
+
+𝑞 = {q1, . . . , q𝑇 }, q𝑖 ∈ R𝑑 ,
+
+and let a document 𝑑 consist of 𝑀 patch embeddings 
+
+𝑑 = {d1, . . . , d𝑀 }, d𝑗 ∈ R𝑑 .
+
+Late-interaction retrieval models [1] compute a similarity matrix 
+
+𝑆 𝑖𝑗 = q⊤ 
+
+> 𝑖
+
+d𝑗 ,
+
+and aggregate these fine-grained similarities into a scalar relevance score score (𝑞, 𝑑 ) = 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑖 =1
+
+𝜑 (︀ 𝑆 𝑖 1, . . . , 𝑆 𝑖𝑀 )︀ ,
+
+where 𝜑 (·) is a pooling operator applied independently for each query token. 
+
+2.2. Pooling Operators 
+
+We consider three commonly used pooling strategies. 
+
+Hard Max (MaxSim). Each query token contributes only its highest similarity over document patches [1]. 
+
+𝜑 max (𝑆 𝑖 1, . . . , 𝑆 𝑖𝑀 ) = max  
+
+> 1≤𝑗 ≤𝑀
+
+𝑆 𝑖𝑗 .
+
+Top-𝑘 Averaging. Top-𝑘 (𝑖 ) denotes the indices of the 𝑘 largest values in {𝑆 𝑖𝑗 }𝑀 𝑗 =1 .
+
+𝜑 𝑘 (𝑆 𝑖 1, . . . , 𝑆 𝑖𝑀 ) = 1
+
+𝑘 ∑︁ 𝑗 ∈Top-𝑘 (𝑖 )
+
+𝑆 𝑖𝑗 ,Softmax Pooling. 𝜏 > 0 controls smoothness. As 𝜏 → 0, softmax pooling approaches hard max. 
+
+𝜑 𝜏 (𝑆 𝑖 1, . . . , 𝑆 𝑖𝑀 ) = 
+
+> 𝑀
+
+∑︁ 
+
+> 𝑗 =1
+
+𝑤 𝑖𝑗 𝑆 𝑖𝑗 , 𝑤 𝑖𝑗 = exp( 𝑆 𝑖𝑗 /𝜏 )∑︀  
+
+> 𝑀 𝑚 =1
+
+exp( 𝑆 𝑖𝑚 /𝜏 ) ,
+
+2.3. Contrastive Training Objective 
+
+We train models using in-batch InfoNCE [ 6 ]. For a batch of 𝐵 query-document pairs {(𝑞 𝑖 , 𝑑 + 
+
+> 𝑖
+
+)}𝐵 𝑖 =1 , the score matrix is defined as 
+
+Z𝑖𝑗 = score (𝑞 𝑖 , 𝑑 + 
+
+> 𝑗
+
+).
+
+The objective is 
+
+ℒ = 1
+
+𝐵 
+
+> 𝐵
+
+∑︁ 
+
+> 𝑖 =1
+
+− log exp( Z𝑖𝑖 )∑︀  
+
+> 𝐵 𝑗 =1
+
+exp( Z𝑖𝑗 ) .
+
+Each query is trained to assign higher score to its positive document relative to in-batch negatives. 
+
+2.4. Patch-Level Gradient Concentration 
+
+To quantify pooling-induced sparsity, we analyze how gradient mass is distributed across document patches. For a fixed query-document pair (𝑞, 𝑑 ) and loss ℒ, let 
+
+𝑔 𝑗 =⃦⃦⃦⃦ 𝜕 ℒ
+
+𝜕 d𝑗 ⃦⃦⃦⃦ 
+
+denote the gradient norm for patch 𝑗 .We define patch-level gradient concentration using the Gini coefficient [7] over {𝑔 𝑗 }𝑀 𝑗 =1 :Gini (𝑔 ) = 1 − 2
+
+𝑀 ∑︀ 𝑀 𝑗 =1 𝑔 𝑗 𝑀 ∑︁ 
+
+> 𝑗 =1
+
+(︃ 
+
+> 𝑗
+
+∑︁ 
+
+> 𝑚 =1
+
+𝑔 (𝑚 ))︃ ,
+
+where 𝑔 (𝑚 ) denotes the sorted gradient norms in ascending order. A higher Gini value indicates that gradient mass is concentrated on fewer patches. This metric directly compares how different pooling operators route learning signal during contrastive training. 
+
+2.5. Problem Statement 
+
+Our goal is to understand how the choice of pooling operator 𝜑 affects: (1) Patch-level gradient concentration under contrastive training, and (2) Retrieval robustness as document length 𝑀 increases. By isolating pooling within a controlled setting, we aim to characterize the structural tradeoffs between selectivity and smoothness in late-interaction retrieval. 
+
+# 3. Synthetic Experimental Setup 
+
+To isolate the structural effect of pooling, we construct a controlled synthetic retrieval environment. The design allows precise control over query–document alignment, document length, and negative hardness while keeping the training objective fixed. 
+
+Concept Dictionary and Embedding Space We generate a fixed dictionary of 𝐶 concept vectors 
+
+{c1, . . . , c𝐶 } ⊂ R𝑑 ,
+
+sampled from a standard Gaussian distribution and ℓ2-normalized. Each query consists of 𝑇 token embeddings. A query is generated by sampling 𝑇 concept indices uniformly at random and adding Gaussian noise: 
+
+q𝑖 = normalize (c𝑘 𝑖 + 𝜖 ), 𝜖 ∼ 𝒩 (0 , 𝜎 2 
+
+> 𝑞
+
+I).Positive Documents A positive document of length 𝑀 consists of 𝑀 patch embeddings. To control task difficulty, only 𝐾 ≤ 𝑇 patches correspond to query concepts (distributed support), while the remaining patches are sampled from random concepts: 
+
+d+ 
+
+> 𝑗
+
+={︃ normalize (c𝑘 𝑖 + 𝜖 ), if 𝑗 ≤ 𝐾, 
+
+normalize (c𝑟 + 𝜖 ), otherwise ,
+
+where 𝜖 ∼ 𝒩 (0 , 𝜎 2
+
+> 𝑑
+
+I) and 𝑟 is a random concept index. This design ensures that positive relevance is distributed across multiple patches rather than concentrated in a single location. 
+
+Hard Negatives To simulate realistic confusers, we construct hard negative documents that: Share a small number of query concepts (partial overlap) and contain a “spike” patch formed by averaging several query concepts. The spike patch increases similarity across multiple query tokens and creates a potential winner-take-all scenario under hard max pooling. The remaining patches are sampled from random concepts. While synthetic by construction, spike patches model a practically relevant scenario: in retrieval-augmented generation, adversarially crafted or SEO-optimized passages may aggregate multiple query-relevant terms into a short span, creating a similar winner-take-all vulnerability. Our setup isolates this mechanism as a controlled stress test rather than a claim about attack frequency. 
+
+Training Protocol We train a small three-layer feed-forward encoder 𝑓 𝜃 that maps raw embeddings to normalized representations: 
+
+˜q𝑖 = 𝑓 𝜃 (q𝑖 ), ˜d𝑗 = 𝑓 𝜃 (d𝑗 ).
+
+Training uses in-batch InfoNCE [ 6] with batch size 𝐵 = 64 , where each query competes against 
+
+𝐵 − 1 in-batch negatives. The dataset is fixed across epochs to ensure learnability. Unless otherwise stated, we train for 100 epochs with Adam [8] and evaluate every 5 epochs. 
+
+Evaluation Metrics We report: 
+
+• Recall@ 𝑘 : fraction of queries whose positive document is ranked in the top-𝑘 .
+
+• Patch-level Gradient Gini : inequality of gradient mass across document patches (Section 2). 
+
+Document Length Sweep To study robustness, we vary the number of document patches 𝑀 ∈{32 , 64 , 128 , 256 } while keeping: Query tokens fixed; Concept assignments fixed; Training procedure unchanged. Only the number of document patches changes. This controlled sweep isolates the effect of document length on retrieval quality under different pooling operators. 
+
+Compared Pooling Variants We compare three variants. This setup enables controlled comparison of gradient routing behavior and retrieval robustness across pooling strategies. 
+
+• MaxSim, 
+
+• Top-𝑘 averaging (with fixed 𝑘 ), 
+
+• Softmax pooling with temperature 𝜏 = 1 .0.
+
+# 4. Results 
+
+We evaluate how pooling choice affects (i) gradient routing during training, (ii) retrieval performance, and (iii) robustness to document length. All synthetic results are summarized in Figure 1. Figure 1: Synthetic training dynamics and document-length sweep. (A) Patch-level gradient concentra-tion (Gini) vs. training. (B) Retrieval quality (Recall@1) vs. training. (C) Retrieval quality vs. document length 𝑀 under fixed queries. 
+
+4.1. Synthetic Analysis 
+
+Experimental Setup. We generate a fixed synthetic dataset of queries and positive documents built from 𝐶 = 100 latent concepts in R𝑑 (𝑑 = 16 ). Each query contains 𝑇 = 16 concept tokens sampled with Gaussian noise 𝜎 𝑞 = 0 .1, and each positive document contains 𝑀 patches with noise 𝜎 𝑑 = 0 .1, of which a subset correspond to query concepts and the remainder are distractors. Training is performed with in-batch negatives (batch size 𝐵 = 64 ) under three pooling strategies: hard MaxSim, Top-𝑘 
+
+averaging ( 𝑘 = 4 ), and softmax aggregation ( 𝜏 = 1 .0). To study robustness under adversarial length expansion, we inject 𝐾 ∈ { 0, 25 , 50 , 100 , 200 , 400 }
+
+token-targeted hard-negative patches into non-gold documents only. We measure (i) patch-level gradient concentration using the Gini coefficient and (ii) retrieval quality using Recall@1. 
+
+Gradient Concentration During Training. Figure 1A shows the patch-level gradient Gini co-efficient over training epochs. MaxSim produces substantially higher gradient concentration than the alternatives. Throughout training, MaxSim maintains a Gini coefficient near 0.78 , indicating that gradient mass is concentrated on a small subset of document patches. Top-4 pooling yields moderate concentration ( ∼ 0.45 ), while softmax pooling distributes gradients far more uniformly ( ∼ 0.18 ). Importantly, this separation emerges early and remains stable across epochs, suggesting that gradient concentration is a structural property of the pooling operator, not a transient optimization artifact. 
+
+Retrieval Performance During Training. Figure 1B reports Recall@1 over training. MaxSim and Top-4 pooling achieve comparable retrieval performance ( ∼ 0.33 –0.38 Recall@1), while softmax pooling performs substantially worse. Thus, sparse routing appears beneficial for discrimination, but extreme sparsity (hard max) is not uniquely necessary for strong retrieval performance. 
+
+Robustness to Document Length. To evaluate brittleness, we conduct a controlled document-length sweep. Queries and concept assignments are fixed, while only the number of document patches 𝑀 
+
+varies. Figure 1C shows Recall@1 as a function of 𝑀 . All pooling strategies degrade as document length increases, reflecting increased opportunities for spurious matches. However, MaxSim exhibits sharper degradation compared to Top-4 pooling. While MaxSim performs strongly at small 𝑀 , its performance drops more rapidly as 𝑀 grows. Top-4 pooling degrades more smoothly and outperforms MaxSim at larger document lengths. 
+
+Summary of Synthetic Findings. The synthetic results reveal a consistent pattern: 
+
+• Hard MaxSim induces the highest gradient concentration. • Moderate sparsity (Top-𝑘 pooling) achieves similar retrieval quality with lower concentration. 
+
+• Higher concentration correlates with increased sensitivity to document length. Together, these results isolate pooling-induced gradient routing as a key structural factor influencing robustness in late-interaction retrieval. These results do not imply that lower concentration is uniformly desirable. In our synthetic setting, softmax pooling distributes gradients most evenly but yields the lowest retrieval quality (Figure 1B), suggesting that some degree of selective routing is necessary for discrimination. The practical tradeoff is regime-dependent: MaxSim excels on short, well-targeted documents, while moderate smoothing (e.g., Top-𝑘 ) offers a better sparsity–robustness balance when document length is variable or adversarial content is a concern. 
+
+4.2. Real-World Corroboration on ColQwen2.5 + ViDoRe 
+
+We validate our synthetic findings using ColQwen2.5 [ 9 ] on the ViDoRe biomedical benchmark [ 10 , 11 ]. Our goal is to test whether pooling-induced gradient concentration and spike hijacking manifest in practice. Without retraining, we measure doc-patch gradient concentration (Gini) across 160 queries. MaxSim produces the highest concentration (0.983), followed by Top-5 (0.951) and Softmax (0.883), with paired 
+
+𝑡 -tests confirming significant differences ( 𝑝 < 10 −80 ). This ordering matches the synthetic results, indicating that concentration is structurally induced by pooling rather than an artifact of the training regime. To test robustness, we inject 𝐾 ∈ { 0, 25 , 50 , 100 , 200 , 400 } token-targeted hard-negative patches into non-gold documents. Even at moderate injection levels ( 𝐾 = 100 ), MaxSim and Top-4 retain only 27.8% and 29.3% of baseline recall respectively, while Softmax retains 67.6%. Spike hijack rates reach approximately 0.70 for both MaxSim and Top-𝑘 , meaning most query tokens select injected distractors. Notably, increasing 𝑘 (Top-1, Top-4, Top-16) does not restore robustness: all spike-based operators retain only ≈28–30% recall, because even at higher 𝑘 the injected patches dominate the top-𝑘 set and poison the average. A Gaussian control experiment confirms this degradation is semantic rather than length-driven: replacing hard negatives with random Gaussian patches preserves recall ( ≈97% retained, hijack < 0.15 ). We note that these experiments swap pooling operators at inference time on a MaxSim-trained model; end-to-end retraining with each pooling objective may further amplify the benefit of smoother operators and is an important direction for future work. Figure 2 illustrates this mechanism at the token level: under hard-negative injection, ∼83% of token-wise argmax selections shift to injected patches, whereas Gaussian injection produces minimal routing disruption. 
+
+Summary. Real-world experiments confirm that (i) gradient concentration is structural, (ii) semantic distractors induce spike hijacking and recall collapse, and (iii) larger 𝑘 does not mitigate brittleness, closely mirroring synthetic findings. References 
+
+[1] O. Khattab, M. Zaharia, ColBERT: Efficient and effective passage search via contextualized late interaction over BERT, in: Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval, 2020, pp. 39–48. doi: 10.1145/3397271. 3401075 .[2] V. Karpukhin, B. Oğuz, S. Min, P. Lewis, L. Wu, S. Edunov, D. Chen, W. tau Yih, Dense passage retrieval for open-domain question answering, in: Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), 2020, pp. 6769–6781. doi: 10.18653/v1/2020. emnlp-main.550 .[3] N. Reimers, I. Gurevych, Sentence-BERT: Sentence embeddings using siamese BERT-networks, in: Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP), 2019, pp. 3982–3992. doi: 10.18653/v1/D19-1410 .[4] K. Santhanam, O. Khattab, J. Saad-Falcon, C. Potts, M. Zaharia, ColBERTv2: Effective and effi-cient retrieval via lightweight late interaction, in: Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL), 2022, pp. 3715–3734. doi: 10.18653/v1/2022.naacl-main.272 .[5] K. Santhanam, O. Khattab, C. Potts, M. Zaharia, PLAID: An efficient engine for late interaction retrieval, in: Proceedings of the 31st ACM International Conference on Information & Knowledge Management (CIKM), 2022, pp. 1747–1756. doi: 10.1145/3511808.3557325 .[6] A. van den Oord, Y. Li, O. Vinyals, Representation learning with contrastive predictive coding, arXiv preprint arXiv:1807.03748 (2018). [7] C. Gini, Variabilità e mutabilità: contributo allo studio delle distribuzioni e delle relazioni statistiche. [Fasc. I.], Tipogr. di P. Cuppini, Bologna, 1912. [8] D. P. Kingma, J. Ba, Adam: A method for stochastic optimization, in: International Conference on Learning Representations (ICLR), 2015. URL: https://arxiv.org/abs/1412.6980. [9] M. Faysse, H. Sibille, T. Wu, ColQwen2.5-v0.2: A Qwen2.5-VL-based late-interaction retriever, https://huggingface.co/vidore/colqwen2.5-v0.2, 2024. [10] M. Faysse, H. Sibille, T. Wu, B. Omrani, G. Viaud, C. Hudelot, P. Colombo, ColPali: Efficient document retrieval with vision language models, in: International Conference on Learning Representations (ICLR), 2025. [11] Q. Macé, A. Loison, M. Faysse, ViDoRe benchmark V2: Raising the bar for visual retrieval, arXiv preprint arXiv:2505.17166 (2025). Figure 2: Token–patch similarity heatmaps for a representative ColQwen2.5 example from ViDoRe biomedical retrieval. Left (Baseline, 𝐾 = 0 ): Token maxima align with semantically relevant document patches. Middle (Hard-negative injection, 𝐾 = 100 ): Injected distractor patches redirect the majority of token-wise argmax selections into the injected region, resulting in ∼83% token hijacking. 
+
+Right (Gaussian control, 𝐾 = 100 ): Random noise produces minimal routing changes and low hijack rates. Black dots denote argmax positions on original patches; red dots denote argmax positions on injected distractor patches. The injected region is highlighted. 
+
+# A. Mechanistic Visualization of Spike Hijacking 
+
+To complement aggregate retrieval metrics, we provide a qualitative token–patch similarity visualization illustrating the spike hijacking mechanism observed in real-world experiments. This visualization provides direct mechanistic evidence for the phenomenon quantified in Section 4.2: spike-based pooling routes token attention to high-similarity distractor patches, causing retrieval degradation, while soft aggregation avoids catastrophic token rerouting.

@@ -6,88 +6,73 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-10
-- 运行时间：2026-04-10 20:27:07 UTC
+- 最新运行日期：2026-04-11
+- 运行时间：2026-04-11 20:08:22 UTC
 - 运行状态：成功
-- 本次总论文数：22
-- 精读区：11
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日深挖 22 篇多模态前沿论文，重点聚焦潜空间推理与长视频结构化理解。
-PLUME 与 VideoStir 展现了多模态嵌入与 RAG 的新高度，同时警示了 VLM 存在忽视视觉细节而过度依赖语义锚点的倾向。
-建议优先关注如何通过 Token 封装与结构化检索，提升复杂场景及 3D 环境下的推理效率。
-- 详情：[/202604/10/README](/202604/10/README)
+今日精选 17 篇前沿论文，深度聚焦多模态大模型的自我进化稳定性与闭环评估体系。
+重点关注通过软重采样稳定 MLLM 无监督进化，以及利用“图-文-图”闭环框架 ITIScore 精准衡量模型描述能力。
+建议关注多模态模型从“像素生成”向“推理驱动”转化的趋势，并探索文档分类中嵌入式与生成式方法的优劣。
+- 详情：[/202604/11/README](/202604/11/README)
 
 ### 精读区论文标签
-1. [PLUME: Latent Reasoning Based Universal Multimodal Embedding](/202604/10/2604.02073v2-plume-latent-reasoning-based-universal-multimodal-embedding)  
+1. [Stabilizing Unsupervised Self-Evolution of MLLMs via Continuous Softened Retracing reSampling](/202604/11/2604.03647v2-stabilizing-unsupervised-self-evolution-of-mllms-via-continuous-softened-retracing-resampling)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大模型中复杂查询意图的通用多模态嵌入
-2. [VideoStir: Understanding Long Videos via Spatio-Temporally Structured and Intent-Aware RAG](/202604/10/2604.05418v1-videostir-understanding-long-videos-via-spatio-temporally-structured-and-intent-aware-rag)  
+   evidence：多模态大语言模型的无监督自我演化
+2. [ITIScore: An Image-to-Text-to-Image Rating Framework for the Image Captioning Ability of MLLMs](/202604/11/2604.03765v1-itiscore-an-image-to-text-to-image-rating-framework-for-the-image-captioning-ability-of-mllms)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：将多模态大语言模型（MLLM）扩展到长视频理解
-3. [PDMP: Rethinking Balanced Multimodal Learning via Performance-Dominant Modality Prioritization](/202604/10/2604.05773v1-pdmp-rethinking-balanced-multimodal-learning-via-performance-dominant-modality-prioritization)  
+   evidence：评估多模态大模型图像描述能力的基准
+3. [Region-R1: Reinforcing Query-Side Region Cropping for Multi-Modal Re-Ranking](/202604/11/2604.05268v2-region-r1-reinforcing-query-side-region-cropping-for-multi-modal-re-ranking)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：多模态机器学习的基础与进展
-4. [ValueGround: Evaluating Culture-Conditioned Visual Value Grounding in MLLMs](/202604/10/2604.06484v1-valueground-evaluating-culture-conditioned-visual-value-grounding-in-mllms)  
+   evidence：用于检索增强生成的多模态重排序
+4. [Hierarchical Contrastive Learning for Multimodal Data](/202604/11/2604.05462v1-hierarchical-contrastive-learning-for-multimodal-data)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：评估多模态大模型中文化条件视觉基元的基准
-5. [ReAlign: Optimizing the Visual Document Retriever with Reasoning-Guided Fine-Grained Alignment](/202604/10/2604.07419v1-realign-optimizing-the-visual-document-retriever-with-reasoning-guided-fine-grained-alignment)  
+   evidence：多模态表示学习中的分层对比学习
+5. [Personalizing Text-to-Image Generation to Individual Taste](/202604/11/2604.07427v1-personalizing-text-to-image-generation-to-individual-taste)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：通过视觉语言模型引导的对齐优化视觉文档检索器
-6. [Multimodal Large Language Models for Multi-Subject In-Context Image Generation](/202604/10/2604.07422v1-multimodal-large-language-models-for-multi-subject-in-context-image-generation)  
+   evidence：个性化图像评估与奖励模型
+6. [PeReGrINE: Evaluating Personalized Review Fidelity with User Item Graph Context](/202604/11/2604.07788v1-peregrine-evaluating-personalized-review-fidelity-with-user-item-graph-context)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：用于多主体图像生成的多模态大模型
-7. [Symbiotic-MoE: Unlocking the Synergy between Generation and Understanding](/202604/10/2604.07753v1-symbiotic-moe-unlocking-the-synergy-between-generation-and-understanding)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于多模态大模型生成与理解的多模态混合专家架构
-8. [HAWK: Head Importance-Aware Visual Token Pruning in Multimodal Models](/202604/10/2604.07812v1-hawk-head-importance-aware-visual-token-pruning-in-multimodal-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：多模态大语言模型中的视觉标记剪枝
-9. [ABMAMBA: Multimodal Large Language Model with Aligned Hierarchical Bidirectional Scan for Efficient Video Captioning](/202604/10/2604.08050v1-abmamba-multimodal-large-language-model-with-aligned-hierarchical-bidirectional-scan-for-efficient-video-captioning)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于视频字幕生成的多模态大语言模型 (MLLM)
-10. [InstAP: Instance-Aware Vision-Language Pre-Train for Spatial-Temporal Understanding](/202604/10/2604.08337v1-instap-instance-aware-vision-language-pre-train-for-spatial-temporal-understanding)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于实例级检索的视觉语言预训练（VLP）
-11. [Entropy-Gradient Grounding: Training-Free Evidence Retrieval in Vision-Language Models](/202604/10/2604.08456v1-entropy-gradient-grounding-training-free-evidence-retrieval-in-vision-language-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：视觉语言模型中针对组合查询的证据检索
+   evidence：个性化评论生成和用户风格参数
 
 ### 速读区论文标签
-1. [VLMs Need Words: Vision Language Models Ignore Visual Detail In Favor of Semantic Anchors](/202604/10/2604.02486v1-vlms-need-words-vision-language-models-ignore-visual-detail-in-favor-of-semantic-anchors)  
+1. [Gram-Anchored Prompt Learning for Vision-Language Models via Second-Order Statistics](/202604/11/2604.03980v1-gram-anchored-prompt-learning-for-vision-language-models-via-second-order-statistics)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：视觉语言模型中细粒度视觉感知的分析
-2. [Token-Efficient Multimodal Reasoning via Image Prompt Packaging](/202604/10/2604.02492v1-token-efficient-multimodal-reasoning-via-image-prompt-packaging)  
+   evidence：通过提示学习适配视觉语言模型
+2. [Think in Strokes, Not Pixels: Process-Driven Image Generation via Interleaved Reasoning](/202604/11/2604.04746v1-think-in-strokes-not-pixels-process-driven-image-generation-via-interleaved-reasoning)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：视觉语言模型的高效Token多模态推理
-3. [Contrastive Language-Colored Pointmap Pretraining for Unified 3D Scene Understanding](/202604/10/2604.02546v1-contrastive-language-colored-pointmap-pretraining-for-unified-3d-scene-understanding)  
+   evidence：用于交替推理和图像生成的统一多模态模型
+3. [Evaluation of Embedding-Based and Generative Methods for LLM-Driven Document Classification: Opportunities and Challenges](/202604/11/2604.04997v1-evaluation-of-embedding-based-and-generative-methods-for-llm-driven-document-classification-opportunities-and-challenges)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：用于3D场景理解的视觉语言预训练技术
-4. [Prosocial Persuasion at Scale? Large Language Models Outperform Humans in Donation Appeals Across Levels of Personalization](/202604/10/2604.03202v1-prosocial-persuasion-at-scale-large-language-models-outperform-humans-in-donation-appeals-across-levels-of-personalization)  
+   evidence：多模态嵌入模型与视觉语言模型的比较
+4. [Spike Hijacking in Late-Interaction Retrieval](/202604/11/2604.05253v1-spike-hijacking-in-late-interaction-retrieval)  
    标签：评分：8.0/10、query:cir-ml
-   evidence：LLM 在不同个性化水平下的表现
-5. [Principled and Scalable Diversity-Aware Retrieval via Cardinality-Constrained Binary Quadratic Programming](/202604/10/2604.02554v1-principled-and-scalable-diversity-aware-retrieval-via-cardinality-constrained-binary-quadratic-programming)  
+   evidence：延迟交互检索模型的机制研究
+5. [GROUNDEDKG-RAG: Grounded Knowledge Graph Index for Long-document Question Answering](/202604/11/2604.04359v1-groundedkg-rag-grounded-knowledge-graph-index-for-long-document-question-answering)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：检索增强生成中的多样性感知检索
-6. [Lightweight Query Routing for Adaptive RAG: A Baseline Study on RAGRouter-Bench](/202604/10/2604.03455v1-lightweight-query-routing-for-adaptive-rag-a-baseline-study-on-ragrouter-bench)  
+   evidence：用于检索增强生成的知识图谱索引
+6. [Think in Strokes, Not Pixels: Process-Driven Image Generation via Interleaved Reasoning](/202604/11/2604.04746v2-think-in-strokes-not-pixels-process-driven-image-generation-via-interleaved-reasoning)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：RAG 系统中检索策略和查询路由的评估
-7. [Hierarchical Semantic Correlation-Aware Masked Autoencoder for Unsupervised Audio-Visual Representation Learning](/202604/10/2604.04229v1-hierarchical-semantic-correlation-aware-masked-autoencoder-for-unsupervised-audio-visual-representation-learning)  
+   evidence：用于交错推理和图像生成的统一多模态模型
+7. [Controllable Image Generation with Composed Parallel Token Prediction](/202604/11/2604.05730v1-controllable-image-generation-with-composed-parallel-token-prediction)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：无监督视听表示学习与对齐
-8. [Spatially-Weighted CLIP for Street-View Geo-localization](/202604/10/2604.04357v1-spatially-weighted-clip-for-street-view-geo-localization)  
+   evidence：生成模型中多个输入条件的组合
+8. [Stealthy and Adjustable Text-Guided Backdoor Attacks on Multimodal Pretrained Models](/202604/11/2604.05809v1-stealthy-and-adjustable-text-guided-backdoor-attacks-on-multimodal-pretrained-models)  
    标签：评分：7.0/10、query:cir-ml
-   evidence：带有空间加权标签的视觉语言对比学习
-9. [Fusion and Alignment Enhancement with Large Language Models for Tail-item Sequential Recommendation](/202604/10/2604.03688v1-fusion-and-alignment-enhancement-with-large-language-models-for-tail-item-sequential-recommendation)  
+   evidence：多模态预训练模型的后门攻击
+9. [PRISM: LLM-Guided Semantic Clustering for High-Precision Topics](/202604/11/2604.03180v1-prism-llm-guided-semantic-clustering-for-high-precision-topics)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：个性化建议与用户偏好学习
-10. [Purify-then-Align: Towards Robust Human Sensing under Modality Missing with Knowledge Distillation from Noisy Multimodal Teacher](/202604/10/2604.05584v1-purify-then-align-towards-robust-human-sensing-under-modality-missing-with-knowledge-distillation-from-noisy-multimodal-teacher)  
+   evidence：LLM引导的语义聚类用于句子编码和嵌入空间分割
+10. [Top-K Retrieval with Fixed-Size Linear-Attention Completion: Backbone- and KV-Format-Preserving Attention for KV-Cache Read Reduction](/202604/11/2604.05438v1-top-k-retrieval-with-fixed-size-linear-attention-completion-backbone--and-kv-format-preserving-attention-for-kv-cache-read-reduction)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：鲁棒的多模态感知与表示间隙缩减
-11. [Purify-then-Align: Towards Robust Human Sensing under Modality Missing with Knowledge Distillation from Noisy Multimodal Teacher](/202604/10/2604.05584v2-purify-then-align-towards-robust-human-sensing-under-modality-missing-with-knowledge-distillation-from-noisy-multimodal-teacher)  
+   evidence：用于减少KV缓存读取的查询感知检索
+11. [ASPECT:Analogical Semantic Policy Execution via Language Conditioned Transfer](/202604/11/2604.08355v1-aspectanalogical-semantic-policy-execution-via-language-conditioned-transfer)  
    标签：评分：6.0/10、query:cir-ml
-   evidence：多模态人体感知与表示差距
+   evidence：LLM 作为组合任务变化的动态语义算子
 
 
 <div class="dpr-home-promo-card">

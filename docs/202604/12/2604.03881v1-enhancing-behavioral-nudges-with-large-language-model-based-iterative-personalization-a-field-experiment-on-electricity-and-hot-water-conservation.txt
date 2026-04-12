@@ -1,0 +1,734 @@
+Title: Enhancing behavioral nudges with large language model-based iterative personalization: A field experiment on electricity and hot-water conservation
+
+URL Source: https://arxiv.org/pdf/2604.03881v1
+
+Published Time: Tue, 07 Apr 2026 00:47:41 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# Enhancing behavioral nudges with large language model-based iterative personalization: A field experiment on electricity and hot-water conservation 
+
+## Zonghan Li 1,2 Yi Liu 1,3 Chunyan Wang 1 Song Tong 4 Kaiping Peng 5 Feng Ji 21School of Environment, Tsinghua University, Beijing, China 
+
+> 2
+
+## Department of Applied Psychology and Human Development, University of Toronto, ON, Canada 
+
+> 3
+
+## State Key Laboratory of Regional Environment and Sustainability, Tsinghua University, Beijing, China 
+
+> 4
+
+## Department of Psychology, Beijing Normal University at Zhuhai, Zhuhai, China 
+
+> 5
+
+## Department of Psychology and Cognitive Sciences, Tsinghua University, Beijing, China 
+
+Corresponding author: Chunyan Wang <wangchunyan@tsinghua.edu.cn> 
+
+## Abstract 
+
+Nudging is widely used to promote behavioral change, but its e ff ectiveness is often limited when recipients must repeatedly translate feedback into workable next steps under changing circumstances. Large language models (LLMs) may help reduce part of this cognitive work by generating personalized guidance and updating it iteratively across intervention rounds. We developed an LLM agent for iterative personalization and tested it in a three-arm randomized experiment among 233 university residents in China, using daily electricity and shower hot-water conservation as objectively measured cases di ff ering in friction. LLM-personalized nudges (T2) produced the largest conservation e ff ects, while image-enhanced conventional nudges (T1) and text-based conventional nudges (C) showed similar outcomes (omnibus p = 0.009). Relative to C, T2 reduced electricity consumption by 0.56 kWh per room-day ( p = 0.014), corresponding to an 18.3 percentage-point higher adjusted saving rate. This advantage emerged within the first two intervention rounds, alongside iterative updating of personalized guidance, and persisted thereafter. Hot-water outcomes followed the same direction but were smaller, less precisely estimated, and attenuated over time, consistent with stronger friction in this domain. LLM-personalized nudges emphasized prospective and context-specific guidance and were associated with higher participant engagement. This study provides field evidence that LLM-based iterative personalization can enhance behavioral nudging, with behavioral friction as a potential boundary condition. Larger trials and extension to more behaviors are warranted. 
+
+Keywords Large language models · Behavioral nudge · Personalized intervention · Randomized controlled trial · Electricity and water conservation 
+
+## Introduction 
+
+Many pressing societal challenges, such as climate change and public health, ultimately depend on whether distributed in-dividual actions can be sustained in everyday contexts [ 1, 2 ]. Yet these goals require behaviors that have immediate and re-current costs but delayed and hard-to-perceive benefits [ 3], such as conserving resources [ 4] or maintaining healthy routines [ 5 ]. Changing such behaviors requires ongoing allocations of limited cognitive resources (e.g., attention and self-regulation) among competing daily demands. Although many individuals endorse these goals, behavior change in these domains is often unstable and highly heterogeneous across individuals and contexts. Eff ective support for these behaviors often requires iden-tifying the currently binding barriers, translating barriers into actionable next steps, and adjusting the steps as constraints and circumstances evolve [ 6]. Behavioral nudges typically reshape the decision environment to make target behaviors easier to carry out. Yet individuals still need to interpret what nudge informa-tion implies for their own circumstances and translate it into action [ 7 ]. This process is cognitively demanding. According to the COM-B framework, barriers to follow-through may arise from deficits in capability (e.g., not knowing what /how to do [ 8]), motivation (e.g., low perceived value [ 9, 10 ]), and opportu-nity (e.g., routines /environments that impede change [ 11 , 12 ]), and can shift over time. Behaviors themselves also vary in friction, with simple and observable behaviors (low-friction) generally easier to initiate and sustain than private and multi-step routines (high-friction) [ 13 , 14 ]. Current nudges, however, often operate by providing information on historical behaviors and social norms. Even when they incorporate individual char-acteristics [ 15 ], personalization often takes the form of static and rule-based content matching [ 8, 16 ]. This largely retrospec-tive information can raise problem salience but leaves much of the cognitive work required for situation-specific planning and adaptation to individuals themselves. Shifting this cognitive work from individuals to the inter-vention is challenging because it is inherently open-ended and cannot easily be covered by pre-specified content. The same behavioral signal may call for di ff erent guidance depending on which barrier is currently binding or how individuals’ circum-stances have changed [ 17 ]. Historically, such context-sensitive cognitive translation has largely relied on individuals’ own self-
+
+> arXiv:2604.03881v1 [cs.CY] 4 Apr 2026
+
+Enhancing behavioral nudges with large language model -based iterative personalization 2regulation [ 18 ], which is e ff ortful, or on coaching-style support [ 19 , 20 ], which is flexible but di ffi cult to scale. Scalable al-ternatives such as rule-based systems [ 8, 16 ] and conventional machine learning [ 16 ] typically depend on predefined states and fixed mappings, limiting their capacity to support this kind of context-sensitive translation. Large language models (LLMs) make it more feasible for a non-human system to participate in this translation [ 21 ]. Because they can integrate diverse forms of unstructured natural-language input, they may be able to gen-erate guidance that fits current circumstances and iteratively up-date that guidance as new behavioral evidence accumulates [ 22 ]. Crucially, LLMs may help bridge the transition from recognizing a problem to identifying a workable next step, thereby poten-tially reducing the cognitive burden of follow-through [ 23 , 24 ]. Whether this form of cognitive support translates into measur-able behavioral changes, however, remains an open empirical question [25]. Existing evidence remains insu ffi cient to determine whether LLM-based support can alter objectively measured behavior in multi-round real-world interventions. As LLMs become widely accessible through APIs and consumer applications, researchers have begun exploring their use in context-aware intervention and naturalistic dialogue [ 26 , 27 ]. A growing body of work has examined LLM-generated content in persuasion and behavioral or mental health support, showing that personalized messages can shift self-reported attitudes [ 28 , 29 ], behavioral intentions [ 30 , 31 ], and mental health symptom scores [ 32 , 33 ]. How-ever, given the attitude-behavior gap [ 34 ], such findings do not necessarily translate into changes in what people actually do. Moreover, even if LLM-personalized nudges can shift behavior in a single encounter, it remains unclear whether this form of support stays e ff ective in multi-round settings where guidance is repeatedly updated as new behavioral evidence accumulates. Ad-dressing this gap requires a real-world testbed in which behavior can be measured continuously, intervention can be repeated over time, and target behaviors di ff er in friction. We address these questions using everyday electricity and shower hot-water conservation as a testbed. These behaviors are objectively and continuously measurable [ 35 ], feature het-erogeneous barriers to change [ 36 ], and o ff er a built-in contrast in friction (electricity as low-friction [ 37 ] and shower hot water as high-friction [ 38 ]). These behaviors are also characterized by modest monetary stakes but large social externalities and are therefore widely used as cases in pro-environmental and public-good studies [ 4]. In this domain, behavioral nudges typically provide usage feedback [ 39 ], social comparisons [ 40 , 41 , 42 ], and conservation tips [ 43 , 44 ]. We developed an LLM agent that performed iterative personalization , i.e., generating nudges tailored to individual profiles and updating them across rounds as individual profiles and interaction logs accumulated. Through a three-arm randomized controlled trial (RCT) in Beijing, we characterized the behavioral patterns associated with these LLM-personalized nudges, their temporal dynamics across interven-tion rounds, heterogeneous responses across individuals, and the conditions under which personalization advantages varied by behavioral friction. The study provides boundary-condition evi-dence and design-relevant insights for future behavioral nudges. 
+
+## Results 
+
+We developed and deployed an LLM agent in a three-arm randomized controlled trial (RCT) among university dormitory residents in Beijing, China (Fig. 1a). After a 4-week baseline pe-riod, a total of 233 eligible participants were randomly assigned to one of three groups: a text-based conventional nudge group (control, C; n = 77), an image-enhanced conventional nudge group (treatment 1, T1; n = 78), and an LLM-personalized nudge (treatment 2, T2; n = 78) group. Conventional nudges (C and T1) delivered standardized content including historical usage statis-tics and social comparisons relative to a peer reference group, with T1 di ff ering from C only in visually enhanced formatting. T2 built on the same content as T1 and added three profile-based elements (Fig. 1b and c): (1) personalized suggestions that iden-tified behaviors with the highest conservation potentials; (2) targeted conservation scenarios that embedded suggestions into daily routines in which the participant would be most willing or able to act; and (3) quantitative outcome estimates that translated expected environmental or financial benefits into analogies. All groups received weekly nudges through the same WeChat-based chatbot during a 5-week intervention period (Dec 12, 2024 to Jan 16, 2025) and could interact with the chatbot at any time. The nudge content in each round was generated using the same prompt structure but incorporated dynamically updated inputs, including individual profiles, consumption data through the pre-vious round, interaction logs, and any explicit user requests. This design allowed the LLM-personalized nudge content to in-creasingly reflect each participant’s evolving behavioral patterns and stated needs over the intervention period. 
+
+Behavioral changes under LLM-personalized nudges 
+
+Overall behavioral changes 
+
+Across the two behavioral outcomes, LLM-personalized nudges (T2) showed stronger conservation patterns. To compare electricity and hot water on a common scale, we standardized the two outcomes separately and estimated pooled baseline-adjusted contrasts. The omnibus test indicated an overall group di ff erence (p = 0.009). Relative to C, pooled adjusted consumption was 0.25 standard deviation (SD) lower in T2 ( p = 0.003) and 0.08 SD lower in T1 ( p = 0.308). T2 was also 0.17 SD lower than T1 (p = 0.023). Electricity conservation showed the same overall ordering (Fig. 2a). We defined adjusted saving rate as the percentage reduction in model-predicted intervention-period consumption relative to the pooled baseline mean, after adjusting for baseline consumption and covariates (see Methods ). In baseline-adjusted models, predicted intervention-period electricity consumption was 2.58 kWh per room-day in C, 2.53 in T1, and 2.03 in T2, corresponding to adjusted saving rates of 14.1%, 16.0%, and 32.4%, respectively (omnibus p = 0.021). On average, T2 consumed 0.56 kWh per room-day less than C ( p = 0.014) and 0.49 less than T1 ( p = 0.023). The di ff erence between T1 and C was 0.07 kWh per room-day ( p = 0.793). Thus, adding visual enhancement to conventional nudges did not produce the same degree of separation as adding personalized content in T2. For hot water (Fig. 2b), point estimates followed the same directional ordering. In baseline-adjusted models, predicted intervention-period consumption was 34.7 L per person-day Enhancing behavioral nudges with large language model -based iterative personalization 3a                          
+
+> Measurement +
+> chatbot access
+> Baseline
+> survey T2: LLM nudge
+> Week 4 (R1)
+> Random
+> assignment
+> Follow -up
+> survey
+> Weekly nudges
+> T1: Image -enhanced nudge
+> C: Text -based nudge
+> Nudge
+> Chatbot Usage
+> link
+> Usage
+> image
+> Usage
+> image
+> LLM
+> suggest
+> ion
+> Week 9 (R5) Week 0
+> Daily data collection via Chatbot
+> Measurement
+> Text -based
+> Image -enhanced
+> LLM
+> Nudge
+> content CT1 T2
+> Usage
+> text √√√
+> Usage
+> image ✗√√
+> LLM
+> suggestion ✗✗√
+> Chatbot
+> access √√√
+> Visual format
+> (C vs. T1)
+> LLM
+> additions
+> (T1 vs. T2)
+> Weekly posted via chatbot
+> Week 21
+
+b
+
+> Baseline period
+
+c  
+
+> Chatbot (T1)
+> Your weekly usage report is ready!
+> Chatbot (T2)
+> Your weekly usage report is ready!
+> (Same content as T1)
+> Based on your usage, here are
+> some saving tips for you.
+> (Added in T2)
+
+Weekly usage report      
+
+> Genera ted by LLM , 2025 /1/2. User ID: ***.
+> Weekly usage in brief !
+
+4.1 
+
+Electricity 20.6 
+
+Shower hot water                   
+
+> •Elect&icit( usage: Total 28.96 kWh (Daily Avg:
+> 4.14 kWh). Trend: +6.87% vs. last week;
+> +13.70% vs. baseline. ⚡Consumption
+> increased. Please focus on saving! #
+> •Shower hot water usage: 7 showers (Cost:
+> ¥3.32). Daily Avg: 20.62 L. Trend: -4.02% vs.
+> last week; -10.00% vs. baseline. $
+> Consumption decreased. Great job! %
+> kWh/day L/day
+> Le#‘% %av) mor) i. th) ne2 yea4 togethe4!
+> Other residents” usage &
+> Note: Ranks are calculated among residents of the same
+> gender and educational level who participated in the study.
+
+Med : -| Low : -)
+
+Electricity Shower hot water    
+
+> •The avg. daily electricity usage for a similar
+> unit is 2.54 kWh.
+> •Average Shower Cost: The average total cost
+> for showers is ¥4.13.
+
+Weekly usage report    
+
+> Genera ted by LLM , 2025 /1/2. User ID: ***.
+
+Electricity saving tips      
+
+> •Try unplugging the water dispenser or
+> turning off its auto -warm function before
+> bed. E.g., if we avoid 8 hours of reheating every
+> night, we can save ~4.8 kWh / month. That's
+> equivalent to the energy needed to ride an e -scooter
+> 'for 200 km across Beijing !
+> •……
+
+!
+
+Water saving tips "     
+
+> •Try turning off the shower while lathering.
+> E.g., pausing for 1 minute during our daily shower
+> (at a flow rate of 6L/min) can save ~180 L per month.
+> That's roughly equivalent to 72 days of drinking
+> water for an astronaut (on the Space Station !
+> •……
+> Small actions make a big impact!
+> (1) Personalized suggestion
+> (2) Conservation scenario
+> (3) Quantitative outcome estimates
+
+Figure 1: Study design and intervention components. a. Overall trial design. b. Examples of nudge content for T1 and T2, illustrating the shared usage-report backbone (weekly usage report) in both groups and the additional LLM-generated suggestions in T2. c. Decomposition of intervention components across conditions. in C, 32.1 in T1, and 31.1 in T2, corresponding to adjusted saving rates of 4.3%, 11.5%, and 14.1%, respectively (omnibus 
+
+p = 0.208). T2 consumed 3.6 L per person-day less than C ( p
+
+= 0.087) and 1.0 L per person-day less than T1 ( p = 0.627). T1 consumed 2.6 L per person-day less than C ( p = 0.197). Between-group di ff erences were directionally consistent with the electricity results but less precisely estimated. Because T1 and C produced similar outcomes despite di ff er-ing in visual format, the additional conservation gains observed in T2 are more likely attributable to the personalized content itself. We examine this further through content analysis and engagement data below. 
+
+Temporal dynamics across intervention rounds 
+
+Temporal analysis further describes how behavioral re-sponses unfolded across intervention rounds. To summarize round-level dynamics, we analyzed the weekly saving rate dy-namics by subtracting C’s weekly saving rate from each treat-ment group to account for external temporal trends (e.g., de-creasing outdoor temperatures in winter) and to visualize how the two intervention conditions diverged from the control group over time. For electricity (Fig. 2c), the cumulative saving-rate advan-tage of T2 over C rose steeply from 8.4 p.p. in round 1 to 18.3 p.p. in round 2 and then stabilized for the remainder of the intervention (hovering between 17.9 p.p. and 19.3 p.p.). T1 showed minimal cumulative separation from C throughout. For hot water (Fig. 2d), T2 similarly exceeded C from the first round onward, although the advantage was smaller than for electricity and narrowed after the first round, moving from 10.7 p.p. in round 1 to 4.8 p.p. in round 2 and then stabilizing around 6.6 to 7.6 p.p. in rounds 3-5. T1 accumulated a modest advantage over C by mid-intervention but remained well below T2. Both treat-ment groups exhibited an early dip at round 2 before recovering, possibly reflecting the higher round-to-round e ff ort required to sustain changes in hot-water conservation. Overall, the round-level trajectories suggest that the T2 advantage for electricity emerged early and persisted throughout the intervention, whereas for hot water it was largest initially and then partially attenuated. An exploratory follow-up survey con-Enhancing behavioral nudges with large language model -based iterative personalization 4a
+
+b                       
+
+> T2
+> T1
+> C
+> T2
+> T1
+> C
+> 0246025 50
+> 025 50 75 025 50
+> 20
+> 15
+> 10
+> 5
+> 0
+> (C)
+> 20
+> 15
+> 10
+> 5
+> 0(C)
+> Baseline R1 R2 R3 R4 R5
+> Nudge round (week)
+> Baseline R1 R2 R3 R4 R5
+> Nudge round (week)
+
+c
+
+d
+
+> Baseline -adjusted
+> electricity consumption (kWh/day)
+> Electricity saving
+> rate (%)
+> Electricity saving rate
+> relative  to  C (%)
+> Hot water saving rate
+> relative  to  C(%)
+> Baseline -adjusted
+> hot water consumption (L/day)
+> Hot water saving
+> rate (%)
+
+Figure 2: Conservation outcomes during the intervention. a. Distribution of individual average daily electricity consumption during the intervention period (left) and group-level saving rates relative to baseline (right) for C, T1, and T2. Bars indicate group means with 95% confidence intervals. b. Same as panel a, but for hot water. c. Weekly electricity saving rates for T1 and T2 relative to C. d. Same as panel c, but for hot water. Analytic sample sizes were n = 169 for electricity and n = 166 for hot water; group-specific counts are reported in Supplementary Table S1. ducted three months after the intervention among participants in C and T2 suggested little short-term reversal in self-reported con-servation behaviors for either resource (details in Supplementary Method S6). 
+
+Content characteristics and participant engagement under LLM-personalized nudges 
+
+Content characteristics and iteration 
+
+To verify whether LLM-personalized nudges delivered the intended personalized and actionable content and to character-ize how participants engaged with the nudges, we conducted post-hoc implementation and content checks using all 1,165 nudges and associated interaction logs. Compared with conven-tional nudges, LLM-personalized nudge content placed greater emphasis on prospective guidance (“what /how to do”) rela-tive to retrospective description (“what happened”). As shown in the topic modeling results in Fig. 3a, conventional nudges were more concentrated in usage-gap (48.8%) and encourag-ing and e ffi cacy content (37.1%), whereas LLM-personalized nudges showed higher shares of planning -related content (19.2% vs. 0.4% for conventional nudges) and appliance -related con-tent (16.4% vs. 3.8%). This added specificity often manifested as vivid outcome representations, for example, using “imagine you” and “equivalent to” to translate numerical savings into intuitive comparisons such as “planting . . . trees”. Overall, LLM-personalized nudges contained more action-oriented and context-specific guidance while retaining the descriptive feed-back and motivational support present in conventional nudges. More representative nudging content samples are reported in Supplementary Tables S9–S10 and Supplementary Figure S1. As behavioral data and interaction histories accumulated, the LLM agent produced iteratively updated outputs across rounds. By design, the agent updated each participant’s pro-file at each round, incorporating new consumption patterns, prior suggestion history, and explicit feedback (see Methods). Content-level keyword analysis showed that absolute keyword counts increased across most categories over the intervention period (Fig. 3b), with the largest increases in usage-gap (from 19.7 to 25.9 per nudge) and encouraging and e ffi cacy content (from 6.3 to 10.7). Appliance-related content remained consis-tently high across rounds, and planning-related content remained present throughout. These shifts are consistent with the growing behavioral history available for feedback and reinforcement. Ex-ploratory post-nudge survey data were directionally consistent with this pattern. As shown in Fig. 3c, based on the survey data collected after the last 3 rounds of nudges on 5-point scales, the perceived accuracy rose from 3.74 in the middle rounds (Rounds 3 and 4, n = 65) to 4.00 in the final round ( n = 58), with similar trends for actionability (from 3.72 to 3.97) and satisfaction (from 3.91 to 4.17). The keyword and survey data point to progres-sively better alignment between personalized nudge content and participants’ behavioral patterns over time. 
+
+Participant engagement and interaction 
+
+We defined engagement as opening the weekly report and sending at least one text reply; the engagement rate was the Enhancing behavioral nudges with large language model -based iterative personalization 5Planning                 
+
+> 7.7
+> Appliance
+> 18.5
+> Usage gap
+> 25.9
+> Encouragement
+> &E!icacy
+> 10.7
+> Norm
+> 3.5
+> Early
+> (R1 -R2)
+> Mid
+> (R3 -R4)
+> Late
+> (R5)
+> Mean  keyword  count per LLM  nudge
+> 10
+> 20
+> Perceived
+> actionability
+> Perceived
+> satisfaction
+> Perceived
+> accuracy
+> 12345
+> Rate
+> T2 , 42.8%
+> T1 , 32.8%
+> C, 32.2%
+> R0 R1 R2 R3 R4 R5
+> 100
+> 75
+> 50
+> 25
+> 0
+> Survival rate (%)
+> Survival rate in Round N:
+> never missing a 48 -hour reply
+> window till Round N.
+> Engagement rate (%)
+> 020 40 60 80
+> C
+> T1
+> T2
+
+b c
+
+d
+
+e  
+
+> Planning Appliance
+> Usage gap Encouragement &E!icacy Norm
+
+a         
+
+> Conventional
+> (C & T1)
+> LLM
+> (T2)
+> 025 50 75 100
+> Topic probability (%), calculated by topic modeling (keyATM )
+> 6.6
+> 19.7
+> 3.1 6.3
+> 17.5
+> 4.00
+> 3.74
+> 3.97
+> 3.72
+> 4.17
+> 3.91
+> 9.9%
+> 6.7%
+> 37.1%
+> 26.6%
+> 48.8%
+> 31.2% 16.4% 19.2%
+> 69.2%
+> 58.2%
+> 57.1%
+
+Figure 3: Content characteristics and participant engagement. a. Topic composition of nudge content estimated by topic modeling, comparing conventional nudges (C & T1) with LLM-personalized nudges (T2). We merge C and T1 as they share the same content with di ff erences only in the format. Stacked bars show topic probability (%). b. Mean keyword counts per LLM-personalized nudge in T2 for five content categories across intervention stages. c. Exploratory post-nudge survey ratings on 5-point scales for perceived accuracy, actionability, and satisfaction in the mid and final rounds among T2 participants. d. 
+
+Engagement rates for C, T1, and T2. e. Time to the first missed 48-hour reply window following a nudge, with shaded areas indicating 95% CI. percentage of participants who met this criterion at least once during the intervention period. The engagement rates were 57.1% in C, 58.2% in T1, and 69.7% in T2 (Fig. 3d), indicating broader participant reach in the LLM-personalized nudge group during the intervention period. Furthermore, we conducted a time-to-event analysis in which the event was the first instance of not replying within 48 hours after a nudge. As illustrated in Fig. 3e, despite similar early events, T2 participants sustained responsiveness longer, particularly from the mid rounds onward. By the final round, the survival rate (i.e., never missing a 48-hour reply window) in T2 was 10.0 p.p. higher than in T1. The LLM-personalized nudge group achieved broader reach and more sustained responsiveness. During the study period, participants initiated an average of 45.6 chatbot sessions (1.3 per day). Compared with T1, T2 participants had shorter average session durations (1.58 vs. 1.90 min) and were more likely to query their usage data (9.4% vs. 5.0%). T2 participants also showed a higher mean proportion of nudges followed by multiple replies within 48 hours (44.7% vs. 38.0%). The interaction profile of T2 participants was more task-focused and more responsive than that of T1 participants. 
+
+Exploratory heterogeneity analyses 
+
+Individual-level heterogeneity 
+
+To explore individual-level e ff ectiveness, we estimated in-dividual treatment e ff ects (ITEs) for each participant using a meta-learner approach. ITE was defined as the di ff erence be-tween a participant’s predicted outcome under a given treatment and their predicted counterfactual outcome under the control con-dition. Because the outcome is resource consumption, more neg-ative ITE values indicate greater predicted conservation. Given the modest sample size and the additional modeling assump-tions required by meta-learning, we treat these ITE results as exploratory. In the pooled analysis (Fig. 4a), which combines electricity and water after within-domain standardization, T2 showed a more favorable distribution than T1, with a more negative mean estimated ITE (-0.22 vs. -0.08 SD), a more negative median (-0.16 vs. -0.03 SD), and a higher share of participants with negative predicted e ff ects (76.7% vs. 55.2%). This overall pat-tern was contributed largely by electricity (Fig. 4b), where the mean ITE was larger in T2 than in T1 (-0.50 vs. -0.06 kWh per room-day), and 84.6% of T2 participants had negative ITEs (i.e., predicted reductions relative to C). For hot water (Fig. 4c), T2 also showed a larger mean estimated ITE than T1 (-2.64 vs. -1.88 L per person-day). These ITE distributions suggested that T2 outperformed T1 more clearly for electricity than for hot water, where the between-condition separation was smaller. In addition, the largest savings under LLM-personalized nudges were associated with specific psychological and socioe-conomic characteristics. For instance, for electricity, T2 partici-pants in the top ITE quartile reported stronger baseline levels of Enhancing behavioral nudges with large language model -based iterative personalization 66.0                                        
+
+> 4.5
+> 3.0
+> 1.5
+> 0
+> Baseline
+> 6.0
+> 4.5
+> 3.0
+> 1.5
+> 0
+> 6.0
+> 4.5
+> 3.0
+> 1.5
+> 0
+> 6.0
+> 4.5
+> 3.0
+> 1.5
+> 0
+> 6.0
+> 4.5
+> 3.0
+> 1.5
+> 0
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> Baseline
+> Early
+> Mid Late
+> 60
+> 45
+> 30
+> 15
+> 0
+> 60
+> 45
+> 30
+> 15
+> 0
+> 60
+> 45
+> 30
+> 15
+> 0
+> 60
+> 45
+> 30
+> 15
+> 0
+> 60
+> 45
+> 30
+> 15
+> 0
+> Hot water consumption
+> (L/day)
+> Percentage
+> (%)
+> Nudge type
+> CT1 T2 CT1 T2 CT1 T2 CT1 T2 CT1 T2
+> 40
+> 20
+> 0
+> 30
+> 15
+> 0
+> 30
+> 15
+> 0
+> 40
+> 20
+> 0
+> 30
+> 15
+> 0
+> 30
+> 15
+> 0
+> CT1 T2 CT1 T2 CT1 T2 CT1 T2 CT1 T2
+> 40
+> 20
+> 0
+> 30
+> 15
+> 0
+> 30
+> 15
+> 0
+> 30
+> 15
+> 0
+> Nudge round
+> Electricity  consumption
+> (kWh/day)
+> Percentage
+> (%)
+> Nudge type
+> Nudge round
+> -1-0.5
+> Individual treatment effect (pooled, SD)
+> T2
+> T1
+> 00.5
+> T2
+> T1
+> T2
+> T1
+> -2-1
+> Individual treatment effect (kWh/day)
+> 01
+> Individual treatment effect (L/day)
+> -10 0
+
+a
+
+b
+
+c
+
+d
+
+e Quick    
+
+> responder Gradual
+> responder
+> Rebound
+> responder
+> Late
+> responder
+> Adverse
+> responder
+> Quick
+> responder Gradual
+> responder Rebound
+> responder
+> Late
+> responder
+> Adverse
+> responder
+
+Figure 4: Heterogeneity of nudge e ff ectiveness. a-c. Distribution of individual treatment e ff ects (ITEs) estimated via meta-learner for pooled analysis (a), electricity (b) and hot water (c), comparing T1 and T2. Each point represents one participant’s ITE relative to the control condition. Distributions are shown as raincloud plots combining kernel density estimates, box plots (median, interquartile range), and individual data points. Dashed lines indicate mean e ff ects. d–e. Behavioral archetypes identified through trajectory clustering for electricity (d) and hot water (e). Upper panels show individual consumption trajectories (thin lines) and archetype means (thick lines) across intervention rounds. Lower panels show the percentage of participants in each archetype by treatment group. Shaded areas denote ±1 s.d. around cluster means. average pro-conservation psychological profile (3.77 vs. 3.51) and higher living budgets (2.52 vs. 1.84 thousand RMB Yuan) than the remaining T2 participants. Similar patterns can also be observed for hot-water conservation (T2 top ITE quartile vs. other: levels of baseline average pro-conservation psycholog-ical profile 3.73 vs. 3.58; living budgets 2.21 vs. 1.84 thousand RMB Yuan). 
+
+Behavioral archetypes 
+
+To explore individual-level temporal dynamics, we iden-tified five behavioral archetypes through trajectory clustering: 
+
+quick responders (large early reductions), gradual responders 
+
+(moderate but persistent declines), rebound responders (initial reductions followed by partial recovery), late responders (early increases followed by partial later reductions), and adverse re-sponders (persistent net increases above baseline). Given mod-est within-archetype sample sizes, these distributional patterns warrant replication in larger trials. For electricity (Fig. 4d), T2 showed a larger share of quick responders (39.1% vs. 19.6% in T1 vs. 25.6% in C) but fewer 
+
+gradual responders (13.0% vs. 28.3% in T1 vs. 18.6% in C). Among increasers, the proportion of adverse responders in T2 was lower (6.5% vs. 13.0% in T1 vs. 16.3% in C), and the share of late responders was higher than C (26.1% vs. 20.9%), suggesting that more participants followed a recoverable path characterized by an early increase but subsequent reduction rather than sustained increases. For hot water (Fig. 4e), T2 like-wise showed a larger share of quick responders (14.9% vs. 8.7% in C), a smaller share of rebound responders (19.1% vs. 23.9% in C), and a lower proportion of adverse responders (14.9% vs. 19.6% in C). These archetype distributions were direction-ally consistent with the temporal patterns described above, i.e., LLM-personalized nudges may have moved participants toward earlier adoption and away from unstable or resistant patterns (i.e., rebound /adverse trajectories). 
+
+Predictors of conservation behaviors and their dynamics 
+
+As an exploratory analysis of predictive correlates of conservation behavior during the intervention, we trained ex-treme gradient boosting models (XGBoost) to predict average daily consumption during the intervention period, measured as kWh /day for electricity and L /day for hot water. Predic-tors were grouped into baseline consumption, baseline pro-conservation psychological profile, socio-structural character-Enhancing behavioral nudges with large language model -based iterative personalization 7a        
+
+> 0.00 0.03 0.06 0.09 0.25 0.28
+> Baseline
+> Baseline consumption
+> Psychological
+> Outcome expectancy
+> Neighborhood perception
+> Attitude
+> Impediments
+> Self e !icacy
+> Socio -structural
+> Gender
+> Pay elec bill
+> Expenditure
+> Experimental
+> Chatbot use frequency
+> Avg chat length
+> Nudge type
+> Normalized feature importance (XGBoost)
+> 10
+> Summed  feature  importance (%)
+> 0.31
+> 20
+> 30
+> 40
+> 50
+> 0
+> 10
+> Summed  feature  importance (%)
+> 20
+> 30
+> 40
+> 50
+> 0
+> Baseline
+> Psychological
+> Socio -structural
+> Experimental
+> Baseline
+> Psychological
+> Socio -structural
+> Experimental
+
+b c
+
+> Electricity
+> Hot water
+> Baseline
+> Psychological
+> Socio -structural
+> Experimental
+> Baseline
+> Psychological
+> Socio -structural
+> Experimental
+> 20
+> 40
+> 0
+> 60
+> 20
+> 40
+> 0
+> 60
+> Summed  feature  importance (%)
+> Summed  feature  importance (%)
+
+b c
+
+Figure 5: Predictors of conservation behaviors and their dynamics. a. Normalized feature importance scores from XGBoost models predicting average daily consumption during the intervention for electricity (green square) and hot water (purple circle). b. 
+
+Category-level feature importance in early and late intervention stages for electricity. At each stage, a separate XGBoost model was trained using the same feature set. c. Same as panel b, but for hot water. istics, and intervention-related variables (details in Methods). Intervention-related variables included nudge type and chatbot interaction measures generated or updated during the interven-tion. For both resources (Fig. 5a), baseline consumption was the most important predictor (normalized feature importance: 0.26 for electricity and 0.31 for hot water), indicating that intervention-period consumption remained strongly anchored in pre-existing habits and baseline demand levels. Beyond base-line consumption, the overall category-level predictor profiles were similar across the two behaviors, with psychological and socio-structural characteristics contributing comparable shares. Within psychological characteristics, outcome expectancy was the strongest psychological predictor for electricity (0.09), and self-e ffi cacy (0.07) and neighborhood perception (0.07) were more prominent for hot water. One possible explanation is that many electricity-saving actions are relatively discrete and calcu-lable, while sustained conservation of a comfort-related behavior may rely more on perceived ability to maintain change and on social reference. Phase-specific models comparing early and late interven-tion rounds revealed divergent temporal patterns (Fig. 5b–c). For electricity, baseline consumption remained dominant and increased slightly in relative importance (from 36.2% to 54.8%). For hot water, the importance of baseline consumption declined from 38.9% to 26.4%, while the combined importance of psy-chological and socio-structural characteristics rose from 37.3% to 56.9%. In other words, early-stage hot-water conservation tracked pre-intervention usage levels more closely, and later-stage variation reflected more of participants’ psychological and socio-structural di ff erences. This shift aligned with the later-round attenuation observed for hot water, where conservation outcomes became less tightly anchored to baseline usage alone. 
+
+## Discussion 
+
+Personalized behavioral nudging holds promise for chang-ing everyday decisions, yet whether LLMs can meaningfully im-prove nudge e ff ectiveness remains an open question. We explore this question using a field experiment taking daily electricity and hot-water conservation as testbed behaviors. Across both behaviors, the LLM-personalized nudge group (T2) showed the strongest conservation pattern, while visual enhancement alone (T1) did not produce clearly distinguishable outcomes from the text-based nudge group (C). For electricity conservation, T2 re-duced adjusted consumption by 0.56 kWh per room-day relative to C ( p = 0.014), corresponding to an 18.3 p.p. higher adjusted saving rate. Hot-water outcomes followed the same direction (9.8 p.p. higher than C) but were less precisely estimated ( p =
+
+0.087). The LLM-personalized nudge group was also associated with higher participant engagement and earlier emergence of conservation gains for electricity. Several features of the LLM-personalized package are plau-sible candidates for the improved nudge e ff ectiveness, including more prospective guidance, greater contextual grounding in daily routines, and cross-round updating of participant profiles. First, the shift from retrospective feedback toward prospective planning may reduce the cognitive costs of translating nudge information into action. Second, embedding suggestions in participant-specific daily routines and appliance-use situations may help individuals identify personally relevant entry points for behavioral change. Third, iterative profile refinements across rounds enabled the agent to update its outputs as new behavioral and interaction data accumulated, a pattern that accompanied higher overall conservation levels over time and fewer adverse response patterns in our study. The stronger conservation e ff ects for electricity than for hot-water suggest that behavioral friction may serve as an im-portant boundary condition for LLM-personalized nudging. As a lower-friction behavior, electricity conservation is less visceral and often has more room for adjustment, while hot-water conser-Enhancing behavioral nudges with large language model -based iterative personalization 8vation is more tightly tied to bodily comfort and hygiene, leaving a larger proportion of hot-water use perceived as non-negotiable [ 45 , 46 ]. The exploratory ITE distributions also matched this pattern, with electricity showing a more uniform shift toward higher estimated gains than hot water. The two behaviors also di ff er in the cost of sustaining change. Many electricity con-servation behaviors are low-cost and can be implemented by marginal or one-time adjustments (e.g., turning o ff unused lights [ 47 ]). Hot-water conservation involves strong comfort /pleasure trade-o ff s. Put di ff erently, electricity savings may depend more on whether specific actions seem worthwhile, whereas hot-water savings may depend more on whether people can sustain the associated discomfort. This di ff erence may make conservation gains achieved in early rounds more di ffi cult to maintain over time, and may help explain why electricity conservation aligned more with outcome expectancy but hot-water conservation re-lied more on self-e ffi cacy. Although the comparison here is limited to electricity and hot-water conservation, the underlying dimensions, i.e., adjustment latitude and di ffi culty of sustaining change, may also vary across other target behaviors. E ff ective nudge design may benefit from diagnosing which dimensions of friction dominate for a given behavior and matching intervention mechanisms and intensity accordingly. Our findings provide insights on behavioral intervention research more broadly. Theoretically, LLM-personalized nudges may function as a lightweight coaching intervention by making “what /how to do next” clearer in context and by updating con-tent across repeated rounds, without altering external incentive structures or delivering systematic skills training. This partly overlaps with the logic of boosts, which enhance competence through explicit instruction [ 48 ]. Yet LLM-personalized nudges do not require the same degree of active learning e ff ort that boosts typically demand, which may be advantageous in prac-tice because people tend to express a stronger preference for nudges than for boosts [ 49 , 50 ]. Our content analysis aligns with this framing, showing more action-oriented and context-specific features in LLM-personalized nudge content. This framing is especially relevant given that existing evidence on nudges has been more concentrated in domains where private incentives are relatively clear and decision points are well-defined [ 51 ], such as retirement savings [ 52 ] and health choices [ 53 ]. Intervention eff ects tend to be more limited for behaviors with weaker private returns and highly context-dependent execution pathways (e.g., pro-environmental behaviors [ 54 , 55 ]). Given these features, LLM-personalized nudges may o ff er a scalable form of sup-port for public-good behaviors characterized by heterogeneous barriers. Technically, LLM-personalized nudges can be understood as sequential interventions that maintain a participant state rep-resentation and update it across rounds, in which each round’s content is generated from the individual’s evolving behavioral and contextual cues. This aligns with the logic of dynamic treatment regimes (DTR; 56 ) and just-in-time adaptive interven-tions (JITAIs; 57 , 58 ), though LLM-personalized nudges replace predefined decision rules with open-ended natural-language gen-eration, trading formal optimality guarantees for greater flexi-bility in content and framing. From an information-structure perspective, rule-based systems can, in principle, reproduce a similar content backbone as LLM-personalized nudges when given a comprehensive rule library and templates. Yet prior work suggests that the average e ff ects of personalized information are generally modest and operate more through perceived rele-vance and deeper information processing than through specific medium or format [ 59 ]. More robust behavior changes hinge on action-oriented techniques (such as planning and self-e ffi cacy support) and on their alignment with individuals’ behavioral barriers [ 60 ]. The distinctive contribution of LLM-personalized nudges may therefore lie in shifting personalization from static matching toward cross-round adaptation [ 61 ], and in operating in an open-ended natural-language space that can incorporate the constraints, needs, and states participants express in their own words [62]. Although these results highlight the promise of LLM-personalized nudges, they also raise deployment-relevant con-cerns. First, LLMs may encode cultural and population skews [ 63 ], and model-generated values can align more closely with WEIRD or English-centric norms [ 64 ], potentially leading the agent to over-assume users’ baseline awareness or motivation [ 65 ]. Relatedly, we observed larger savings among participants with higher baseline environmental awareness, although our design does not allow attributing this pattern to model assump-tions versus underlying heterogeneity in responsiveness. Sec-ond, the adaptive nature of LLM agents can yield occasional overconfident interpretations of unclear, incomplete, or mislead-ing user inputs, potentially pushing recommendations in the wrong direction. Third, a conversational format may increase perceived authority and user reliance, while the use of granular consumption traces raises non-trivial privacy and governance questions. These risks underscore the importance of incorpo-rating guardrails when deploying LLM-personalized nudges at scale, such as grounding mechanisms (e.g., RAG), conservative uncertainty handling, data minimization, and transparent user controls. Several limitations of this study point to directions for fu-ture work. First, this study tests LLM-personalized nudges on two resource-conservation behaviors. While enabling pre-cise and continuous measurement, these behaviors may not be representative of the broader range of behaviors commonly tar-geted by nudge interventions (e.g., dietary choices, physical activity, or medication adherence). Whether the observed pat-terns under LLM-personalized nudges generalize to behaviors with di ff erent feedback structures or habit strength remains an open question. Future work should extend this framework to a wider portfolio of target behaviors. Second, our study treats LLM-personalized nudges as a package combining content type, context integration, and iteration. In the current experimental design, we cannot isolate which component contributes to the observed patterns. Although sensitivity analyses adjusting for post-treatment engagement measures suggested that simple en-gagement di ff erences alone were unlikely to account for the primary results, the current design still cannot separate iterative updating from di ff erences in message richness, actionability, or perceived novelty. Future work should pursue ablation designs that systematically vary these elements to identify active ingre-dients. Third, the study was conducted in a single winter season at one university using a student sample. Although this setting enabled continuous behavioral measurement while preserving internal validity [ 66 ], it limits generalizability to other popula-tions and leaves open questions about seasonal variation and the long-term persistence of treatment e ff ects. The sample size Enhancing behavioral nudges with large language model -based iterative personalization 9was also modest and constrained by the available participant pool, which may have reduced the precision of between-group comparisons. Larger, adequately powered trials will be needed to estimate treatment e ff ects more precisely. 
+
+## Materials and Methods 
+
+The research was approved by the Tsinghua University Science and Technology Ethics Committee (No. THU-04-2024-146). All participants provided written informed consent prior to enrollment and received monetary compensation as specified in the consent form. All data were de-identified before analysis and stored in restricted-access environments. 
+
+Intervention design 
+
+Personalized nudge content generated by the LLM agent 
+
+We first built an external knowledge base for suggestions on everyday electricity and hot-water conservation. We collected 3,219 PDF files using Google’s search APIs and extracted the relevant sections on conservation from these files. We then split them into individual suggestion pieces and reorganized them into structured suggestion records, so that the content could be more easily retrieved and reused by LLMs in downstream processes. Each record specified (1) conservation behavior type (e.g., cool-ing), (2) the corresponding appliance (e.g., air conditioner), (3) the conservation strategy (e.g., frequency reduction, duration control, temperature adjustment, behavior-mode change, mon-itoring /feedback), and (4) the detailed suggestion text. The extraction, splitting, and reorganization steps were conducted using LLMs and prompt engineering. Details of these steps are provided in the Supplementary Method S1 and Supplementary Table S7. Full document-level quality scoring was not conducted at this stage, but a random subset of the extracted records was manually reviewed to verify extraction accuracy. Given the high-recall nature of the corpus, redundancy control and appro-priateness filtering were handled downstream via constrained prompting and manual review rather than document-level cura-tion. We then developed an LLM agent that generated person-alized nudge content through retrieval-augmented generation (RAG) [ 67 ] based on the external knowledge base and chain-of-thought (CoT) prompting [ 68 ]. At the beginning of each weekly loop, the agent received a participant profile package for each participant, including: (1) psychological variable scores (including all five psychological variables measured before the experiment; see the “Experiment design” section for details), (2) basic sociodemographic information, (3) the profile summary generated in the previous round, (4) historical hot-water and electricity consumption data, (5) the personalized suggestions delivered in the previous weeks, (6) the participant’s explicit feedback and comments on earlier nudge content. The LLM agent was instructed to update this profile before generating personalized content in each nudge to reflect new behavioral pat-terns and reactions to earlier nudge content. Across intervention rounds, the prompt structure remained fixed, while participant-specific inputs, including updated consumption records, prior interactions, previously delivered nudges, and explicit partici-pant feedback, were refreshed weekly. For personalized nudge content generation, we split the whole process into three CoT stages to separate analytical rea-soning from participant-facing content generation. The stages included (1) usage feedback, (2) participant profile reasoning and suggestion selection, and (3) quantitative scenario construc-tion. For each stage, we designed step-by-step prompts that explicitly required the agent to perform implicit reasoning be-fore generating any participant-facing text. Stage 1: Usage feedback. We first requested the LLM agent to analyze each participant’s consumption data in lev-els, time trends, and comparisons with comparable participants during the period after the last nudge. In this stage, the LLM agent produced plain-text descriptions on (1) total electricity consumption, (2) appliance-level electricity use, and (3) shower frequency and hot water use. This description was the usage statistics and social comparisons that also appear in conventional nudges. Stage 2: Participant-profile reasoning and suggestion selec-tion. In the second stage, the LLM agent updated each partici-pant’s profile and constructed a pool of candidate suggestions. It was required to answer four guiding questions about the par-ticipant: (1) what habits, motives, and traits characterized them, (2) which conservation behaviors they were most likely to adopt and why, (3) which conservation behaviors would yield the largest savings if adopted and why, and (4) whether previous interventions had been e ff ective and the possible reasons. These answers were condensed into a revised profile summary, which was appended to the participant’s profile and carried forward to subsequent nudges. Using the updated profile, the agent then (1) retrieved two relevant suggestions for electricity and two for hot water from the suggestion library using RAG, (2) generated two additional suggestions for each resource based on model knowl-edge, and (3) compared all candidate suggestions and selected the two most feasible and impactful suggestions per resource. The selected suggestions were finally rewritten in concise and friendly language. This process was designed to balance cov-erage of established recommendations with context-sensitive suggestions not present in the library. In addition, the generation prompts included explicit constraints restricting suggestions to low-risk conservation behaviors and prohibiting content that could plausibly compromise safety /hygiene /ethical norms. All outgoing personalized suggestions were manually reviewed by a researcher prior to delivery against pre-specified safety criteria. This review did not modify the personalized content itself and was intended only to screen for potential safety, hygiene, or ethical concerns. We did not observe suggestions that raised safety or ethical concerns in the delivered messages. Stage 3: Quantitative scenario construction. In this stage, the LLM agent turned each selected suggestion into a quan-titative scenario as a decision support. For each participant and suggestion, it (1) formulated a behavioral change scenario consistent with the participant’s behavioral patterns (e.g., “short-ening each shower by 30 seconds”), (2) estimated the resulting resource savings (e.g., “with a flow rate of 30 L /min and five showers per week, this would save about 600 L of water per month”), (3) chose an everyday activity or context the partici-pant was likely to care about (e.g., “making co ff ee”), and (4) translated the savings into intuitive equivalents (e.g., “enough water to make 200 cups of medium co ff ee”). To reduce false Enhancing behavioral nudges with large language model -based iterative personalization 10 precision, the agent was instructed to present savings as approxi-mate values (e.g., rounded to coarse units and avoiding excessive decimals) and to use uncertainty-marking language (e.g., “ap-proximately”). Therefore, the LLM-personalized nudge added three profile-based components on top of the conventional usage-feedback backbone: (1) personalized conservation suggestions, (2) targeted behavioral scenarios embedded in daily routines, and (3) quantitative outcome estimates expressed in intuitive analogies. In this process, GLM-4-Plus (Zhipu AI) was used for suggestion-library retrieval and matching. OpenAI o1-preview-2024-09-12 was used for pilot-stage and Round 1 generation tasks and OpenAI o1-2024-12-17 was used from Round 2 on-ward for profile reasoning, direct suggestion generation, quanti-tative estimation, and final message drafting. All prompts used to build and update profiles, and generate the weekly reports are documented in Supplementary Meth-ods S1–S2. The specific model versions of the LLMs used to generate nudge content and the date of API usage are provided in Supplementary Table S8. 
+
+Conventional text-based and image-enhanced nudge content 
+
+Conventional nudges in C and T1 used only Stage 1 (us-age feedback) of the LLM agent. In C, the usage statistics and social-comparison information were delivered as a text-based report accessible via a link. In T1, the same information was presented as a concise visual report optimized for mobile-chat viewing. T2 retained the same usage-feedback backbone as T1 and further added three profile-based components: personal-ized suggestions, targeted behavioral scenarios, and quantitative outcome estimates. 
+
+Delivery of nudge content 
+
+All nudges were delivered through a WeChat-based chatbot that we developed by extending the open-source “ChatGPT-on-WeChat” framework ( https://github.com/zhayujie/ chatgpt-on-wechat ). The chatbot integrated a WeChat ac-count with LLM APIs and the conservation suggestion library and appears as a standard WeChat contact. It delivered weekly nudge content, collected electricity and hot water consumption data, and answered on-demand conservation-related questions. 
+
+Experiment design 
+
+Setting and participants 
+
+We conducted an RCT at a university in Beijing, China, between November 2024 and January 2025. The study had a 4-week pre-intervention baseline period followed by a 5-week intervention period. Participants were recruited using a combina-tion of snowball sampling and purposive sampling, approaches often used in field-based behavioral and implementation research [69 ]. Eligible participants were full-time students who lived in on-campus dormitories for the entire study period and could access their dormitory electricity meter readings and shower ex-penditure records through the university facilities management platform. A total of 233 students enrolled in the study. This sample size was determined by the available participant pool during the recruitment period. Prior to the experiment, we conducted a separate 4-week pilot study to refine the design of the LLM agent and the delivery procedures. To avoid contamination, par-ticipants of the pilot study were not eligible for the experiment. Participants were not informed of the existence of di ff erent in-tervention arms or the specific content they would receive until the end of the experiment. We conducted this RCT on a university campus. Universi-ties house a sizeable share of the urban population [ 70 ], consume significant water and energy resources, and are widely treated as microcosms or proxies of broader urban contexts [ 66 ]. They can provide a relatively homogeneous physical and institutional envi-ronment (shared infrastructure, tari ff s and facilities). Following recent methodological arguments, such contextual consistency can be understood as reducing unobserved heterogeneity and in-creasing internal validity [ 66 ]. However, this design necessarily limits external validity, and the generalizability of our findings to other populations and housing contexts should be assessed in fu-ture multi-site studies. In addition, university years are a period in which students form new habits and routines, so interventions delivered in this setting may both conserve resources in the short term and influence longer-term environmental behaviors [71]. 
+
+Procedure 
+
+During the 4-week baseline period, participants were asked to report their daily dormitory electricity meter readings and shower expenditures via a WeChat-based data collection and feedback chatbot integrated with an LLM. Each report was time-stamped by the chatbot system. Electricity consumption was measured as the daily change in dormitory electricity meter readings, expressed in kilowatt-hours (kWh). Hot-water use was proxied by daily shower costs recorded on the university facilities management platform. These expenditures were subsequently converted into liters (L) of hot water consumed according to the standard shower tari ff .Before randomization, all participants completed a baseline survey. The survey included: (1) implementation-readiness mea-sures, including self-reported baseline conservation behavior, perceived room for conservation, and expected chatbot help-fulness; (2) a baseline pro-conservation psychological profile, including self-e ffi cacy, outcome expectations, perceived imped-iments, attitude, and neighborhood perceptions (derived from Social Cognitive Theory [ 72 ] and were empirically validated in our vignette pilot study [ 73 ]); (3) socio-structural characteristics, including living budget, gender, and prior dormitory electricity-bill payment experience; (4) a checklist of dormitory electrical appliances; and (5) information on “co-participants” (peers who were also participating in the experiment). In parallel, baseline electricity and hot-water consumption were calculated using the reported electricity and hot-water consumption data collected during the baseline period. Of these baseline measures, the implementation-readiness measures were used only for random-ization. During the 5-week intervention period, participants contin-ued to report their daily electricity and hot-water consumption via the chatbot. Interventions were delivered on a weekly basis, for a total of five rounds of nudges. All experimental groups retained access to the chatbot’s conversational interface through-Enhancing behavioral nudges with large language model -based iterative personalization 11 out the study and could use it at any time to ask questions about water and electricity conservation. 
+
+Randomization and treatment groups 
+
+Randomization was implemented after the baseline period and before the first intervention. To mitigate spillover and con-tamination, participants were asked at recruitment to list co-participants who were enrolling in the study with them. During assignment, self-reported co-enrolling ties were used to form assignment clusters, and connected participants were assigned jointly to prevent information sharing across conditions. This design yielded 203 assignment clusters (including 180 single-tons, 17 pairs, 5 triplets, and 1 quadruplet; median cluster size 
+
+= 1). Sensitivity to cluster-level inference is assessed in the robustness checks below. In addition, to reduce structural inter-ference from shared physical environments and shared metering, recruitment was designed to ensure that at most one participant was enrolled from each dormitory room. Participants were ran-domly assigned to three arms while preserving co-participant clustering constraints: (1) Text-based nudge group (C): par-ticipants received weekly chatbot messages containing a link to their consumption report. By clicking the link and entering a personal code, they could view a text-based summary of their recent electricity and hot water use. (2) Image-enhanced nudge group (T1) : participants received the same consumption infor-mation directly through the chatbot as an image-based report. The report could be opened with a tap. (3) LLM-personalized nudge group (T2) : participants received image-based visualiza-tions identical to T1, which were augmented with personalized nudge content generated by the LLM agent. All content was integrated into the same image-based report and delivered via the chatbot. 
+
+Data cleaning 
+
+Because the measurement protocols di ff ered between elec-tricity and hot water, we applied data cleaning procedures sep-arately to the two outcome domains. As the outcomes were constructed from daily metering or self-reported records, we used predefined data-quality rules to determine the analyzable sample. At the observation level, we removed invalid records for which outcomes could not be reliably constructed, includ-ing extreme outliers and observations with missingness beyond predefined thresholds. At the participant level, we excluded individuals with excessive outcome missingness that prevented reliable estimation of period-average consumption. The primary exclusion reasons were excessive missing daily observations during the intervention period (more than 40%, equivalent to over 2 weeks) and extreme or unstable consumption patterns. Full criteria and arm-specific exclusion summaries are reported in Supplementary Tables S1–S3. Outcome data were self-reported via the chatbot. For elec-tricity, an internal validation procedure based on redundant weekly aggregation flagged fewer than 1% of comparable obser-vations for discrepancy. For hot-water use, approximately 30% of observations were balance-based and could be assessed us-ing similar logic, whereas the remaining observations were less amenable to comparable reconciliation. In the pilot study, we also conducted screenshot verification and found no systematic discrepancies between manually entered and screenshot-verified values. Routine screenshot collection was therefore not retained in the main trial to reduce participant burden. After cleaning, the final dataset contained 11,146 valid person-day observations in the full study period. The resulting analytic samples comprised 166 participants with valid hot-water data and 169 participants with valid electricity data. The rates of missing observations and sample exclusions were comparable across study arms (Supplementary Tables S1–S3), suggesting no clear evidence of di ff erential missingness or di ff erential exclu-sion by treatment status. We further re-assessed baseline balance in the cleaned analytic sample using demographic, behavioral, and baseline consumption variables to ensure comparability. The balance test indicates that covariates remained well balanced across groups (Supplementary Tables S4–S5). 
+
+Additional measures and follow-up surveys 
+
+In addition to the primary electricity and hot-water out-comes, we collected several auxiliary measures to characterize implementation and participant responses. During the later in-tervention rounds, T2 participants completed brief post-nudge ratings on the perceived accuracy, actionability, and satisfaction of the personalized suggestions. In the main text, we summarize ratings from the middle rounds (Rounds 3-4) and the final round (Round 5). We also logged participants’ interactions with the chatbot throughout the intervention. These logs were extracted from the chatbot’s local message files using the open-source WeChatMsg package (https: // github.com /LC044 /WeChatMsg) after the experiment concluded. Finally, follow-up surveys were administered to participants in C and T2 immediately after the final intervention round and again three months later to assess self-reported persistence of conservation behaviors and related psychological constructs. Details of these additional measures are provided in Supplementary Methods S4–S6. 
+
+Analysis method 
+
+The primary analysis compares intervention-period con-sumption across the three groups while preserving randomized group assignment in the analytic sample. Robustness analyses as-sessed sensitivity to alternative inference procedures, alternative adjustment strategies, post-treatment engagement adjustment, and fixed-e ff ects panel specifications. Secondary analyses exam-ine content characteristics, engagement patterns, and temporal dynamics. Exploratory analyses include individual-level het-erogeneity estimation via meta-learners, behavioral archetype clustering, and machine-learning-based predictor analysis. We report all tiers transparently but interpret the exploratory results as hypothesis-generating. 
+
+Text analysis 
+
+We analyzed the texts used for the three types of nudges to quantify how LLM-personalized nudges di ff ered from conven-tional nudges in cognitive focus and linguistic framing. Because C and T1 shared the same informational content and di ff ered only in presentation format, we pooled them as “conventional nudges” and compared them with LLM-personalized nudges in T2. Guided by Social Cognitive Theory and manual inspection of the corpus, we constructed five keyword dictionaries captur-ing (1) usage-gap and comparative feedback, (2) appliance and Enhancing behavioral nudges with large language model -based iterative personalization 12 situational context, (3) planning and action-oriented language, (4) social norms and identity cues, and (5) encouraging and e ffi -cacy content. Details are provided in Supplementary Method S3 and Supplementary Table S11. For each message, we computed raw keyword counts for each of the keyword dictionaries. To reduce double-counting of nested or overlapping expressions, keyword matching followed a greedy longest-match-first procedure, in which longer expres-sions were matched before shorter ones and removed from the text once counted. Messages were tokenized using the quanteda package [74] after removing punctuation and numbers. To complement the dictionary-based analysis, we estimated a keyword-assisted topic model (keyATM) [75] using the same five dictionaries as keyword topics. In this supplementary anal-ysis, the corpus was represented as a document-feature matrix derived from dictionary-constrained token counts, dictionary terms absent from the corpus were removed, and the model was fit as a base keyATM with five keyword topics and no additional non-keyword topics. The fitted model yielded document-level topic probabilities for the five theorized dimensions. We aver-aged these topic probabilities within groups and compared them between conventional and LLM-personalized nudges. We there-fore treated this analysis as a theory-guided structural validation of the dictionary-based results. For T2, we additionally examined round-to-round changes in keyword-based content characteristics to assess whether mes-sages became progressively more action-oriented and contextu-ally elaborated as behavioral and interaction histories accumu-lated. Round-level summaries focused on early rounds (Rounds 1-2), middle rounds (Rounds 3-4), and the final round (Round 5), consistent with the temporal grouping used elsewhere in the study. 
+
+Nudge e ff ect estimation 
+
+Outcomes. The primary outcomes were average daily electricity use and average daily hot-water use estimated using covariate-adjusted models. Electricity consumption was mea-sured from dormitory room-level meter readings and expressed as average daily use in kWh per room-day. Hot-water consump-tion was expressed as average daily use in liters per person-day. Participants were analyzed according to their randomized assign-ment to the three groups after applying data-quality exclusions to define the analytic sample. The models included nudge type as the main predictor and adjusted for: (1) the corresponding base-line consumption, (2) average level of baseline pro-conservation psychological profile, and (3) socio-structural characteristics. 
+
+Group comparisons. To compare electricity and hot water on a common scale, we estimated pooled standardized covariate-adjusted models. For each behavior, baseline-period and intervention-period average daily consumption were stan-dardized within resource type. The standardized electricity and hot-water observations were then stacked, and pooled linear models were estimated with standardized intervention-period consumption as the dependent variable. As each participant could contribute one electricity observation and one hot-water observation to the pooled dataset, standard errors in pooled mod-els were computed using participant-clustered robust variance estimators. We next estimated separate covariate-adjusted linear mod-els for electricity and hot-water consumption, fitted separately for each behavior using the same covariate set. For both the pooled and behavior-specific analyses, we first conducted an om-nibus test to assess overall di ff erences among the three groups and then estimated pre-specified pairwise contrasts among C, T1, and T2 to identify which between-group comparisons drove the overall pattern. Detailed results of these statistical tests were reported in Supplementary Table S6. Adjusted saving rates were derived from model-predicted consumption during the intervention period. For each fitted model, we calculated predicted consumption for each group while holding covariates at their sample means, and then ex-pressed the resulting reduction relative to the sample-average baseline level within the corresponding analytic sample. 
+
+Robustness checks. To assess robustness, we (i) re-estimated primary models with standard errors clustered at the social-cluster level defined by pre-randomization co-participant nominations, (ii) conducted permutation tests reassigning treat-ment labels 3,000 times while preserving observed group sizes, (iii) compared raw unadjusted, baseline-only adjusted, and fully adjusted specifications, (iv) compared consumption-level and adjusted-saving-rate parameterizations, (v) included post-treatment engagement measures (reply count, reply length, en-gagement indicator, and data-report count) as additional co-variates to assess whether di ff erential engagement confounded treatment estimates, (vi) estimated panel models with partici-pant fixed e ff ects and week fixed e ff ects spanning baseline and intervention periods, and (vii) computed covariate-adjusted Lee (2009) bounds to assess sensitivity to selective attrition into the analyzable sample. Across these checks, the main pooled find-ings remained stable in both direction and statistical inference. For electricity, the estimated e ff ects were directionally consis-tent and generally similar in magnitude across specifications, although statistical precision was reduced in the fixed-e ff ects panel model, and the Lee bounds for the T2 versus C and T2 versus T1 contrasts remained below zero (Supplementary Ta-ble S14). For hot-water use, the estimated e ff ects were also directionally consistent across specifications but remained less precisely estimated overall, with Lee-bounds results providing support for the T2 versus C contrast but not uniformly for T2 versus T1. 
+
+Engagement. To capture uptake of the intervention, we defined an engagement indicator equal to 1 if a participant ac-cessed at least one weekly report and sent at least one text reply to the chatbot during the 5-week intervention period, and 0 oth-erwise. Engagement rates were computed separately for C, T1, and T2 based on the interaction logs recorded by the chatbot. To further characterize sustained responsiveness, we con-ducted a time-to-event analysis in which the event was defined as the first weekly nudge followed by no participant reply within 48 hours. Time was indexed by intervention round. Partici-pants who replied within 48 hours after all received nudges were treated as right-censored at the final round. Group-specific survival curves were estimated descriptively using the Kaplan-Meier method. 
+
+Exploratory heterogeneity analysis using individualized treatment-e ff ect scores. To explore individual di ff erences in Enhancing behavioral nudges with large language model -based iterative personalization 13 treatment responsiveness, we estimated individualized treatment-eff ect scores comparing model-predicted outcomes under T1 or T2 with the corresponding model-predicted outcome under C for each participant. For participant i and a treatment group 
+
+Tk ∈ { T 1, T 2}, the ITE relative to C can be expressed as: 
+
+τi (Tk) = Yi (Tk) − Yi (C),
+
+where Yi (Tk) denotes the (potential) outcome for partici-pant i if assigned to group Tk and Yi (C) denotes the correspond-ing outcome under the control group. We use this potential-outcomes notation as a conceptual target for heterogeneity esti-mation. The resulting individualized scores are interpreted as exploratory summaries. We approximated these individual e ff ects using an ensem-ble meta-learning approach [ 76 , 77 ] implemented in R. We applied four standard meta-learners: S-learner, T-learner, X-learner, and a doubly-robust (DR) learner to the multi-arm exper-imental setting, using random forest regressors with 2,000 trees. The S-learner fits a single outcome model with treatment indica-tors as additional features. The T-learner fits separate outcome models for each treatment arm. The X-learner first imputes indi-vidual treatment e ff ects from outcome models and then learns a second-stage model of these e ff ects. The DR-learner combines outcome regression and propensity-score models in a doubly-robust pseudo-outcome. Each meta-learner m ∈ { S , T, X, DR }
+
+produced a set of predicted ITEs bτ(m) 
+
+> i
+
+(Tk) for every participant 
+
+i and each treatment group Tk. To reduce dependence on any single meta-learner, we ensembled the four meta-learners in equal weights. We adopted equal weighting as a transparent and low-complexity ensemble rule that avoids introducing an additional tuning layer in a modest-sized sample. The process could be expressed as: 
+
+bτens  
+
+> i
+
+(Tk) = 14
+
+Pm bτ(m) 
+
+> i
+
+(Tk), where bτens  
+
+> i
+
+(Tk) denotes the ensembled ITE estimate for participant i and treatment group Tk.Predictors in the heterogeneity models largely mirrored those in the adjusted outcome models. The key di ff erence was that, instead of using the average level of pro-conservation psy-chological profile, the heterogeneity models included the five original constructs. The tree-based meta-learners also allowed these finer-grained baseline characteristics to be incorporated without imposing linear-additive assumptions. To improve stability and reduce overfitting, all meta-learners were implemented with five-fold cross-fitting, such that each participant’s ITE score was based on out-of-fold pre-dictions from models trained without that participant’s own outcome data. 
+
+Characterization of heterogeneity e ff ects. To descrip-tively characterize especially responsive participants within T2, we focused on those in the top quartile of the ensembled heterogeneity-score distribution for each outcome. We then com-pared their baseline characteristics with those of the remaining T2 participants to descriptively summarize which types of indi-viduals appeared most responsive to LLM-personalized nudges. 
+
+Temporal patterns and exploratory behavioral-archetype analysis 
+
+Temporal patterns. To characterize temporal dynamics, we constructed cumulative round-specific outcomes such that week k represented mean consumption across rounds 1 through k.For each resource, we estimated covariate-adjusted linear models at each cumulative round using the same adjustment set as in the primary analyses. Adjusted cumulative saving rates were then calculated from model-predicted cumulative consumption and summarized as di ff erences in cumulative saving rate between each treatment group and group C. This yields “net” saving-rate trajectories for T1 and T2 relative to the background trend in C. 
+
+Exploratory behavioral-archetype analysis. To charac-terize temporal patterns in participants’ responses, we clustered individual trajectories of consumption changes. We summa-rized trajectories into early (mean of rounds 1-2), middle (mean of rounds 3-4), and late (round 5), to align with the temporal grouping used in the main results and to capture initial adoption, mid-course adjustment, and late-stage maintenance. Participants were first separated by the direction of overall change relative to baseline (decrease vs. increase), and clustering was then per-formed within each direction-specific subset. Following Cominola , et al. [78 ], we applied agglomerative hierarchical clustering with complete linkage and correlation distance [ 79 ]. Correlation distance emphasizes similarity in trajectory shape beyond absolute levels, and complete linkage was chosen because it tends to form relatively compact and well-separated clusters. It therefore suited our goal of identify-ing interpretable behavioral archetypes. For clusters m and n,complete-linkage distance is defined as: 
+
+d (m, n) = max dist xi, x j
+
+ ,where xi and x j are consumption vectors belonging to clus-ters m and n, respectively. The pairwise distance between two vectors xi and x j is the correlation distance, defined as one minus the Pearson correlation coe ffi cient, according to Shirkhorshidi, Aghabozorgi and Wah [80]: dist xi, x j
+
+ = 1 − ((xi−xi)· (x j−x j)) (∥xi−xi∥2∥x j−x j∥2) .This metric emphasizes similarity in the shape of temporal trajectories beyond absolute consumption levels. After inspect-ing the dendrograms, we merged terminal clusters that showed highly similar temporal shapes and yielded substantively over-lapping interpretations, with the goal of obtaining a parsimo-nious and interpretable set of consumption-change patterns. 
+
+Machine-learning analysis of predictive correlates 
+
+To explore predictive correlates of intervention-period con-servation behavior, we used a tree-based ensemble method, ex-treme gradient boosting (XGBoost), proposed by Chen and Guestrin [ 81 ], to model post-intervention consumption as a func-tion of baseline consumption, the baseline pro-conservation psy-chological profile (5 measurements), the socio-structural char-acteristics, and intervention-related variables (including nudge type, chatbot use frequency, and average chat length). XGBoost was selected by a comparison among OLS, deci-sion tree, random forest, XGBoost, and MLP, in which it showed Enhancing behavioral nudges with large language model -based iterative personalization 14 consistently competitive predictive performance for both out-comes while providing feature-importance estimates that were directly comparable across electricity and hot water analyses. Predictor importance was summarized using normalized gain-based feature importance scores rescaled to sum to one. To examine how predictive patterns evolved over time, we kept the same predictor set and model structure and re-estimated the XGBoost models for the three intervention phases used in the clustering analysis and compared feature-importance profiles across phases. Full predictor lists, model comparison results, hy-perparameter settings, and cross-validated performance metrics are reported in Supplementary Tables S12–S13. 
+
+## Acknowledgements 
+
+This study was supported by the National Natural Science Foun-dation of China (No. 52470212, 52522010 to C.W.) and the Young Elite Scientists Sponsorship Program by CAST (No. 2023QNRC00 to C.W.). We thank Dr. Jieyan Liu, Dr. Yingjie Liu, Wei Wang, and Jialin Geng from the Tsinghua Center for Student Community Management and Service for their assistance with participant recruitment and field implementation. We thank Shiyu Pei and Lujia Bo from the School of Environment, Tsinghua University, and Yaoyao Zhang, Zhaochen Wang, and Zheng Zhang from Xiuzhong College, Tsinghua University, for assistance with data collection. We also thank Siyi Wang from the University of Toronto for assistance with statistical analysis. 
+
+## Conflict of interest 
+
+The authors declare no competing interests. 
+
+## References 
+
+[1] Organisation for Economic Co-operation Development. LOGIC: Good Practice Principles for Mainstreaming Behavioural Public Policy . OECD Publishing, Paris, 2024. [2] Giuseppe Alessandro Veltri. From evidence to delivery: an implementation-science blueprint for behavioural policy. Be-havioural Public Policy , page 1–12, 2025. [3] Philip G. Zimbardo and Michael R. Leippe. The Psychology of Attitude Change and Social Influence . Temple University Press, Philadelphia, illustrated edition edition, 1991. [4] Magnus Bergquist, Maximilian Thiel, Matthew H. Goldberg, and Sander van der Linden. Field interventions for climate change mitigation behaviors: A second-order meta-analysis. Proceed-ings of the National Academy of Sciences , 120(13):e2214851120, 2023. [5] Anastasia Buyalskaya, Hung Ho, Katherine L. Milkman, Xiaomin Li, Angela L. Duckworth, and Colin Camerer. What can machine learning teach us about habit formation? evidence from exercise and hygiene. Proceedings of the National Academy of Sciences ,120(17):e2216115120, 2023. [6] S. Michie, M. M. van Stralen, and R. West. The behaviour change wheel: a new method for characterising and designing behaviour change interventions. Implement Sci , 6:42, 2011. [7] Soniya Billore, Tatiana Anisimova, and Demetris Vrontis. Self-regulation and goal-directed behavior: A systematic literature review, public policy recommendations, and research agenda. 
+
+Journal of Business Research , 156:113435, 2023. [8] Susan Athey, Katy Bergstrom, Vitor Hadad, Julian C. Jamison, Berk Özler, Luca Parisotto, and Julius Dohbit Sama. Can per-sonalized digital counseling improve consumer search for mod-ern contraceptive methods? Science Advances , 9(40):eadg4420, 2023. [9] N. K. Janz and M. H. Becker. The health belief model: a decade later. Health Educ Q , 11(1):1–47, 1984. [10] E. A. Locke and G. P. Latham. Building a practically useful theory of goal setting and task motivation. a 35-year odyssey. Am Psychol , 57(9):705–17, 2002. [11] W. Wood and D. T. Neal. A new look at habits and the habit-goal interface. Psychol Rev , 114(4):843–63, 2007. [12] R. M. Ryan and E. L. Deci. Self-determination theory and the facilitation of intrinsic motivation, social development, and well-being. Am Psychol , 55(1):68–78, 2000. [13] Alexander K. Koch, Dan Mønster, and Julia Nafziger. Spillover eff ects of reminder nudges in complex environments. Proceed-ings of the National Academy of Sciences , 121(17):e2322549121, 2024. [14] Y. Luo, A. Li, D. Soman, and J. Zhao. A meta-analytic cognitive framework of nudge and sludge. R Soc Open Sci , 10(11):230053, 2023. [15] Stuart Mills. Personalized nudging. Behavioural Public Policy ,6(1):150–159, 2022. [16] E. A. G. Hietbrink, C. Lansink, G. D. Laverman, M. M. R. Vollenbroek-Hutten, A. Middelweerd, and M. Tabak. Systematic review of dynamically tailored ehealth interventions targeting physical activity and healthy diet in chronic disease. npj Digital Medicine , 8(1):696, 2025. [17] Jacopo Bonan, Cristina Cattaneo, Giovanna d’Adda, and Massimo Tavoni. Can social information programs be more e ff ective? the role of environmental identity for energy conservation. Journal of Environmental Economics and Management , 108:102467, 2021. [18] Roman Ho ff mann, Georg Kanitsar, and Marcel Seifert. Behavioral barriers impede pro-environmental decision-making: Experimen-tal evidence from incentivized laboratory and vignette studies. 
+
+Ecological Economics , 225:108347, 2024. [19] Matthew A. Kraft, David Blazar, and Dylan Hogan. The e ff ect of teacher coaching on instruction and achievement: A meta-analysis of the causal evidence. Review of Educational Research ,88(4):547–588, 2018. [20] David Blazar, Doug McNamara, and Genine Blue. Instructional coaching personnel and program scalability. Education Finance and Policy , 19:1–64, 2023. [21] Tao Tu, Mike Schaekermann, Anil Palepu, Khaled Saab, Jan Freyberg, Ryutaro Tanno, Amy Wang, Brenna Li, Mohamed Amin, Yong Cheng, Elahe Vedadi, Nenad Tomasev, Shekoofeh Azizi, Karan Singhal, Le Hou, Albert Webson, Kavita Kulkarni, S. Sara Mahdavi, Christopher Semturs, Juraj Gottweis, Joelle Barral, Katherine Chou, Greg S. Corrado, Yossi Matias, Alan Karthikesalingam, and Vivek Natarajan. Towards conversational diagnostic artificial intelligence. Nature , 642(8067):442–450, 2025. [22] Jisoo Mok, Ik-hwan Kim, Sangkwon Park, and Sungroh Yoon. Exploring the potential of llms as personalized assistants: Dataset, evaluation, and analysis. Proceedings of the 63rd Annual Meet-ing of the Association for Computational Linguistics (Volume 1: Long Papers), page 10212–10239. Association for Computational Linguistics. [23] Konstantina Christakopoulou, Iris Qu, John Canny, Andrew Goodridge, Cj Adams, Minmin Chen, and Maja Matari´ c. Enhancing behavioral nudges with large language model -based iterative personalization 15 
+
+Conversational planning for personal plans. arXiv preprint arXiv:2502.19500 , 2025. [24] Selina Meyer and David Elsweiler. Llm-based conversational agents for behaviour change support: A randomised controlled trial examining e ffi cacy, safety, and the role of user behaviour. 
+
+International Journal of Human-Computer Studies , 200:103514, 2025. [25] Andrew M. Bean, Rebecca Elizabeth Payne, Guy Parsons, Han-nah Rose Kirk, Juan Ciro, Rafael Mosquera-Gómez, Sara Hin-capié M, Aruna S. Ekanayaka, Lionel Tarassenko, Luc Rocher, and Adam Mahdi. Reliability of llms as medical assistants for the general public: a randomized preregistered study. Nature Medicine , 32(2):609–615, 2026. [26] Paul Hager, Friederike Jungmann, Robbie Holland, Kunal Bha-gat, Inga Hubrecht, Manuel Knauer, Jakob Vielhauer, Marcus Makowski, Rickmer Braren, Georgios Kaissis, and Daniel Rueck-ert. Evaluation and mitigation of the limitations of large lan-guage models in clinical decision-making. Nature Medicine ,30(9):2613–2622, 2024. [27] Lisa P. Argyle, Christopher A. Bail, Ethan C. Busby, Joshua R. Gubler, Thomas Howe, Christopher Rytting, Taylor Sorensen, and David Wingate. Leveraging ai for democratic discourse: Chat interventions can improve online political conversations at scale. Proceedings of the National Academy of Sciences ,120(41):e2311627120, 2023. [28] Pat Pataranutaporn, Alexander Doudkin, and Pattie Maes. Ocean-chat: The e ff ect of virtual conversational ai agents on sustainable attitude and behavior change. arXiv preprint arXiv:2502.02863 ,2025. [29] Kobi Hackenburg, Ben M. Tappin, Luke Hewitt, Ed Saunders, Sid Black, Hause Lin, Catherine Fist, Helen Margetts, David G. Rand, and Christopher Summerfield. The levers of political persuasion with conversational artificial intelligence. Science ,390(6777):eaea3884, 2025. [30] Rachit Dubey, Mathew D. Hardy, Thomas L. Gri ffi ths, and Rahul Bhui. Ai-generated visuals of car-free us cities help improve sup-port for sustainable policies. Nature Sustainability , 7(4):399–403, 2024. [31] Thomas H. Costello, Gordon Pennycook, and David G. Rand. Durably reducing conspiracy beliefs through dialogues with ai. 
+
+Science , 385(6714):eadq1814, 2024. [32] Michael V. Heinz, Daniel M. Mackin, Brianna M. Trudeau, Sukanya Bhattacharya, Yinzhou Wang, Haley A. Banta, Abi D. Jewett, Abigail J. Salzhauer, Tess Z. Gri ffi n, and Nicholas C. Ja-cobson. Randomized trial of a generative ai chatbot for mental health treatment. NEJM AI , 2(4), 2025. [33] Andrew Allen, Allan H. Young, Francine C. Jellesma, Anton Vorobev, Evgeniia Ivanova, Nikolay Babakov, Ani Gisnarian, and Lee Kannis-Dymand. An exploratory randomized controlled trial of an ai-enabled mental health intervention for generalized anxiety. Journal of A ff ective Disorders , 401:121275, 2026. [34] Alyssa H. Sinclair, Danielle Cosme, Kirsten Lydic, Diego A. Reinero, Michael E. Mann, and Emily B. Falk. Reply to dablander et al.: Identifying interventions that change intentions lays a valuable foundation for behavior change. Proceedings of the National Academy of Sciences , 122(28):e2513159122, 2025. [35] Vivek Vivek, Deepak Malghan, and Kanchan Mukherjee. To-ward achieving persistent behavior change in household water conservation. Proceedings of the National Academy of Sciences ,118(24):e2023014118, 2021. [36] Omar Isaac Asensio, Olga Churkina, Becky D. Rafter, and Kira E. O’Hare. Housing policies and energy e ffi ciency spillovers in low and moderate income communities. Nature Sustainability ,7(5):590–601, 2024. [37] Hoang Viet Nguyen, Bao Ngoc Le, Weng Marc Lim, Thac Dang-Van, and Ninh Nguyen. Consumer purchases of energy-e ffi cient appliances: A systematic literature review and research agenda. 
+
+Energy E ffi ciency , 18(4):29, 2025. [38] Alexander Goetz, Harald Mayr, and Renate Schubert. One thing leads to another: Evidence on the scope and persistence of be-havioral spillovers. Journal of Public Economics , 236:105166, 2024. [39] Jin Han Kim and Michael Kaemingk. Persisting e ff ects of social norm feedback letters in reducing household electricity usage in post-soviet eastern europe: A randomized controlled trial. Journal of Economic Behavior & Organization , 191:153–161, 2021. [40] Carlos Alberto Fróes Lima and José Ricardo Portillo Navas. Smart metering and systems to support a conscious use of water and electricity. Energy , 45(1):528–540, 2012. [41] Thole H. Hoppen, Rieke M. Cuno, Janna Nelson, Frederike Lem-mel, Pascal Schlechter, and Nexhmedin Morina. Meta-analysis of randomized controlled trials examining social comparison as a behaviour change technique across the behavioural sciences. 
+
+Nature Human Behaviour , 2025. [42] Wenbo Li, Xiu Cheng, Ruyin Long, Jiaxin Huang, and Chengjiang Li. Rank ordering information on energy use can promote energy-conserving behavior in china. Communications Earth & Environment , 6(1):947, 2025. [43] Ariane Liu, Damien Giurco, and Pierre Mukheibir. Motivating metrics for household water-use feedback. Resources, Conserva-tion and Recycling , 103:29–46, 2015. [44] Marina Laskari, Stavroula Karatasou, and Mat Santamouris. The design of an energy and water advice programme for low-income households. Energy and Buildings , 110:426–434, 2016. [45] Elizabeth Shove. Converging conventions of comfort, cleanliness and convenience. Journal of Consumer Policy , 26(4):395–418, 2003. [46] Maohui Luo, Shuang Xu, Yin Tang, Hang Yu, Xiang Zhou, and Zong Chen. Dynamic thermal responses and showering thermal comfort under di ff erent conditions. Building and Environment ,237:110322, 2023. [47] Daniel C. Lundberg, Janine A. Tang, and Shahzeen Z. Attari. Easy but not e ff ective: Why “turning o ff the lights” remains a salient energy conserving behaviour in the united states. Energy Research & Social Science , 58:101257, 2019. [48] Till Grüne-Yano ff and Ralph Hertwig. Nudge versus boost: How coherent are policy and theory? Minds and Machines ,26(1):149–183, 2016. [49] Yavor Paunov and Till Grüne-Yano ff . Boosts vs nudges: perceived eff ectiveness and criticism shape preferences for sustainable be-havioural policies. Energy Policy , 209:114953, 2026. [50] S. Grelle and W. Hofmann. When and why do people ac-cept public-policy interventions? an integrative public-policy-acceptance framework. Perspect Psychol Sci , 19(1):258–279, 2024. [51] John Beshears and Harry Kosowsky. Nudging: Progress to date and future directions. Organizational Behavior and Human Deci-sion Processes , 161:3–19, 2020. [52] Richard W. Patterson and William Skimmyhorn. How do behav-ioral approaches to increase savings compare? evidence from multiple interventions in the u.s. army. Management Science ,2025. Enhancing behavioral nudges with large language model -based iterative personalization 16 
+
+[53] Hengchen Dai, Silvia Saccardo, Maria A. Han, Lily Roh, Naveen Raja, Sitaram Vangala, Hardikkumar Modi, Shital Pandya, Michael Sloyan, and Daniel M. Croymans. Behavioural nudges in-crease covid-19 vaccinations. Nature , 597(7876):404–409, 2021. [54] Stefan Drews and Jeroen CJM van den Bergh. A critical assess-ment of the e ff ectiveness of low-carbon nudges , page 268–284. Routledge, 2023. [55] Babak Amiri, Amirhossein Jafarian, and Zahra Abdi. Nudging towards sustainability: a comprehensive review of behavioral ap-proaches to eco-friendly choice. Discover Sustainability , 5(1):444, 2024. [56] Bibhas Chakraborty and Susan A. Murphy. Dynamic treatment regimes. Annual Review of Statistics and Its Application , 1(Vol-ume 1, 2014):447–464, 2014. [57] Nur Hani Zainal, Xueqing Liu, Utek Leong, Xiaoxi Yan, and Bibhas Chakraborty. Bridging innovation and equity: Advancing public health through just-in-time adaptive interventions. Annual Review of Public Health , 46(Volume 46, 2025):43–68, 2025. [58] I. Nahum-Shani, S. N. Smith, B. J. Spring, L. M. Collins, K. Witkiewitz, A. Tewari, and S. A. Murphy. Just-in-time adap-tive interventions (jitais) in mobile health: Key components and design principles for ongoing health behavior support. Ann Behav Med , 52(6):446–462, 2018. [59] N. Bol, E. S. Smit, and M. L. A. Lustria. Tailored health commu-nication: Opportunities and challenges in the digital era. Digit Health , 6:2055207620958913, 2020. [60] S. A. Lee and J. H. Park. Systematic review and meta analysis of standalone digital behavior change interventions on physical activity. NPJ Digit Med , 8(1):436, 2025. [61] Lingyi Fu, Ryan Burns, Yuhuan Xie, Jincheng Shen, Shandian Zhe, Paul Estabrooks, and Yang Bai. The development and use of ai chatbots for health behavior change: Scoping review. J Med Internet Res , 28:e79677, 2026. [62] Karine Karine and Benjamin M. Marlin. Enhancing adaptive behavioral interventions with llm inference from participant de-scribed states, 2025. [63] Patrick Schramowski, Cigdem Turan, Nico Andersen, Con-stantin A. Rothkopf, and Kristian Kersting. Large pre-trained language models contain human-like biases of what is right and wrong to do. Nature Machine Intelligence , 4(3):258–268, 2022. [64] Shibani Santurkar, Esin Durmus, Faisal Ladhak, Cinoo Lee, Percy Liang, and Tatsunori Hashimoto. Whose opinions do language models reflect?, 2023. [65] Ziyan Cui, Ning Li, and Huaikang Zhou. A large-scale replication of scenario-based experiments in psychology and management using large language models. Nature Computational Science ,5(8):627–634, 2025. [66] Jennifer M. Talarico. The merits of undergraduate student samples. 
+
+Nature Reviews Psychology , 2025. [67] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela. Retrieval-augmented generation for knowledge-intensive nlp tasks, 2020. [68] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed H. Chi, Quoc V. Le, and Denny Zhou. Chain-of-thought prompting elicits reasoning in large language models, 2022. [69] L. A. Palinkas, S. M. Horwitz, C. A. Green, J. P. Wisdom, N. Duan, and K. Hoagwood. Purposeful sampling for qualitative data collection and analysis in mixed method implementation research. Adm Policy Ment Health , 42(5):533–44, 2015. [70] Yasmin Y. Ortiga, Jue Wang, and Meng-Hsuan Chou. Interna-tional academic or citizen scholar?: Singaporean returnees in the global city. Cities , 137:104327, 2023. [71] John E. Petersen, Cynthia M. Frantz, Md Rumi Shammin, Tess M. Yanisch, Evan Tincknell, and Noel Myers. Electricity and water conservation on college and university campuses in response to national competitions among dormitories: Quantifying relation-ships between behavior, conservation strategies and psychological metrics. PLOS ONE , 10(12):e0144070, 2015. [72] Albert Bandura. Social foundations of thought and action. Engle-wood Cli ff s, NJ , 1986(23-28):2, 1986. [73] Zonghan Li, Song Tong, Yi Liu, Kaiping Peng, and Chunyan Wang. Potential of large language model-powered nudges for promoting daily water and energy conservation. arXiv preprint arXiv:2503.11531 , 2025. [74] Kenneth Benoit, Kohei Watanabe, Haiyan Wang, Paul Nulty, Adam Obeng, Stefan Müller, and Akitaka Matsuo. quanteda: An r package for the quantitative analysis of textual data. Journal of Open Source Software , 3:774, 2018. [75] Shusei Eshima, Kosuke Imai, and Tomoya Sasaki. Keyword-assisted topic models. American Journal of Political Science ,68(2):730–750, 2024. [76] Sören R. Künzel, Jasjeet S. Sekhon, Peter J. Bickel, and Bin Yu. Metalearners for estimating heterogeneous treatment e ff ects using machine learning. Proceedings of the National Academy of Sciences , 116(10):4156–4165, 2019. [77] Edward H. Kennedy. Towards optimal doubly robust estimation of heterogeneous causal e ff ects. Electronic Journal of Statistics ,2020. [78] Andrea Cominola, Matteo Giuliani, Andrea Castelletti, Piero Fraternali, Sergio Luis Herrera Gonzalez, Joan Carles Guardiola Herrero, Jasminko Novak, and Andrea Emilio Rizzoli. Long-term water conservation is fostered by smart meter-based feedback and digital user engagement. npj Clean Water , 4(1):29, 2021. [79] Steven L Brunton and J Nathan Kutz. Data-driven science and engineering: Machine learning, dynamical systems, and control .Cambridge University Press, 2022. [80] Ali Seyed Shirkhorshidi, Saeed Aghabozorgi, and Teh Ying Wah. A comparison study on similarity and dissimilarity measures in clustering continuous data. PloS one , 10(12):e0144059, 2015. [81] Tianqi Chen and Carlos Guestrin. Xgboost: A scalable tree boosting system, 2016.

@@ -1,0 +1,315 @@
+Title: A Systematic Analysis of the Impact of Persona Steering on LLM Capabilities
+
+URL Source: https://arxiv.org/pdf/2604.11048v1
+
+Published Time: Tue, 14 Apr 2026 02:12:26 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# A Systematic Analysis of the Impact of Persona Steering on LLM Capabilities 
+
+Jiaqi Chen 1,∗ Ming Wang 1,2,∗ Tingna Xie 1 Shi Feng 1,† Yongkang Liu 3,†
+
+> 1
+
+School of Computer Science and Engineering, Northeastern University, Shenyang 110819, China 
+
+> 2
+
+School of Computing and Information Systems, Singapore Management University, Singapore 178902, Singapore 
+
+> 3
+
+School of Computer and Communication Engineering, Northeastern University, Qinhuangdao 066004, China 
+
+> ∗
+
+Equal contribution †Corresponding author: fengshi@cse.neu.edu.cn , liuyongkang@qhd.neu.edu.cn 
+
+Abstract 
+
+Imbuing Large Language Models (LLMs) with specific per-sonas is prevalent for tailoring interaction styles, yet the impact on underlying cognitive capabilities remains unexplored. We employ the Neuron-based Personality Trait Induction (NPTI) framework to induce Big Five personality traits in LLMs and evaluate performance across six cognitive benchmarks. Our findings reveal that persona induction produces stable, repro-ducible shifts in cognitive task performance beyond surface-level stylistic changes. These effects exhibit strong task dependence: certain personalities yield consistent gains on instruction-following, while others impair complex reasoning. Effect magnitude varies systematically by trait dimension, with Openness and Extraversion exerting the most robust influence. Furthermore, LLM effects show 73.68% directional consistency with human personality-cognition relationships. Capitalizing on these regularities, we propose Dynamic Persona Routing (DPR), a lightweight query-adaptive strategy that outperforms the best static persona without additional training. 
+
+Keywords: Large Language Models; Personality and Cogni-tion; Big Five Traits; Behavioral Modulation 
+
+Introduction 
+
+Personalized large language models (LLMs) have become foundational in applications demanding human-like engage-ment (Tseng et al., 2024; Zhang et al., 2025). Persona config-urations tailor a model’s tone and interaction style (Chen et al., 2024), aligning behaviors with user expectations. Research in computational personality has demonstrated that LLMs ex-hibit measurable behavioral patterns consistent with the Big Five framework (Digman, 1990; Durmus et al., 2023; Gold-berg, 1990). However, whether such configurations systemat-ically affect cognitive capabilities remains open. This study addresses: Does persona induction merely alter surface-level presentation (Deshpande et al., 2023; Sorokovikova et al., 2024), or does it produce measurable shifts in cognitive task performance? We propose a systematic framework grounded in cogni-tive science theory, as illustrated in Figure 1. Our pipeline comprises three stages: (1) personality trait induction via the Neuron-based Personality Trait Induction (NPTI) framework (Deng et al., 2025), which modulates trait-specific neurons to induce Big Five personality configurations; (2) systematic evaluation across multiple model architectures and scales on six cognitive benchmarks (Chowdhery et al., 2023); and (3) quantitative analysis of persona-task interactions using met-rics grounded in cognitive science theory. Drawing on Cy-bernetic Big Five Theory (CB5T) (DeYoung, 2015), which conceptualizes traits as cybernetic control governing goal-directed behavior, we address: 
+
+• RQ1 (Reliability) : Are persona-induced performance shifts replicable across different model architectures and parameter scales, representing consistent cognitive modu-lation rather than stochastic noise? 
+
+• RQ2 (Domain Specificity) : Do persona effects exhibit se-lective influence on specific cognitive domains (reasoning, instruction-following, knowledge retrieval), consistent with the CB5T framework that predicts trait-process specificity? 
+
+• RQ3 (Trait-Process Mapping) : Which Big Five dimen-sions most strongly influence cognitive performance, and do they map onto distinct computational mechanisms as predicted by human personality-cognition research (An-glim et al., 2022; DeYoung, 2015)? 
+
+• RQ4 (Directional Consistency) : Do LLM persona effects align directionally with established human personality-cognition relationships, suggesting shared functional prin-ciples despite architectural differences? Our investigation yields a critical insight: persona steering does not provide universal capability lift; rather, its efficacy is strictly conditioned on the task scenario, echoing Atten-tional Control Theory (ACT) (Eysenck et al., 2007) regarding trait-dependent cognitive resource allocation. Capitalizing on this persona-task interaction, we propose Dynamic Persona Routing (DPR), a retrieval-based strategy that adaptively ap-plies optimal persona configurations (Salemi et al., 2024). DPR outperforms the best static persona baseline without ad-ditional training, establishing persona steering as a low-cost calibration mechanism. Our contributions are: 
+
+• A rigorous analysis pipeline for persona steering grounded in cognitive science theory, enabling systematic quantifica-tion of how personality traits influence model capabilities across architectures. 
+
+• Empirical evidence for trait-process specificity: Openness and Extraversion exhibit the strongest effects, with 73.68% directional consistency with human personality-cognition research. 
+
+• A training-free dynamic persona routing method demon-strating persona control as a “low-cost calibration” tool. 
+
+> arXiv:2604.11048v1 [cs.CL] 13 Apr 2026
+
+Figure 1: The systematic analysis pipeline for quantifying persona steering effects. 
+
+Related Work 
+
+Personality and Cognition in Psychology The relationship between personality and cognition is well-established in hu-man psychology. The Cybernetic Big Five Theory (CB5T) (DeYoung, 2015) conceptualizes traits as cybernetic control systems governing goal-directed behavior, with Openness re-flecting cognitive exploration, Conscientiousness mediating goal persistence, Extraversion driving approach motivation, Agreeableness modulating social cooperation, and Neuroti-cism representing threat sensitivity. Meta-analytic evidence confirms robust trait-cognition associations: Openness corre-lates with fluid intelligence ( 𝑟 = .35 ) and creative problem-solving (Anglim et al., 2022), while Conscientiousness pre-dicts goal-directed persistence and academic performance (Fleming et al., 2016). Extraversion facilitates performance in socially embedded tasks through increased approach moti-vation and positive affect. Attentional Control Theory (ACT) (Eysenck et al., 2007) provides a mechanistic account of how anxiety, the core affective component of Neuroticism, impairs cognitive efficiency by consuming working memory resources and disrupting attentional control. These theoretical frame-works establish empirically validated predictions about how specific traits should modulate specific cognitive processes, providing a principled basis for evaluating whether LLM per-sona effects exhibit human-like structure. 
+
+Persona Induction in LLMs In LLM research, persona construction spans prompting-based methods (Chen et al., 2024; Tseng et al., 2024) and fine-tuning strategies (Zhang et al., 2025), primarily addressing surface-level presentation (e.g., linguistic style, social appropriateness) rather than cog-nitive capabilities. Parallel work applies psychometric tools to evaluate LLMs (Durmus et al., 2023; Xiao et al., 2024), demonstrating that models can simulate consistent person-ality structures aligned with the Big Five framework (Dig-man, 1990; Goldberg, 1990). However, this research remains largely descriptive rather than causal: while it establishes that LLMs can exhibit stable personality-like patterns, it does not address whether such patterns causally influence downstream cognitive performance. While persona assignments induce shifts in behavioral biases and social tendencies (Deshpande et al., 2023; Perez et al., 2023), the impact on underlying reasoning processes and cognitive task performance remains unclear. The NPTI framework (Deng et al., 2025) enables precise representation-level intervention by modulating trait-specific neurons, allowing systematic quantification of person-ality effects on cognitive task performance while controlling for prompt-based confounds. 
+
+Persona Effects on Model Behavior Recent work high-lights that persona conditioning interacts with instruction-tuning and alignment objectives: personas can increase com-pliance and socially appropriate behavior while introducing trade-offs in reasoning or factual consistency (Deshpande et al., 2023; Sorokovikova et al., 2024). Studies have shown that different persona configurations can lead to systematic biases in model outputs, affecting both the content and style of responses. This motivates going beyond prompt-level per-sonas toward controlled interventions that isolate causal ef-fects, especially when evaluating capability rather than style. In this context, NPTI complements earlier persona and per-sonalization approaches (Lester et al., 2021) by providing a stable, neuron-level mechanism for trait induction, enabling rigorous tests of whether induced personality modulates cog-nitive subsystems (e.g., instruction following vs. reasoning) in ways comparable to human trait-cognition theories. Our work extends this line by systematically mapping persona effects across cognitive domains, model architectures, and parameter scales, providing the first comprehensive analysis grounded in cognitive science theory. 
+
+Methodology 
+
+Models and Cognitive Task Batteries 
+
+To systematically assess the impact of personality on LLM capabilities, we construct a model set M and a task set D de-signed to control for architectural and scaling factors. We se-lect open-source instruction-tuned models along two compar-ison axes: to evaluate generalizability across model families (RQ1), we employ four representative models in the 7B–9B parameter range, including LLaMA-3-8B-Instruct, Mistral-7B-v0.3, Gemma-2-9B-Instruct, and Qwen2.5-7B-Instruct; to examine scaling effects (also RQ1), we analyze the Qwen2.5 family across five scales (0.5B, 1.5B, 3B, 7B, and 14B). Perfor-mance is evaluated on six benchmarks spanning four cognitive domains (RQ2): IFEval for instruction comprehension and ex-ecution; MMLU-Pro and GPQA for knowledge retrieval and expert-level understanding; BBH and MuSR for multi-step reasoning and problem-solving; and GSM8K for numerical reasoning. 
+
+Personality Trait Induction 
+
+To induce personality traits without confounds from prompt engineering, we employ the Neuron-based Personality Trait Induction (NPTI) framework, which operates at the represen-tation level by modulating specific neurons within the Feed-Forward Networks (FFN). The process involves two phases. In the identification phase , using the PersonalityBench dataset, we compute the activation probability difference ( 𝛿 ) for each neuron across contrasting high- and low-trait samples. Neu-rons with 𝛿 > 𝜏 are identified as trait-specific, forming positive (N +) and negative ( N − ) sets for each Big Five dimension. In the steering phase , we apply deterministic modulation to these neurons during inference without updating model weights. For a target persona 𝑝 , the activation ℎ𝑖 of neuron 𝑖 is mod-ified as ℎ′ 
+
+> 𝑖
+
+= ℎ𝑖 + 𝛼 · ℎ𝑟 𝑒 𝑓 if 𝑖 ∈ N +, and suppressed if 
+
+𝑖 ∈ N − , where 𝛼 is the steering strength. The baseline con-dition ( 𝑝 𝑏𝑎𝑠𝑒 ) corresponds to standard inference with 𝛼 = 0.Prior validation has demonstrated that this intervention reli-ably induces psychometrically valid personality traits, provid-ing a rigorous causal basis for quantifying personality effects on cognitive performance. 
+
+Experimental Procedure 
+
+To ensure reproducibility and minimize generation noise, all models were evaluated using deterministic decoding (temper-ature = 0.0). We adhered to standard evaluation protocols, utilizing official prompts and scoring scripts, including few-shot configurations for BBH, GPQA, and MMLU-Pro. For GSM8K, we applied relaxed regex-based answer extraction to mitigate false negatives from formatting variations; for IFEval, we employed the strict instruction-following evalu-ator. Critically, to isolate the causal impact of personality, we employed a within-item paired design : for every evaluation instance, both baseline and persona-steered conditions pro-cessed identical inputs under identical generation parameters. Thus, any performance deviation is exclusively attributable to the induced persona configuration. 
+
+Analysis Framework 
+
+We establish a hierarchical analysis framework to quan-tify persona effects. Let Acc (𝑚, 𝑝, 𝑑 ) denote the accu-racy of model 𝑚 under persona condition 𝑝 on dataset 
+
+𝑑 . We include a no-persona baseline (𝑝 base ) and ten polarity conditions based on the Big Five dimensions: 
+
+P = {𝐴 𝐻 , 𝐴 𝐿 , 𝐶 𝐻 , 𝐶 𝐿 , 𝐸 𝐻 , 𝐸 𝐿 , 𝑁 𝐻 , 𝑁 𝐿 , 𝑂 𝐻 , 𝑂 𝐿 }, where subscript 𝐻 denotes high-trait and 𝐿 denotes low-trait (re-versed) conditions. The persona effect ( ΔAcc) is defined as the deviation from baseline: 
+
+ΔAcc (𝑚, 𝑝, 𝑑 ) = Acc (𝑚, 𝑝, 𝑑 ) − Acc (𝑚, 𝑝 base , 𝑑 ) (1) Positive values indicate performance gains; negative values indicate degradation. By analyzing this differential metric rather than raw accuracy, we isolate performance shifts at-tributable to persona intervention. ΔAcc serves as the funda-mental measure for addressing our research questions (RQ1– RQ4). 
+
+Consistency Across Architectures (RQ1) Generalizability across model families is evaluated on a cross-architecture sub-set Ma, which comprises models of comparable scale (7B–9B parameters). We quantify cross-architecture consistency us-ing two complementary metrics. First, we compute the mean effect ΔAcc a by macro-averaging ΔAcc across all models in 
+
+Ma, capturing the aggregate effect size and direction (posi-tive for gains, negative for degradation). Second, to assess whether the effect direction remains stable across architec-tures, we define direction consistency ( 𝑆 𝐴 ) as: SA ( 𝑝, 𝑑 ) = 1
+
+|M 𝑎 |∑︁ 𝑚 ∈ M 𝑎 
+
+I
+
+
+
+sgn (ΔAcc ) = sgn (ΔAcc 𝑎 )
+
+
+
+(2) where I(·) denotes the indicator function and sgn (·) is the sign function. Values of 𝑆 𝐴 close to 1.0 indicate that the effect is highly reproducible and largely architecture-independent. 
+
+Scaling Trends (RQ1) We analyze how parameter scale affects persona sensitivity within the Qwen2.5 family ( 𝑠 ∈
+
+Qwen2 .5 − 0.5B − it , . . . , Qwen2 .5 − 14 B − it ). To enable meaningful cross-task comparisons, we define the relative persona effect as the accuracy change normalized by baseline performance: 
+
+Δ𝐴𝑐𝑐 rel (𝑠, 𝑝, 𝑑 ) = Δ𝐴𝑐𝑐 (𝑠, 𝑝, 𝑑 )
+
+𝐴𝑐𝑐 (𝑠, 𝑝 base , 𝑑 ) (3) This preserves the direction of the effect (positive for gains, negative for degradation). For aggregate analysis, we compute persona sensitivity ( 𝑆𝑒𝑛𝑠 ) as the mean of absolute relative effects across all persona conditions: 
+
+𝑆𝑒𝑛𝑠 (𝑠, 𝑑 ) = 1
+
+|P | ∑︁ 𝑝 ∈ P 
+
+|Δ𝐴𝑐𝑐 rel (𝑠, 𝑝, 𝑑 )| (4) Scaling effects are then assessed using Spearman’s rank correlation ( 𝜌 ). In particular, we examine two distinct trends: the direction trend ( 𝜌 dir ), computed between log-parameters and ΔAcc to test whether larger models exhibit greater per-formance gains; and the sensitivity trend ( 𝜌 mag ), computed between log-parameters and 𝑆𝑒𝑛𝑠 to determine whether scal-ing amplifies susceptibility to persona interventions. 
+
+Domain Specificity (RQ2) We examine persona effects across cognitive domains by aggregating benchmarks into four semantic categories and computing within-type mean effects (ΔAcc ( 𝑝, 𝑔 )), enabling identification of stable trait-task inter-action patterns. 
+
+Trait-Process Mapping (RQ3) We isolate the influence of specific traits by analyzing the polarity gap ( 𝐺𝑎 𝑝 (𝑚, 𝑡, 𝑑 ))for each dimension 𝑡 . This metric is defined as the differ-ence between accuracy under high ( 𝑡 𝐻 ) and low ( 𝑡 𝐿 ) settings: 
+
+𝐺𝑎 𝑝 (𝑚, 𝑡, 𝑑 ) = 𝐴𝑐𝑐 (𝑚, 𝑡 𝐻 , 𝑑 ) − 𝐴𝑐𝑐 (𝑚, 𝑡 𝐿 , 𝑑 ). Dominance is then characterized via two metrics. The first is impact (𝐼𝑚 𝑝𝑎𝑐𝑡 (𝑡 )), measured by the mean absolute gap across all models and datasets. The second is uniformity ( 𝑈𝑛𝑖 (𝑡 )), which quantifies the directional consistency relative to the global mean gap ( 𝐺𝑎 𝑝 (𝑡 )): 
+
+𝑈𝑛𝑖 (𝑡 ) = 1
+
+|M||D| ∑︁ 𝑚 ∈ M ∑︁ 𝑑 ∈ D 
+
+I
+
+
+
+sgn (𝐺𝑎 𝑝 ) = sgn (𝐺𝑎 𝑝 (𝑡 )) 
+
+
+
+(5) High 𝑈𝑛𝑖 (𝑡 ) indicates that a specific polarity is universally advantageous regardless of the model or task. 
+
+Human-LLM Directional Consistency (RQ4) We com-pare LLM persona effects against predictions from psycholog-ical literature (Anglim et al., 2022; DeYoung, 2015; Eysenck et al., 2007): Openness should enhance cognitive flexibility (high > low); Conscientiousness should benefit goal-directed performance (high > low); Neuroticism should impair perfor-mance (low > high). We compute the directional consistency rate as the proportion of trait-benchmark combinations where observed LLM effects match predicted human patterns. 
+
+Experiments 
+
+Our evaluation reveals that persona induction produces struc-tured and reproducible shifts in cognitive task performance rather than random noise. While baseline accuracies for all models across the six benchmarks are detailed in Table 1, our analysis focuses on the relative deviation ( Δ𝐴𝑐𝑐 ) to isolate the causal impact of personality. These effects are profoundly task-dependent: personas consistently enhance instruction-following but frequently impair complex reasoning and math-ematical performance. The magnitude and direction of these Table 1: Base accuracy on six benchmarks (unit: %). Model GPQA BBH MuSR MMLU IFEval GSM8K                                                 
+
+> Cross-Architecture
+> LLaMA-3-8B-it 30.13 63.40 54.10 36.55 39.93 72.18 Gemma-2-9B-it 29.02 70.96 57.67 50.38 47.87 58.83 Mistral-7B-it-v0.3 30.36 45.92 45.37 33.36 34.20 45.49 Qwen2.5-7B-it 27.68 66.73 50.40 55.09 44.55 81.58
+> Scaling Analysis
+> Qwen2.5-14B-it 31.47 78.16 62.96 63.05 41.40 89.58 Qwen2.5-3B-it 22.77 50.41 46.83 41.19 37.52 66.19 Qwen2.5-1.5B-it 27.46 35.57 45.37 29.11 21.26 38.44 Qwen2.5-0.5B-it 30.13 11.70 37.04 14.10 19.77 14.10
+
+shifts are modulated by both parameter scale and architectural differences. 
+
+RQ1: Consistency Across Architectures 
+
+To determine whether persona effects reflect model-specific artifacts or deeper computational regularities, we evaluate the cross-architecture subset M𝑎 (7B–9B) using mean ef-fect ( Δ𝐴𝑐𝑐 𝑎 ) and direction consistency ( 𝑆 𝐴 ). As shown in Figure 2, persona induction produces highly consistent behavioral shifts across distinct cognitive domains. The heatmap displays signed Δ𝐴𝑐𝑐 𝑎 for all ten persona conditions (𝐴 𝐻 , 𝐴 𝐿 , . . . , 𝑂 𝐻 , 𝑂 𝐿 ), with positive values (green) indicat-ing performance gains and negative values (red) indicating degradation relative to baseline. The near-perfect consistency ( 𝑆 𝐴 ≈ 0.98 ) in IFEval (all personas yield gains of +10 .9% to +15 .1% ) and BBH ( 𝑆 𝐴 =
+
+1.00 ; all personas degrade performance, with 𝐸 𝐿 causing 
+
+−39 .5% ) suggests that persona induction acts as a global mod-ulator of cognitive state. Low-trait conditions ( 𝑂 𝐿 , 𝐸 𝐿 ) con-sistently impair reasoning across all architectures, indicating that personality representations reconfigure shared computa-tional mechanisms for logical operations. In contrast, the lower consistency in GPQA ( 𝑆 𝐴 ≈ 0.75 )and MuSR ( 𝑆 𝐴 ≈ 0.75 ) reveals a boundary: while process-oriented capabilities (reasoning, instruction-following) are governed by architecture-agnostic mechanisms, knowledge-dependent expert understanding is more tightly coupled to model-specific representational space. 
+
+RQ2: Domain Specificity 
+
+We investigate how persona effects vary across cognitive do-mains, with an additional lens on parameter scaling (0.5B to 14B) within the Qwen2.5 family. As shown in Figure 3, persona effects exhibit clear domain selectivity consistent with CB5T’s prediction of trait-process specificity. Panel (a) plots the aggregate sensitivity 𝑆𝑒𝑛𝑠 (𝑠, 𝑑 ) as defined in Equa-tion (4), computed as the mean of absolute relative effects 
+
+> 1
+> | P |
+
+Í𝑝 |Δ𝐴𝑐𝑐 rel |. For instruction-following (IFEval), sensi-tivity remains consistently high across scales (24.8%–78.1%), indicating sustained responsiveness to persona-driven behav-ioral modulation. Conversely, reasoning-intensive bench-marks (BBH, GSM8K) show non-monotonic trajectories: sensitivity peaks at 7B (35.1% for BBH) but attenuates sharply AH AL CH CL EH EL NH NL OH OL                                                      
+
+> GPQA
+> BBH
+> MuSR
+> MMLU-Pro
+> IFEval
+> GSM8K
+> 3.52 -0.90 1.17 -7.20 3.35 -12.11 -3.63 4.40 4.74 -12.84
+> -11.44 -28.24 -10.29 -31.14 -22.36 -39.52 -28.43 -15.90 -19.94 -38.30
+> -3.28 -7.84 -3.27 -5.62 -4.53 -9.36 -2.53 -3.64 -5.32 -7.04
+> -7.27 -16.30 -6.44 -12.70 -9.57 -18.40 -14.48 -7.32 -8.37 -20.39
+> 13.77 14.88 13.67 12.43 10.86 11.48 14.69 15.10 13.68 13.91
+> -3.26 -16.59 -2.35 -13.08 -6.88 -34.08 -4.21 -6.92 -3.05 -34.23
+> 30
+> 20
+> 10
+> 0
+> 10
+> 20
+> 30
+> Acc a(p, d)
+
+(a) Signed ΔAcc 𝑎 (%) AH AL CH CL EH EL NH NL OH OL                                                       
+
+> GPQA
+> BBH
+> MuSR
+> MMLU-Pro
+> IFEval
+> GSM8K
+> 0.50 0.75 0.50 1.00 0.50 1.00 0.75 0.75 0.75 1.00
+> 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00
+> 0.50 1.00 0.50 0.75 0.75 1.00 0.75 0.75 0.75 0.75
+> 0.75 1.00 0.75 1.00 1.00 1.00 1.00 1.00 1.00 1.00
+> 1.00 1.00 1.00 0.75 1.00 1.00 1.00 1.00 1.00 1.00
+> 0.75 0.75 0.50 0.75 1.00 1.00 0.75 1.00 0.50 1.00 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> SA (p, d)
+
+(b) Direction consistency ( 𝑆 𝐴 )
+
+Figure 2: Persona-task interaction heatmap showing ΔAcc and direction consistency ( 𝑆 𝐴 ). at 14B ( 𝑆𝑒𝑛𝑠 = 4.5% ). This pattern suggests that larger models develop more robust reasoning schemas increasingly invariant to persona interventions. These patterns reveal a developmental dissociation: stylis-tic flexibility in social-communicative tasks emerges with lin-guistic complexity, while reasoning capabilities consolidate into schemas increasingly invariant to persona interventions, aligning with human findings that personality traits differen-tially impact distinct cognitive systems (DeYoung, 2015). 
+
+RQ3: Trait-Process Mapping 
+
+Table 2 compares dimensions by effect magnitude (Impact) and directional stability (Uniformity) using the high–low po-larity gap. Openness and Extraversion emerge as dominant traits: they induce the largest effects (Impact: 11.96% and Table 2: Impact and Uniformity Across Big Five Dimensions 
+
+Trait Impact Avg. Gap Uniformity Rank 
+
+Openness (O) 11.96% +11.17% 90.5% 1Extraversion (E) 11.70% +10.42% 90.5% 1Agreeableness (A) 8.06% +6.50% 73.8% 4Conscientiousness (C) 6.31% +5.82% 88.1% 3Neuroticism (N) 4.00% −1.86% 57.1% 50.5B 1.5B 3B 7B 14B 
+
+Model Scale 
+
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> 70
+> 80
+> Persona Sensitivity (%)
+> GPQA
+> BBH
+> MuSR
+> MMLU-Pro
+> IFEval
+> GSM8K
+
+(a) Aggregate persona sensitivity ( 𝑆𝑒𝑛𝑠 , %) across model scales AH AL CH CL EH EL NH NL OH OL                                                       
+
+> Persona Condition
+> GPQA
+> BBH
+> MuSR
+> MMLU-Pro
+> IFEval
+> GSM8K
+> Benchmark
+> 16.4 22.2 14.3 11.4 21.5 23.9 17.3 22.1 24.6 20.1
+> 16.6 29.1 9.9 14.8 25.5 44.7 17.9 13.4 20.0 32.2
+> 4.1 6.9 5.6 4.4 5.1 11.0 9.0 9.4 4.9 6.3
+> 6.0 24.0 3.9 8.9 11.6 35.3 15.0 4.0 7.3 29.9
+> 51.2 50.7 60.1 57.7 56.8 44.6 57.4 54.0 56.8 50.8
+> 5.7 19.0 7.5 9.5 15.5 63.5 7.7 13.2 6.9 41.9 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> Sensitivity (%)
+
+(b) Persona-specific sensitivity by task 
+
+Figure 3: Domain-specific persona effects in Qwen2.5 family (0.5B–14B). 11.70%) and show the most stable direction across models and tasks (Uniformity: 90.5%). This aligns with CB5T pre-dictions linking Openness to cognitive exploration and Ex-traversion to approach motivation (DeYoung, 2015). Consci-entiousness exhibits smaller but highly stable effects (Impact: 6.31%; Uniformity: 88.1%), consistent with its theoretical role in goal maintenance. Agreeableness shows moderate magnitude with lower stability (Impact: 8.06%; Uniformity: 73.8%). Neuroticism has the weakest and least stable influ-ence (Impact: 4.00%; Uniformity: 57.1%) and is the only dimension favoring the low setting (mean Gap: -1.86%), con-sistent with ACT predictions that anxiety impairs cognitive efficiency (Eysenck et al., 2007). 
+
+RQ4: Human-LLM Directional Consistency 
+
+We systematically compared LLM persona effects against predictions derived from psychological literature. Based on CB5T and ACT frameworks, we formulated directional hy-potheses: Openness should enhance cognitive flexibility (high 
+
+> low); Conscientiousness should benefit goal-directed per-formance (high > low); Neuroticism should impair perfor-mance (low > high); Extraversion should facilitate approach-oriented tasks (high > low); and Agreeableness effects should be task-dependent. Across trait-benchmark combinations, LLM effects showed 73.68% directional consistency with human patterns (14/19 comparisons). Openness exhibited the highest consistency (87.5%), with high-O outperforming low-O on 7/8 benchmarks, mirroring the Openness-intelligence as-sociation in humans ( 𝑟 ≈ .35 ) (Anglim et al., 2022). Consci-entiousness also showed strong consistency (87.5%), aligning with its role in goal persistence and sustained attention. Neu-roticism showed lower consistency (57.1%), though notably, low-N consistently outperformed high-N on anxiety-sensitive tasks requiring sustained attention, consistent with ACT pre-dictions (Eysenck et al., 2007). This substantial alignment suggests that personality con-structs in LLMs capture functional regularities parallel to human trait-cognition relationships. The convergence is par-ticularly striking given that NPTI-induced traits emerge from activation manipulation rather than the developmental and bi-ological processes underlying human personality. 
+
+Leveraging Persona-Task Regularities 
+
+The preceding analyses reveal that persona effects are strongly task-dependent rather than uniformly beneficial or detrimen-tal. To exploit these structural regularities without additional training, we propose Dynamic Persona Routing (DPR), a lightweight retrieval-based strategy that adapts persona con-figurations to specific input queries. 
+
+Reference Construction. For each benchmark dataset D,we partition the data into a reference set R and a test set 
+
+T with a 9:1 ratio using LLaMA-3-8B-Instruct. The refer-ence set serves as a “routing memory,” storing the historical performance of all persona conditions on known instances. 
+
+Similarity-Based Retrieval. For a given test instance 
+
+𝑥 ∈ T , we identify the most semantically similar historical instance (anchor) 𝑥 ∗ from R. We employ TF-IDF vectoriza-tion to map text inputs to vector space representations, with the anchor selected via cosine similarity maximization: 
+
+𝑥 ∗ = arg max  
+
+> 𝑟 ∈ R
+
+tfidf (𝑥 ) · tfidf (𝑟 )∥tfidf (𝑥 )∥∥ tfidf (𝑟 )∥ (6) This ensures that routing decisions are grounded in contextu-ally relevant prior experience. 
+
+Routing Strategy. We assume that queries with high se-mantic similarity share similar sensitivities to persona steer-ing. Based on the retrieved anchor 𝑥 ∗, we construct an Ef-fective Persona Set P𝑒 𝑓 𝑓 (𝑥 ∗) = {𝑝 ∈ P | 𝑦 ( 𝑥 ∗ , 𝑝 ) = 1},the subset of persona conditions under which the model suc-cessfully solved the anchor instance. This set serves as the dynamic recommendation for the current query. 
+
+Evaluation. We define a “hit” if the recommended set contains at least one persona capable of solving 𝑥 , comparing against 𝐴𝑐𝑐 best (best single fixed persona applied globally). 
+
+Results. As shown in Table 3, dynamic persona selection outperforms the optimal static baseline on most benchmarks. The retrieval-based approach yields the most significant gains on MuSR (+24.57%) and GPQA (+10.31%), demonstrating Table 3: Dynamic Persona Routing vs. Best Static Baseline Dataset Total Sampled Correct Accuracy (%) Best Baseline (%) GPQA 448 44 23 52.27 41.96 BBH 6511 651 404 62.06 63.40 MuSR 756 75 59 78.67 54.10 MMLU-Pro 12032 1203 519 43.14 36.67 IFEval 541 54 34 62.96 62.48 GSM8K 1319 131 88 67.17 72.18 that semantically similar questions do share persona sen-sitivities. Moderate improvements appear on MMLU-Pro (+6.47%) and IFEval (+0.48%). However, on reasoning-intensive tasks (GSM8K, BBH), the dynamic strategy slightly underperforms the best static configuration, suggesting that retrieved personas may occasionally introduce interference in pure logical reasoning where consistency is paramount. 
+
+Analysis. The differential effectiveness across domains aligns with our earlier findings: tasks requiring flexible knowl-edge retrieval and multi-step reasoning (MuSR, GPQA) ben-efit most from adaptive persona selection, while tasks with more rigid solution structures (GSM8K mathematical reason-ing) favor stable configurations. This pattern reinforces the domain-specificity principle established in RQ2. This proof-of-concept demonstrates that even without train-ing a dedicated routing model, the simple heuristic of “effec-tive personas from similar questions” yields substantial gains on knowledge-intensive and multi-step reasoning tasks, estab-lishing persona control as a lightweight, training-free mecha-nism for behavioral calibration. 
+
+Conclusion 
+
+This study systematically evaluates how Big Five traits in-fluence LLM cognitive performance. Four key regulari-ties emerge: (1) Reliability : persona effects are consis-tent across architectures (7B–9B), indicating shared compu-tational mechanisms; (2) Domain specificity : personas en-hance instruction-following but often impair reasoning, con-sistent with ACT predictions; (3) Trait-process mapping :Openness and Extraversion exert the strongest influence, as predicted by CB5T; (4) Human-LLM alignment : 73.68% directional consistency with human trait-cognition relation-ships. The substantial convergence suggests that NPTI-induced traits capture functional regularities analogous to bi-ological cognition, implying architecture-independent com-putational structures underlying personality-cognition rela-tionships. Openness and Extraversion’s dominant influence aligns with CB5T predictions linking these dimensions to cognitive exploration and approach motivation, while Neu-roticism uniquely favoring low settings mirrors ACT pre-dictions regarding anxiety-induced attentional interference. The Dynamic Persona Routing strategy demonstrates that persona induction functions as a behavioral hyperparame-ter for training-free performance calibration, with substantial gains on knowledge-intensive tasks (MuSR: +24.57%, GPQA: +10.31%). Reference 
+
+Anglim, J., Dunlop, P. D., Wee, S., Horwood, S., Wood, J. K., & Marty, A. (2022). Personality and intelligence: A meta-analysis. Psychological Bulletin , 148 (5-6), 301–336. https: //doi.org/10.1037/bul0000373 Chen, J., Wang, X., Xu, R., Yuan, S., Zhang, Y., Shi, W., Xie, J., Li, S., Yang, R., Zhu, T., Chen, A., Li, N., Chen, L., Hu, C., Wu, S., Ren, S., Fu, Z., & Xiao, Y. (2024). From persona to personalization: A survey on role-playing language agents. Trans. Mach. Learn. Res. , 2024 . https : //openreview.net/forum?id=xrO70E8UIZ Chowdhery, A., Narang, S., Devlin, J., Bosma, M., Mishra, G., Roberts, A., Barham, P., Chung, H. W., Sutton, C., Gehrmann, S., Schuh, P., Shi, K., Tsvyashchenko, S., Maynez, J., Rao, A., Barnes, P., Tay, Y., Shazeer, N., Prab-hakaran, V., . . . Fiedel, N. (2023). Palm: Scaling language modeling with pathways. J. Mach. Learn. Res. , 24 , 240:1– 240:113. https://jmlr.org/papers/v24/22-1144.html Deng, J., Tang, T., Yin, Y., Yang, W., Zhao, X., & Wen, J. (2025). Neuron based personality trait induction in large language models. The Thirteenth International Confer-ence on Learning Representations, ICLR 2025, Singapore, April 24-28, 2025 . https : / / openreview . net / forum ? id = LYHEY783Np Deshpande, A., Murahari, V., Rajpurohit, T., Kalyan, A., & Narasimhan, K. (2023). Toxicity in chatgpt: Analyzing persona-assigned language models. In H. Bouamor, J. Pino, & K. Bali (Eds.), Findings of the association for computa-tional linguistics: EMNLP 2023, singapore, december 6-10, 2023 (pp. 1236–1270). Association for Computational Lin-guistics. https://doi.org/10.18653/V1/2023.FINDINGS-EMNLP.88 DeYoung, C. G. (2015). Cybernetic big five theory. Journal of Research in Personality , 56 , 33–58. https://doi.org/10. 1016/j.jrp.2014.07.004 Digman, J. M. (1990). Personality structure: Emergence of the five-factor model. Annual review of psychology , 41 (1), 417–440. Durmus, E., Nyugen, K., Liao, T. I., Schiefer, N., Askell, A., Bakhtin, A., Chen, C., Hatfield-Dodds, Z., Hernandez, D., Joseph, N., Lovitt, L., McCandlish, S., Sikder, O., Tamkin, A., Thamkul, J., Kaplan, J., Clark, J., & Ganguli, D. (2023). Towards measuring the representation of subjective global opinions in language models. CoRR , abs/2306.16388 . https: //doi.org/10.48550/ARXIV.2306.16388 Eysenck, M. W., Derakshan, N., Santos, R., & Calvo, M. G. (2007). Anxiety and cognitive performance: Attentional control theory. Emotion , 7(2), 336–353. https : / / doi . org / 10.1037/1528-3542.7.2.336 Fleming, K. A., Heintzelman, S. J., & Bartholow, B. D. (2016). Specifying associations between conscientiousness and ex-ecutive functioning: Mental set shifting, not prepotent re-sponse inhibition or working memory updating. Journal of Personality , 84 (3), 348–360. https://doi.org/10.1111/jopy. 12163 Goldberg, L. (1990). An alternative "description of person-ality": The big-five factor structure. Journal of personality and social psychology , 59 (6), 1216–1229. https://doi.org/ 10.1037//0022-3514.59.6.1216 Lester, B., Al-Rfou, R., & Constant, N. (2021). The power of scale for parameter-efficient prompt tuning. In M. Moens, X. Huang, L. Specia, & S. W. Yih (Eds.), Proceedings of the 2021 conference on empirical methods in natural language processing, EMNLP 2021, virtual event / punta cana, dominican republic, 7-11 november, 2021 (pp. 3045– 3059). Association for Computational Linguistics. https : //doi.org/10.18653/V1/2021.EMNLP-MAIN.243 Perez, E., Ringer, S., Lukosiute, K., Nguyen, K., Chen, E., Heiner, S., Pettit, C., Olsson, C., Kundu, S., Kadavath, S., Jones, A., Chen, A., Mann, B., Israel, B., Seethor, B., McK-innon, C., Olah, C., Yan, D., Amodei, D., . . . Kaplan, J. (2023). Discovering language model behaviors with model-written evaluations. In A. Rogers, J. L. Boyd-Graber, & N. Okazaki (Eds.), Findings of the association for com-putational linguistics: ACL 2023, toronto, canada, july 9-14, 2023 (pp. 13387–13434). Association for Computa-tional Linguistics. https : / / doi . org / 10 . 18653 / V1 / 2023 . FINDINGS-ACL.847 Salemi, A., Mysore, S., Bendersky, M., & Zamani, H. (2024). Lamp: When large language models meet personalization. In L. Ku, A. Martins, & V. Srikumar (Eds.), Proceedings of the 62nd annual meeting of the association for compu-tational linguistics (volume 1: Long papers), ACL 2024, bangkok, thailand, august 11-16, 2024 (pp. 7370–7392). Association for Computational Linguistics. https://doi.org/ 10.18653/V1/2024.ACL-LONG.399 Sorokovikova, A., Fedorova, N., Rezagholi, S., &Yamshchikov, I. P. (2024). Llms simulate big five personal-ity traits: Further evidence. CoRR , abs/2402.01765 . https: //doi.org/10.48550/ARXIV.2402.01765 Tseng, Y., Huang, Y., Hsiao, T., Chen, W., Huang, C., Meng, Y., & Chen, Y. (2024). Two tales of persona in llms: A survey of role-playing and personalization. In Y. Al-Onaizan, M. Bansal, & Y. Chen (Eds.), Findings of the association for computational linguistics: EMNLP 2024, miami, florida, usa, november 12-16, 2024 (pp. 16612–16631). Association for Computational Linguistics. https://doi.org/10.18653/ V1/2024.FINDINGS-EMNLP.969 Xiao, Y., Lin, Y., & Chiu, M. (2024). Behavioral bias of vision-language models: A behavioral finance view. CoRR ,
+
+abs/2409.15256 . https://doi.org/10.48550/ARXIV.2409. 15256 Zhang, Z., Rossi, R. A., Kveton, B., Shao, Y., Yang, D., Za-mani, H., Dernoncourt, F., Barrow, J., Yu, T., Kim, S., Zhang, R., Gu, J., Derr, T., Chen, H., Wu, J., Chen, X., Wang, Z., Mitra, S., Lipka, N., . . . Wang, Y. (2025). Per-sonalization of large language models: A survey. Trans. Mach. Learn. Res. , 2025 . https://openreview.net/forum?id= tf6A9EYMo6

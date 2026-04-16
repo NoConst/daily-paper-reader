@@ -1,0 +1,850 @@
+Title: Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal Dense Associative Memory
+
+URL Source: https://arxiv.org/pdf/2604.07401v1
+
+Published Time: Fri, 10 Apr 2026 00:02:08 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal Dense Associative Memory 
+
+Tatiana Petrova 1 Evgeny Polyachenko 1 Radu State 1
+
+# Abstract 
+
+We study the thermodynamic memory capacity of modern Hopfield networks (Dense Associative Memory models) with continuous states under geometric constraints, extending classical analy-ses of pairwise associative memory. We derive thermodynamic phase boundaries for Dense As-sociative Memory networks with exponential ca-pacity p = eαN , comparing Gaussian (LSE) and Epanechnikov (LSR) kernels. For continuous neurons on an N -sphere, the geometric entropy depends solely on the spherical geometry, not the kernel. In the sharp-kernel regime, the maxi-mum theoretical capacity α = 0 .5 is achieved at zero temperature; below this threshold, a critical line separates retrieval from a spin-glass phase. The two kernels differ qualitatively in their phase boundary structure: for LSE, the retrieval re-gion extends to arbitrarily high temperatures as 
+
+α → 0, but interference from spurious patterns is always present. For LSR, the finite support intro-duces a threshold αth below which no spurious patterns contribute to the noise floor, producing a qualitatively different retrieval regime in this sub-threshold region. These results advance the theory of high-capacity associative memory and clarify fundamental limits of retrieval robustness in modern attention-like memory architectures. 
+
+# 1. Introduction 
+
+Associative memory networks store patterns such that the correct memory can be retrieved from a noisy or partial cue. The classic example is the Hopfield network ( Hopfield ,
+
+1982 ), which can reliably retrieve a memory pattern up to a certain storage limit. In the original Hopfield model, each neuron is binary and the memory capacity scales linearly with the number of neurons N (on the order of 
+
+> 1
+
+Interdisciplinary Centre for Security, Reliability and Trust (SnT), University of Luxembourg, Luxembourg. Correspondence to: Tatiana Petrova <tatiana.petrova@uni.lu >.
+
+Preprint. April 10, 2026. 
+
+0.14 N patterns in the symmetric binary case ( Amit et al. ,
+
+1985 )). Numerous extensions have been proposed to achieve super-linear capacity, including models with p-body interactions yielding polynomial scaling ( Gardner ,
+
+1988 ; Krotov & Hopfield , 2016a ). More recently, Dense Associative Memory (DAM) or modern Hopfield networks have been shown to achieve exponential storage capac-ity ( Demircigil et al. , 2017 ; Ramsauer et al. , 2021 ). In modern Hopfield models, pairwise interactions are re-placed by highly nonlinear energy functions, substantially improving storage capacity and robustness to interference in high-load regimes. When defined over continuous states constrained to an N -dimensional sphere, DAMs can store an exponential number of patterns ( p = eαN ) with perfect recall in the zero-temperature limit ( Demircigil et al. , 2017 ;
+
+Ramsauer et al. , 2021 ; Lucibello & M´ ezard , 2024 ). These models have attracted renewed interest due to their for-mal equivalence to softmax attention mechanisms in Trans-formers, making DAMs a tractable theoretical framework for analyzing capacity limits, interference, and robustness in attention-style retrieval mechanisms ( Ramsauer et al. ,
+
+2021 ). However, existing theoretical results largely focus on zero-temperature behavior, leaving open how retrieval stability persists under noise and thermal fluctuations. In energy-based associative memories, such noise naturally corresponds to finite temperature, where retrieval is gov-erned by a competition between energy and entropy. Recent work has revisited associative memory from a thermodynamic perspective. Building on classical analy-ses of retrieval-to-spin-glass transitions ( Amit et al. , 1987 ), 
+
+Rooke et al. (2026 ) introduced a stochastic thermody-namics framework for DAMs, while Lucibello & M´ ezard 
+
+(2024 ) analyzed retrieval stability under exponential memory load, emphasizing entropic penalties in high-dimensional settings. Nevertheless, it remains unclear how such thermodynamic effects constrain retrieval robustness in continuous DAMs that are directly connected to modern neural architectures. While both our analysis and that of Lucibello & M´ ezard 
+
+(2024 ) address exponential memory load and thermo-dynamic limits, the latter primarily focuses on zero-temperature or energy-dominated regimes. In contrast, we 1
+
+> arXiv:2604.07401v1 [cond-mat.dis-nn] 8 Apr 2026 Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM
+
+derive explicit finite-temperature phase boundaries for con-tinuous DAMs on the N -sphere and show that retrieval stability is governed by a competition between kernel-dependent energy and a kernel-independent geometric en-tropy term induced solely by the spherical constraint. This separation enables a principled comparison of different kernels and reveals qualitative differences in thermal ro-bustness, including a support threshold for compactly sup-ported kernels below which retrieval is perfect at any tem-perature. In particular, it clarifies which aspects of retrieval robustness are determined by modeling choices, such as the similarity kernel, and which are imposed by high-dimensional geometry. From this finite-temperature perspective, we obtain an ex-plicit characterization of the thermodynamic retrieval phase in continuous DAMs under exponential memory load by deriving the phase boundary αc(T ) in the (α, T ) plane separating retrieval from disordered behavior. We study DAMs on the N -sphere with two kernel-based energy func-tions: the Gaussian log-sum-exp (LSE) and the compactly supported log-sum-ReLU (LSR) ( Hoover et al. , 2025 ). Al-though both achieve exponential capacity as T → 0, they differ qualitatively in how kernel sharpness mediates ro-bustness to thermal noise. In high dimensions, sharper ker-nels incur a larger entropic cost to maintain high alignment, leading to distinct phase boundary structures. Our main contributions are: (i) analytical characterization of the finite-temperature retrieval transition in continuous DAMs with exponential memory load; (ii) identification of a kernel-independent geometric entropy term on the N -sphere and its competition with kernel-dependent energy; and (iii) explicit phase boundaries for LSE and LSR, show-ing that LSR exhibits a support threshold below which re-trieval is perfect at any temperature, while LSE maintains ever-present interference across all loads. 
+
+Paper outline. Section 2 introduces the DAM models and kernel-based energy functions studied in this work. Section 3 develops the thermodynamic framework for re-trieval, including the replica formulation, geometric en-tropy induced by the spherical constraint, and the noise-floor comparison used to determine stability. Section 4 de-rives explicit phase boundaries αc(T ) for LSE and LSR and presents phase diagrams with Monte Carlo validation. Section 5 summarizes the main findings. Derivations are provided in Sections A and B.
+
+# 2. Dense Associative Memory networks 
+
+In this section, we specify the class of energy-based asso-ciative memory models studied in this work and relate their energy functions to kernelized, attention-like retrieval. In the study of Dense AM (Associative Memory), two types of Hamiltonians, i.e., energy functions, that define the inter-nal energy of the system are distinguished. The first type is 
+
+k-polynomial ( Krotov & Hopfield , 2016b ). Here, retrieval can be viewed as minimizing Hk(x) over the state x, so the form of Hk determines the geometry of basins of attraction and, ultimately, the storage capacity. 
+
+Hk(x) = − 1
+
+N k−1
+
+> M
+
+∑
+
+> μ=1
+
+(x · ξμ)k , (1) a special case of which is the classical Hopfield network (Hopfield , 1982 ) when k = 2 . The vectors x and ξμ be-long to the same space and define, respectively, the cur-rent state of the system and the stored patterns (memo-ries, μ = 1 . . . M ). They can either be simply elements of the binary neuron space {− 1, +1 }N , or be continuous, for example, bounded on each coordinate by the interval 
+
+[−1, 1] . This type is characterized by polynomial capacity 
+
+Mmax = αN k−1 (Krotov & Hopfield , 2016b ). In partic-ular, for the Hopfield network with spins, the well known result is Mmax ≈ 0.14 N .The second type of Hamiltonians is the exponential interac-tion type. The connection to polynomial interactions arises in the limiting case k → ∞ , where polynomial terms give way to exponential ones. This modification yields a max-imum capacity of Mmax ≈ exp( αN ), with α ≈ 0.35 for binary spin data ( Demircigil et al. , 2017 ). A particularly relevant instance is the log-sum-exp en-ergy, whose gradient-based dynamics induce a softmax-like weighting over stored patterns. Ramsauer et al. (2021 )extended these exponential capacity results to continuous states using the Log-Sum-Exp (LSE) energy function, 
+
+HLSE (x) ∝ − ln 
+
+( M∑
+
+> μ=1
+
+exp( βnet x · ξμ)
+
+)
+
+, (2) and showed that the update rule minimizing this energy is mathematically equivalent to the self-attention mechanism in Transformers, with stored patterns as keys and the state vector as query. To ensure bounded activations, vector magnitudes must be constrained. We adopt the N -sphere model, where continuous real-valued coordinates satisfy ∑Ni=1 x2 
+
+> i
+
+= N . Under this constraint, Ramsauer et al. 
+
+(2021 ) proved Mmax ∝ exp( αN ) with α = 0 .5.
+
+Krotov & Hopfield (2021 ) introduced an alternative formu-lation based on Euclidean distance d2(x, ξμ) = ‖x − ξμ‖2,yielding the kernel-based energy function: 
+
+HLSE (x) = − 1
+
+βnet 
+
+ln p(x) , (3) with 
+
+p(x) ≡
+
+> M
+
+∑
+
+> μ=1
+
+exp 
+
+[
+
+− βnet 
+
+2 d2(x, ξμ)
+
+]
+
+. (4) 2Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM 
+
+This form corresponds to the negative log-likelihood of a Gaussian kernel density estimate of the memory distribu-tion ( Hoover et al. , 2025 ). Equivalently, the network as-signs higher scores to states x that lie in high-density re-gions of the memory distribution under this kernel, making retrieval a form of mode-seeking in representation space. Under the N -sphere constraint, the dot product and dis-tance formulations are equivalent: 
+
+d2(x, ξμ) = ‖x‖2 + ‖ξμ‖2 − 2x·ξμ = 2 N − 2x·ξμ . (5) The parameter βnet , termed the inverse variance , has noth-ing to do with the outer thermal bath. Instead, it controls the sharpness of the similarity kernel and thereby the shape of the energy landscape, with effective width σ given by: 
+
+σ2 ≡ β−1net . (6) Recently, Hoover et al. (2025 ) proposed the log-sum-ReLU (LSR) energy function, inspired by optimal kernel density estimation using the Epanechnikov kernel. This formula-tion achieves exact memory retrieval with exponential ca-pacity without relying on exponential kernels: 
+
+HLSR (x) = − 1
+
+βnet 
+
+ln 
+
+( M∑
+
+> μ=1
+
+max 
+
+[
+
+ǫ, 1 − d2(x, ξμ)
+
+2σ2
+
+])
+
+,
+
+(7) where ǫ > 0 is a small constant introduced to prevent sin-gularities in the logarithm. Memory retrieval occurs when patterns are sufficiently sep-arated and the initial state lies within the basin of attraction of the target pattern. The relevant quantity is the alignment :
+
+φμ(x) = 1
+
+N x · ξμ , (8) with φμ ≈ 1 when x is near ξμ and φμ ≈ 0 otherwise. The Euclidean distance ( 5) becomes d2(x, ξμ) = 2 N [1 −
+
+φμ(x)] , scaling linearly with N . This scaling requires a corresponding rescaling of the LSR inverse variance in the thermodynamic limit (see Section B). When the width σ is small, the minima are well sepa-rated. Because LSE kernels have global support, gradient descent converges to a local minimum regardless of initial-ization. For LSR, successful retrieval requires the initial state to lie within the basin of attraction of a stored pat-tern. As σ increases, the two models behave differently. For LSE, nearby patterns simply merge into a single basin. For LSR, there exists a narrow range of σ in which spuri-ous local minima can emerge between patterns; further in-creasing σ eventually causes basins to merge as in the LSE case ( Hoover et al. , 2025 ). 
+
+# 3. Statistical Mechanics of Retrieval 
+
+In this section, we develop a thermodynamic description of memory retrieval that makes it possible to analyze robust-ness to noise and interference in the high-dimensional limit introduced above. Thermal Dense AM involves two sources of randomness. The first is quenched disorder: the random distribution of patterns across state space, which together with βnet deter-mines the energy landscape. The second is thermal noise from coupling to a heat bath at temperature T . We analyze phase transitions in the thermodynamic limit N → ∞ , av-eraging over the disorder in the patterns ξμ.
+
+3.1. The Macroscopic Framework and the Replica Method 
+
+Our goal is to characterize typical retrieval behavior aver-aged over random memory sets, which requires computing disorder-averaged macroscopic quantities rather than prop-erties of a single realization. The Hamiltonians ( 3, 7) can be expressed in terms of the alignment vector φ = ( φ1, . . . , φ M )T :
+
+HLSE (x) ≡ ULSE (φ) = 
+
+− 1
+
+βnet 
+
+ln 
+
+[ M∑
+
+> μ=1
+
+exp 
+
+(
+
+− N (1 − φμ)
+
+σ2
+
+)]
+
+. (9) Thermodynamic behavior is governed by the partition func-tion Z, with β = 1 /T :
+
+Z =
+
+∫
+
+dx exp ( −βH (x)) = 
+
+∫
+
+dx [p(x)] β/β net . (10) The disorder-averaged free energy density 〈f 〉 =
+
+−(N β )−1〈ln Z〉 is computed via the replica iden-tity ( Sherrington & Kirkpatrick , 1975 ): 
+
+〈ln Z〉 = lim 
+
+> n→0
+
+〈Zn〉 − 1
+
+n . (11) This formalism provides a systematic way to compute typical macroscopic retrieval behavior in the presence of quenched disorder. Evaluating 〈Zn〉 requires passing from the microscopic integral over N neurons to a macroscopic description in terms of alignments and overlaps (see Sec-tion A). The result takes the standard form: 
+
+〈f 〉 = − 1
+
+N β 〈ln Z〉 ≈ u(φ) − T s , (12) where s is the entropy density and u(φ) is the internal energy density of a single memory basin. This decom-position makes explicit the competition between energetic alignment with a target memory and the entropic cost of 3Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM 
+
+constraining the state in high dimensions. For the LSE and LSR kernels (see Sections A and B): 
+
+uLSE = 1 − φ , (13) and 
+
+uLSR = −b−1 ln 
+
+[
+
+1 − b(1 − φ)
+
+]
+
+. (14) where b ≡ N β net is the rescaled inverse variance. 
+
+3.2. Geometric Entropy on the N -sphere 
+
+Here we show that even in the absence of noise, geomet-ric constraints alone induce an entropic pressure that limits retrieval in high-dimensional spaces. To derive the entropy, we compute the volume Ω of config-uration space satisfying the alignment constraints φ. We decompose x into orthogonal components: the projection 
+
+x‖ onto the subspace spanned by the M memories, and x⊥
+
+in the remaining N − M dimensions. We assume M < N ,though phase transition analysis requires only M = 1 .For linearly independent memories, the squared norm of the parallel component is: 
+
+‖x‖‖2 = N φT G−1φ (15) where Gμν = 1 
+
+> N
+
+ξμ · ξν is the Gram matrix. Since the total norm is fixed to N :
+
+‖x⊥‖2 = N (1 − φT G−1φ) . (16) The volume Ω( φ) is proportional to the surface area of an 
+
+(N − M )-sphere with radius R = ‖x⊥‖, giving: 
+
+Ω( φ) ∝ [N (1 − φT G−1φ)] (N −M−1) /2 . (17) In the large N limit, discarding φ-independent constants: 
+
+S(φ) = ln Ω = N − M
+
+2 ln (1 − φT G−1φ) . (18) For a single memory as N → ∞ , the entropy density be-comes: 
+
+s(φ) ≡ S(φ)
+
+N = 1
+
+2 ln(1 − φ2) (19) This expression holds for a single microstate with align-ment φ. This dependence is purely geometric and does not involve any kernel-specific assumptions. In the thermal setting, under the replica symmetry ansatz, the system oc-cupies a cloud of states centered at a point with alignment 
+
+φ to the target pattern. We characterize this cloud by the self-overlap parameter: 
+
+q = 1
+
+N 〈x〉 · 〈 x〉 , (20) which measures the cloud’s tightness on the N -sphere: as 
+
+T → 0, the cloud collapses to a point ( q → 1); as T → ∞ ,it spreads over the sphere ( q → 0). The quantity 1 − q gives the variance of fluctuations about the mean state. Generalizing the geometric entropy to account for finite tightness q (see Section A): 
+
+s(φ, q ) = 1
+
+2 ln(1 − q) + q − φ2
+
+2(1 − q) . (21) Along the equilibrium line q = φ2 (Section 4), ( 21 ) reduces to ( 19 ). 
+
+3.3. Crosstalk and the Noise Floor 
+
+In classical associative memory with linear load M = αN ,interference between stored patterns manifests as Gaussian noise, captured by an additional term in the free energy den-sity ( Amit et al. , 1987 ). This noise can trap the system in spurious states outside the true minima. For exponential capacity M = eαN , the Gaussian approx-imation fails. Because M is exponential in N , random configurations can accidentally align with nearby patterns, creating a noise floor that competes with retrieval. This regime is best described by the Random Energy Model (REM) ( Derrida , 1980 ). In this regime, retrieval fails not due to local noise, but due to the presence of exponentially many competing alignments. We therefore adopt a different approach: we compute the retrieval free energy fret (φ, q ) = u(φ)−T s (φ, q ) and com-pare it directly with the noise floor energy unoise . Retrieval is thermodynamically stable if and only if: 
+
+min  
+
+> φ,q
+
+[u(φ) − T s (φ, q )] ≤ unoise . (22) As T increases, the entropy term grows, raising the retrieval free energy. As α increases, unoise drops. The retrieval-to-disorder transition occurs at the critical temperature Tc
+
+where these values cross. Because the LSE and LSR energy wells are sharply peaked, this transition is first-order. We now derive unoise for each kernel. 3.3.1. LSE N OISE FLOOR unoise 
+
+We first consider the noise floor induced by globally sup-ported kernels. To derive the noise floor energy, we eval-uate the partition function of the M non-retrieved pat-terns. For a random state uncorrelated with any mem-ory, the alignment follows a Gaussian distribution P (φ) ∼
+
+exp( −N φ 2/2) . The expected number of patterns at align-ment φ is n(φ) = M P (φ) = exp( N [α − φ2/2]) . Setting 
+
+n(φ) ∼ 1 gives the maximum spurious alignment: 
+
+φmax = √2α ≤ 1 . (23) 4Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM 
+
+For the LSE kernel, the noise floor is determined by: 
+
+pnoise =
+
+> M
+
+∑
+
+> μ=1
+
+exp ( −βnet N (1 − φμ)) ≈
+
+∫
+
+dφ exp 
+
+(
+
+N
+
+[
+
+α − βnet (1 − φ) − φ2
+
+2
+
+]) 
+
+. (24) The internal energy density unoise = −[N β net ]−1 ln pnoise 
+
+is dominated by the maximum of the exponent: 
+
+g(φ) = α − βnet u(φ) − φ2/2 , (25) which yields a saddle point at φ∗ = βnet , constrained by ( 23 ). This leads to two regimes: 1. Spin-glass regime (βnet > √2α): The saddle point lies beyond φmax , so the integral is dominated by the maximum spurious alignment: 
+
+unoise = 1 − √2α. (26) 2. Paramagnetic regime (βnet < √2α): The saddle point φ∗ = βnet lies within the available range, giv-ing: 
+
+unoise = 1 − α
+
+βnet 
+
+− βnet 
+
+2 . (27) 3.3.2. LSR N OISE FLOOR unoise 
+
+For the Epanechnikov (LSR) kernel, the derivation must account for finite support: a pattern μ contributes to the noise only if φμ > 1 − 1/b .The maximum spurious alignment is again φmax = √2α.However, a noise floor exists only if φmax exceeds the sup-port boundary, defining a support threshold: 
+
+αth = 1
+
+2 (1 − 1/b )2. (28) For α < α th , no random patterns fall within the support and no noise floor forms. For α > α th , following the same REM logic as for LSE, the saddle point φ∗ satisfies: 
+
+b = f (φ∗) = φ∗
+
+1 + φ∗ − (φ∗)2 . (29) This leads to two regimes: 1. Spin-glass regime (b > f (φmax )): The saddle point lies beyond φmax , so the integral is dominated by the maximum spurious alignment: 
+
+unoise = −b−1 ln 
+
+(
+
+1 − b(1 − √2α)
+
+)
+
+. (30) Unlike LSE, this energy diverges as √2α → 1 − 1/b .2. Paramagnetic regime (b < f (φmax )): The saddle point lies within the available range: 
+
+unoise = −b−1 ln (1 − b(1 − φ∗)) . (31) 
+
+# 4. Retrieval–Spin-Glass Transition 
+
+This section turns the free-energy formulation from Sec-tion 3 into explicit phase boundaries that predict when re-trieval remains stable under noise and interference. We fo-cus only on the transition between retrieval and spin-glass phases. Before deriving phase boundaries, we clarify the optimization problem that determines the network’s steady state. In standard thermodynamics, equilibrium minimizes the free energy. However, for disordered systems analyzed via the replica method, the physical equilibrium corresponds to a saddle point of f (φ, q ). This arises from the interplay be-tween the thermodynamic limit ( N → ∞ ) and the replica limit ( n → 0). The replicated partition function 〈Zn〉 is evaluated as N →∞ using steepest descent. For fixed n > 1, the integral is dominated by the minimum of f (φ, q ). However, ob-taining the physical free energy requires analytic contin-uation to n → 0. As n passes below 1, the number of independent off-diagonal elements in the overlap matrix, 
+
+n(n − 1) /2, becomes negative. This leads to a well-known inversion of stability criteria: the physical stationary point is a maximum with respect to q but a minimum with re-spect to φ (de Almeida & Thouless , 1978 ). Here φ sets the mean alignment with the target memory, while q controls the spread of thermal fluctuations around that mean on the sphere. This saddle-point structure has geometric significance. The parameter q measures the tightness of the thermal cloud on the N -sphere, subject to the constraint q ≥ φ2 (Sec-tion 3). Naively minimizing f = u − T s over q would drive q → 1, implying that the state collapses to a single point regardless of temperature, which is inconsistent with finite-temperature behavior. Instead, we seek the stationary point ∂f /∂q = 0 . For both LSE and LSR kernels, this occurs at 
+
+q = φ2 , (32) where the geometric entropy s(φ, q ) is maximized for given 
+
+φ. Physically, this corresponds to isotropic thermal fluctu-ations in the subspace perpendicular to the target pattern. Evaluating the system at this saddle point correctly cap-tures the entropic pressure leading to the first-order tran-sition at Tc.
+
+4.1. LSE Spin-Glass Transition 
+
+We first derive the equilibrium alignment and phase bound-ary for the globally supported LSE (Gaussian) kernel. Minimizing fret (φ, q ) using ( 13 ) and ( 21 ) over φ yields the 5Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM 
+
+physical solution: 
+
+φLSE (T ) = 1
+
+2
+
+[
+
+− T + √T 2 + 4 
+
+]
+
+, (33) satisfying φ → 1 as T → 0, with corresponding free en-ergy: 
+
+f LSE ret (T ) = 1 − φLSE (T ) − T
+
+2 ln 
+
+[
+
+1 − φ2LSE (T )
+
+]
+
+. (34) The phase boundary occurs when equality holds in ( 22 ). In the spin-glass regime: 
+
+αLSE  
+
+> c
+
+(T ) = 1
+
+2
+
+[
+
+1 − f LSE ret (T )
+
+]2
+
+. (35) As T → ∞ , αc → 0, so LSE permits retrieval at arbi-trarily high temperatures for sufficiently small α. In the limit T → 0, one recovers the well-known result αc = 0 .5
+
+by Ramsauer et al. (2021 ). 
+
+4.2. LSR Spin-Glass Transition 
+
+Similarly, minimizing fret (φ, q ) using ( 14 ) and ( 21 ) over φ
+
+yields: 
+
+− 1
+
+1 − b(1 − φ) + T φ 
+
+1 − φ2 = 0 . (36) With y = 1 − φ, this becomes a quadratic equation: 
+
+(bT + 1) y2 − (2 + T + T b )y + T = 0 . (37) For b = 1, the solution simplifies to φLSR (T ) =1/√1 + T . For general b > 1, the solution must be ob-tained numerically from ( 37 ). The finite support of the LSR kernel introduces a support boundary φ > 1 − 1/b and a corresponding threshold: 
+
+αth (b) = 1
+
+2
+
+[
+
+1 − b−1]2
+
+. (38) For α < α th , no spurious patterns fall within the kernel’s support, providing enhanced retrieval stability. Above the threshold, the phase boundary with the spin-glass regime is: 
+
+αLSR  
+
+> c
+
+(T ) = 1
+
+2
+
+[
+
+1 − f LSR ret (T )
+
+]2
+
+, (39) as for LSE. The key qualitative advantage of LSR with b > 1 emerges below the support threshold αth (b) = 1 
+
+> 2
+
+(1 − b−1)2. When 
+
+α < α th , no spurious patterns fall within the kernel’s sup-port region φ > 1 − 1/b , and the REM-derived noise floor does not exist. The retrieval basin is completely isolated from interference, enabling perfect retrieval at any temper-ature. This sub-threshold regime has no analog in LSE, where interference from spurious patterns is always present regardless of load. While LSE permits retrieval at arbitrar-ily high temperatures for low loads, this robustness coexists with ever-present noise; LSR below threshold eliminates in-terference entirely. 
+
+4.3. Phase Diagrams and Monte Carlo Validation 
+
+Figure 1 shows the phase diagrams in the (α, T ) plane for LSE (left) and LSR (right) kernels. For LSR, we choose 
+
+b = 3 .41 , which yields a support threshold αth = 0 .25 
+
+below which retrieval is perfect at any temperature. This value of b illustrates the qualitative advantage of finite-support kernels while maintaining a substantial retrieval re-gion above threshold. The retrieval region (shaded) cor-responds to parameter values where the system maintains macroscopic alignment with a target pattern. Three distinct phases emerge: 1. Retrieval phase (low α, low T ): The system con-verges to a state with high alignment φ ≈ 1 with the target memory. For LSE, this phase is bounded from above by the critical line αc(T ) at all tempera-tures. For LSR with b > 1, retrieval below the support threshold αth is perfect at any temperature, as no spu-rious patterns fall within the kernel’s support. 2. Spin-glass phase (high α, low T ): When the memory load exceeds the critical value, interference from ex-ponentially many stored patterns destabilizes retrieval. The system becomes trapped in disordered states with no macroscopic alignment to any single pattern. 3. Paramagnetic phase (high T ): Thermal fluctuations dominate, and the system explores the sphere uni-formly without preference for any memory. The critical lines αc(T ) differ qualitatively between ker-nels. For LSE (solid curve), the retrieval region extends to arbitrarily high temperatures as α → 0. For LSR with 
+
+b = 3 .41 (right panel), the critical line terminates at the support threshold αth = 0 .25 . Below this threshold, the retrieval basin is completely isolated from spurious pattern interference, and retrieval is perfect at any temperature. Figure 2 compares equilibrium properties as functions of temperature. The left panel shows the equilibrium align-ment φ(T ) obtained by minimizing the retrieval free en-ergy, along with Monte Carlo validation (symbols, N = 50 ,
+
+α = 0 .1). For LSR with b = 3 .41 , the load α = 0 .1 lies be-low the support threshold αth = 0 .25 , and accordingly the system remains in the retrieval state across the full temper-ature range shown. For LSE, the alignment drops sharply around T ≈ 0.7–0.8, reflecting the retrieval-to-disorder transition at this load. The right panel shows the corre-sponding retrieval free energies fret (T ).
+
+Monte Carlo validation. These simulations provide a qualitative validation of the finite-temperature trends at low memory load, rather than a quantitative finite-size analy-sis. To verify the theoretical predictions, we performed 6Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM                    
+
+> 00.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
+> 00.5 11.5 22.5
+> Retrieval Spin-Glass Paramagnetic
+> c(0) = 0.5
+> 00.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
+> 00.5 11.5 22.5
+> Tmax = 0.22
+> Retrieval
+> Spin-Glass Paramagnetic
+> c(0) = 0.5
+
+Figure 1. Phase diagrams for spherical DAM with exponential capacity p = eαN . Left: LSE kernel. The retrieval region (blue) permits retrieval at arbitrarily high temperatures for sufficiently low α. Right: LSR kernel with b = 3 .41 . The retrieval region exhibits a support threshold αth = 0 .25 . Below this threshold, retrieval is perfect at any temperature. Above threshold, the critical line αc(T ) bounds the retrieval region, reaching Tmax ≈ 0.22 at α = αth . Both kernels achieve αc(0) = 0 .5 at zero temperature. The vertical boundary at 
+
+α = 0 .5 separates the spin-glass phase from the paramagnetic phase. 
+
+Metropolis–Hastings simulations on networks of size N =50 with memory load α = 0 .1. For LSR with b = 3 .41 ,this load lies below the support threshold αth = 0 .25 , al-lowing us to test the predicted regime of perfect retrieval at any temperature. For LSE at the same load, the sys-tem should exhibit a retrieval-to-disorder transition at finite temperature. Patterns were sampled uniformly on the N -sphere, and the system was initialized near the target pat-tern. At each temperature, we equilibrated for 1500 steps followed by 1000 sampling steps, measuring the alignment 
+
+φ = N −1x · ξ1 with the target. The Monte Carlo results (symbols in Figure 2, left panel) show good agreement with theory. For LSE, the measured alignment follows the theoretical curve ( 33 ) and then drops sharply around T ≈ 0.7–0.8, reflecting the retrieval-to-disorder transition where interference from spurious pat-terns destabilizes the retrieval basin. For LSR with b = 3 .41 , the load α = 0 .1 lies below the support threshold αth = 0 .25 . As predicted, the system re-mains in the retrieval state across the full temperature range, confirming that no spurious patterns fall within the kernel’s support and retrieval is perfect at any temperature. These simulations confirm the central qualitative predic-tion: LSR below threshold provides complete isolation from interference, while LSE exhibits ever-present noise that eventually destabilizes retrieval at sufficiently high temperature. 
+
+# 5. Conclusion 
+
+We have derived the thermodynamic phase boundaries for Dense Associative Memory networks operating in the ex-ponential capacity regime p = eαN . By separating the free energy into kernel-dependent energy and geometry-dependent entropy, we obtained analytic expressions for the critical line αc(T ) that delineates the retrieval phase from disordered (spin-glass or paramagnetic) phases. The two kernels exhibit qualitatively different phase bound-ary structures. For LSE, the retrieval region extends to ar-bitrarily high temperatures as α → 0, but interference from spurious patterns is always present. For LSR with b > 1,the finite support introduces a threshold αth (b) below which no spurious patterns contribute to the noise floor. In this sub-threshold regime, retrieval is perfect at any tempera-ture, a qualitative advantage with no analog in LSE. The practical implications are twofold. First, kernel choice involves a robustness-capacity trade-off: LSE provides thermal robustness across all loads with ever-present inter-ference, while LSR offers complete isolation from interfer-ence below the support threshold, guaranteeing perfect re-trieval regardless of temperature in this regime. Second, both kernels achieve the same zero-temperature capacity 
+
+αc(0) = 0 .5, confirming that exponential storage capac-ity is a geometric property of the spherical constraint rather than a kernel-specific feature. 7Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM                                 
+
+> 00.5 11.5 22.5
+> Temperature T
+> 00.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1
+> Alignment
+> LSE theory
+> LSR theory
+> LSE MC
+> LSR MC
+> 00.5 11.5 22.5
+> Temperature T
+> 00.5 11.5
+> Free energy f ret
+> LSE
+> LSR (b=3.41)
+> Figure 2. Equilibrium properties versus temperature. Left: Alignment φ(T)from theory (curves) and Monte Carlo simulation (symbols,
+> N= 50 ,α= 0 .1). For LSR with b= 3 .41 , the system remains in the retrieval state across the temperature range shown, consistent with the phase boundary in Figure 1(right). For LSE, alignment drops sharply around T≈0.7–0.8, reflecting the phase transition at this load. Right: Retrieval free energy fret (T)for LSE and LSR ( b= 3 .41 ).
+
+# Acknowledgements 
+
+This work was supported by the Interdisciplinary Centre for Security, Reliability and Trust (SnT) at the University of Luxembourg. 
+
+# Impact Statement 
+
+This paper analytically characterizes the thermodynamic stability of retrieval in continuous Dense Associative Mem-ory networks on the N -sphere under finite temperature and exponential memory load. By separating kernel-dependent energy from geometry-induced entropy, it clarifies funda-mental limits on retrieval robustness and explains how mod-eling choices, such as kernel support and sharpness, quali-tatively affect stability under noise. The work is purely theoretical: it introduces no new datasets, user-facing systems, or deployment procedures, and involves no personal data or human-subject experi-ments. Its broader impact is indirect. By providing a prin-cipled understanding of when and why high-capacity asso-ciative memories remain stable or fail, the results can in-form the theoretical analysis and design of memory and attention-like mechanisms in machine learning. The so-cietal implications are comparable to those of general ad-vances in machine learning theory. 
+
+# References 
+
+Amit, D. J., Gutfreund, H., and Sompolinsky, H. Storing in-finite numbers of patterns in a spin-glass model of neural networks. Physical Review Letters , 55(14):1530–1533, 1985. Amit, D. J., Gutfreund, H., and Sompolinsky, H. Statistical mechanics of neural networks near saturation. Annals of Physics , 173(1):30–67, 1987. de Almeida, J. R. L. and Thouless, D. J. Stability of the sherrington-kirkpatrick solution of a spin glass model. 
+
+Journal of Physics A: Mathematical and General , 11(5): 983, may 1978. doi: 10.1088/0305-4470/11/5/028. URL 
+
+https://doi.org/10.1088/0305-4470/11/5/028 .Demircigil, M., Heusel, J., L¨ owe, M., Upgang, S., and Ver-met, F. On a model of associative memory with huge storage capacity. Journal of Statistical Physics , 168(2): 288–299, 2017. Derrida, B. Random-energy model: An exactly solvable model of disordered systems. Physical Review B , 24(5): 2613, 1980. Edwards, S. F. and Anderson, P. W. Theory of spin glasses. 
+
+Journal of Physics F: Metal Physics , 5(5):965, 1975. Gardner, E. The space of interactions in neural network models. Journal of Physics A: Mathematical and Gen-eral , 21(1):257, 1988. 8Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM 
+
+Hoover, B., Shi, Z., Balasubramanian, K., Krotov, D., and Ram, P. Dense associative memory with epanechnikov energy. In The Thirty-ninth Annual Conference on Neural Information Processing Systems , 2025. URL 
+
+https://openreview.net/forum?id=ZbQ5Zq3zA3 .Hopfield, J. J. Neural networks and physical systems with emergent collective computational abilities. Proceedings of the National Academy of Sciences , 79(8):2554–2558, 1982. doi: 10.1073/pnas.79.8.2554. Krotov, D. and Hopfield, J. J. Dense associa-tive memory for pattern recognition. arXiv preprint arXiv:1606.01164 , 2016a. URL 
+
+https://arxiv.org/abs/1606.01164 .Krotov, D. and Hopfield, J. J. Dense associative memory for pattern recognition. In Advances in Neural Informa-tion Processing Systems (NIPS) , volume 29, pp. 1172– 1180, 2016b. Krotov, D. and Hopfield, J. J. Large associa-tive memory problem in neurobiology and ma-chine learning. In International Conference on Learning Representations , 2021. URL 
+
+https://openreview.net/forum?id=X4y_10OX-hX .Lucibello, C. and M´ ezard, M. Exponential capacity of dense associative memories. Physical Review Letters ,132(7):077301, 2024. doi: 10.1103/PhysRevLett.132. 077301. Ramsauer, H., Sch¨ afl, B., Lehner, J., Seidl, P., Widrich, M., Gruber, L., Holzleitner, M., Adler, T., Kreil, D., Kopp, M. K., Klambauer, G., Brandstetter, J., and Hochreiter, S. Hopfield networks is all you need. In International Conference on Learning Representations , 2021. URL 
+
+https://openreview.net/forum?id=tL89RnzIiCd .Rooke, S., Krotov, D., Balasubramanian, V., and Wolpert, D. Stochastic thermodynamics of associative memory. 
+
+arXiv preprint arXiv:2601.01253 , 2026. Sherrington, D. and Kirkpatrick, S. Solvable model of a spin-glass. Physical Review Letters , 35(26):1792, 1975. 9Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM 
+
+# A. Derivation of the Free Energy Density 
+
+The disorder-averaged replicated partition function is: 
+
+〈Zn〉 =
+
+∫ n∏
+
+> a=1
+
+dxa δ(|xa|2 − N )
+
+〈
+
+exp 
+
+(
+
+−β
+
+> n
+
+∑
+
+> a=1
+
+H(xa, ξμ)
+
+)〉 
+
+. (40) Let φa = xa · ξ/N denote the alignment of replica a with a target memory ξ, and introduce the overlap matrix: 
+
+qab = 1
+
+N xa · xb . (41) On the N -sphere, diagonal elements are fixed: qaa = 1 . The off-diagonal elements qab (a 6 = b) correspond to the Edwards– Anderson order parameter ( Edwards & Anderson , 1975 ), measuring similarity between replica configurations. Inserting the identity 
+
+1 = 
+
+∫ ∏
+
+> a
+
+dφaδ (φa − xa · ξ/N )
+
+∫ ∏
+
+> b<c
+
+dqbc δ (qbc − xb · xc/N ) (42) into ( 40 ) and rearranging: 
+
+〈Zn〉 =
+
+∫ ∏
+
+> a
+
+dφa
+
+∫ ∏
+
+> b<c
+
+dqbc 
+
+〈∫ ∏
+
+> d
+
+dxd δ(‖xd‖2 − N )δ(φa − xa · ξ/N ) ×
+
+δ(qbc − xb · xc/N ) exp 
+
+(
+
+−β ∑
+
+> d
+
+H(xd, ξμ)
+
+)〉 
+
+. (43) In the retrieval basin of ξ, the density p(x) (4) is dominated by the target memory: 
+
+p(x) ≈ exp 
+
+[
+
+− βnet 
+
+2 d2(x, ξ)
+
+]
+
+. (44) The microscopic Hamiltonian can then be replaced by a macroscopic potential depending only on φa:
+
+H(xa, ξμ) → U (φa ) = − 1
+
+βnet 
+
+ln exp 
+
+(
+
+− N (1 − φa)
+
+σ2
+
+)
+
+= N (1 − φa) (45) for the LSE kernel. Since U(φa ) no longer depends on xa, it factors out of the microscopic integral: 
+
+〈Zn〉 =
+
+∫ ∏
+
+> a
+
+dφa
+
+∫ ∏
+
+> b<c
+
+dqbc exp 
+
+(
+
+−β ∑
+
+> a
+
+U(φa )
+
+)
+
+Ω( φa, q bc ) , (46) where Ω( φa, q bc ) is the configuration space volume satisfying the macroscopic constraints: 
+
+Ω( φa, q bc ) = 
+
+〈∫ ∏
+
+> d
+
+dxd δ(‖xd‖2 − N ) ∏
+
+> a
+
+δ(φa − xa · ξ/N ) ∏
+
+> b<c
+
+δ(qbc − xb · xc/N )
+
+〉
+
+. (47) This purely geometric quantity counts the arrangements of n vectors on an N -sphere with fixed norms √N , projections φa
+
+onto the memory, and mutual overlaps qbc .With u(φ) = U(φ)/N and defining the entropy density s(φa, q bc ) = lim N →∞ N −1 ln Ω :
+
+〈Zn〉 ≈ 
+
+∫ ∏
+
+> a
+
+dφa
+
+∫ ∏
+
+> b<c
+
+dqbc exp 
+
+(
+
+N
+
+[
+
+−β ∑
+
+> a
+
+u(φa) + s(φa, q bc )
+
+]) 
+
+. (48) Under the replica symmetric ansatz ( Amit et al. , 1987 ), φa = φ and qab = q for all a 6 = b, reducing the integral to two order parameters: 
+
+〈Zn〉 ≈ 
+
+∫
+
+dφ
+
+∫
+
+dq exp ( N n [−βu (φ) + s(φ, q )]) . (49) 10 Geometric Entropy and Retrieval Phase Transitions in Continuous Thermal DAM 
+
+To evaluate s(φ, q ), we follow Gardner (1988 ). Decomposing each replica into components parallel and perpendicular to the target: xa = xa 
+
+> ‖
+
++ xa
+
+> ⊥
+
+. The alignment constraint fixes xa 
+
+> ‖
+
+= √Nφ ˆξ. The overlap between replicas a and b is: 
+
+q = 1
+
+N
+
+(
+
+xa 
+
+> ‖
+
+· xb 
+
+> ‖
+
++ xa 
+
+> ⊥
+
+· xb
+
+> ⊥
+
+)
+
+= φ2 + 1
+
+N
+
+(xa 
+
+> ⊥
+
+· xb
+
+> ⊥
+
+) . (50) Since the perpendicular overlap is non-negative, this implies the geometric constraint q ≥ φ2.Gardner’s calculation gives the log-volume for an isotropic cloud on the N -sphere as 1 
+
+> 2
+
+ln(1 − q) + q/ [2(1 − q)] . With alignment φ constraining the longitudinal direction, the perpendicular overlap is q⊥ = q − φ2. Substituting into Gardner’s result yields: 
+
+s(φ, q ) = 1
+
+2
+
+[
+
+ln(1 − q) + q − φ2
+
+1 − q
+
+]
+
+. (51) In the thermodynamic limit, the integral is dominated by the saddle point satisfying: 
+
+β ∂u 
+
+∂φ + φ
+
+1 − q = 0 , 1
+
+1 − q − 1 − φ2
+
+(1 − q)2 = 0 . (52) The second equation gives q = φ2: the thermal cloud tightness is determined by the alignment. Thus: 
+
+〈Zn〉 ≈ exp ( N n [−βu (φ) + s(φ, q )]) . (53) Applying the replica identity ( 11 ): 
+
+〈f 〉 = − 1
+
+N β 〈ln Z〉 ≈ u(φ) − T s (φ, q ) . (54) 
+
+# B. Derivation of the Internal Energy Density for the LSR Kernel 
+
+To determine the internal energy density u(φ) for the LSR Hamiltonian ( 7), we must account for the scaling of Euclidean distances and kernel parameters in the limit N → ∞ . The distance is given by d2(x, ξμ) = 2 N (1 − φμ).On the N -sphere, the volume of a basin with fixed Euclidean width σ2 vanishes as N → ∞ . For the retrieval basin to span a macroscopic range of alignments φ ∈ [0 , 1] , the kernel width σ2 must scale linearly with N . We therefore define the rescaled inverse variance: 
+
+b = N β net . (55) This scaling ensures that the internal energy H is O(N ), so the energy density u = H/N remains O(1) and competes meaningfully with the geometric entropy s. This approach follows the scaling used in Hoover et al. (2025 ) and makes the LSR internal energy directly comparable to LSE, with both energy basins having identical slopes at perfect retrieval (φ = 1 ). Assuming the system is within the retrieval basin of pattern ξ, the Hamiltonian sum is dominated by a single term. Substi-tuting the rescaled parameters into ( 7): 
+
+HLSR (φ) ≈ − N
+
+b ln [1 − b(1 − φ)] . (56) Dividing by N gives the internal energy density: 
+
+uLSR (φ) = −b−1 ln [1 − b(1 − φ)] . (57) The Taylor expansion near perfect retrieval ( φ → 1) gives: 
+
+uLSR (φ) ≈ (1 − φ) + b
+
+2 (1 − φ)2 + · · · (58) Thus LSR matches the linear LSE behavior to first order, but introduces a quadratic correction proportional to the sharpness 
+
+b.11

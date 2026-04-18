@@ -1,0 +1,272 @@
+Title: G-MIXER: Geodesic Mixup-based Implicit Semantic Expansion and Explicit Semantic Re-ranking for Zero-Shot Composed Image Retrieval
+
+URL Source: https://arxiv.org/pdf/2604.14710v1
+
+Published Time: Fri, 17 Apr 2026 00:44:35 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# G-MIXER: Geodesic Mixup-based Implicit Semantic Expansion and Explicit Semantic Re-ranking for Zero-Shot Composed Image Retrieval 
+
+## Jiyoung Lim * Heejae Yang * Jee-Hyong Lee †
+
+## Sungkyunkwan University 
+
+{maya0707, neulbo1126, john }@skku.edu 
+
+## Abstract 
+
+Composed Image Retrieval (CIR) aims to retrieve target images by integrating a reference image with a corre-sponding modification text. CIR requires jointly consider-ing the explicit semantics specified in the query and the implicit semantics embedded within its bi-modal compo-sition. Recent training-free Zero-Shot CIR (ZS-CIR) meth-ods leverage Multimodal Large Language Models (MLLMs) to generate detailed target descriptions, converting the im-plicit information into explicit textual expressions. How-ever, these methods rely heavily on the textual modal-ity and fail to capture the fuzzy retrieval nature that re-quires considering diverse combinations of candidates. This leads to reduced diversity and accuracy in retrieval results. To address this limitation, we propose a novel training-free method, Geodesic Mixup-based Implicit semantic eX-pansion and Explicit semantic Re-ranking for ZS-CIR (G-MIXER). G-MIXER constructs composed query features that reflect the implicit semantics of reference image-text pairs through geodesic mixup over a range of mixup ratios, and builds a diverse candidate set. The generated candi-dates are then re-ranked using explicit semantics derived from MLLMs, improving both retrieval diversity and ac-curacy. Our proposed G-MIXER achieves state-of-the-art performance across multiple ZS-CIR benchmarks, effec-tively handling both implicit and explicit semantics with-out additional training. Our code will be available at https://github.com/maya0395/gmixer. 
+
+## 1. Introduction 
+
+Composed Image Retrieval (CIR) [34] addresses the chal-lenge of integrating visual content and textual semantics to retrieve target images that reflect both the information in a reference image and the modifications specified by a user-provided text. By jointly leveraging the two modalities of 
+
+> *Equal contribution
+> †Corresponding author.
+
+image and text, CIR enables more fine-grained and intu-itive retrieval. This is achieved by combining attributes that are more naturally expressed in language with those that are more distinctive in the visual domain. However, super-vised CIR methods require costly annotated triplets and suf-fer from poor generalization across domains. To overcome these limitations, recent Zero-Shot CIR (ZS-CIR) methods [6, 27, 30] have been proposed, which do not require annotated triplet datasets. Existing ZS-CIR methods retrieve images using bi-modal queries, typically relying on the cross-modal alignment of Vision-Language Pretraining (VLP) models such as CLIP [26] and BLIP [17]. Here, the core challenge lies in how to effectively handle the heterogeneous nature of bi-modal queries. Specifically, bi-modal queries consist of a modification text and a reference image. Due to the nature of queries composed of different modalities, retrieval must account for both the implicit in-formation contained solely in the image and the explicit in-formation described in the text. As illustrated in Figure 1, the modification text explic-itly specifies bench and vegetables to replace the fruits in the reference image. However, implicit elements such as the cat and basket are not clearly defined, making it am-biguous whether they should appear in the target image. As illustrated in (A), when an MLLM is used to gener-ate a target-image description, the resulting caption primar-ily reflects explicit cues such as the bench and vegetables. In contrast, (B) shows that using a composed query fea-ture that fuses image and text information yields diverse retrieval results that include various combinations of ele-ments. This observation indicates that implicit information makes it difficult to determine which elements should ap-pear in the target image, highlighting the need for diversity in retrieval results. Therefore, it is crucial to perform fuzzy retrieval [7, 8, 29, 37] to effectively compose ambiguous cross-modal queries. This observation highlights that ZS-CIR requires jointly considering explicit semantics, conditions clearly stated in the modification text, and implicit semantics, visual ele-ments present in the reference image but unmentioned in            
+
+> arXiv:2604.14710v1 [cs.CV] 16 Apr 2026 Figure 1. Illustration of our motivation. The query contains implicit information cat, basket present in the image but not mentioned in the text, while the modification text includes explicit attributes such as bench and vegetables . The MLLM based caption generation approach narrows the retrieval scope by converting implicit information from reference image into explicit descriptions. In contrast, the composed query that incorporates information expands the retrieval scope and produces more diverse combinations of results.
+
+the text whose inclusion in the target image is inherently ambiguous. Effective retrieval depends on jointly reasoning over these two aspects, as users often describe their intent ambiguously, leaving certain visual details unstated. A va-riety of approaches have been explored to mitigate this am-biguity. Some attempt to make implicit cues more explicit through reasoning or textual generation [32, 37], while oth-ers directly combine image and text features to capture both modalities [13]. However, these approaches still tend to overemphasize one aspect, either precision from explicit reasoning or diversity from implicit blending, without fully integrating the two. Consequently, ZS-CIR requires a fuzzy retrieval process that expands the retrieval scope to include diverse results, while filtering out noisy candidates through attributes ex-plicitly expressed within the query. To achieve this, we pro-pose Geodesic Mixup-based Implicit semantic eXpansion and Explicit semantic Re-ranking for Zero-Shot Composed Image Retrieval (G-MIXER), which incorporates as much implicit information as possible and refines retrieval results based on explicit cues. Specifically, G-MIXER consists of two complementary modules. Geodesic Mixup-based Im-plicit semantic eXpansion (G-MIX) expands the retrieval scope to cover diverse implicit semantics by varying the mixup ratio. We also propose Explicit semantic Re-ranking (ER) to remove noisy candidates by defining attributes ex-plicitly expressed in the modification text. This approach enables the model to flexibly reason over both implicit and explicit information, achieving both diverse and precise re-trieval results. In summary, our contributions can be summarized as fol-lows: • We propose a retrieval method that expands the search scope by composing queries along geodesic paths be-tween image and text representations. This approach en-ables the model to capture diverse implicit semantics more effectively. • We introduce a re-ranking strategy that refines retrieved candidates by leveraging explicit cues for filtering, effec-tively removing noisy or irrelevant results. • Our method achieves state-of-the-art performance across multiple zero-shot CIR benchmarks, demonstrating its ability to jointly handle implicit and explicit semantics without additional training. 
+
+## 2. RELATED WORK 
+
+2.1. Composed Image Retrieval 
+
+Composed Image Retrieval (CIR) is a task that retrieve a target image by combining a reference image with a mod-ification text [34]. It is a multimodal retrieval problem that requires the joint understanding of visual and textual con-ditions. Early supervised CIR methods train on image-text triplets to compose query representations [5, 22, 25], but such approaches are fundamentally constrained by their re-liance on large scale annotated triplet data. Constructing such datasets requires substantial human effort and time. Moreover, their reliance on annotated data makes them in-efficient in terms of scalability and generalization. To mitigate these limitations, recent studies have focused on Zero-Shot Composed Image Retrieval (ZS-CIR) [2, 6, 10, 11, 13, 16, 19, 27, 28]. ZS-CIR aims to build models that perform CIR without annotated triplet data and can be cat-egorized into training-based and training-free approaches. Training-based ZS-CIR methods [2, 6, 19] learn to perform Textual Inversion from image-caption pairs. This approach employs the pretrained CLIP text encoder to project im-age features into the textual space. It then utilized the re-Figure 2. Overview of G-MIXER. (1) Generate the Target Image Description and Re-ranking Attributes using MLLM; (2) Perform extended Geodesic Mixup on the features obtained by encoding the Target Image Description and Reference Image with the pretrained CLIP encoder; (3) Filter noisy samples through Explicit Semantic Re-ranking. 
+
+sulting pseudo word tokens to model the compositional re-lationship between images and text. Training-free ZS-CIR methods [16, 32, 37] generate new target descriptions with-out any additional training by leveraging Multimodal Large Language Models (MLLMs). Representative approaches such as CIReVL [16] and OSrCIR [32] first caption the ref-erence image and then reconstruct a refined description that reflects the modification text through a MLLM. However, these methods primarily rely on textual rea-soning, which results in a narrow retrieval scope and a text-dominant interpretation of compositional queries. Such re-liance makes it difficult to effectively capture the composi-tional interaction between explicit and implicit informa-tion . To address these limitations, we propose G-MIXER Geodesic Mixup-based Implicit semantic eXpansion and Explicit semantic Re-ranking. G-MIXER performs fuzzy retrieval by incorporating implicit semantics through an ex-panded Geodesic Mixup, and enhances explicit representa-tion through an Explicit semantic Re-ranking process. 
+
+2.2. Vision and Language Pre-training Model 
+
+Vision-Language Pretraining Model (VLP) is a pretrained model that learns semantic alignment between images and texts using large-scale image-text pairs [14, 26, 38]. A rep-resentative example is Contrastive Language-Image Pre-training CLIP [26], which jointly trains an image encoder and a text encoder to align the representation spaces of the two modalities, thereby effectively bridging visual concepts and linguistic expressions. The pretrained VLPs [17, 26] can be applied to various multimodal tasks in a zero-shot manner [3, 12, 15], demonstrating strong generalization ca-pability in applications such as image–text retrieval and vi-sion–language understanding. Based on these VLP encoders, research on Multimodal Large Language Models (MLLMs) has been actively con-ducted in recent years [4, 18, 21]. While conventional VLPs focus on aligning visual and textual representations, Multi-modal Large Language Models (MLLMs) extend this ca-pability by integrating the reasoning ability of language models. This integration enables deeper multimodal un-derstanding and generation. For example, models such as LLaVA [20], MiniGPT-4 [39], and GPT-4V(ision) [1] con-nect a pretrained vision encoder to a large language model (LLM), enabling the interpretation of visual information in linguistic form and visual reasoning conditioned on text. These models go beyond simple alignment learning, ex-panding their applications to text-conditioned generation, visual question answering (VQA), and compositional im-age understanding [9, 21, 24, 36]. In our work, we demonstrate that ZS-CIR can be per-formed efficiently and scalably without additional training by integratively leveraging pretrained VLP encoders and MLLMs. 
+
+## 3. Method 
+
+The goal of Zero-Shot Composed Image Retrieval (ZS-CIR) is to retrieve a target image It from an image database 
+
+D that is visually similar to the reference image Ir while re-flecting the modifications specified in the modification text 
+
+Tm. Training-free approaches generate a target description 
+
+Tt to retrieve the target image It by measuring the similar-ity between target description Tt and candidate images in 
+
+D. The similarity score S is computed using cosine simi-larity cos(Ψ I (Ic), ΨT (Tt)) , where ΨI and ΨT denote the image and text encoders of pretrained CLIP, respectively. The query in ZS-CIR inherently involves both explicit 
+
+information, which specifies what should change and im-plicit information which is not directly expressed. Because of these implicit semantics, it becomes unclear which ele-ments should be explicitly transformed for retrieval, mak-ing the query inherently ambiguous. If all implicit informa-tion is converted into explicit form, the retrieval space be-comes overly constrained. Conversely, partial conversion of implicit information may cause the loss of important cues and degrade retrieval performance. To address this chal-lenge, we propose Geodesic Mixup-based Implicit seman-tic eXpansion retrieval and Explicit semantic Re-ranking (G-MIXER) method for ZS-CIR. G-MIXER constructs an expanded retrieval space that preserves implicit semantics and refines noisy candidates using explicit semantic infor-mation. An overview of the proposed method is shown in Figure 2. Our method consist of two stages. (1) Geodesic Mixup-based Implicit semantic eXpansion Retrieval : Composed query features are generated by ap-plying geodesic mixup over a range of mixup ratios to cap-ture implicit semantics and to build a diverse candidate set. (Sec. 3.1). (2) Explicit semantic Re-ranking : Noisy candidates are filtered out by re-ranking the results using explicit semantics( Include /Exclude ) generated by MLLMs. (Sec. 3.2) . 
+
+3.1. Geodesic Mixup-based Implicit semantic eX-pansion Retrieval (G-MIX Retrieval) 
+
+To expand the retrieval scope by capturing implicit in-formation embedded in the query, we propose Implicit Semantic Expansion Retrieval based on Geodesic Mixup (G-MIX). Since the CLIP embedding space forms a hy-persphere based on cosine similarity, simple linear mixup can distort the underlying geometry. Therefore, we apply geodesic mixup which follows the shortest path on the hy-persphere. We perform geodesic mixup between the image feature fi = Ψ I (Ir ) and the text feature ft = Ψ T (Tm)
+
+from the given reference image–text pair (Ir , T m) to ob-tain a composed query mλ that integrates both implicit and explicit semantics. The resulting mixed feature is subse-quently used as the query representation to retrieve candi-date images. Formally, the composed query feature is de-fined as: 
+
+mλ(ft, f i) = ft
+
+sin( λθ )sin( θ) + fi
+
+sin((1 − λ)θ)sin( θ) , (1) where λ denotes the mixing ratio, and θ = cos −1(ft · fi)
+
+represents the angle between the two features. For exam-ple, m0.8(ft, f i) denotes a composed query feature in which the text feature is weighted by 0.8 and the image feature is weighted by 0.2. For smaller values of λ, structural and background information from the image are more strongly reflected, whereas for larger λ, the attribute changes speci-fied by the text become more prominent. Changing the mixing ratio λ creates a continuous seman-tic trajectory that smoothly interpolates between the image and text modalities. We generate multiple composed queries along this trajectory and perform retrieval for each. The re-trieved results with high similarity scores are aggregated to form a candidate set. Instead of searching the entire embed-ding space indiscriminately, this approach samples along the principal semantic axis to cover dense semantic tran-sitions with only N mixing ratios. This enables a stable and effective expansion of the retrieval scope. Retrieval is per-formed for each composed query mλ(ft, f i), selecting the top-K images according to cosine similarity Sλ :
+
+Retrieval (mλ(ft, f i), D ) = TopK  sλ, k . (2) For example, when λ ranges from 0.7 to 1.0 with a step of 0.1 ( N = 4 mixing ratios), we retrieve the top-100 im-ages for each mλ and aggregate them into a set of 400 first-stage candidates (Eq. 2). Because higher λ values naturally yield higher similarity scores, we apply min–max normal-ization to scale all scores between 0 and 1. For candidates retrieved at multiple ratios, the maximum score is used to construct the final set. 
+
+Runion = [
+
+> λ∈[0 .7,1]
+
+Retrieval 
+
+
+
+mλ
+
+ ft, f i
+
+, D 
+
+
+
+. (3) We used Tt, a target description generated by MLLM based on Tm and the reference image Ir . Here, Tt is not a reasoning-based recaption, but rather a caption generated by referring to the reference image Ir to supplement omit-ted subjects or comparative expressions in Tm.As a result, our G-MIX Retrieval alleviates semantic am-biguity between image and text modalities and effectively expands the compositional semantic scope by leveraging Geodesic Mixup. 
+
+3.2. Explicit semantic Re-ranking (ER) 
+
+To remove noisy candidates included in the expanded re-trieval set, we propose Explicit semantic Re-ranking (ER), which leverages explicit cues for refinement. Since previous re-ranking methods rely on multiple captions generated by MLLMs, the captions inevitably contain implicit informa-tion. However, since these implicit cues do not clearly in-dicate whether they should appear in the target image, even higher similarity scores cannot be regarded as a reliable ba-sis for ranking. To address this issue, ER uses explicit in-formation extracted by MLLMs as the basis for re-ranking. For each image Iset included in the first-stage retrieval set 
+
+Runion , we compute the similarity Sλ = cos  mλ, ΨI (Iset )
+
+with each mλ. Based on the variation in similarity with ex-plicit attributes, we adjust the ranking to prioritize candi-dates that include clearer information and filter out noisy samples dominated by implicit cues. To convert the explicit information in the query into a caption, we design a prompt ps. We generate the Include 
+
+and Exclude texts based on the query pair (Ir , T m) to ensure that the explicitly defined conditions are accurately captured in the retrieval process. Datasets CIRCO CIRR                                                                                                                                                                                                   
+
+> Metric mAP@k Recall@k Recall Subset @k Arch Method k=5 k=10 k=25 k=50 k=1 k=5 k=10 k=1 k=2 k=3 SEARLE 9.35 9.94 11.13 11.84 24.00 53.42 66.82 54.89 76.60 88.19 CIReVL 14.94 15.42 17.00 17.82 23.94 52.51 66.00 60.17 80.05 90.19 LDRE 17.96 18.32 20.21 21.11 25.69 55.13 69.04 60.53 80.65 90.70 OSrCIR 18.04 19.17 20.94 21.85 25.42 54.54 68.19 62.31 80.86 91.13 ViT-B/32
+> G-MIXER (Ours) 21.33 22.00 24.00 24.98 35.18 66.19 76.82 69.98 85.78 92.92
+> SEARLE 11.68 12.73 14.33 15.12 24.24 52.48 66.29 53.76 75.01 88.19 LinCIR 12.59 13.58 15.00 15.85 25.04 53.25 66.68 57.11 77.37 88.89 PrediCIR 15.70 17.10 18.60 19.30 27.20 57.00 70.20 ---CIReVL 18.57 19.01 20.89 21.80 24.55 52.31 64.92 59.54 79.88 89.69 LDRE 23.35 24.03 26.44 27.50 26.53 55.57 67.54 60.43 80.31 89.90 OSrCIR 23.87 25.33 27.84 28.97 29.45 57.68 69.86 62.12 81.92 91.10 ViT-L/14
+> G-MIXER (Ours) 28.29 29.04 31.44 32.39 37.42 67.69 78.58 71.88 87.04 92.82
+> LinCIR 19.71 21.01 23.13 24.18 35.25 64.72 76.05 63.35 82.22 91.98 PrediCIR 23.70 24.60 25.40 26.00 37.00 66.10 77.90 ---CIReVL 26.77 27.59 29.96 31.03 34.65 64.29 75.06 67.95 84.87 93.21 LDRE 31.12 32.24 34.95 36.03 36.15 66.39 77.25 68.82 85.66 93.76 OSrCIR 30.47 31.14 35.03 36.59 37.26 67.25 77.33 69.22 85.28 93.55 ViT-G/14
+> G-MIXER (Ours) 31.79 32.54 35.49 36.87 39.18 69.83 79.35 72.36 87.25 93.85
+
+Table 1. Comparison on CIRCO and CIRR Test Data. G-MIXER outperforms existing ZS-CIR methods on both datasets CIRCO and CIRR. Gray rows indicate training-free ZS-CIR methods. Bold and underlined values denote the best and second-best results, respectively. 
+
+Formally, the generation process using the MLLM ΨM
+
+is defined as: 
+
+Tt, T in , T ex = Ψ M (ps ◦ Ir ◦ Tm), (4) where ◦ denotes the concatenation of inputs. To achieve explicit semantic re-ranking, we measure the similarities Sin and Sex between each image Iset and Tin 
+
+and Tex , respectively. Intuitively, a candidate image should have a high similarity to the explicit include caption Tin 
+
+while maintaining a low similarity to the explicit exclude caption Tex . We capture this behavior by comparing Sin 
+
+and Sex against Sλ. When Sλ − Sin is large, the candidate is closer to the composed query than to the include caption, suggesting that the desired attribute is not clearly repre-sented, which acts as a penalty. Conversely, when Sλ − Sex 
+
+is large, the candidate is much less similar to the exclude caption than to the composed query, indicating that the un-desired attribute is effectively suppressed, which serves as a reward. These effects are summarized in the similarity dif-ference ∆, defined as: 
+
+∆ = ReLU (Sλ − Sex ) − ReLU (Sλ − Sin ) (5) where a larger ∆ favors candidates that better satisfy the ex-plicit include condition while avoiding the explicit exclude condition. The final score is computed by combining the similarity 
+
+Sm obtained from the modification text with the similar-ity differences ∆ derived from Sin and Sex based on the MLLM-generated captions. 
+
+Final score = Sm + Sλ + ∆  (6) This score assesses whether the retrieved candidates, which capture diverse implicit semantics through G-MIX, also include the intended explicit information. By re-ranking based on explicit semantic cues, our method effectively fil-ters out noisy candidates while preserving diversity in the retrieval results. Details regarding the prompt formulation and other implementation specifics are described in Ap-pendix. 
+
+## 4. Experiments 
+
+4.1. Settings 
+
+Datasets. We evaluate our method on four representa-tive benchmarks for Zero-Shot Composed Image Retrieval (ZS-CIR): CIRCO [6], CIRR [22], FashionIQ [35], and GeneCIS [33]. CIRCO and CIRR are composed of real-world images. CIRCO is the first CIR dataset that pro-vides multiple ground-truths for each query, while CIRR includes an additional subset setting that assumes retrieval within a restricted image database. FashionIQ focuses on fine-grained clothing retrieval and consists of three subsets: Dress, Shirt, and Toptee. GeneCIS is designed for condi-tional image similarity retrieval based on object–attribute reasoning, and it evaluates performance across four as-pects: Focus Attribute, Change Attribute, Focus Object, and Change Object. For evaluation metrics, we follow the common practice of the ZS-CIR literature. We use mean Average Precision (mAP@K) for CIRCO, which has multiple ground-truths per query, and Recall@K (R@K) for CIRR, FashionIQ, and GeneCIS. 
+
+Baselines. We compare our method with several ZS-CIR baselines, including both training-based and training-free Fashion-IQ Shirt Dress Toptee Average                                                                                                                                          
+
+> Backbone Method R@10 R@50 R@10 R@50 R@10 R@50 R@10 R@50 SEARLE 24.44 41.61 18.54 39.51 25.70 46.46 22.89 42.53 CIReVL 28.36 47.84 25.29 46.36 31.21 53.85 28.29 49.35 LDRE 27.38 46.27 19.97 41.84 27.07 48.78 24.81 45.63 OSrCIR 31.16 51.13 29.35 50.37 36.51 58.71 32.34 53.40 ViT-B/32
+> G-MIXER (Ours) 37.24 55.99 36.39 58.21 45.23 64.10 39.62 59.43
+> SEARLE 26.89 45.48 20.48 43.13 29.32 49.97 25.56 46.23 PrediCIR 31.80 52.00 25.40 49.50 33.10 55.40 30.10 52.30 CIReVL 29.49 47.40 24.79 44.76 31.36 53.63 28.55 48.57 LDRE 31.04 51.22 22.93 46.76 31.57 53.64 28.51 50.54 OSrCIR 33.17 52.03 29.70 51.81 36.92 59.27 33.26 54.37 ViT-L/14
+> G-MIXER (Ours) 40.87 60.35 37.98 60.93 46.91 66.14 41.92 62.47
+> PrediCIR 48.20 67.40 39.70 62.40 53.70 73.60 47.20 67.80
+> CIReVL 33.71 51.42 27.07 49.53 35.80 56.14 32.19 52.36 LDRE 35.94 58.58 26.11 51.12 35.42 56.67 32.49 55.46 OSrCIR 38.65 54.71 33.02 54.78 41.04 61.83 37.57 57.11 ViT-G/14
+> G-MIXER (Ours) 39.65 59.61 34.71 58.85 44.77 67.47 39.71 61.98
+
+Table 2. Comparison on FashionIQ Validation set. G-MIXER is able to significantly outperform existing training-free ZS-CIR methods across all sub-benchmarks. Gray rows indicate training-free ZS-CIR methods. Bold and underlined values denote the best and second-best results, respectively.                                            
+
+> GeneCIS
+> Backbone Method R@1 R@2 R@3 SEARLE 14.4 25.3 35.4 CIReVL 15.8 26.8 36.8 OSrCIR 17.4 29.1 39.0 ViT-B/32
+> G-MIXER (Ours) 18.3 31.1 41.7
+> SEARLE 14.4 25.3 34.9 PrediCIR 16.6 26.7 35.8 CIReVL 15.9 27.1 33.8 OSrCIR 17.9 28.9 38.7 ViT-L/14
+> G-MIXER (Ours) 19.9 33.6 43.9
+> PrediCIR 13.7 24.7 33.6 CIReVL 17.4 29.8 39.5 OSrCIR 19.6 32.3 42.5 ViT-G/14
+> G-MIXER (Ours) 20.2 32.5 42.6
+
+Table 3. Comparison on GeneCIS Test Data. Gray rows indicate training-free ZS-CIR methods. Bold and underlined values denote the best and second-best results, respectively. 
+
+approaches. The training-based methods rely on pseudo-token learning, while training-free methods utilize VLP and MLLMs. Training-based methods: • SEARLE [6]: Maps images into the text space by learning pseudo-word tokens through a dedicated network. • PrediCIR [31]: Predicts the region of interest required for retrieval via a learned world model and converts cropped regions into pseudo tokens. Training-free methods • CIReVL [16]: Uses a pre-trained captioner to describe the reference image and an LLM to combine it with the mod-ification text into a target description. • LDRE [37]: Generates multiple target descriptions through diverse LLM reasoning and aggregates them via an ensemble strategy. • OSrCIR [32]: Employs a MLLM with Reflective Chain-of-Thought reasoning to generate target descriptions. 
+
+Implementation Details. For fair comparison, our im-plementation follows the overall experimental setup of OSrCIR [32]. All experiments use the OpenAI GPT-4o model [1] for caption and attribute generation, with the mixup ratio λ varied within the range of 0.7 to 1.0 in incre-ments of 0.05. The retrieval module, built in PyTorch [23] based on the codebase [32] from, performs all computations on a single NVIDIA 4090 GPU. 
+
+4.2. Quantitative Results 
+
+Across all benchmarks, G-MIXER consistently outper-forms both training-based and training-free baselines in Ta-ble 1, 2 and 3. In particular, on CIRCO (ViT-L/14), G-MIXER achieves mAP@50 = 32.39%, surpassing OSrCIR by +3.42%. Even at a smaller retrieval scope (k=5), our method records 28.29%, outperforming OSrCIR’s 23.87% by +4.42%. Also, on CIRR (ViT-L/14), G-MIXER achieves mAP@50 = 77.69%, outperforming OSrCIR’s 69.86% by 7.83%. This demonstrates that G-MIXER not only bene-fits from an expanded retrieval space but also maintains stable precision as the candidate pool grows, owing to the explicit attribute–based re-ranking process that effectively refines the retrieved results. On FashionIQ (ViT-L/14), G-MIXER improves the average R@50 by +8.1%, confirming its robustness in fine-grained retrieval scenarios involving subtle variations such as color, texture, and pattern. While PrediCIR shows competitive performance in certain fashion subsets due to its token-level specialization for garment at-tributes, G-MIXER clearly surpasses existing methods on broader benchmarks such as CIRR and CIRCO. Notably, on CIRR (ViT-G/14), G-MIXER achieves 79.35%, outper-forming PrediCIR (77.9%) and OSrCIR (77.33%). In ad-dition, on the GeneCIS , G-MIXER consistently achieves the highest R@1–3 across all backbones, demonstrating its strong capability to reason about both object-level and attribute-level compositional changes. 
+
+4.3. Qualitative Analysis 
+
+The proposed G-MIXER expands the retrieval space through composed queries that incorporate implicit cues, effectively complementing the fine-grained details often missed by purely text-based reasoning. This approach is fundamentally different from conventional MLLM-based methods that explicitly convert all implicit information into textual descriptions for retrieval. 
+
+> Figure 3. Qualitative results on CIRCO.
+
+As shown in Figure 3, in the CIRCO dataset example, the modification text “has only one person and is walking away from the camera” omits the subject, making it unclear whether “one person” refers to the left or right individual. In the prior MLLM-based method (OSrCIR) (A), the LLM infers and generates the target caption “A single person in a beige coat walking away from the camera in a snowy en-vironment.” However, the actual target image corresponds to the person holding an umbrella. Because the MLLM ex-plicitly rewrites implicit details from the reference image into the target caption, the retrieval space becomes overly restricted, leading to reduced diversity in candidate results. In contrast, G-MIXER (B) expands the retrieval range to include a broader set of compositional candidates, enabling effective retrieval of targets that require implicit contextual understanding. 
+
+> Figure 4. Qualitative results on Fashion-IQ dress.
+
+Figure 4 illustrates the comparison between the proposed G-MIXER and the prior MLLM-based method (OSrCIR) on the FashionIQ dataset. The existing method produces an overly detailed caption of the reference image, explic-itly describing multiple implicit attributes (e.g., blonde hair, a decorative belt) that are not mentioned in the modifi-cation text. Such excessive explicitness introduces unnec-essary constraints into the retrieval process, limiting the search space and lowering alignment with the true target. In contrast, G-MIXER performs re-ranking based solely on explicit modification cues (e.g., red dress, longer dress) while preserving implicit information implicitly through G-MIX. Consequently, G-MIXER accurately reflects essential attribute changes such as color, length, and shape, without being misled by non-essential factors like hair color or ac-cessories. In summary, G-MIXER alleviates the limitations of over-explicit conversion in prior approaches by jointly achieving implicit information preservation and explicit in-formation refinement. As a result, it delivers retrieval out-comes that balance both accuracy and diversity, particularly in fine-grained visual domains such as fashion. 
+
+4.4. Effectiveness and Efficiency Analysis. 
+
+Our approach is a training-free ZS-CIR approach that re-quires no additional learning. The MLLM step takes about 0.6 seconds per query, accounting for approximately 97% of the total time, while the remaining inference takes only 0.34 seconds, comparable to OSrCIR’s 0.32 seconds but achiev-ing about 4% points higher performance. Under the same experimental setting with pre-computed embeddings, the multiple mixup ratios introduce negligible computational overhead ( < 0.02s), as they only require additional cosine similarity computations that are efficiently parallelized on GPU. Since both image and text embeddings can be pre-computed, the main cost lies in computing cosine similari-ties between the N queries and the candidate pool, keeping the overall GPU computation minimal while ensuring effi-cient and high-quality retrieval. 
+
+4.5. Ablation Study and Analysis 
+
+To verify the contribution of each component in the pro-posed G-MIXER, we conducted a series of ablation studies. All experiments were performed using the ViT-L/14 back-bone, and the captions were generated with GPT-4o for a fair comparison. The results are summarized in Table 4 
+
+4.5.1. Effect of G-MIX 
+
+Unlike conventional mixup-based approaches that apply a single fixed mixup ratio to all queries, G-MIXER applies a range of mixup ratios ( λ range) to generate multiple com-posed features. These features are then integrated to form the first-stage candidate set, followed by a re-ranking pro-cess. Figure 5 compares the range-based search with the Components CIRCO CIRR Fashion-IQ                                                                        
+
+> Mixup Sλ∆Smk=5 k=10 k=1 k=5 k=10 k=50
+> ✓✓✓✓28.29 29.04 37.42 67.69 41.92 62.47
+> ✓✓✓22.49 23.77 34.87 67.06 40.61 61.05
+> ✓✓✓16.43 17.47 27.40 53.23 32.36 57.38
+> ✓✓11.80 12.97 28.34 55.08 30.76 56.00
+> ✓✓11.32 13.24 25.59 55.71 36.82 56.71
+> ✓✓12.28 13.34 12.55 29.78 24.94 53.02
+> ✓✓✓24.30 25.28 20.50 47.34 40.96 61.60
+> ✓✓✓24.77 25.74 33.69 63.74 34.36 55.99
+
+Table 4. Ablation study on CIRCO, CIRR, and Fashion-IQ datasets using ViT-L/14. 
+
+conventional fixed-ratio setup, illustrating the effect of vary-ing the starting value of λ. In the figure, the orange line rep-resents the range-based search, while the gray line denotes the fixed-ratio search. For the range-based setup, the start-ing value of λ was varied from 0.6 to 1.0 in increments of 0.05. (e.g., [0.6–1.0], [0.65–1.0], . . . , [0.95–1.0]) As shown, the fixed-ratio mixup occasionally achieves high performance at specific ratios but exhibits low consis-tency across datasets, as the optimal ratio differs for each domain. In contrast, the range-based mixup achieves the best performance when the starting λ is between 0.6 and 0.7, while narrower ranges lead to performance degrada-tion. This demonstrates that extending the mixup ratio to a range allows for stable and robust performance without the need for dataset-specific tuning. Therefore, employing a 
+
+λ-range–based geodesic mixup is a key factor in expanding the retrieval scope and exploring the semantic space more effectively. 0.95 0.90 0.85 0.80 0.75 0.70 0.65 0.60 
+
+> (Mixup Ratio)
+> 54
+> 56
+> 58
+> 60
+> 62
+> Recall@50 (%)
+
+Fashion-IQ  
+
+> OsrCIR (54.37)
+> Range-based Mixup
+> Fixed Mixup
+> 0.95 0.90 0.85 0.80 0.75 0.70 0.65 0.60
+> (Mixup Ratio)
+> 29
+> 30
+> 31
+> 32
+> Recall@50 (%)
+
+CIRCO  
+
+> OsrCIR (28.97)
+> Range-based Mixup
+> Fixed Mixup
+
+Figure 5. Comparison between the proposed range-based geodesic mixup (orange) and the fixed-ratio mixup (gray). The range-based approach expands the retrieval space by applying a range of mixup ratios, while the fixed-ratio method uses a single static value. 
+
+4.5.2. Effect of ER 
+
+Explicit Semantic Re-ranking refines the first-stage candi-date set by removing noisy candidate based on explicit in-formation. The results in Table 4 show the effect of exclud-ing each component of the re-ranking score: Sm, Sλ, and ∆
+
+in Eq. 5. When both Sλ and ∆ were removed, performance                                               
+
+> Methods CIRCO CIRR Fashion-IQ
+> k=5 k=10 k=1 k=5 k=10 k=50
+> 1. G-MIXER (GPT-4o) 28.29 29.04 37.42 67.69 41.92 62.47 Different configuration of ∆in Eq. 6
+> 2. ∆→∆in 21.17 22.58 33.01 63.98 41.80 60.33 3. ∆→∆ex 17.57 18.63 31.81 59.90 33.20 57.51
+> Impact of different MLLMs
+> 5. GPT-turbo 26.68 27.32 36.34 66.14 41.26 61.89 6. GPT-4o-mini 27.18 27.92 36.87 66.63 41.48 62.01
+
+Table 5. Study of ∆ variations in re-ranking score, and the impact of different MLLMs. 
+
+dropped by 16.49% , showing that these two components work complementarily and are essential for achieving the full effectiveness of the proposed method. Additionally, we conducted an ablation study to examine different configuration of the reward and penalty terms in the computation of ∆ (Eq. 5). 
+
+∆ → ∆in : ReLU (Sλ − Sex ) + ReLU (Sin − Sλ) (7) 
+
+∆ → ∆ex : −ReLU (Sex − Sλ) − ReLU (Sλ − Sin ) (8) For ∆in , penalizing cases where the similarity decreased was more effective than rewarding cases where it increased. This indicates that emphasizing similarity gains may cause overfitting to explicit cues, limiting the diversity of the ex-panded implicit representations. In contrast, for ∆ex , re-warding candidates that successfully removed excluded at-tributes performed better than applying penalties. This de-sign allows the re-ranking process to selectively promote candidates that preserve the intended compositional modi-fication while suppressing residual explicit noise from the geodesic mixup expansion. 
+
+4.5.3. Effects of the choice of MLLM 
+
+We analyze the impact of the choice of MLLM among GPT-4o, GPT-4o-mini, and GPT-4o-turbo. Even when us-ing GPT-4o-mini, which is more efficient than GPT-4o, the performance drops by only about 1%. The small variation across models implies that G-MIXER operates effectively regardless of the specific MLLM used. 
+
+## 5. Conclusion 
+
+We proposed G-MIXER, a training-free method for Zero-Shot Composed Image Retrieval (ZS-CIR) that expanded the retrieval scope through implicit semantic mixup and re-fined results using explicit cues. By leveraging both implicit and explicit semantics to construct richer compositional representations of images and texts, G-MIXER effectively overcame the limitations of text-dominant approaches. Ex-periments across multiple benchmarks demonstrated that G-MIXER consistently achieved superior retrieval perfor-mance over both training-based and training-free methods. References 
+
+[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ah-mad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 ,2023. 3, 6 [2] Lorenzo Agnolucci, Alberto Baldrati, Alberto Del Bimbo, and Marco Bertini. isearle: Improving textual inversion for zero-shot composed image retrieval. IEEE Transactions on Pattern Analysis and Machine Intelligence , 2025. 2 [3] Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, Karel Lenc, Arthur Men-sch, Katherine Millican, Malcolm Reynolds, et al. Flamingo: a visual language model for few-shot learning. Advances in neural information processing systems , 35:23716–23736, 2022. 3 [4] Jinze Bai, Shuai Bai, Shusheng Yang, Shijie Wang, Sinan Tan, Peng Wang, Junyang Lin, Chang Zhou, and Jingren Zhou. Qwen-vl: A frontier large vision-language model with versatile abilities. arXiv preprint arXiv:2308.12966 , 1(2):3, 2023. 3 [5] Alberto Baldrati, Marco Bertini, Tiberio Uricchio, and Al-berto Del Bimbo. Effective conditioned and composed im-age retrieval combining clip-based features. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 21466–21474, 2022. 2 [6] Alberto Baldrati, Lorenzo Agnolucci, Marco Bertini, and Al-berto Del Bimbo. Zero-shot composed image retrieval with textual inversion. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , pages 15338–15347, 2023. 1, 2, 5, 6 [7] Gloria Bordogna and Gabriella Pasi. A fuzzy linguistic ap-proach generalizing boolean information retrieval: A model and its evaluation. Journal of the American Society for In-formation Science , 44(2):70–82, 1993. 1 [8] Yixin Chen and James Ze Wang. A region-based fuzzy feature matching approach to content-based image retrieval. 
+
+IEEE transactions on pattern analysis and machine intelli-gence , 24(9):1252–1267, 2002. 1 [9] Wenliang Dai, Junnan Li, Dongxu Li, Anthony Tiong, Junqi Zhao, Weisheng Wang, Boyang Li, Pascale N Fung, and Steven Hoi. Instructblip: Towards general-purpose vision-language models with instruction tuning. Advances in neural information processing systems , 36:49250–49267, 2023. 3 [10] Yongchao Du, Min Wang, Wengang Zhou, Shuping Hui, and Houqiang Li. Image2sentence based asymmetrical zero-shot composed image retrieval. arXiv preprint arXiv:2403.01431 ,2024. 2 [11] Geonmo Gu, Sanghyuk Chun, Wonjae Kim, Yoohoon Kang, and Sangdoo Yun. Language-only efficient training of zero-shot composed image retrieval–appendix–. 2 [12] Thomas Hummel, Shyamgopal Karthik, Mariana-Iuliana Georgescu, and Zeynep Akata. Egocvr: An egocentric benchmark for fine-grained composed video retrieval. In 
+
+European Conference on Computer Vision , pages 1–17. Springer, 2024. 3 [13] Young Kyun Jang, Dat Huynh, Ashish Shah, Wen-Kai Chen, and Ser-Nam Lim. Spherical linear interpolation and text-anchoring for zero-shot composed image retrieval. In Eu-ropean Conference on Computer Vision , pages 239–254. Springer, 2024. 2 [14] Chao Jia, Yinfei Yang, Ye Xia, Yi-Ting Chen, Zarana Parekh, Hieu Pham, Quoc Le, Yun-Hsuan Sung, Zhen Li, and Tom Duerig. Scaling up visual and vision-language representa-tion learning with noisy text supervision. In International conference on machine learning , pages 4904–4916. PMLR, 2021. 3 [15] Dongsheng Jiang, Yuchen Liu, Songlin Liu, Jin’e Zhao, Hao Zhang, Zhen Gao, Xiaopeng Zhang, Jin Li, and Hongkai Xiong. From clip to dino: Visual encoders shout in multi-modal large language models. arXiv preprint arXiv:2310.08825 , 2023. 3 [16] Shyamgopal Karthik, Karsten Roth, Massimiliano Mancini, and Zeynep Akata. Vision-by-language for training-free compositional image retrieval. arXiv preprint arXiv:2310.09291 , 2023. 2, 3, 6 [17] Junnan Li, Dongxu Li, Caiming Xiong, and Steven Hoi. Blip: Bootstrapping language-image pre-training for unified vision-language understanding and generation. In Interna-tional conference on machine learning , pages 12888–12900. PMLR, 2022. 1, 3 [18] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In In-ternational conference on machine learning , pages 19730– 19742. PMLR, 2023. 3 [19] Haoqiang Lin, Haokun Wen, Xuemeng Song, Meng Liu, Yu-peng Hu, and Liqiang Nie. Fine-grained textual inversion network for zero-shot composed image retrieval. In Proceed-ings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval , pages 240–250, 2024. 2 [20] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. Advances in neural information processing systems , 36:34892–34916, 2023. 3 [21] Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae Lee. Improved baselines with visual instruction tuning. In Pro-ceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 26296–26306, 2024. 3 [22] Zheyuan Liu, Cristian Rodriguez-Opazo, Damien Teney, and Stephen Gould. Image retrieval on real-life images with pre-trained vision-and-language models. In Proceedings of the IEEE/CVF international conference on computer vision ,pages 2125–2134, 2021. 2, 5 [23] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, et al. Pytorch: An im-perative style, high-performance deep learning library. Ad-vances in neural information processing systems , 32, 2019. 6[24] Zhiliang Peng, Wenhui Wang, Li Dong, Yaru Hao, Shaohan Huang, Shuming Ma, and Furu Wei. Kosmos-2: Ground-ing multimodal large language models to the world. arXiv preprint arXiv:2306.14824 , 2023. 3 [25] Bill Psomas, George Retsinas, Nikos Efthymiadis, Panagio-tis Filntisis, Yannis Avrithis, Petros Maragos, Ondrej Chum, and Giorgos Tolias. Instance-level composed image retrieval. In The Thirty-ninth Annual Conference on Neural Informa-tion Processing Systems , 2025. 2 [26] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervi-sion. In International conference on machine learning , pages 8748–8763. PmLR, 2021. 1, 3 [27] Kuniaki Saito, Kihyuk Sohn, Xiang Zhang, Chun-Liang Li, Chen-Yu Lee, Kate Saenko, and Tomas Pfister. Pic2word: Mapping pictures to words for zero-shot composed image retrieval. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 19305– 19314, 2023. 1, 2 [28] Yucheng Suo, Fan Ma, Linchao Zhu, and Yi Yang. Knowledge-enhanced dual-stream zero-shot composed im-age retrieval. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 26951– 26962, 2024. 2 [29] Valiollah Tahani. A fuzzy model of document retrieval sys-tems. Information Processing & Management , 12(3):177– 187, 1976. 1 [30] Yuanmin Tang, Jing Yu, Keke Gai, Jiamin Zhuang, Gang Xiong, Yue Hu, and Qi Wu. Context-i2w: Mapping images to context-dependent words for accurate zero-shot composed image retrieval. In Proceedings of the AAAI Conference on Artificial Intelligence , pages 5180–5188, 2024. 1 [31] Yuanmin Tang, Jing Yu, Keke Gai, Jiamin Zhuang, Gang Xiong, Gaopeng Gou, and Qi Wu. Missing target-relevant information prediction with world model for ac-curate zero-shot composed image retrieval. arXiv preprint arXiv:2503.17109 , 2025. 6 [32] Yuanmin Tang, Jue Zhang, Xiaoting Qin, Jing Yu, Gaopeng Gou, Gang Xiong, Qingwei Lin, Saravan Rajmohan, Dong-mei Zhang, and Qi Wu. Reason-before-retrieve: One-stage reflective chain-of-thoughts for training-free zero-shot com-posed image retrieval. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 14400– 14410, 2025. 2, 3, 6 [33] Sagar Vaze, Nicolas Carion, and Ishan Misra. Genecis: A benchmark for general conditional image similarity. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 6862–6872, 2023. 5 [34] Nam Vo, Lu Jiang, Chen Sun, Kevin Murphy, Li-Jia Li, Li Fei-Fei, and James Hays. Composing text and image for image retrieval-an empirical odyssey. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 6439–6448, 2019. 1, 2 [35] Hui Wu, Yupeng Gao, Xiaoxiao Guo, Ziad Al-Halah, Steven Rennie, Kristen Grauman, and Rogerio Feris. Fashion iq: A new dataset towards retrieving images by natural language feedback. In Proceedings of the IEEE/CVF Conference on computer vision and pattern recognition , pages 11307– 11317, 2021. 5 [36] Jiannan Wu, Muyan Zhong, Sen Xing, Zeqiang Lai, Zhaoyang Liu, Zhe Chen, Wenhai Wang, Xizhou Zhu, Lewei Lu, Tong Lu, et al. Visionllm v2: An end-to-end general-ist multimodal large language model for hundreds of vision-language tasks. Advances in Neural Information Processing Systems , 37:69925–69975, 2024. 3 [37] Zhenyu Yang, Dizhan Xue, Shengsheng Qian, Weiming Dong, and Changsheng Xu. Ldre: Llm-based divergent reasoning and ensemble for zero-shot composed image re-trieval. In Proceedings of the 47th International ACM SIGIR conference on research and development in information re-trieval , pages 80–90, 2024. 1, 2, 3, 6 [38] Lewei Yao, Runhui Huang, Lu Hou, Guansong Lu, Minzhe Niu, Hang Xu, Xiaodan Liang, Zhenguo Li, Xin Jiang, and Chunjing Xu. Filip: Fine-grained interactive language-image pre-training. arXiv preprint arXiv:2111.07783 , 2021. 3 [39] Deyao Zhu, Jun Chen, Xiaoqian Shen, Xiang Li, and Mo-hamed Elhoseiny. Minigpt-4: Enhancing vision-language understanding with advanced large language models. arXiv preprint arXiv:2304.10592 , 2023. 3

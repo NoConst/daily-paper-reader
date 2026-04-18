@@ -1,0 +1,94 @@
+{
+  "version": 2,
+  "extractor": "pdffigures2",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-001.webp",
+      "caption": "Table 9: I2T retrieval R@1/R@5 (%) with short captions. MT = two-stage dialogue, Align = caption-based alignment, CoT = chain-of-thought, SFT = supervised fine-tuning. Bold: best per column; underline: second best.",
+      "page": 15,
+      "index": 1,
+      "width": 472,
+      "height": 475
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-002.webp",
+      "caption": "Table 10: T2I retrieval R@1/R@5 (%)with short captions.MT = two-stage dialogue, Align = caption-based alignment, CoT = chain-of-thought, SFT = supervised fine-tuning. Bold: best per column; underline: second best.",
+      "page": 15,
+      "index": 2,
+      "width": 491,
+      "height": 573
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-003.webp",
+      "caption": "Table 2: Comparison with existing models onmulti-view CIR under three encoding strategies. Joint: all views encoded jointly; MeanPool: per-view embeddings averaged; MaxSim: per-view retrieval with max-score selection. “–”: unsupported or unavailable. Bold: best per column; underline: second best.",
+      "page": 7,
+      "index": 3,
+      "width": 776,
+      "height": 632
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-004.webp",
+      "caption": "Figure 5: Word-count distributions for all five text types in FashionMV. (a) Short captions peak around 40 words (median=40). (b) Short modification texts are tightly concentrated at 23–24words (median=23). (c) Long captions are normally distributed around 220 words (median=222). (d) Long modification texts peak around 82–84 words (median=84). (e) Per-image captions concentrate at 105–115 words (median=115).",
+      "page": 14,
+      "index": 4,
+      "width": 490,
+      "height": 686
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-005.webp",
+      "caption": "Table 8: SFT training data statistics (full dataset; 20% sampled for training).",
+      "page": 14,
+      "index": 5,
+      "width": 504,
+      "height": 388
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-006.webp",
+      "caption": "Figure 2: Overview of the FashionMV dataset construction pipeline. Stage 1: multi-view images from three data sources are fed to Kimi K2.5 in a single request to generate per-image captions, long captions, and short captions. Stage 2: Qwen3.5-397B crosschecks directional descriptions against visual evidence, removing products with confirmed hallucinations. Stage 3: multi-path candidate retrieval (visual, long-caption, and short-caption similarity) produces a candidate pool; Gemini 3.1 Flash Lite selects up to 2 best targets from 10 candidates and generates short and long modification texts.",
+      "page": 3,
+      "index": 6,
+      "width": 1056,
+      "height": 527
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-007.webp",
+      "caption": "Figure 4: Distribution of the number of multi-view images per product, broken down by sub-dataset.",
+      "page": 13,
+      "index": 7,
+      "width": 464,
+      "height": 301
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-008.webp",
+      "caption": "Table 7: Full training hyperparameters.",
+      "page": 13,
+      "index": 8,
+      "width": 464,
+      "height": 481
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-009.webp",
+      "caption": "Table 3: Ablation study on the validation set. MT = two-stage dialogue, Align = caption-based alignment, CoT = chain-ofthought. Cost = relative wall-clock time with absolute duration in parentheses; 1.00× corresponds to the fastest variant; SFT rows include SFT pre-training overhead (4h 29m). Bold: best in each section; underline: second best.",
+      "page": 8,
+      "index": 9,
+      "width": 794,
+      "height": 559
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-010.webp",
+      "caption": "Table 4: Directional hallucination detection results per dataset.",
+      "page": 12,
+      "index": 10,
+      "width": 498,
+      "height": 917
+    },
+    {
+      "url": "assets/figures/arxiv/2604.10297v1/fig-011.webp",
+      "caption": "Figure 3: Overview of the ProCIR training architecture. The two-stage dialogue decomposes the query into Turn 1 (visual perception→ source embedding s) and Turn 2 (modification reasoning→ query embedding q); Turn 2 inherits the full dialogue context from Turn 1, enabling the model to reason about modifications conditioned on the perceived visual content. The document encoder produces target embedding d frommulti-view target images. Caption-based alignment encodes source and target captions into tsrc and ttgt. The training loss combines Lcir, Lsrc, and Ldoc, all based on SymInfoNCE. An optional SFT stage injects structured product knowledge prior to contrastive training. Two alternative knowledge injection paths are shown at the bottom: SFT pre-training (left) and Chain-of-Thought with progressive removal (right).",
+      "page": 5,
+      "index": 11,
+      "width": 1056,
+      "height": 488
+    }
+  ]
+}

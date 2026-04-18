@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "extractor": "pdffigures2",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2604.12007v1/fig-001.webp",
+      "caption": "Figure 2. Experiment 2: Task-difficulty confound (20 seeds, mean ± std). Global MW (orange) remains negatively correlated with true utility (ρ ≈ −0.33) because specialist memories (U∗ = 0.85) appear only on low-success hard tasks and are penalised by task difficulty. A weighted-average conditional MW (yellow) fails equally: mixing easy- and hard-task counts preserves the same base-rate confound. When MW is conditioned on the hard-task population only and evaluated over memories with hard-task evidence (green), the ranking signal becomes positive (ρ ≈ +0.14), showing partial recovery once task-type confounding is removed. The gap to the unconfounded baseline (0.89) remains large, motivating withinstratum normalisation as future work.",
+      "page": 8,
+      "index": 1,
+      "width": 492,
+      "height": 310
+    },
+    {
+      "url": "assets/figures/arxiv/2604.12007v1/fig-002.webp",
+      "caption": "Figure 3. Experiment 3: Retrieval policy feedback loop. MWweighted retrieval converges to ρ ≈ 0.896–0.899 across all exploration floors, matching or marginally exceeding the uniform reference (ρ = 0.890, 20 seeds, mean ± std). Even with ε = 0 (no forced exploration floor), the estimator does not degenerate. The self-correcting feedback loop outweighs the rich-get-richer effect in this regime.",
+      "page": 8,
+      "index": 2,
+      "width": 492,
+      "height": 310
+    },
+    {
+      "url": "assets/figures/arxiv/2604.12007v1/fig-003.webp",
+      "caption": "Figure 1. Memory Worth calibration over episodes. Spearman ρ between MWT (m) and U∗(m) for all four weighting strategies, averaged over 20 seeds (shaded regions: ±1 std). The no-feedback baseline stays at ρ = 0 throughout. All three updating strategies converge to ρ ≈ 0.89 by episode 10,000.",
+      "page": 7,
+      "index": 3,
+      "width": 492,
+      "height": 304
+    },
+    {
+      "url": "assets/figures/arxiv/2604.12007v1/fig-004.webp",
+      "caption": "Figure 5. Experiment 5: MW trajectories in a text-based retrieval agent (all-MiniLM-L6-v2 embedding retrieval, 3,000 episodes, 20 seeds, mean ± std). The stale memory (dashed orange) peaks at ≈ 0.97 in Phase 1, drops sharply after episode 100, crosses θL = 0.40 near episode 300, and ends at 0.17—well into the low-value category, with no sign of convergence, warranting deprecation. The specialist (solid green) stabilises at 0.77. The hitchhiker (dotted grey, 0.77) and control (dash-dot blue, 0.73) are both elevated and nearly indistinguishable from the specialist—consistent with the co-retrieval confound of Experiment 4: MiniLM routes Python queries to both specialist and hitchhiker due to their semantic similarity.",
+      "page": 10,
+      "index": 4,
+      "width": 492,
+      "height": 304
+    }
+  ]
+}

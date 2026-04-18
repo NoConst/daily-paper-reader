@@ -1,0 +1,399 @@
+Title: Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity
+
+URL Source: https://arxiv.org/pdf/2604.05764v2
+
+Published Time: Thu, 09 Apr 2026 01:07:47 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity 
+
+# Adrian Bracher 
+
+adrian.bracher@wu.ac.at Vienna University of Economics and Business Vienna, Austria 
+
+# Svitlana Vakulenko 
+
+svitlana.vakulenko@wu.ac.at Vienna University of Economics and Business Vienna, Austria 
+
+## Abstract 
+
+While dense retrieval models, which embed queries and documents into a shared low-dimensional space, have gained widespread popu-larity, they were shown to exhibit important theoretical limitations and considerably lag behind traditional sparse retrieval models in certain settings. Generative retrieval has emerged as an alternative approach to dense retrieval by using a language model to predict query-document relevance directly. In this paper, we demonstrate strengths and weaknesses of generative retrieval approaches us-ing a simple synthetic dataset, called LIMIT, that was previously introduced to empirically demonstrate the theoretical limitations of embedding-based retrieval but was not used to evaluate genera-tive retrieval. We close this research gap and show that generative retrieval achieves the best performance on this dataset without any additional training required (0.92 and 0.99 R@2 for SEAL and MINDER, respectively), compared to dense approaches (< 0.03 Re-call@2) and BM25 (0.86 R@2). However, we then proceed to extend the original LIMIT dataset by adding simple hard negative samples and observe the performance degrading for all the models including the generative retrieval models (0.51 R@2) as well as BM25 (0.21 R@2). Error analysis identifies a failure in the decoding mechanism, caused by the inability to produce identifiers that are unique to relevant documents. Future generative retrieval must address these issues, either by designing identifiers that are more suitable to the decoding process or by adapting decoding and scoring algorithms to preserve relevance signals. 
+
+## CCS Concepts 
+
+• Information systems → Retrieval models and ranking .
+
+## Keywords 
+
+Generative Retrieval 
+
+## 1 Introduction 
+
+Dense Retrieval (DR) models, characterized by their ability to cap-ture latent semantics beyond surface-level term matching, fueled the recent generational paradigm shift in modern Information Re-trieval (IR) [ 5, 6, 19 ]. However, recent studies indicate that compress-ing information into fixed-dimensional vector spaces — a core tenet of DR — imposes fundamental geometric constraints on the result-ing data representations. Specifically, as the volume of information and the complexity of queries grows, the limited representational capacity of these dense vector embeddings leads to a “vector bot-tleneck” [ 18 ]. This occurs when the model’s ability to distinguish between relevant and irrelevant documents by partitioning the embedding space into distinct, relevant subsets is exhausted, lead-ing to representation collapse and a clear degradation in retrieval performance [2, 14]. 
+
+Figure 1: An example from LIMIT-H demonstrating ambigu-ity of the generated document identifiers ( italic ) that prevent the GR model from distinguishing between relevant (green) and irrelevant (red) documents. 
+
+Generative Retrieval (GR) has emerged as an alternative to DR that utilizes an autoregressive language model (LM) to generate relevant document identifiers (docids) given only a query as in-put [ 1, 16 , 17 ]. Unlike the vector-space computations in DR, GR aims to encode complex relevance relationships directly within the LM’s parameters. Zhang et al . [22] suggested that this architecture provides GR with superior representational power in comparison with DR and can potentially enable it to bypass DR’s limitations. Intrigued by the theoretical advantages of GR, we conduct an empirical evaluation using the same benchmark that exposed the fundamental limitations of state-of-the-art DR models. The LIMIT dataset, introduced by Weller et al . [18] , is a synthetic benchmark designed to be minimalist, yet it proved surprisingly challenging in practice, allowing the authors to effectively quantify the “vector bottleneck.” Our study investigates whether the parameter-based memory of GR can naturally navigate around this geometric con-straint by leveraging the high-dimensional internal state of an autoregressive model. Given that LIMIT is a synthetic benchmark specifically designed to expose structural representational limits, fine-tuning on it would allow a model to simply memorize and overfit to the specific pat-terns of the dataset rather than demonstrating true representational capacity. Consequently, to ensure a rigorous and fair comparison 
+
+> arXiv:2604.05764v2 [cs.IR] 8 Apr 2026 Adrian Bracher and Svitlana Vakulenko
+
+with the original DR results reported by Weller et al . [18] , we re-strict our evaluation to already pre-trained GR models — specifically SEAL and MINDER — that were fine-tuned on Wikipedia. SEAL and MINDER are simple but high-performing GR models, that are often used as standard baselines for evaluations and are extended by more recent GR models [ 9 , 12 ]. Crucially, SEAL and MINDER were also shown to generalize well to documents unseen during training [ 10 , 23 ]. Therefore, we select them for our experiments as the representatives of the current state-of-the-art GR approaches. By evaluating these models in a strictly zero-shot setting, we test whether the parametric memory of a generative model develops a mechanism for correctly identifying the query-document relation-ship that is robust and generalizable to out of distribution samples. Our experiments show that despite the absence of any corpus-specific training, zero-shot GR models achieve near-perfect per-formance on the LIMIT benchmark. While state-of-the-art dense retrievers (DR) exhibit representation collapse, failing to resolve the combinatorial constraints of the dataset, GR architectures suc-cessfully navigate these boundaries. This stark contrast implies that the transition from vector-space matching (geometric similar-ity) to parametric memory retrieval (generative identifiers) may be essential for handling increasingly complex, multi-constraint information needs. While the original LIMIT dataset effectively benchmarks ro-bustness against geometric constraints, it does not account for the 
+
+semantic ambiguity that is more prevalent in real-world IR. For instance, while BM25 outperforms DR on LIMIT by a large margin, it relies on surface-level term matching and will struggle to resolve complex semantic relationships, such as negation or homographs. To test IR models against structural and semantic limitations simultaneously, we introduce LIMIT-H . In this variant, we aug-ment the original dataset with “hard negative” samples (D1*) that lexically overlap with the positive samples (D1) but carry different meanings and are irrelevant to the original queries (see Figure 1 for an illustrative example from LIMIT-H). This minimum change requires the model to not only navigate the vector bottleneck but also demonstrate the representational capacity for fine-grained se-mantic discrimination between the relevant documents and the semantic distractors we introduced. While GR outperformed all other IR models on the original LIMIT benchmark, our experiments on LIMIT-H show that both BM25 and GR fail as semantic ambiguity increases. These results provide empirical evidence that GR architectures are capable of overcoming the representational limitations observed in DR models. However, while GR has the potential to capture semantics using a LM pre-trained on a general corpus, our findings suggest that the current approaches we tested are not sufficient to take on this challenge identifying an important research gap. In summary, we make the following research contributions: (1) Empirical validation of GR parametric capacity : We provide strong empirical evidence that GR architectures are structurally superior to DR in zero-shot settings. By lever-aging high-dimensional parametric memory to generate discrete identifiers, GR successfully overcomes the vector bottleneck introduced by the LIMIT benchmark, achieving near-perfect retrieval. (2) Introduction of the LIMIT-H benchmark : We introduce LIMIT-H, a challenging extension of the LIMIT dataset that incorporates semantic ambiguity designed to test a model’s dual ability to handle structural complexity and fine-grained semantic discrimination. (3) Revealing GR limitations : Our analysis uncovers a hid-den failure mode of popular GR models like SEAL and MIN-DER that generate non-unique identifiers: an inherent iden-tifier ambiguity. While these models solve the geometric bottleneck, their reliance on substrings or pseudo-queries as identifiers makes them susceptible to “semantic collisions” when different documents share similar lexical views that result in incorrect relevance scoring for more fine-grained queries. 
+
+## 2 Related Work 
+
+Previous research exploring the theoretical limitations of DR and GR is relatively scarce. To the best of our knowledge, Reimers and Gurevych [14] were the first to formally define and discuss the theoretical limitations of DR, terming this phenomenon the “curse of low-dimensionality.” They identified a fundamental compres-sion bottleneck in DR, arguing that fixed-dimensional embeddings impose a hard upper bound on the number of distinct documents a DR model can accurately represent. Their empirical evaluation demonstrated that as index size increases, retrieval performance degrades even more drastically than the theoretical lower bound suggests. They attributed this to the fact that neural embeddings do not efficiently utilize the full vector space but tend to cluster in nar-row, high-density regions, further exacerbating the representational bottleneck. Our main inspiration for this paper stems from the recent report by Weller et al . [18] , who demonstrated that retrieval performance is constrained not only by index size but also by task complex-ity w.r.t. the rank of the query-document relevance matrix. They provided a formal proof for the low-rank bottleneck in DR. As a primary example, they introduced the task where queries are specif-ically designed to represent all possible combinations of relevant document pairs. To empirically validate this, they introduced the LIMIT benchmark, showing that despite its relatively small size, it still remains unsolvable for state-of-the-art DR models. Similar to Reimers and Gurevych [14] , they also observed that DR mod-els fail to achieve a uniform distribution of embeddings and their effective dimensionality is much lower than the nominal vector dimension, which makes the vector bottleneck much narrower in practice and explains why DR models collapse even on relatively small but complex datasets like LIMIT. The LIMIT benchmark also highlighted a surprising result: tra-ditional sparse term-document models, such as BM25, significantly outperform state-of-the-art DR models on such complex tasks. Since sparse models operate in a high-dimensional symbolic space, they are naturally more robust to the low-rank bottlenecks that plague dense embeddings. In this paper, we extend this evaluation to GR models because it represents the next generation of sparse retrieval. GR generates discrete, symbolic identifiers (like BM25 terms) but it does so using the deep contextual reasoning of a LM able to learn complex query-document relevance relationships. Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity 
+
+Similar to our findings, the concurrent work by Zhang et al .[22] argues for the fundamental advantages of GR over DR, citing its superior representational capacity. However, their evaluation primarily targets fine-tuned models, which essentially tests the model’s ability to memorize a specific document collection. Their additional experiment shows a considerable drop in performance from a Hit@10 of 63.5 when fine-tuned to just 23.8 in a zero-shot setting. In contrast, we investigate the generalization potential of GR. Through a controlled experiment, we specifically focus on the models’ inherent ability to generate suitable identifiers for previously unseen documents. Our results demonstrate that while GR successfully generalizes in a structurally complex scenario, it fails to distinguish between lexically similar documents due to identifier ambiguity. 
+
+## 3 Preliminaries 
+
+In this section, we discuss the main concepts used in GR and pro-vide more details specifically on SEAL and MINDER architectures, while arguing how their relevance ranking approach makes them uniquely suitable for our zero-shot experiments on the LIMIT bench-mark. 
+
+## 3.1 Generative Retrieval 
+
+Generative Retrieval (GR) departs from traditional “matching” IR paradigms by framing retrieval as a sequence-to-sequence task [ 16 ]. Instead of calculating similarities in a vector space as in DR, a GR model is a LM with parameters 𝜃 trained to generate a relevant document identifier 𝑛 given a query 𝑞 . Each document identifier 𝑛 
+
+is a sequence of tokens (at least one) from the LM’s vocabulary. The probability of a document identifier 𝑛 is the product of conditional probabilities for each of its tokens 𝑦 𝑡 
+
+𝑃 (𝑛 |𝑞 ; 𝜃 ) = 
+
+> |𝑛 |
+
+Ö
+
+> 𝑡 =1
+
+𝑃 (𝑦 𝑡 |𝑦 <𝑡 , 𝑞 ; 𝜃 ) (1) Many GR approaches also use another LM with a different set of parameters 𝜃 ′ to assign a docid 𝑛 to every document 𝑑 based on its content: 
+
+𝑃 (𝑛 |𝑑 ; 𝜃 ′) = 
+
+> |𝑛 |
+
+Ö
+
+> 𝑡 =1
+
+𝑃 (𝑦 𝑡 |𝑦 <𝑡 , 𝑑 ; 𝜃 ′) (2) The majority of GR models use synthetic docids, which are usu-ally arbitrary numeric identifiers (DSI [16], MDGR [23], PAG [21], RIPOR [ 20 ]). This approach requires heavy supervision for the model to learn to assign semantics to these docids. An alternative approach is to use semantic docids, such as ques-tions, titles or substrings from the documents. These docids either occur naturally, such as titles, URLs and tokens, or are produced by a supervised model, such as questions. GR models are pre-trained on paragraph-documents but docu-ments in the LIMIT benchmark contain single sentences. To miti-gate this distribution shift, we opt for an unsupervised approach in our experiments that was introduced in SEAL [ 1], which treats all ngrams of a document as its docids. We also consider an exten-sion to SEAL, called MINDER [ 8 ], that uses questions in addition to ngrams. 
+
+3.1.1 SEAL [ 1]. The main approach behind SEAL is pairing a LM with an FM-index [ 3 ], which is an efficient data structure that stores full text of the original documents and enables efficient pattern matching over the whole collection. It allows to determine the exact count and position of any ngram of length 𝑚 in O( 𝑚 ), irrespective of the collection size. The FM-index in SEAL serves two main purposes: (1) constrains LM decoding to ensure only the docids that actually exist in the documents as ngrams are generated; (2) points to all the documents that contain those ngrams. Efficient decoding in SEAL is supported by a beam search algo-rithm, a common practice in GR [ 16 ]. However, SEAL modifies the standard pruning mechanism: rather than discarding candidates that fall outside the beam width, the model retains all partially decoded ngrams encountered during the search, along with their corresponding LM scores. Since these scores are computed during the expansion phase regardless of whether the candidate is selected, this retention incurs no additional computational cost. The advan-tage of this modification is finer-grained scoring by aggregating from a much larger set of ngrams than strictly those that survive the beam pruning. For actual document ranking, SEAL uses LM+FM score. This score is a combination of the conditional probability, 𝑃 (𝑛 |𝑞 ), pro-duced by the LM for an ngram 𝑛 and the unconditional probability, 
+
+𝑃 (𝑛 ), derived from the FM-index, which is similar to the document frequency (DF) of a term in the collection: 
+
+𝑤 (𝑛, 𝑞 ) = max 
+
+
+
+0, log 𝑃 (𝑛 |𝑞 )( 1 − 𝑃 (𝑛 )) 
+
+𝑃 (𝑛 )( 1 − 𝑃 (𝑛 |𝑞 )) 
+
+
+
+(3) For every document that contains at least one of the generated ngrams, we compute the document-level LM+FM score (Equation 4) by aggregating the individual scores of the ngrams this document contains 𝐾 (𝑑 ) :
+
+𝑊 (𝑑, 𝑞 ) =∑︁   
+
+> 𝑛 ∈𝐾 (𝑑 )
+
+𝑤 (𝑛, 𝑞 )𝛼 ∗ cover (𝑛, 𝐾 (𝑑 ) ) (4) where 𝑐𝑜𝑣𝑒𝑟 is a function that handles duplicate ngrams and 𝛼 is a hyperparameter for re-weighting the two terms. 
+
+3.1.2 MINDER [ 8] . This approach further builds upon SEAL and extends it by introducing additional docids (multi-view identifiers) to improve the original scoring. Apart from ngrams, MINDER also assigns to each document two new types of docids: (1) Titles : in our case those are skipped since they are absent in LIMIT; (2) Pseudo-queries : synthetic questions generated by an aux-iliary LM (e.g., Doc2Query [4]) given the document text. These new identifiers are then added to the FM-index preceded with a special token, <TS> and <QS> , to indicate the start of titles and pseudo-queries respectively. During inference, the GR model is prompted with each of these special tokens separately to generate different types of docids (views). To determine the final document rank, MINDER aggregates the evidence from all generated views, while each view is scored sep-arately using the same LM+FM scores computations as in SEAL. We consider MINDER in our experiments since it was designed Adrian Bracher and Svitlana Vakulenko 
+
+Table 1: Statistics of the original LIMIT dataset. 
+
+#Docs #Queries #Relevant Docs Avg Doc Length #Qrels 50,000 1,000 46 598 2,000 to improve representational power of SEAL, particularly for the scenarios where a simple substring may be ambiguous. 
+
+## 4 Experimental Setup 
+
+In this section, we describe the evaluation setup for the GR mod-els explained in Section 3. We provide more details on the LIMIT dataset, metrics and baselines for our evaluation. We also introduce several modifications to the original SEAL and MINDER config-urations that helped us boost their performance on LIMIT. All experiments were conducted on a single NVIDIA H100L-94C GPU with 94 GB of VRAM. Our code and experimental scripts for prepro-cessing and evaluation are publicly available at https://anonymous. 4open.science/r/GR-on-LIMIT/. 
+
+## 4.1 LIMIT Dataset 
+
+The original LIMIT dataset was generated by prompting Gemini 2.5 Pro for 1,850 unique objects (items) that a person may like, such as “Hawaiian pizza”, “sports cars”, etc. Then the authors sample unique subsets of 50 such items to create 50k documents, where each document is a single sentence generated using the document template : “<person> likes <item1>, <item2>, <item3> ... <item50>”. By sampling a unique name for every document, LIMIT generates sentences that express all preferences of a particular person, such as, “John Doe likes Apples, Quokkas, ...” The sampling script is designed such that every item is liked by exactly two people. The authors then generate 1,000 queries by picking one of the original items and filling the question template : such as “ Who likes 
+
+Quokkas?” Since every such query has exactly two relevant doc-uments by design, the total number of relevant documents is 46 since it is the minimum number of documents relevant for 1,000 queries:  46 2
+
+ = 1035 . Statistics on the dataset are given in Table 1. 
+
+## 4.2 Metrics 
+
+Recall@k is our primary evaluation metric in all our experiments. Since every query in LIMIT is known to have exactly two relevant documents, Recall@2, which, in this setting, is the same as Preci-sion@2, is the primary indicator of task success. We additionally provide Recall@10 and Recall@100 as an auxiliary metric for a complete analysis of the ranking quality. 
+
+## 4.3 Baselines 
+
+We adopt the original set of baseline models from Weller et al . [18] that provides comprehensive results for BM25 and state-of-the-art single-vector and multi-vector DR models: 
+
+• BM25 , a classic sparse IR method relying on exact term matching; 
+
+• E5-Mistral 7B , a instruction-tuned model based on Mistral; 
+
+• Snowflake Arctic L , a large-scale model optimized for retrieval; 
+
+• GritLM 7B , a model capable of generation and representation; 
+
+• Promptriever Llama3 8B , which is trained with diverse in-structions to enable prompting like a language model; 
+
+• Qwen3 Embed , a SoA embedding model from the Qwen family; 
+
+• Gemini Embed , Google’s text embedding model; 
+
+• GTE-ModernColBERT , a bi-encoder which utilizes late inter-action and multiple vectors per document to capture fine-grained relevance. 
+
+## 4.4 SEAL Configurations 
+
+We use the pre-trained LM checkpoint based on BART-large from the original paper, which was fine-tuned on the Natural Questions (NQ) dataset [ 7 ]. We did not fine-tune on the LIMIT dataset to match the zero-shot setting. The hyperparameters of the original model are also unchanged (beam width of 15, the score exponent (𝛼 ) is 2, repetition penalty ( 𝛽 ) is 0.8). We used the official implementation of SEAL 1 with the default configuration and also introduced a minor modification to its origi-nal scoring procedure (BEAM): 
+
+• SEAL : In its default configuration, SEAL does not follow the classic beam search algorithm (see Section 3.1.1 for details on how SEAL works). 
+
+• SEAL (BEAM) : We modified SEAL to use the classic beam search algorithm instead, which allowed it to keep only the highest scoring ngrams as opposed to the more conservative original SEAL implementation. 
+
+## 4.5 MINDER Configurations 
+
+Similar to the SEAL setup, we used the original model checkpoint 2
+
+provided by Li et al . [8] , which was also fine-tuned on NQ from BART large. We used the default hyperparameters, which are the same as in SEAL. Since the authors did not publicly release their question generation model, we used docT5query instead [ 13 ], which is a popular LM used for document expansion. We evaluate five different configurations of MINDER to ablate the impact of additional docids (views) and scoring mechanisms: 
+
+• NG : Only ngrams as docids with default SEAL decoding. 
+
+• NG; BEAM : Only ngrams as docids with our SEAL (BEAM) decoding. 
+
+• NG+DT5Q : The default MINDER configuration, with ngrams and generated pseudo-queries under default SEAL decoding. 
+
+• NG+DT5Q; BEAM : Ngrams and generated pseudo-queries with our SEAL (BEAM) decoding. 
+
+• Oracle : Ngrams are generated with our SEAL (BEAM) decoding and perfect pseudo-queries as the skyline for the query gen-eration performance. We generate 50 pseudo-queries for each document using the same template as the actual queries in LIMIT: “Who likes <item>?”. This oracle helps us to determine the upper-bound for the query generation performance instead of the docT5query results. 
+
+> 1https://github.com/facebookresearch/SEAL
+> 2https://github.com/liyongqi67/MINDER Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity
+
+Table 2: Retrieval results on the original LIMIT dataset (50k documents). Baseline results (*) are from Weller et al . [18] .Bold indicates the best overall performance. 
+
+Model R@2 R@10 R@100 * E5-Mistral 7B (4096) 0.013 0.022 0.083 * GritLM 7B (4096) 0.024 0.041 0.129 * Promptriever Llama3 8B (4096) 0.030 0.068 0.189 * Qwen3 Embed (4096) 0.008 0.018 0.048 * Gemini Embed (3072) 0.016 0.035 0.100 * GTE-ModernColBERT 0.231 0.346 0.548 * Snowflake Arctic L V2 (1024) 0.004 0.008 0.033 * BM25 0.857 0.904 0.936 SEAL 0.791 0.999 1.000 
+
+SEAL (BEAM) 0.917 0.982 0.991 MINDER (NG) 0.858 0.994 1.000 
+
+MINDER (NG+DT5Q) 0.858 0.994 1.000 
+
+MINDER (NG; BEAM) 0.958 0.983 0.990 MINDER (NG+DT5Q; BEAM) 0.958 0.983 0.990 MINDER (Oracle) 0.988 0.994 0.997 
+
+## 5 Results on LIMIT 
+
+In this section, we present the results of our experimental eval-uation on the original LIMIT benchmark. Table 2 compares the performance of our GR models, and their modifications, with the DR and BM25 results reported by Weller et al. [18]. 
+
+Comparison with Baselines. The GR models demonstrate superior capacity for high-rank retrieval with SEAL achieving up to 0.917 R@2 and MINDER offering further improvements to 0.988 R@2, which is a substantial gain over all the baselines including BM25, which was the best model reported in Weller et al . [18] . Thereby, the GR models (MINDER and SEAL) set the new state-of-the-art results on the LIMIT benchmark outperforming the DR models by a large margin. 
+
+Impact of Decoding Strategy. We also observe that our modifica-tion to the standard SEAL’s decoding procedure, greatly improves the model performance for both SEAL and MINDER. The default SEAL configuration achieves perfect Recall@100 ( 1.000 ) but lower precision at the top ranks ( 0.791 R@2) compared to our beam search configuration ( 0.917 R@2). Similarly, for MINDER, we improve R@2 from 0.858 for the default SEAL to 0.958 with beam search. 
+
+MINDER and Pseudo-Queries. Generating pseudo-queries with docT5query (DT5Q) yields no improvement over ngrams only con-figuration. Interestingly, even in the oracle setting, with the perfect pseudo-queries that exactly match the input queries, the perfor-mance of MINDER is at 0.988 R@2. We manually checked the results to confirm that MINDER does not copy the input queries to be do-cids, which would have trivially solved this task to 1 R@2. This observation suggests that the additional query-to-query generation introduces another potential point of failure and degrades the GR performance even when the document expansion step succeeds. 
+
+## 6 New LIMIT-H and LIMIT-HS Benchmarks 
+
+Our results, presented in Section 5, confirm that GR is capable of overcoming the vector bottleneck of DR. However, it is clear that the synthetic LIMIT benchmark does not reflect all the complexities of a real-world IR dataset. In particular, LIMIT was not designed to evaluate the capacity of the model to represent fine-grained semantic relationships between documents, which are arguably more common in IR in practice than strict logical constraints. The main simplification in LIMIT, which is due to its rule-based design, is that every item (e.g. “Quokkas”) can be used to uniquely identify the complete set of relevant documents. This pattern ex-plains why GR models succeed on LIMIT as long as they are able to generate those items as docids. We propose an extension to LIMIT, which we call LIMIT-H (for LIMIT Hard), that makes those simple identifiers more ambiguous and contextually dependent. In LIMIT-H, we deliberately introduce such identifier ambiguity by generating new documents that are very similar to the original relevant documents but are not relevant to the corresponding queries (see Figure 1 for an example). Our dataset generation pipeline proceeds in three stages: 
+
+1. Generating Negative Documents. For each of the 46 relevant documents from the original LIMIT dataset, we generate a cor-responding negative sample by prompting the DeepSeek-R1 70B model from Ollama with its default inference parameters. Our few-shot prompt 3 takes as input an original relevant document and instructs the model to generate a similar sentence mentioning the same 50 items but reversing its semantics, such that the original preference statements can be no longer implied from the generated text (see a sample negative D1* in Figure 1). At the end of the prompt, we provide one example of correct generation and one ex-ample of incorrect generation with a brief summary reasoning why the generated negative is considered incorrect. We also introduce several explicit constraints in the prompt to specify quality of the generated samples: (1) the negative must start with the same three words as the original document (e.g., “John Doe likes”); (2) the negative must include every item from the original document and preserve the exact spelling and capitalization as in the original document; (3) the negative must have distinct semantics from the original document; it cannot contain duplicates or paraphrases of the original preference statements. To ensure quality of the generated samples, we prepared a val-idation script that checks the first two constraints automatically and ensures that the generated sample is not the exact duplicate of the original for the third constraint. If any of the constraints were violated, we automatically rerun the generation using the same input document, which results in a different output every time due to probabilistic decoding (default Ollama settings). The most frequent generation error, which we could efficiently catch with our automated verification script, was that some of the items mentioned in the original document were missing from the generated document. To efficiently revise the generated sample, we designed another “completion” prompt, which given the generated 
+
+> 3https://anonymous.4open.science/r/GR-on-LIMIT/prompts.py Adrian Bracher and Svitlana Vakulenko
+
+sample and the set of missing items, asks the model to add the missing items to the generated sample. Thereby, we iteratively perform this data generation process with the automated validation check that triggers regeneration for the same input document until all checks are passed for all the input documents. This automated generation task took ∼2–3 hours for all 46 rele-vant documents from LIMIT. Afterwards, we manually checked that all the generated documents satisfy the third (semantic) constraint. Fewer than 5 documents violated the semantic constraint and we ran the generation task on this subset again until the manual check was passed for all the input documents. We noticed that the LM generated diverse phrases that successfully modify the original items within the same document but may repeat same or similar phrases across the generated documents. 
+
+2. LIMIT Benchmark Extension. LIMIT-H contains the same docu-ments, queries and qrels as the original LIMIT dataset, and only adds 46 new documents that we generated as explained in 1. Therefore, the total number of documents in LIMIT-H is increased to 50046. We release only those 46 additional documents and a script that automatically downloads the original LIMIT dataset and integrates it into LIMIT-H. This is the only change we made to the original LIMIT bench-mark. However, this extension implies that there is one hard neg-ative for each relevant document from LIMIT, and a cluster of 4 lexically similar documents for each query, which makes the task harder than the original LIMIT. 
+
+Generating Oracle Pseudo-Queries for Negative Documents. For MINDER we need to generate oracle pseudo-queries and add them to the FM-index. The oracle pseudo-queries for the original docu-ments were deterministically constructed using the same template as for the original queries in LIMIT and their item set. Since we used a LM to generate negative documents, the original pattern for the oracle pseudo-queries no longer holds. Instead of using the pre-trained docT5query model for expanding the negative documents, we use the same DeepSeek-R1 70B model with a few-shot prompt, which is specifically optimized for LIMIT: generate questions start-ing with “Who likes ”. We consider this as a good oracle for our purposes but it is not designed to generalize to other datasets. 
+
+LIMIT-HS. LIMIT-HS (for LIMIT Hard-Scaled) is a further exten-sion of LIMIT-H, in which we trivially duplicate the 46 generated negative documents from LIMIT-H. This extension results in two hard negative samples per relevant document and a cluster of 6 lexically similar documents for each query from LIMIT. Note, that this simple approach allows us to maintain the same set of ngrams and oracle pseudo-queries in the FM-index. Thereby, we control for the only variable condition in the LIMIT-HS evaluation: the trivial increase in the number of negative instances. 
+
+Introducing Variance. The original LIMIT dataset is very mini-malistic and homogenic since it uses a single template for rule-based natural language generation (see Section 4.1 for the LIMIT genera-tion approach). The constrained decoding via the FM-index used by SEAL and MINDER is not probabilistic and leads to the same docids for the same inputs. To better evaluate variance in the model results but also stay close to the original LIMIT approach, we created two additional versions of LIMIT-H with alternative documents that 
+
+Figure 2: Comparison of Recall@2 performance across three increasing levels of difficulty. 
+
+describe other relations that can hold between a set of people and a set of items rather than preference. To achieve this, we simply substitute the verb “likes” in the original LIMIT templates for docu-ments and queries with another two verbs: “owns” and “touches”. These alternative relations were selected to also cover more diverse semantic categories: “owns” implies a relation of possession, which is more specific than the preference relation, and “touches” denotes a physical action rather than a nominal relation between a per-son and items. Moreover, “touches” is selected to ensure that the relation is not transitive: 𝐴 touches 𝐵 and 𝐵 touches 𝐶 does not imply 𝐴 touches 𝐶 . We then perform the same dataset generation procedure as for “likes” to generate alternative negative documents and their pseudo-queries using the same scripts and prompts. Those documents and their pseudo-queries are also sufficient to extend both LIMIT and LIMIT-HS since they contain the same documents as LIMIT-H, where LIMIT is the subset and LIMIT-HS is a superset of LIMIT-H. 
+
+## 7 Results on LIMIT-H and LIMIT-HS 
+
+Table 3 shows the results on new LIMIT-H and LIMIT-HS variants of the LIMIT benchmark. We computed the metric for each the three variants of the datasets independently (with “likes”, “owns” and “touches” relations) and measured the mean and standard deviation across the results. Figure 2 compares four models with their best-performing configurations on all LIMIT variants. 
+
+Baseline Performance. The performance of Snowflake Arctic L remains consistently low across all variants ( 0.005 ± 0.003 R@2), showing no significant sensitivity to the added ambiguity. The model’s failure is fundamental to the combinatorial nature of the LIMIT dataset itself (geometric limitations), rather than the in-troduced term ambiguity. The added difficulty of LIMIT-H/HS is effectively irrelevant because the model cannot solve the base task. In contrast, BM25 performs strongly on the original benchmark (0.857 R@2) but much worse when introducing term-ambiguous Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity 
+
+Table 3: Mean and standard deviation of R@2 for three variants (“likes”, “owns”, “touches”) each of LIMIT, LIMIT-H and LIMIT-HS. Bold indicates the best overall performance (excluding the oracle configuration). † indicates statistically significant improvement ( 𝑝 < 0.05 ) over the strong BM25 baseline (paired t-test). 
+
+Model Recall@2 Recall@4 LIMIT LIMIT-H LIMIT-HS LIMIT LIMIT-H LIMIT-HS BM25 0.857 ± 0.000 0.249 ± 0.049 0.208 ± 0.067 0.893 ± 0.000 0.717 ± 0.083 0.462 ± 0.160 SEAL 0.851 ± 0.052 0.000 ± 0.000 0.000 ± 0.000 0.975 †± 0.011 0.000 ± 0.001 0.000 ± 0.000 SEAL (BEAM) 0.947 †± 0.026 0.589 †± 0.012 0.433 †± 0.021 0.965 †± 0.013 0.951 †± 0.022 0.823 †± 0.016 MINDER (NG+DT5Q) 0.910 †± 0.050 0.015 ± 0.020 0.001 ± 0.001 0.970 †± 0.015 0.088 ± 0.180 0.000 ± 0.000 MINDER (NG; BEAM) 0.945 †± 0.028 0.595 †± 0.041 0.443 †± 0.048 0.965 †± 0.013 0.949 †± 0.030 0.825 †± 0.047 MINDER (NG+DT5Q; BEAM) 0.954 †± 0.010 0.602 †± 0.027 0.450 †± 0.034 0.969 †± 0.007 0.961 †± 0.010 0.834 †± 0.026 MINDER (Oracle) 0.986 †± 0.003 0.655 †± 0.031 0.509 †± 0.056 0.991 †± 0.001 0.988 †± 0.001 0.874 †± 0.021 negatives in LIMIT-H (0.249 R@2) and LIMIT-HS (0.208 R@2). No-tably, R@2 on LIMIT-H falls below half of what it is on LIMIT, meaning that it is even worse than failing to distinguish: BM25 tends to rank negatives higher than relevant documents. 
+
+Docid Ambiguity in Generative Retrieval. The default configura-tions for SEAL and MINDER collapse to near-zero recall (< 0.001 R@2) on the LIMIT-H and LIMIT-HS. Using classical beam search (BEAM) mitigates this collapse, al-lowing GR methods to substantially outperform BM25 and Snowflake Arctic L V2 on all benchmark variants. However, we still observe a substantial drop in recall. SEAL (BEAM) drops from 0.947 (LIMIT) to 0.433 (LIMIT-HS) R@2. MINDER (NG+DT5Q; BEAM) similarly drops from 0.954 to 0.450 R@2. Notably, MINDER improves retrieval overall, but does not offer more robustness to term-ambiguity. Even when perfect pseudo-queries (PQ) are assumed, MINDER fails to consistently identify negatives ( 0.655 and 0.509 R@2 on LIMIT-H and LIMIT-HS, respectively). 
+
+## 8 Error Analysis 
+
+In this section, we introduce a novel quantitative framework specif-ically designed to measure how generated docids, in particular ngrams and pseudo-queries, contribute to the document ranking performance. We compare the sets of docids generated for relevant and irrelevant documents. This error analysis framework helps us to answer the following questions: Q1 How does identifier ambiguity impact retrieval in SEAL and MINDER? Q2 Why does SEAL default decoding fail on LIMIT-H? Q3 Why the performance degrades further on LIMIT-HS? Q4 Why the oracle pseudo-queries in MINDER do not improve the retrieval performance? 
+
+## 8.1 Method 
+
+To analyse error types, we focus on the top-4 retrieved documents (𝐷 𝑞 ) and the docids generated for those documents by our GR mod-els. Since each query 𝑞 in LIMIT-H contains two relevant documents and two hard negatives, top-4 is likely to capture all top scoring documents. Our analysis is performed in three steps: (1) partition rankings, (2) partition docids, and (3) aggregate scores. 
+
+1. Partition rankings. 𝐷 𝑞 consists of relevant ( 𝑅 ) and irrelevant (𝐼 ) subsets of documents. Based on the relevance of the top-2 doc-uments, each ranking result falls into one of the four partitions (groups ): 𝑜 ∈ { 𝑅𝑅𝑋𝑋, 𝑅𝐼𝑋𝑋, 𝐼𝑅𝑋𝑋, 𝐼𝐼𝑋𝑋 }. For instance, 𝑅𝐼𝑋𝑋 de-notes a ranking where the highest ranked document is relevant (𝑑 1 ∈ 𝑅 ) and second highest ranked document is irrelevant ( 𝑑 2 ∈ 𝐼 ), while the relevance of the remained documents ( 𝑋 ) can be either. 
+
+2. Partition docids. We refer to the set of all docids generated by the model for the top-4 retrieved documents as 𝑁 𝑞 . Those docids can either: 
+
+• appear only in relevant documents ( 𝑛 ∈ 𝑁 𝑅 \𝐼 𝑞 ); 
+
+• appear only in irrelevant documents ( 𝑛 ∈ 𝑁 𝐼 \𝑅 𝑞 ). 
+
+• appear in both relevant and irrelevant documents ( 𝑛 ∈ 𝑁 𝑅 ∩𝐼 𝑞 ). Thereby, all docid 𝑛 have associated types 𝑥 ∈ { 𝑅 \𝐼, 𝐼 \𝑅, 𝑅 ∩ 𝐼 }.
+
+3. Aggregate scores. Finally, for each docid 𝑛 , query 𝑞 and docu-ment 𝑑 , we compute a score 𝑐 (𝑛, 𝑞, 𝑑 ) = 𝑤 (𝑛, 𝑞 )𝛼 · cover (𝑛, 𝐾 (𝑑 ) ) as per Equation 4. We aggregate those scores for every query 𝑞 and each docid type 𝑥 separately: 
+
+Definition 8.1 (Query-Level Score). 
+
+𝑐 (𝑞, 𝑥 ) =∑︁  
+
+> 𝑑 ∈𝐷 𝑞
+
+∑︁ 𝑛 ∈𝑁 𝑥 𝑞 
+
+𝑐 (𝑛, 𝑞, 𝑑 ) (5) Then, we aggregate those individual query scores across the previously defined groups of ranking results by averaging the scores across all queries 𝑞 ∈ 𝑄 𝑜 :
+
+Definition 8.2 (Group-Level Mean Score). 
+
+𝑐 𝑔 (𝑜, 𝑥 ) = 1
+
+|𝑄 𝑜 |∑︁ 𝑞 ∈𝑄 𝑜 
+
+𝑐 (𝑞, 𝑥 ) (6) To compare across groups, we normalize the scores across types of docids to sum up to 1 for each group: 
+
+Definition 8.3 (Group-Level Relative Score). 
+
+𝑐 𝑟 (𝑜, 𝑥 ) = 𝑐 (𝑜, 𝑥 )
+
+Í𝑦 ∈ { 𝑅 \𝐼, 𝐼 \𝑅, 𝑅 ∩𝐼 } 𝐶 (𝑜, 𝑦 ) (7) Adrian Bracher and Svitlana Vakulenko 
+
+Table 4: Error analysis of SEAL in the default configuration. The model fails to retrieve any relevant documents at the top-2 ranks for LIMIT-H and LIMIT-HS, resulting in no score being computed (-). 
+
+Dataset 𝑜 |𝑄 𝑜 | 𝑐 𝑟 (𝑜, 𝑅 \𝐼 ) 𝑐 𝑟 (𝑜, 𝐼 \𝑅 ) 𝑐 𝑟 (𝑜, 𝑅 ∩ 𝐼 )
+
+LIMIT RRXX 652 0.17 0.24 0.59 
+
+RIXX 139 0.10 0.30 0.60 
+
+IRXX 138 0.10 0.29 0.61 
+
+IIXX 71 0.06 0.46 0.49 LIMIT-H RRXX 0 - - -
+
+RIXX 0 - - -
+
+IRXX 0 - - -
+
+IIXX 1000 0.00 1.00 0.00 LIMIT-HS RRXX 0 - - -
+
+RIXX 0 - - -
+
+IRXX 0 - - -
+
+IIXX 1000 0.00 1.00 0.00 
+
+Table 5: Error analysis of SEAL in the classical beam search configuration (BEAM). 
+
+Dataset 𝑜 |𝑄 𝑜 | 𝑐 𝑟 (𝑜, 𝑅 \𝐼 ) 𝑐 𝑟 (𝑜, 𝐼 \𝑅 ) 𝑐 𝑟 (𝑜, 𝑅 ∩ 𝐼 )
+
+LIMIT RRXX 908 0.63 0.27 0.10 
+
+RIXX 5 0.43 0.06 0.51 
+
+IRXX 13 0.34 0.39 0.27 
+
+IIXX 74 0.13 0.86 0.01 LIMIT-H RRXX 316 0.00 0.00 1.00 
+
+RIXX 232 0.00 0.00 1.00 
+
+IRXX 323 0.00 0.01 0.99 
+
+IIXX 129 0.02 0.63 0.36 LIMIT-HS RRXX 316 0.00 0.00 1.00 
+
+RIXX 229 0.00 0.00 1.00 
+
+IRXX 41 0.00 0.04 0.96 
+
+IIXX 414 0.01 0.41 0.58 
+
+## 8.2 Error Analysis Results 
+
+In the following, we answer the research questions introduced in the beginning of this Section. 
+
+Q1: Retrieval under docid ambiguity. Although recall metrics on LIMIT-H and LIMIT-HS (up to 0.655 and 0.509 R@2) suggest that generative retrieval is partially successful, the underlying retrieval mechanism is fundamentally broken. As Tables 5 and 6 reveal, SEAL fails to generate any ngrams unique to relevant documents in these settings. Consequently, the model is no longer performing targeted retrieval. Instead, retrieval success is reduced to a combination of random chance, the avoidance of negative-only identifiers, and scoring heuristics that happen to favor properties of (incidentally) relevant documents (e.g., length, identifier coverage). This collapse in discriminative capability is confirmed by the score margins: the gap between the rank-1 and rank-4 documents shrinks substantially. For SEAL (BEAM), on average by 92% from 61.22 in LIMIT to just 4.95 in LIMIT-H. For MINDER (NG+PQ), on average by 99% from 15.87 to 0.19. This indicates that the models have lost the ability to distinguish relevant documents from noise. 
+
+Q2: Noise reduction via beam search. The ngram analysis in Ta-ble 4 demonstrates the effect of the default configuration accumulat-ing score from all partially decoded ngrams, rather than restricting scoring to the top candidates. This approach results in a high vol-ume of generated ngrams in the ambiguous benchmark variants: 4.4 / 50.5 / 44.1 ngrams per document on LIMIT / -H / -H using default scoring, and 2.3 / 1.5 / 1.5 ngrams per document with the BEAM configuration. More importantly, the additional ngrams oc-cur almost exclusively in negative documents, dominating the score and resulting in complete failure (1000/1000). 
+
+Q3: Further performance degradation caused by displacement. 
+
+When comparing results for LIMIT-H and LIMIT-HS, we can see a further drop in R@2. Results in Table 5 suggest that this is mostly due to the further displacement of rank-2 relevant documents. This shows that some documents are more vulnerable to being displaced by negatives, and are ranked even lower when more of the same negatives are present. Simultaneously, there are relevant documents that could not be displaced by the corresponding negative in LIMIT-H, and consequently, cannot be replaced by an additional copy of the negative. 
+
+Q4: Pseudo-queries in MINDER fail to restore unique relevance sig-nals. We hypothesized that the inclusion of pseudo-queries would enrich the set of identifiers unique to relevant documents ( 𝑅 \𝐼 ), due to their ability to capture concepts and rely less on memorization than ngrams [ 11 ]. The results in Table 6 contradict this expectation. In both LIMIT-H and LIMIT-HS, the relative contribution of unique relevant identifiers 𝐶 𝑟 (𝑅 \𝐼 ) remains at 0.00 across all error groups. This suggests that either (1) the initial pseudo-queries generation or the (2) scoring and decoding process, particularly early pruning, are the reason uniquely relevant pseudo-queries are not generated in our experiments. Investigating pseudo-queries (Table 7) reveals that the PQ setting successfully generates document-specific questions that capture the meaning. This allows us to rule out generation quality as the root cause. Instead, the failure points conclusively to the scoring and decoding process: the retrieval mechanism prunes these unique, informative pseudo-queries during beam search. 
+
+## 9 Discussion 
+
+We briefly summarize and discuss our main findings. 
+
+GR outperforms DR. The failure of DR models on the LIMIT benchmark originates from the vector bottleneck, where the fixed-dimensional embedding space lacks the capacity to linearly separate the combinatorial number of document subsets required by the LIMIT task. In contrast, GR successfully overcomes this limitation, as evidenced by the near-perfect performance on the original LIMIT dataset. We believe that this is a crucial evidence for the potential of GR models. 
+
+GR outperforms BM25. While BM25 achieved strong recall on the original LIMIT dataset, its performance degraded more rapidly than GR models after the introduction of negatives in LIMIT-H. Generative Retrieval Overcomes Limitations of Dense Retrieval but Struggles with Identifier Ambiguity 
+
+Table 6: Error analysis of MINDER under the (BEAM, NQ+PQ) configuration, which employs manually constructed pseudo-queries for the original documents and few-shot LLM gener-ated queries for negative examples. 
+
+Dataset 𝑜 |𝑄 𝑜 | 𝑐 𝑟 (𝑜, 𝑅 \𝐼 ) 𝑐 𝑟 (𝑜, 𝐼 \𝑅 ) 𝑐 𝑟 (𝑜, 𝑅 ∩ 𝐼 )
+
+LIMIT RRXX 985 0.82 0.02 0.17 
+
+RIXX 2 0.00 0.00 1.00 
+
+IRXX 3 0.17 0.18 0.64 
+
+IIXX 10 0.00 0.91 0.09 LIMIT-H RRXX 444 0.00 0.00 1.00 
+
+RIXX 230 0.00 0.00 1.00 
+
+IRXX 261 0.00 0.00 1.00 
+
+IIXX 65 0.00 0.18 0.82 LIMIT-HS RRXX 445 0.00 0.00 1.00 
+
+RIXX 230 0.00 0.00 1.00 
+
+IRXX 21 0.00 0.00 1.00 
+
+IIXX 304 0.00 0.34 0.66 
+
+Table 7: Sample documents with oracle pseudo-queries from LIMIT-H for the original query “Who likes Hot Chocolate?”. Given this query, MINDER generates only the ngram: “Hot Chocolate”, and no pseudo-queries scored above zero. Type Document ngrams Pseudo-queries 
+
+Original (Relevant) Olinda Posso likes Bagels, Hot Chocolate ,Pumpkin Seeds, The Industrial Revolution, ... Who likes Bagels? Who likes Hot Chocolate ?Who likes Pumpkin Seeds? ... Negative (Irrelevant) Olinda Posso likes to imagine herself as the master architect of a surreal utopia, where Bagels levitate above 
+
+Hot Chocolate rivers, ... Who likes to imagine herself as the master architect of a surreal utopia? Who likes Bagels levitating above 
+
+Hot Chocolate rivers? ... These results indicate that BM25’s initial success was dependent on the near one-to-one mapping between query terms and relevant documents in the base dataset. Furthermore, on LIMIT-H the model frequently ranked negatives higher than relevant documents, likely driven by the increased term frequency of common query tokens (e.g., “Who”, “likes”) in the negative samples. Interestingly, BM25 showed less sensitivity to scaled ambiguity (LIMIT-HS) than GR models, possibly because the increased document frequency due to negative duplicates counteracted further displacement of rele-vant documents in the ranking results. Future GR models should aim to incorporate similar kind of regularization into their scoring approaches. 
+
+GR and Identifier Ambiguity. Our quantitative error analysis (see Tables 4, 5, 6) reveals the fundamental failure mode of GR: in the presence of negatives, the models failed to generate any identifiers unique to the relevant documents. Consequently, the GR methods could not distinguish between relevant and hard negative docu-ments. Our LIMIT-H benchmark provides a critical pivot for the field. By moving the focus from structural capacity (the vector bot-tleneck) to fine-grained semantic discrimination, we have identified the “second wall” for GR. 
+
+GR Scoring Strategy. SEAL default decoding leads to many low-scoring n-grams that inflate the scores for our hard negative docu-ments, which then displace relevant documents to lower ranks. The issue is not document length in itself, but that negative documents tend to contain terms that are semantically related to the item (and consequently the query), but irrelevant to the specific information need. In effect, the cumulative score of identifiers unique to the irrelevant set ( 𝑁 𝐼 \𝑅 𝑖 ) outweighs the relevant ngrams. By restricting scoring to only the highest-probability candidates, the BEAM con-figuration filters out the noise introduced by these weakly related but irrelevant terms. 
+
+## 10 Conclusion 
+
+In this paper, we systematically evaluated zero-shot generaliza-tion capabilities of Generative Retrieval (GR) models, specifically SEAL and MINDER, against the LIMIT benchmark to assess their resilience to the vector bottleneck inherent in embedding-based retrieval. While our experimental results confirm that GR’s autore-gressive architecture successfully bypasses these limits of dense models, we expose an important vulnerability of GR: identifier ambiguity. By introducing LIMIT-H and LIMIT-HS—adversarial extensions featuring semantically irrelevant distractors with high lexical overlap — we demonstrate that these GR models struggle with semantic robustness, often failing to distinguish between rele-vant documents and their hard negative counterparts. We conducted controlled experiments using synthetic data that allowed us to focus on specific failure modes and efficiently collect important insights into the limitations of different IR models. In future work, we plan to extend this evaluation to real-world data to confirm our hypothesis. We also intend to evaluate more advanced models that build upon SEAL, such as LTRGR [ 9], and more re-cent models specifically designed for zero-shot settings, such as ZeroGR [15]. 
+
+## Acknowledgments 
+
+This work has been funded by the Vienna Science and Technology Fund (WWTF) under the Grant ID 10.47379/VRG24013 
+
+## References         
+
+> [1] Michele Bevilacqua, Giuseppe Ottaviano, Patrick Lewis, Scott Yih, Sebastian Riedel, and Fabio Petroni. 2022. Autoregressive search engines: Generating substrings as document identifiers. Advances in Neural Information Processing Systems 35 (2022), 31668–31683. [2] Mohsen Fayyaz, Ali Modarressi, Hinrich Schütze, and Nanyun Peng. 2025. Col-lapse of Dense Retrievers: Short, Early, and Literal Biases Outranking Factual Evidence. In Proceedings of the 63rd Annual Meeting of the Association for Com-putational Linguistics .[3] P. Ferragina and G. Manzini. 2000. Opportunistic data structures with applica-tions. In Proceedings 41st Annual Symposium on Foundations of Computer Science .390–398. doi:10.1109/SFCS.2000.892127
+
+Adrian Bracher and Svitlana Vakulenko 
+
+[4] Mitko Gospodinov, Sean MacAvaney, and Craig Macdonald. 2023. Doc2Query–: when less is more. In European Conference on Information Retrieval . Springer, 414–422. [5] Gautier Izacard, Mathilde Caron, Lucas Hosseini, Sebastian Riedel, Piotr Bo-janowski, Armand Joulin, and Edouard Grave. 2022. Unsupervised Dense Information Retrieval with Contrastive Learning. arXiv:2112.09118 [cs.IR] https://arxiv.org/abs/2112.09118 [6] Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick SH Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020. Dense Passage Retrieval for Open-Domain Question Answering.. In EMNLP (1) . 6769–6781. [7] Mike Lewis, Yinhan Liu, Naman Goyal, Marjan Ghazvininejad, Abdelrahman Mo-hamed, Omer Levy, Ves Stoyanov, and Luke Zettlemoyer. 2019. BART: Denoising sequence-to-sequence pre-training for natural language generation, translation, and comprehension. arXiv preprint arXiv:1910.13461 (2019). [8] Yongqi Li, Nan Yang, Liang Wang, Furu Wei, and Wenjie Li. 2023. Multiview Identifiers Enhanced Generative Retrieval. In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) .Association for Computational Linguistics, 6636–6648. [9] Yongqi Li, Nan Yang, Liang Wang, Furu Wei, and Wenjie Li. 2024. Learning to Rank in Generative Retrieval. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 38. 8716–8723. https://doi.org/10.1609/aaai.v38i8.28717 [10] Yongqi Li, Ruqing Zhang, Jiafeng Guo, et al . 2024. Generative Retrieval as Multi-Vector Dense Retrieval. In Proceedings of the 47th International ACM SIGIR Conference . Provides theoretical grounding for GR’s high representational capacity compared to DR.. [11] Ji Ma, Ivan Korotkov, Yinfei Yang, Keith Hall, and Ryan McDonald. 2021. Zero-shot neural passage retrieval via domain-targeted synthetic question generation. In Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main Volume . 1075–1088. [12] Kidist Amde Mekonnen, Yubao Tang, and Maarten de Rijke. 2025. Light-weight and Direct Document Relevance Optimization for Generative Infor-mation Retrieval. In Proceedings of the 48th International ACM SIGIR Confer-ence on Research and Development in Information Retrieval (SIGIR ’25) . https: //arxiv.org/abs/2504.05181 Introduces direct pairwise ranking optimization to align docid generation with document relevance.. [13] Rodrigo Nogueira and Jimmy Lin. 2019. From doc2query to docTTTTTquery. 
+
+Online preprint 6, 2 (2019). [14] Nils Reimers and Iryna Gurevych. 2021. The curse of dense low-dimensional information retrieval for large index sizes. In Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 2: Short Papers) . 605– 611. [15] Weiwei Sun, Keyi Kong, Xinyu Ma, Shuaiqiang Wang, Dawei Yin, Maarten de Rijke, Zhaochun Ren, and Yiming Yang. 2025. ZeroGR: A Generalizable and Scalable Framework for Zero-Shot Generative Retrieval. arXiv preprint arXiv:2510.10419 (2025). [16] Yi Tay, Vinh Tran, Mostafa Dehghani, Jianmo Ni, Dara Bahri, Harsh Mehta, Zhen Qin, Kai Hui, Zhe Zhao, Jai Gupta, et al . 2022. Transformer memory as a differentiable search index. Advances in Neural Information Processing Systems 
+
+35 (2022), 21831–21843. [17] Yujing Wang, Yingyan Hou, Haonan Wang, Ziming Miao, Shibin Wu, Qi Chen, Yuqing Xia, Chengmin Chi, Guoshuai Zhao, Zheng Liu, et al . 2022. A neural corpus indexer for document retrieval. Advances in Neural Information Processing Systems 35 (2022), 25600–25614. [18] Orion Weller, Michael Boratko, Iftekhar Naim, and Jinhyuk Lee. 2025. On the the-oretical limitations of embedding-based retrieval. arXiv preprint arXiv:2508.21038 
+
+(2025). [19] Orion Weller, Benjamin Van Durme, Dawn Lawrie, Ashwin Paranjape, Yuhao Zhang, and Jack Hessel. [n. d.]. Promptriever: Instruction-Trained Retrievers Can Be Prompted Like Language Models. In The Thirteenth International Conference on Learning Representations .[20] Hansi Zeng, Chen Luo, Bowen Jin, Sheikh Muhammad Sarwar, Tianxin Wei, and Hamed Zamani. 2024. Scalable and effective generative information retrieval. In 
+
+Proceedings of the ACM Web Conference 2024 . 1441–1452. [21] Hansi Zeng, Chen Luo, and Hamed Zamani. 2024. Planning ahead in generative retrieval: Guiding autoregressive generation through simultaneous decoding. In Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval . 469–480. [22] Yingchen Zhang, Ruqing Zhang, Jiafeng Guo, Maarten de Rijke, Yixing Fan, and Xueqi Cheng. 2025. Does Generative Retrieval Overcome the Limitations of Dense Retrieval? arXiv preprint arXiv:2509.22116 (2025). [23] Zhen Zhang, Xinyu Ma, Weiwei Sun, Pengjie Ren, Zhumin Chen, Shuaiqiang Wang, Dawei Yin, Maarten de Rijke, and Zhaochun Ren. 2025. Replication and Exploration of Generative Retrieval over Dynamic Corpora. In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval . 3325–3334.

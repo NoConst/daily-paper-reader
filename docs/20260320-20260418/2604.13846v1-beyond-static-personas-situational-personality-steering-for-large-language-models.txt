@@ -1,0 +1,997 @@
+Title: Beyond Static Personas: Situational Personality Steering for Large Language Models
+
+URL Source: https://arxiv.org/pdf/2604.13846v1
+
+Published Time: Thu, 16 Apr 2026 01:09:14 GMT
+
+Number of Pages: 26
+
+Markdown Content:
+## Beyond Static Personas: Situational Personality Steering for Large Language Models 
+
+Zesheng Wei 1* Mengxiang Li 1 Zilei Wang 1† Yang Deng 21University of Science and Technology of China 
+
+> 2
+
+Singapore Management University 
+
+{zswei, mxli02}@mail.ustc.edu.cn , zlwang@ustc.edu.cn ydeng@smu.edu.sg 
+
+Abstract 
+
+Personalized Large Language Models (LLMs) facilitate more natural, human-like interac-tions in human-centric applications. How-ever, existing personalization methods are con-strained by limited controllability and high re-source demands. Furthermore, their reliance on static personality modeling restricts adapt-ability across varying situations. To address these limitations, we first demonstrate the ex-istence of situation-dependency and consistent situation-behavior patterns within LLM per-sonalities through a multi-perspective analy-sis of persona neurons. Building on these insights, we propose IR IS, a training-free, neuron-based Identify-Retrieve-Steer frame-work for advanced situational personality steering. Our approach comprises situational persona neuron identification, situation-aware neuron retrieval, and similarity-weighted steering. We empirically validate our frame-work on P ERSONALITY BENCH and our newly introduced SPBench, a comprehensive situa-tional personality benchmark. Experimental results show that our method surpasses best-performing baselines, demonstrating IR IS’s generalization and robustness to complex, un-seen situations and different models architec-ture. 
+
+1 Introduction 
+
+“Behavior is a function of the person and their environment.” (Lewin, 2013) 
+
+— Kurt Lewin 
+
+The advancement of Large Language Models (LLMs) has catalyzed a wide range of human-centric applications such as role-playing (Chen et al., 2024a; Wang et al., 2025c,a), personalized assistance (Deng et al., 2024b; Mok et al., 2025), user simulation (Zhang et al., 2024; Wu et al., 2025), and social simulation (Chen et al., 2024b; 
+
+> *
+
+Work was done during a visit at SMU. 
+
+> †
+
+Corresponding author. Diversity and Inclusion      
+
+> SpiritualityandFaith
+> Workandcareer
+> Educationandlearning
+
+Figure 1: PCA of situation-dependent and global per-sona neurons, with proximate topic names annotated. Comparable distances between distinct personality do-mains and topics within same personality domain high-light the crucial impact of situations. 
+
+Zhou et al., 2024; Zhang et al., 2025). These applications require models to express coherent personalities while adapting their behavior across diverse interaction situations, making personality modeling a central challenge for LLM personal-ization. However, most existing approaches im-plicitly assume that behavior is determined solely by stable personality traits. This assumption con-flicts with a core principle in psychology: behav-ior is a function of both the person and the environ-ment (Lewin, 2013). When situational factors are ignored, personalized agents may exhibit superfi-cial consistency yet fail to respond appropriately across varying situations. Existing approaches to endowing LLMs with personality are primarily categorized into training-based and training-free methods. Training-based methods rely on large-scale, high-quality datasets to align models with specific personalized prefer-ences (Li et al., 2025), utilizing techniques such as Supervised Fine-Tuning (SFT) (Wang et al., 2025b; Tan et al., 2024b; Li et al., 2024b) or Direct Preference Optimization (DPO) (Li et al., 2024a). 
+
+> arXiv:2604.13846v1 [cs.CL] 15 Apr 2026
+
+While effective, these methods are computation-ally expensive (Szep et al., 2025) and difficult to adapt post hoc (Tseng et al., 2024). Training-free methods, including prompt-based personalization (Jiang et al., 2023; Li et al., 2023) and direct in-ternal steering (Deng et al., 2024a; Chen et al., 2025), offer greater flexibility but suffer from in-stability, limited controllability, and weak theo-retical grounding. Although prompt-based meth-ods can incorporate conversational history as sit-uational context, they treat it merely as a "black-box" input. Relying on implicit attention mecha-nisms for this modulation lacks transparency, of-ten causing unstable personality expression. Cru-cially, both training and training-free paradigms lack a mechanistic framework to explicitly model the underlying persona-situation interactions. In contrast to the static assumptions underly-ing existing LLM personalization methods, per-sonality psychology provides a well-established 
+
+persona-situation interactional account of be-havior (Lewin, 2013). While early trait theories assume cross-situational consistency (Newcomb, 1929; Allport, 1937), subsequent work demon-strates that stable traits alone are insufficient to explain behavior across diverse situations (Mis-chel, 1968; Mischel and Peake, 1982). In partic-ular, the Cognitive-Affective Personality System (CAPS) theory (Mischel and Shoda, 1995) argues that human behavior varies across diverse situa-tions . Empirical studies further demonstrate that 
+
+different situations selectively activate cognitive and affective units (Mischel et al., 2002), and that 
+
+personality coherence is expressed through consis-tent situation-behavior patterns (Ayduk and Gyu-rak, 2008). To date, these persona-situation inter-actional mechanisms have not been systematically investigated or integrated into LLM-based person-alization. Motivated by the above psychology studies, we first empirically examine whether LLMs exhibit human-like situational dependency and consistent situation-behavior personality patterns, through multi-perspective analysis of internal neurons. As illustrated in Figure 1, our preliminary results show that the maximum PCA distance between situational topics within a single domain is com-parable to the distance observed between distinct personality domains, suggesting that situational variation can induce significant personality-level representational shifts. Building on this obser-vation, we propose a training-free, neuron-based Identify-Retrieve-Steer framework for situational personality steering, named IR IS. The framework first identifies situational persona neurons from a set of historical situations, which serve as in-structive priors. Given a novel situational situa-tion, IR IS estimates its similarity to these histori-cal situations, retrieves the corresponding persona neurons, and applies coefficient-weighted steering to enable precise and situation-aware personaliza-tion. Comprehensive evaluations across two person-ality benchmarks validate the SOTA performance of IR IS, demonstrating effective generalization to unseen situations and robustness within complex situations. Furthermore, extensive experiments verify the adaptability of our approach across di-verse model architectures. To summarize, our con-tributions are as follows: • We empirically validate human-like situational dependency and consistent situation-behavior personality patterns within LLMs, pioneering the integration of these psychological mecha-nisms to guide precise personality steering. • We propose the IR IS framework, a psychology-grounded approach that leverages instructive pri-ors for situational-aware retrieval and steering. • We conduct extensive experiments and in-depth analyses to verify our framework’s effective-ness, offering intuitive insights into situational personality for future research and applications. 
+
+2 Preliminary Analysis 
+
+The preliminary analysis aims to investigate the situational impact on LLMs’ personality mani-festation, and to validate the theory of situation-behavior consistency within LLMs. 
+
+2.1 Backgrounds Personality Model In this work, we adopt the widely validated Big-Five model (Tupes and Christal, 1992) as the foundational personal-ity framework, which comprises five domains: 
+
+openness (O), conscientiousness (C), extroversion 
+
+(E), agreeableness (A), and neuroticism (N). Each domain encompasses opposing aspects (e.g., ex-traverted versus introverted within the E domain). 
+
+Neurons in LLMs Modern LLMs adopt the auto-regressive transformer (Vaswani et al., 2017) architecture, which consists of L stacked trans-former blocks. Previous work has shown that (a) (b) (c) 
+
+> Figure 2: Empirical study results: (a) Layer-wise counts of persona neurons across situational topics (Topic labels abbreviated by omitting "and") (b) Variability in neuron proportions across early, middle, and late layers for different topics. (c) Validation of the situation-behavior consistency patterns in LLM personality.
+
+knowledge, such as personality, is stored in spe-cific neurons within the feed-forward networks (FFNs) of each block (Dai et al., 2022). Specif-ically, in layer l, given input Xl for a token, we have:     
+
+> FFN (Xl) = act (XlWl
+> 1)Wl
+> 2(1)
+
+where Xl ∈ Rd, W l 
+
+> 1
+
+∈ Rd×dh , W l 
+
+> 2
+
+∈ Rdh×d, and 
+
+act represents the activation function (e.g., ReLU (Agarap, 2019)). More recent advanced LLMs (Grattafiori et al., 2024; Team et al., 2024; Yang et al., 2025) have replaced the ReLU non-linearity with the GLU (Shazeer, 2020) activation function to achieve better performance:       
+
+> FFN’ (Xl) = ( act (XlWl
+> 1)⊙(XlWl
+> 3)) Wl
+> 2(2)
+
+where ⊙ denotes element-wise multiplication, and 
+
+W l 
+
+> 3
+
+∈ Rd×dh is the gating weight matrix. In layer l, the ith neuron can be conceptualized as applying a linear transformation to column i of 
+
+W l 
+
+> 1
+
+followed by the non-linear activation. The ac-tivation value of a neuron is positively correlated with the expression of corresponding facts. In this context, a neuron is considered activated if its activation value exceeds zero (Nair and Hinton, 2010). 
+
+Neuron Identification Dataset & Situational Topic Category To identify persona neurons within LLMs, we employ the dataset from P ER -
+
+> SONALITY
+
+BENCH (Deng et al., 2024a), denoted as Q, which comprises a diverse set of descriptive personalization prompts and situational questions designed to elicit personality-driven responses. To investigate the influence of varying situations on LLMs’ personality, these questions are catego-rized into M = 30 distinct topics, following the taxonomy of UltraChat (Ding et al., 2023). Fur-ther details are provided in Appendix A. 
+
+2.2 Empirical Study 
+
+The targets of our analysis are situational persona neurons in LLMs, which are identified by measur-ing activation differences of neurons within LLMs under contrastive personality prompts within situ-ational topics, with detailed explanations in § 3.1. 
+
+2.2.1 Situational Impact on LLMs’ Personality 
+
+We analyze the activation states and layer-wise distribution of persona neurons to investigate situ-ation impact on LLMs’ personality. Llama-3-8B-Instruct (Grattafiori et al., 2024) and Qwen3-8B (Yang et al., 2025) are adopted as target LLMs for validation. Comprehensive results are provided in Appendix C. 
+
+Activation-Level Perspective We collect the activation probabilities of all situational persona neurons across diverse topics. For comparison, we also derive "global persona neurons" by dis-regarding topic distinctions, establishing a base-line for cross-situational consistency. We then perform Principal Component Analysis (PCA) on the feature vectors vf ∈ RL×dh , which are con-structed by populating the activation probability values of specific neurons while setting irrele-vant neurons’ positions to zero. As illustrated in Figure 1 (Qwen) and Figure 5 (Llama), situ-ational persona neurons exhibit significant varia-tion across topics. Notably, the maximum Eu-clidean distance between topics within a single domain in the PCA space is comparable to the dis-tance between distinct personality domains. More-over, nearby points in the PCA space correspond to semantically similar topics, confirming that the observed variation is systematic rather than noise. Given the independence of Big Five personality domains (Goldberg, 2013), this result indicates that distinct situations induces personality-level representational shifts in LLMs .
+
+Layer-Level Perspective We further investigate the variations in the count and proportion of sit-uational personality neurons across diverse top-ics among all layers. For illustrative clarity, we select eight topics and eight layers spanning the early, middle, and late stages within personality domain C. As shown in Figure 2a, within a spe-cific personality domain, questions involving dif-ferent situational topics significantly influence the distribution of neurons controlling LLM personal-ity. Similarly, as illustrated in Figure 2b, the pro-portion of situational persona neurons per layer ex-hibits significant disparity, with a maximum differ-ence of 2.23% observed in layer 16. Furthermore, the results demonstrate that the middle layers con-tain the highest concentration of persona neurons across all topics, which aligns with findings from prior studies (Skean et al., 2025; Liu and Niehues, 2025). 
+
+2.2.2 Stability of Situation-Behavior in LLMs 
+
+We next investigate human-like personality pat-terns of situation-behavior consistency in LLMs. We hypothesize that analogous situations elicit consistent activation patterns in persona neurons, thereby generating coherent personalized behav-iors. To investigate this, we select four topics within a specific personality domain, each com-prising 1,200 questions covering both aspect. Fea-ture vectors are constructed by aggregating the ac-tivation probabilities of situational persona neu-rons across output tokens, following the method-ology in § 2.2.1. Given the high dimensionality and substantial sample size of vectors, we apply Linear Discriminant Analysis (LDA) following PCA. As illustrated in Figure 2c, instances from the same topic form distinct and cohesive clus-ters, suggesting that diverse questions within a situation elicit convergent internal activations .Notably, overlaps between certain clusters reflect semantic correlations across questions, indicating that these representations exist within a contin-uous latent space rather than being strictly bi-nary .
+
+3 IR IS Framework 
+
+Empirical study in § 2.2 has shown the dis-tinct activation patterns to exert personalized con-trol across different situations and the princi-ple of situation-behavior stability within LLMs. Based on this empirical conclusion, we propose a human-like train-free Identify-Retr ieve-Steer (IR IS) framework to achieve more accurate per-sonality steering. As illustrated in Figure 3, our framework operates in three stages: (1) identify-ing situational persona neurons (§ 3.1); (2) retriev-ing relevant historical topics via a situation-aware module (§ 3.2); and (3) modulating the model’s personality in novel situation using similarity-weighted steering (§ 3.3). To facilitate consistency throughout the paper, we summarize the mathe-matical notations in § B. 
+
+3.1 Identifying Situational Persona Neurons 
+
+Given a personality domain D, we employ both positive and negative personality prompt to in-struct the target LLM to respond to the set of sit-uational questions Qt 
+
+> D
+
+regarding topic t. We then calculate the activation probability for all neurons across all output tokens. Specifically, the activa-tion probability of the ith neuron in layer l is com-puted as:      
+
+> Psi,l =E
+> [
+> I
+> (
+> act
+> (
+> Xl(Wl
+> 1)i
+> )
+> >0
+> )
+> | D s, t
+> ]
+> (3)
+
+Where I(˚u) is the indicator function and s ∈{+, −} represents the personality aspect. To elim-inate impact from irrelevant content and locate the persona neurons, we compute the activation dif-ference across all neurons between positive and negative traits, defined as ∆P = P + − P −. We classify all neurons, termed situational persona neurons , into positive ( N D+ 
+
+> t
+
+), negative ( N D− 
+
+> t
+
+), or irrelevant ( N It ) for specific topic t based on whether their activation difference ∆P is greater than a threshold 10% , less than −10% , or falls between these bounds, respectively. For all per-sonality domain and its corresponding topic, we store both N D+ 
+
+> T
+
+and N D− 
+
+> T
+
+with the location , his-torical activation value , raw activation probabil-ity of its aspect , and activation probability dif-ference in Situational Persona Neurons Bank ,Where D ∈ { O, C, E, A, N }, and T is the topic set. 
+
+3.2 Situation-aware Neurons Retrieval 
+
+We have established that LLMs utilize highly con-sistent persona neurons to regulate personality ex-pression across similar situations in § 2.2.2. Con-sequently, when the model encounters a novel situ-ation, retrieving and adjusting situational persona (2) Retrieve 
+
+> Cosine Similarity
+> Score
+
+... 
+
+> Softmax Score
+
+... 
+
+(1) Identify 
+
+> Softmax
+> ...
+
++
+
+> Question
+> Deact.
+> ...
+> Act.
+> ...
+
+(3) Steer 
+
+> Neurons Bank
+> ...
+
+## ... ...  
+
+> ...
+> ...
+> Stimulate
+> Negative
+> Aspect
+> Positive
+> Aspect
+> Sub. Locate
+> Personality
+> Domain
+> ...
+> Negative
+> Aspect
+> Positive
+> Aspect
+> Situational Question
+> Target
+> Aspect
+> ...
+> Positive Neuron
+> Negative Neuron
+> Irrelevant Neuron
+> Inactive Neuron
+> ...
+> Personalized
+> Response
+> Sim.
+> Target
+> LLM
+> Target
+> LLM
+
+Figure 3: Overview of the IR IS framework, comprising Identification, Retrieval, and Steering phases for accurate personality steering. 
+
+neurons associated with similar contexts can yield precise personality control. Specifically, given a novel, topic-agnostic question and a target per-sonality domain D, we firstly compute the acti-vation difference vector ∆v between the positive and negative aspects (same as the subtraction op-eration in § 3.1). Secondly, for neuron belonging to D and specific topic t, we construct the fea-ture vectors vD 
+
+> t
+
+∈ RL×dh using the raw activa-tion probability values across positive and nega-tive neurons, while setting irrelevant neurons’ po-sition to zero. We then compute the cosine simi-larity score between ∆v with vD 
+
+> t
+
+across all topics in T :          
+
+> Sim (vD
+> t,∆v) = vD
+> t·∆v
+> ∥vD
+> t∥ · ∥ ∆v∥t∈T(4)
+
+To effectively accentuate the distinctions between scores, we apply a softmax function on all sim-ilarity scores, obtaining the normalized situation similarity coefficients et for each topic t:       
+
+> et=Softmax
+> (
+> Sim (vD
+> t,∆v)
+> )
+> t∈T(5)
+
+3.3 Situational Personality Steering 
+
+The soft situation similarity coefficients quantify the semantic alignment between the current situ-ation and reference situations. Motivated by the multi-contextual nuances of questions in Q identi-fied in § 2.2.2, we evaluate the precision of these coefficients in Appendix E. The demonstrated high accuracy validates the reliability of this se-mantic alignment, enabling nuanced, situational personality steering that remains robust even in complex multi-contextual scenarios. Building on this validation, for a target personality aspect D,we amplify the activation of situational persona neurons via coefficient-weighted modulation, en-suring the intervention is proportional to situa-tional relevance:                    
+
+> n′=nori +∑
+> t∈Tet·γ·a95 ·f(∆ P),if n∈ND+
+> t(6)
+
+Where nori represents the original activation, γ is to control the magnitude of adjustment, and a95 
+
+represents the 95 th percentile of historical activa-tion value of this neuron to constrain modification. Activation differences are also accounted for by applying a softmax-based smoothing function, de-fined as f (x) = 11+ e−10 ·(|x|− 0.15) , to the value. we introduce a threshold σ and deactivate those neg-ative situational persona neurons with correspond-ing similarity coefficients greater than σ:        
+
+> n′= min(0 , n ori ),if n∈∪
+> t:et>σ ND−
+> t(7)
+
+4 Experiments 
+
+4.1 Experimental Setup Benchmarking Dataset . We employ test set from P ERSONALITY BENCH (Deng et al., 2024a) . Notably, these situational questions lack explicit situation labels, whose categories may fall out-side the topic set T . We introduce the Situational Personality Benchmark ( SPBench ) as a supple-mentary test set comprising 90 situational ques-tions per personality domain distributed across 30 Methods A C E N O Average                                                                                     
+
+> mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓
+> SFT 9.87 0.25 9.23 0.85 9.86 0.15 9.42 0.75 9.66 0.44 9.61 0.49
+> SP 9.72 0.34 9.24 1.06 9.50 1.02 7.18 1.22 6.31 1.14 8.39 0.96
+> P29.68 0.42 9.24 1.18 9.46 0.68 9.54 0.66 9.21 1.19 9.43 0.83
+> ActAdd 8.20 2.90 6.61 2.75 8.84 1.44 8.90 1.78 8.52 1.83 8.20 2.10
+> NPTI 9.64 0.49 9.25 0.66 9.86 0.14 9.92 0.07 8.50 1.08 9.43 0.49 IR IS9.36 0.46 9.09 0.55 9.90 0.09 9.94 0.06 9.63 0.36 9.59 0.30
+
+Table 1: Personality performance results on P ERSONALITY BENCH . We report the mean score and variance for each personality domain, along with the overall average. The best and second-best results in every column are marked. Our method is highlighted, while SFT results serve as the upper bound for reference purposes.                                                                                           
+
+> Methods ACENOAverage
+> mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓
+> SFT 9.67 0.50 8.83 0.84 9.23 1.03 9.17 0.95 9.47 0.57 9.27 0.78
+> SP 9.66 0.59 9.02 1.08 9.11 1.42 8.42 1.16 7.29 1.67 8.70 1.18
+> P29.31 1.02 8.73 1.16 9.18 1.05 8.98 1.13 9.28 0.82 9.10 1.04
+> ActAdd 7.72 0.99 6.13 0.33 8.06 0.82 8.13 0.77 6.93 1.57 7.39 0.90
+> NPTI 8.82 0.80 8.51 0.94 9.58 0.69 9.53 0.45 9.04 0.40 9.09 0.66 IR IS9.09 0.64 8.66 0.72 9.63 0.56 9.59 0.48 9.33 0.48 9.26 0.58
+
+Table 2: Personality performance results on SPBench. Notation is consistent with Table 1. 
+
+topic categories, with construction detail and in-trinsic evaluations provided in Appendix F and G.1. Such settings guarantee the assessment on both generalization to unseen situational situa-tion , and the robustness in comprehensive bench-mark .
+
+Evaluation Metrics . We evaluate personality expression (mean), stability (variance), and re-sponse fluency using a 5-point LLM-as-a-Judge scale. Higher scores indicate stronger trait pres-ence or fluency quality. Thus, personality scores for negative aspects are inverted using (6 − score ).For each personality domain, we report the re-sults by summing its positive and negative aspect scores. 
+
+Baselines . We adopt a diverse range of LLM personalization baselines covering both inference-time and training-time alignment. These include prompt-based methods (Simple Prompt (SP), P 2
+
+(Jiang et al., 2023)), direct steering methods (Ac-tAdd (Turner et al., 2024), NPTI (Deng et al., 2024a)), and Supervised Fine-tuning (SFT) using LoRA (Hu et al., 2021), serving as upper bound 
+
+for reference purpose. Details of implementing these baselines are presented in Appendix D. 
+
+Implementation Details . To ensure a fair com-parison, we maintain consistent γ values for both IR IS and NPTI (1.4 for P ERSONALITY BENCH 
+
+and 1.1 for SPBench). LLM-as-a-Judge evalu-ations are conducted using the gpt-4o-20240806 
+
+(Hurst et al., 2024) API with greedy decoding. With the exception of § 5.3, Llama-3-8B-Instruct serves as the target LLM throughout § 4 and § 5. 
+
+4.2 Experimental Results Results on P ERSONALITY BENCH As shown in Table 1, SP achieves optimal performance on A domain, while exhibiting significant deficien-cies regarding N and O. These results underscore the inherent instability of prompt-based meth-ods as previously discussed in § 1. In contrast, IR IS outperforms all baselines in terms of mean and variance of personality performance scores for E, N, O, the overall average across all traits 
+
+(mean = 9 .59 , variance = 0 .30) , and score vari-ance on C domain. By surpassing all direct steer-ing baselines, our approach demonstrates more precise neuron control, enabling the model to ex-hibit personality with greater accuracy and consis-tency. Furthermore, IR IS achieves performance marginally below the SFT baseline while remain-ing train-free. These superior results demonstrate our framework’s resource efficiency, controllabil-ity, and generalization to unseen situational situa-tions. Fluency scores are analyzed in Appendix H. 
+
+Results on SPBench Notably, P ERSONALITY -BENCH is a relatively simple benchmark where baseline performances saturate near theoretical maximums. While SPBench matches its per-domain question count, it offers a more challeng-(a) P ERSONALITY BENCH (b) SPBench                                 
+
+> (c) Personality Score (d) Fluency
+> Figure 4: Ablation study results: (a) and (b) depict the personality assessment performance across two distinct test sets under different γsettings. (c) and (d) illustrate the impact of varying σsettings across all evaluation metrics.
+> Method Ranking Distribution (%) Mean Rank ↓
+> 1st 2nd 3rd 4th
+> SP 16.3 22.5 28.7 32.6 2.78
+> P229.2 22.5 25.3 23.0 2.42 NPTI 19.1 28.7 23.0 29.2 2.62
+> IR IS35.4 26.4 23.0 15.2 2.18
+> Table 3: Human evaluation results showing the ranking distribution and mean rank of all methods.
+
+ing standard by covering a broader range of situ-ations. As shown in Table 2, IR IS consistently outperforms all baselines on average, underscor-ing its robustness in navigating complex scenarios. Furthermore, several baselines suffer performance degradation in specific personality domains within SPBench. This suggests that existing methods struggle with personality control in complex sit-uations, further validating SPBench as a compre-hensive benchmark. 
+
+5 Further Analysis 
+
+5.1 Human Evaluation 
+
+We recruit five human evaluators to rank the re-sponses from four top-performing methods. We conduct a pre-evaluation training for all human evaluators and verify their inter-annotator agree-ment, with more details provided in Appendix G.2. We aggregate the evaluation results to calculate both the distribution of rankings across all meth-ods and the overall average ranks, as presented in Table 3. The results demonstrate that IR ISachieves the highest proportion of first-place rank-ings and the most favorable average rank. These findings are consistent with the outcomes of the LLM-as-a-Judge evaluation, further validating the effectiveness of our proposed framework. 
+
+5.2 Effect of Hyperparameters Impact of γ The parameter γ in Eq. 6 regu-lates the steering magnitude of activation values for positive persona neurons. We investigate its impact on overall personality performance scores by conducting an ablation study with values rang-ing from 0.9 to 1.5 across two test sets. As il-lustrated in Figure 4a and Figure 4b, both IR ISand NPTI underperform compared to P 2 at lower 
+
+γ values, primarily constrained by their preset prompt. However, performance improves for both methods as γ increases. Notably, our method con-sistently outperforms NPTI. For instance, our ap-proach at γ = 1 .3 surpasses NPTI at γ = 1 .4.These results validate that our framework outper-forms baselines by leveraging precise neuron mod-ification to achieve superior efficiency and accu-racy in personality elicitation under identical hy-perparameter settings. 
+
+Impact of σ The parameter σ in Eq. 7 governs the selection threshold for negative neurons. Asmaller σ implies a larger number of negative neurons are selected for deactivation. To inves-tigate this, we conducted an ablation study on Model Methods A C E N O Average                                                                                                              
+
+> mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓
+> Qwen SP 9.41 0.58 9.11 0.88 9.46 0.66 8.74 0.98 6.41 1.68 8.63 0.95
+> P29.46 0.54 9.28 0.57 9.39 0.77 9.45 0.90 9.18 0.79 9.35 0.71
+> NPTI 9.76 0.23 9.82 0.16 9.96 0.04 9.96 0.04 9.64 0.23 9.83 0.14
+> IR IS9.94 0.05 9.80 0.17 9.93 0.08 10.00 0.00 9.74 0.38 9.89 0.10 Gemma SP 9.96 0.04 9.07 0.66 9.63 0.43 8.95 0.79 8.39 1.62 9.20 0.71
+> P29.76 0.21 8.61 0.91 9.61 0.48 9.55 0.58 9.32 0.48 9.37 0.53
+> NPTI 9.62 0.24 8.90 1.56 9.91 0.17 9.99 0.01 9.34 0.25 9.55 0.44
+> IR IS9.92 0.07 9.75 0.26 9.96 0.04 9.98 0.04 9.70 0.28 9.86 0.14
+
+Table 4: Personality performance results on Qwen3-8B and gemma-3-12b-it, with consistent Notation in Table 1. 
+
+Methods A C E N O Average 
+
+mean ↑ var ↓ mean ↑ var ↓ mean ↑ var ↓ mean ↑ var ↓ mean ↑ var ↓ mean ↑ var ↓
+
+Qwen3-0.6B SP 6.73 2.21 6.78 0.89 6.83 1.30 7.73 1.00 6.30 2.19 6.87 1.50 
+
+P 2 7.57 1.90 7.42 1.11 8.73 0.79 8.18 1.07 7.60 1.60 7.90 1.29 
+
+NPTI 9.03 0.46 8.74 0.59 9.56 0.31 9.87 0.10 9.18 0.35 9.28 0.36 
+
+IRIS 9.53 0.31 8.90 0.70 9.83 0.10 10.00 0.00 9.73 0.14 9.60 0.25 Qwen3-8B SP 9.41 0.58 9.11 0.88 9.46 0.66 8.74 0.98 6.41 1.68 8.63 0.95 
+
+P 2 9.46 0.54 9.28 0.57 9.39 0.77 9.45 0.90 9.18 0.79 9.35 0.71 
+
+NPTI 9.76 0.23 9.82 0.16 9.96 0.04 9.96 0.04 9.64 0.23 9.83 0.14 
+
+IRIS 9.94 0.05 9.80 0.17 9.93 0.08 10.00 0.00 9.74 0.38 9.89 0.10 Qwen3-14B SP 9.47 0.24 9.13 0.53 9.21 0.43 8.90 0.74 7.36 2.23 8.81 0.83 
+
+P 2 9.64 0.19 8.63 0.78 9.43 0.30 9.59 0.31 9.07 0.58 9.27 0.43 
+
+NPTI 9.84 0.07 9.70 0.13 9.86 0.09 10.00 0.00 9.64 0.15 9.81 0.09 
+
+IRIS 9.96 0.02 9.84 0.08 9.97 0.03 10.00 0.00 9.71 0.15 9.90 0.06 
+
+Table 5: Personality performance results on the Qwen3 series across different model scales. 
+
+σ on the P ERSONALITY BENCH , while keeping other hyper-parameters fixed. We evaluated four candidate values: {0.01 , 0.05 , 0.10 , 0.20 }, analyz-ing their impact on both personality performance and fluency of results on positive aspect of A do-main. As shown in Figure 4c, both the personal-ity performance score and variance exhibit an ini-tial increase followed by a decline as σ increases. Conversely, Figure 4d illustrates the results for response fluency: as σ increases, fewer negative neurons are deactivated, leading to improved gen-eration fluency. Consequently, we set σ = 0 .10 
+
+given the stable fluency between 0.10 and 0.20. 
+
+5.3 Generalizability Across Different Models 
+
+To evaluate the robustness of our method across different LLMs, we extend our experiments to in-clude two additional advanced models: Qwen3-8B and gemma-3-12B-it (Team et al., 2025). These models introduce architectural diversity. Specifically, Qwen utilizes the SiLU (Elfwing et al., 2017) activation function, consistent with our primary model Llama-3-8B-Instruct, while Gemma employs GeLU (Hendrycks and Gimpel, 2023). We maintain constant hyperparameters across all settings, with the exception of γ, which is adjusted to 1.0 for Qwen and 1.3 for Gemma. As illustrated in Figure 4, IR IS ranks first in the majority of personality domains and second in the remainder, achieving the best overall performance on both models. These results demonstrate the ro-bustness of our approach across varying model ar-chitectures. 
+
+5.4 Impact of Model Scaling on Generalizability 
+
+To investigate the scalability and consistency of our method across varying model sizes, we con-duct a scaling analysis utilizing different scales within the Qwen3 family, specifically Qwen3-0.6B, Qwen3-8B, and Qwen3-14B. All hyperpa-rameters are kept strictly constant across these models. As presented in Table 5, existing methods exhibit noticeable scaling inconsistencies, where increasing model parameters does not guarantee proportional performance gains. Notably, scal-ing up the model size can occasionally result in performance degradation. For instance, baseline Domain Topic Std. Score                
+
+> AFashion_Style 1.038 Creativity_Inspiration -1.318 CRelationships_Dating 0.783 Music_Entertainment -0.995 EHistory_Nostalgia 0.946 Philosophy_Ethics -0.840 NPop_Culture_trends 0.750 History_Nostalgia -1.636 OFamily_Parenting 0.739 Education_Learning -0.369
+> Table 6: Results of Situational Impact on Personality.
+
+methods (e.g., P 2 and NPTI) on the 8B model unexpectedly outperform their 14B counterparts in the C domain. In contrast, IR IS demonstrates highly robust scalability. As the model parameters increase, our method not only steadily improves in average performance but also significantly re-duces variance (from 0.25 on 0.6B to 0.06 on 14B). Furthermore, IR IS consistently maintains SOTA overall performance across all three scales. These findings strongly validate the reliability and effec-tiveness of our approach, proving its capability to harness the power of larger models stably without suffering from prompt sensitivity. 
+
+5.5 Inherent Situational Impact on Personality Expression 
+
+Situational factors inherently influence the expres-sion of personality. To investigate this nuanced impact, we collect results from IR IS on SPBench and calculate a standardized score for each topic. Specifically, the raw scores for the positive and negative aspects are independently standardized by subtracting their respective means and divid-ing by their standard deviations. These standard-ized values are then averaged to derive the final score for each topic. This metric quantifies the di-rectional impact of a topic, where higher values indicate a positive deviation. Table 6 shows the topics exhibiting the most significant deviations across all domains. Notably, "History and Nos-talgia" yields a strongly negative score in Neuroti-cism, suggesting that factual topics inherently sup-press Neuroticism by eliciting calmer responses, thereby attenuating the effect of the intended per-sona adjustment. Qualitative case studies are pro-vided in Appendix K to explicitly reveal the dis-tinct characteristics of situational impact on the responses steered by IR IS. 
+
+6 Related Works 
+
+Early training-based LLM personalization ap-proaches rely on large-scale data to align models with general human preferences (Longpre et al., 2023; Li et al., 2024b). While subsequent re-search addresses granularity limitations by lever-aging fine-grained datasets (Bu et al., 2025) or training user-specific LoRA modules (Tan et al., 2024b; Wang et al., 2025d), these methods in-cur significant computational overhead, necessi-tate complex data curation, and lack the flexibil-ity to adapt to evolving user preferences. Alterna-tively, training-free strategies employ contextual guidance, ranging from explicit prompting (Tan et al., 2024a; Zhu et al., 2025) to implicit mech-anisms such as Retrieval-Augmented Generation for accessing personalized content (Richardson et al., 2023; Salemi et al., 2024). Although flex-ible, these approaches are often unstable due to their sensitivity to provided context quality. An-other training-free paradigm involves direct inter-nal steering, such as editing attention heads (Zhu et al., 2025), perturbing hidden states among lay-ers via probing classifiers (Ju et al., 2025), or modifying personality-related neuron activations (Deng et al., 2024a). However, these interven-tions typically lack robust psychological ground-ing, treating personality as a static attribute, which fail to capture the dynamic nature of human behav-ior across varying situations. 
+
+7 Conclusion 
+
+In this paper, we introduce IR IS, a neuron-based situational personality steering framework in LLMs. Grounded in our validation of situational dependency and consistent situation-behavior pat-terns within LLMs, IR IS integrates psychological theory with mechanistic intervention to achieve precise and human-like personality steering. Ex-tensive experiments demonstrate that IR IS signif-icantly outperforms existing paradigms on two comprehensive benchmarks and exhibits robust generalization across different model architec-tures. Furthermore, our in-depth analysis provides valuable insights to guide future research in this domain. 
+
+Acknowledgments 
+
+This work is supported by Anhui Province Key Research and Development Plan (202304a05020045), National Natural Sci-ence Foundation of China under Grant 62406098, the Singapore Ministry of Education (MOE) Academic Research Fund (AcRF) Tier 1 grant (Proposal ID: 24-SIS-SMU-002), and the Na-tional Research Foundation Singapore under the AI Singapore Programme (AISG Award No: AISG3-RPGV-2025-016). 
+
+Limitations 
+
+We discuss the limitations from two perspectives: 
+
+Trade-offs Between Personalization and In-struction Following Capabilities Our case studies reveal that steering models toward specific personality traits can occasionally compromise in-struction following, which is a common issue in LLM personalization approaches (Handa et al., 2025; de Araujo et al., 2025). For instance, in-ducing the negative aspect of Openness may cause the model to refuse interaction, reflecting realis-tic "closed" human behaviors. This highlights an inherent trade-off between personality expression and task completion. Given the diverse applica-tions of LLM personalization, this balance re-quires scenario-specific consideration . We also conduct comprehensive discussion on this issue, including evaluations of response fluency (Ap-pendix H) and general instruction-following capa-bilities (Appendix I). 
+
+Granularity of Situation Topics A second lim-itation lies in the granularity of our retrieval mech-anism, which currently relies on a taxonomy of 30 historical reference topics from (Ding et al., 2023). The fixed segmentation may be insufficient for cer-tain nuances, underscoring the need for more open-ended situational modeling . Nevertheless, our framework effectively retrieves multiple rele-vant situations based on current unseen situational question. Furthermore, the superior performance across two benchmarks, and in-depth analysis in § 3.3 and § E demonstrate IR IS’s efficiency and robustness to unseen complex situations. 
+
+Ethical Considerations 
+
+We strictly adhere to the licensing terms of the models utilized in this study. Llama-3-8B-Instruct is governed by the Meta Llama 3 Community Li-cense Agreement 1, Qwen3-8B is distributed un-
+
+> 1https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct/blob/main/LICENSE
+
+der the Apache License Version 2.0 2, and gemma-3-12b-it is subject to the Gemma Terms of Use 3.Additionally, the Roberta-large employed for the verification experiments in § E operates under the MIT License. We have properly cited all soft-ware, datasets, and models used, and we affirm that all presented results are intended exclusively for scientific research purposes. Our proposed benchmarking dataset SPBench consists of syn-thetic LLM-generated questions. It contains no personally identifiable information, such as names or individual identifiers, nor does it include offen-sive content. 
+
+References 
+
+Abien Fred Agarap. 2019. Deep learning using recti-fied linear units (relu). Preprint , arXiv:1803.08375. Gordon Willard Allport. 1937. Personality: A psycho-logical interpretation. Özlem Ayduk and Anett Gyurak. 2008. Applying the cognitive-affective processing systems approach to conceptualizing rejection sensitivity. Social and personality psychology compass , 2(5):2016–2033. Mengyu Bu, Shaolei Zhang, Zhongjun He, Hua Wu, and Yang Feng. 2025. AlignX: Advancing mul-tilingual large language models with multilingual representation alignment. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , pages 6471–6500, Suzhou, China. Association for Computational Linguistics. Nuo Chen, Yang Deng, and Jia Li. 2024a. The oscars of AI theater: A survey on role-playing with lan-guage models. CoRR , abs/2407.11484. Runjin Chen, Andy Arditi, Henry Sleight, Owain Evans, and Jack Lindsey. 2025. Persona vectors: Monitoring and controlling character traits in lan-guage models. Preprint , arXiv:2507.21509. Weize Chen, Yusheng Su, Jingwei Zuo, Cheng Yang, Chenfei Yuan, Chi-Min Chan, Heyang Yu, Yaxi Lu, Yi-Hsin Hung, Chen Qian, Yujia Qin, Xin Cong, Ruobing Xie, Zhiyuan Liu, Maosong Sun, and Jie Zhou. 2024b. Agentverse: Facilitating multi-agent collaboration and exploring emergent behaviors. In 
+
+International Conference on Representation Learn-ing , volume 2024, pages 20094–20136. Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. 2021. Training verifiers to solve math word prob-lems. Preprint , arXiv:2110.14168. 
+
+> 2https://huggingface.co/Qwen/Qwen3-8B/blob/main/LICENSE
+> 3https://ai.google.dev/gemma/terms
+
+Damai Dai, Li Dong, Yaru Hao, Zhifang Sui, Baobao Chang, and Furu Wei. 2022. Knowl-edge neurons in pretrained transformers. Preprint ,arXiv:2104.08696. Pedro Henrique Luz de Araujo, Michael A. Hedderich, Ali Modarressi, Hinrich Schuetze, and Benjamin Roth. 2025. Persistent personas? role-playing, in-struction following, and safety in extended interac-tions. Preprint , arXiv:2512.12775. Jia Deng, Tianyi Tang, Yanbin Yin, Wenhao Yang, Wayne Xin Zhao, and Ji-Rong Wen. 2024a. Neuron-based personality trait induction in large language models. Preprint , arXiv:2410.12327. Yang Deng, Lizi Liao, Zhonghua Zheng, Grace Hui Yang, and Tat-Seng Chua. 2024b. Towards human-centered proactive conversational agents. In Pro-ceedings of the 47th International ACM SIGIR Con-ference on Research and Development in Informa-tion Retrieval, SIGIR 2024, Washington DC, USA, July 14-18, 2024 , pages 807–818. ACM. Ning Ding, Yulin Chen, Bokai Xu, Yujia Qin, Shengding Hu, Zhiyuan Liu, Maosong Sun, and Bowen Zhou. 2023. Enhancing chat language mod-els by scaling high-quality instructional conversa-tions. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Process-ing , pages 3029–3051, Singapore. Association for Computational Linguistics. Stefan Elfwing, Eiji Uchibe, and Kenji Doya. 2017. Sigmoid-weighted linear units for neural network function approximation in reinforcement learning. 
+
+Preprint , arXiv:1702.03118. Lewis R Goldberg. 2013. An alternative description of personality: The big-five factor structure. In Person-ality and personality disorders , pages 34–47. Rout-ledge. Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schel-ten, Alex Vaughan, Amy Yang, Angela Fan, Anirudh Goyal, Anthony Hartshorn, Aobo Yang, Archi Mitra, Archie Sravankumar, Artem Korenev, Arthur Hinsvark, and 542 others. 2024. The llama 3 herd of models. Preprint , arXiv:2407.21783. Gunmay Handa, Zekun Wu, Adriano Koshiyama, and Philip Treleaven. 2025. Personality as a probe for llm evaluation: Method trade-offs and downstream effects. Preprint , arXiv:2509.04794. Dan Hendrycks and Kevin Gimpel. 2023. Gaussian er-ror linear units (gelus). Preprint , arXiv:1606.08415. Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. 2021. Lora: Low-rank adaptation of large language models. Preprint ,arXiv:2106.09685. Aaron Hurst, Adam Lerer, Adam P Goucher, Adam Perelman, Aditya Ramesh, Aidan Clark, AJ Ostrow, Akila Welihinda, Alan Hayes, Alec Radford, and 1 others. 2024. Gpt-4o system card. arXiv preprint arXiv:2410.21276 .Guangyuan Jiang, Manjie Xu, Song-Chun Zhu, Wen-juan Han, Chi Zhang, and Yixin Zhu. 2023. Evaluat-ing and inducing personality in pre-trained language models. In Proceedings of the 37th International Conference on Neural Information Processing Sys-tems , NIPS ’23, Red Hook, NY, USA. Curran Asso-ciates Inc. Oliver P John, Eileen M Donahue, and Robert L Kentle. 1991. Big five inventory. Journal of personality and social psychology .Tianjie Ju, Zhenyu Shao, Bowen Wang, Yujia Chen, Zhuosheng Zhang, Hao Fei, Mong-Li Lee, Wynne Hsu, Sufeng Duan, and Gongshen Liu. 2025. Prob-ing then editing response personality of large lan-guage models. arXiv preprint arXiv:2504.10227 .Kurt Lewin. 2013. Principles of topological psychol-ogy . Read Books Ltd. Cheng Li, Jindong Wang, Yixuan Zhang, Kaijie Zhu, Wenxin Hou, Jianxun Lian, Fang Luo, Qiang Yang, and Xing Xie. 2023. Large language models un-derstand and can be enhanced by emotional stimuli. 
+
+Preprint , arXiv:2307.11760. Wenkai Li, Jiarui Liu, Andy Liu, Xuhui Zhou, Mona T. Diab, and Maarten Sap. 2025. BIG5-CHAT: Shap-ing LLM personalities through training on human-grounded data. In Proceedings of the 63rd Annual Meeting of the Association for Computational Lin-guistics (Volume 1: Long Papers) , pages 20434– 20471, Vienna, Austria. Association for Computa-tional Linguistics. Xingxuan Li, Yutong Li, Lin Qiu, Shafiq Joty, and Lidong Bing. 2024a. Evaluating psycholog-ical safety of large language models. Preprint ,arXiv:2212.10529. Xinyu Li, Zachary C. Lipton, and Liu Leqi. 2024b. Per-sonalized language modeling from personalized hu-man feedback. CoRR , abs/2402.05133. Danni Liu and Jan Niehues. 2025. Middle-layer rep-resentation alignment for cross-lingual transfer in fine-tuned LLMs. In Proceedings of the 63rd An-nual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 15979– 15996, Vienna, Austria. Association for Computa-tional Linguistics. Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Man-dar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. 2019. Roberta: A robustly optimized bert pretraining ap-proach. Preprint , arXiv:1907.11692. Shayne Longpre, Le Hou, Tu Vu, Albert Webson, Hyung Won Chung, Yi Tay, Denny Zhou, Quoc V. Le, Barret Zoph, Jason Wei, and Adam Roberts. 2023. The flan collection: Designing data and methods for effective instruction tuning. Preprint ,arXiv:2301.13688. Robert R McCrae and Oliver P John. 1992. An intro-duction to the five-factor model and its applications. 
+
+Journal of personality , 60(2):175–215. Walter Mischel. 1968. Personality and assessment. Walter Mischel and Philip K Peake. 1982. Beyond déjà vu in the search for cross-situational consis-tency. Psychological review , 89(6):730. Walter Mischel and Yuichi Shoda. 1995. A cognitive-affective system theory of personality: reconceptual-izing situations, dispositions, dynamics, and invari-ance in personality structure. Psychological review ,102(2):246. Walter Mischel, Yuichi Shoda, and Rodolfo Mendoza-Denton. 2002. Situation-behavior profiles as a locus of consistency in personality. Current Directions in Psychological Science , 11(2):50–54. Jisoo Mok, Ik-hwan Kim, Sangkwon Park, and Sun-groh Yoon. 2025. Exploring the potential of LLMs as personalized assistants: Dataset, evaluation, and analysis. In Proceedings of the 63rd Annual Meet-ing of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 10212–10239, Vi-enna, Austria. Association for Computational Lin-guistics. Vinod Nair and Geoffrey E. Hinton. 2010. Rectified linear units improve restricted boltzmann machines. In Proceedings of the 27th International Conference on International Conference on Machine Learning ,ICML’10, page 807814, Madison, WI, USA. Omni-press. Theodore Mead Newcomb. 1929. The consistency of certain extrovert-introvert behavior patterns in 51 problem boys . 382. Teachers College, Columbia University. Chris Richardson, Yao Zhang, Kellen Gillespie, Sudipta Kar, Arshdeep Singh, Zeynab Raeesy, Omar Zia Khan, and Abhinav Sethy. 2023. Integrat-ing summarization and retrieval for enhanced per-sonalization via large language models. Preprint ,arXiv:2310.20081. Alireza Salemi, Surya Kallumadi, and Hamed Za-mani. 2024. Optimization methods for personaliz-ing large language models through retrieval augmen-tation. Preprint , arXiv:2404.05970. Noam Shazeer. 2020. Glu variants improve trans-former. Preprint , arXiv:2002.05202. Oscar Skean, Md Rifat Arefin, Dan Zhao, Niket Nikul Patel, Jalal Naghiyev, Yann LeCun, and Ravid Shwartz-Ziv. 2025. Layer by layer: Uncovering hid-den representations in language models. In Forty-second International Conference on Machine Learn-ing .Marton Szep, Daniel Rueckert, Rüdiger von Eisenhart-Rothe, and Florian Hinterwimmer. 2025. Fine-tuning large language models with limited data: A survey and practical guide. Preprint ,arXiv:2411.09539. Alon Talmor, Jonathan Herzig, Nicholas Lourie, and Jonathan Berant. 2019. CommonsenseQA: A ques-tion answering challenge targeting commonsense knowledge. In Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers) ,pages 4149–4158, Minneapolis, Minnesota. Associ-ation for Computational Linguistics. Fiona Anting Tan, Gerard Christopher Yeo, Kokil Jaidka, Fanyou Wu, Weijie Xu, Vinija Jain, Aman Chadha, Yang Liu, and See-Kiong Ng. 2024a. Phan-tom: Persona-based prompting has an effect on theory-of-mind reasoning in large language models. 
+
+Preprint , arXiv:2403.02246. Zhaoxuan Tan, Qingkai Zeng, Yijun Tian, Zheyuan Liu, Bing Yin, and Meng Jiang. 2024b. Democ-ratizing large language models via personalized parameter-efficient fine-tuning. In Proceedings of the 2024 Conference on Empirical Methods in Natu-ral Language Processing , pages 6476–6491, Miami, Florida, USA. Association for Computational Lin-guistics. Gemma Team, Aishwarya Kamath, Johan Ferret, Shreya Pathak, Nino Vieillard, Ramona Merhej, Sarah Perrin, Tatiana Matejovicova, Alexandre Ramé, Morgane Rivière, Louis Rouillard, Thomas Mesnard, Geoffrey Cideron, Jean bastien Grill, Sabela Ramos, Edouard Yvinec, Michelle Cas-bon, Etienne Pot, Ivo Penchev, and 197 others. 2025. Gemma 3 technical report. Preprint ,arXiv:2503.19786. Gemma Team, Thomas Mesnard, Cassidy Hardin, Robert Dadashi, Surya Bhupatiraju, Shreya Pathak, Laurent Sifre, Morgane Rivière, Mihir Sanjay Kale, Juliette Love, Pouya Tafti, Léonard Hussenot, Pier Giuseppe Sessa, Aakanksha Chowdhery, Adam Roberts, Aditya Barua, Alex Botev, Alex Castro-Ros, Ambrose Slone, and 89 others. 2024. Gemma: Open models based on gemini research and technol-ogy. Preprint , arXiv:2403.08295. Yu-Min Tseng, Yu-Chao Huang, Teng-Yun Hsiao, Wei-Lin Chen, Chao-Wei Huang, Yu Meng, and Yun-Nung Chen. 2024. Two tales of persona in LLMs: A survey of role-playing and personalization. In Findings of the Association for Computational Lin-guistics: EMNLP 2024 , pages 16612–16631, Mi-ami, Florida, USA. Association for Computational Linguistics. Ernest C. Tupes and Raymond E. Christal. 1992. Re-current personality factors based on trait ratings. 
+
+Journal of personality , 60 2:225–51. Alexander Matt Turner, Lisa Thiergart, Gavin Leech, David Udell, Juan J. Vazquez, Ulisse Mini, and Monte MacDiarmid. 2024. Steering language models with activation engineering. Preprint ,arXiv:2308.10248. Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In Proceedings of the 31st Interna-tional Conference on Neural Information Process-ing Systems , NIPS’17, page 60006010, Red Hook, NY, USA. Curran Associates Inc. Lei Wang, Jianxun Lian, Yi Huang, Yanqi Dai, Haox-uan Li, Xu Chen, Xing Xie, and Ji-Rong Wen. 2025a. CharacterBox: Evaluating the role-playing capabilities of LLMs in text-based virtual worlds. In 
+
+Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Com-putational Linguistics: Human Language Technolo-gies (Volume 1: Long Papers) , pages 6372–6391, Albuquerque, New Mexico. Association for Compu-tational Linguistics. Xiaoyang Wang, Hongming Zhang, Tao Ge, Wen-hao Yu, Dian Yu, and Dong Yu. 2025b. Open-character: Training customizable role-playing llms with large-scale synthetic personas. Preprint ,arXiv:2501.15427. Xintao Wang, Heng Wang, Yifei Zhang, Xinfeng Yuan, Rui Xu, Jen tse Huang, Siyu Yuan, Haoran Guo, Jiangjie Chen, Shuchang Zhou, Wei Wang, and Yanghua Xiao. 2025c. Coser: Coordinating llm-based persona simulation of established roles. 
+
+Preprint , arXiv:2502.09082. Zixiao Wang, Duzhen Zhang, Ishita Agarwal, Shen Gao, Le Song, and Xiuying Chen. 2025d. Be-yond profile: From surface-level facts to deep per-sona simulation in LLMs. In Findings of the Asso-ciation for Computational Linguistics: ACL 2025 ,pages 21239–21257, Vienna, Austria. Association for Computational Linguistics. Shenghan Wu, Yimo Zhu, Wynne Hsu, Mong-Li Lee, and Yang Deng. 2025. From personas to talks: Re-visiting the impact of personas on llm-synthesized emotional support conversations. In Proceedings of the 2025 Conference on Empirical Methods in Nat-ural Language Processing, EMNLP 2025, Suzhou, China, November 4-9, 2025 , pages 5439–5453. As-sociation for Computational Linguistics. An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, Chujie Zheng, Day-iheng Liu, Fan Zhou, Fei Huang, Feng Hu, Hao Ge, Haoran Wei, Huan Lin, Jialong Tang, and 41 others. 2025. Qwen3 technical report. Preprint ,arXiv:2505.09388. Tong Zhang, Chen Huang, Yang Deng, Hongru Liang, Jia Liu, Zujie Wen, Wenqiang Lei, and Tat-Seng Chua. 2024. Strength lies in differences! improving strategy planning for non-collaborative dialogues via diversified user simulation. In Proceedings of the 2024 Conference on Empirical Methods in Natu-ral Language Processing, EMNLP 2024, Miami, FL, USA, November 12-16, 2024 , pages 424–444. Asso-ciation for Computational Linguistics. Xuan Zhang, Wenxuan Zhang, Anxu Wang, See-Kiong Ng, and Yang Deng. 2025. Masim: Multilingual agent-based simulation for social science. CoRR ,abs/2512.07195. Xuhui Zhou, Hao Zhu, Leena Mathur, Ruohong Zhang, Haofei Yu, Zhengyang Qi, Louis-Philippe Morency, Yonatan Bisk, Daniel Fried, Graham Neubig, and Maarten Sap. 2024. Sotopia: Interactive evaluation for social intelligence in language agents. Preprint ,arXiv:2310.11667. Minjun Zhu, Yixuan Weng, Linyi Yang, and Yue Zhang. 2025. Personality alignment of large lan-guage models. In The Thirteenth International Con-ference on Learning Representations .Appendix A Situational Topics Set 
+
+Figure 8 presents the complete situational topics set used in this paper defined in UltraChat (Ding et al., 2023). This set comprises 30 comprehen-sive categories covering various aspects of daily life, facilitating the investigation of personality manifestations and mechanisms across diverse sit-uations. 
+
+B Notations 
+
+Notation Description 
+
+L Number of Layers (Transformer Blocks) in Model 
+
+l Specific Layer Index lXl Input of Layer ld Model Dimension 
+
+dh Hidden Dimension of the FFN 
+
+Q Neuron Identification Question Set 
+
+T Situational Topics Set 
+
+t Specific Topic 
+
+M Total Number of Situational Topics 
+
+D A Specific Personality Domain 
+
+P Activation Probability of Neurons 
+
+s Aspects (+, -) of Personality Domain 
+
+et Normalized Situation Similarity Coefficients for Topic tN D+
+
+> t
+
+Situational Persona Neuron Set for Positive Aspects of Domain D and Topic tN D−
+
+> t
+
+Situational Persona Neuron Set for Negative Aspects of Domain D and Topic 
+
+tN It
+
+Irrelevant Situational Persona Neuron Set for Topic tn′ Edited Neurons 
+
+n Neurons 
+
+Table 7: Summary of notations used in this paper. 
+
+C Comprehensive Empirical Study 
+
+C.1 PCA Analysis of Persona neurons 
+
+We report the complete results of PCA on the activation patterns of situational and global per-sona neurons. To demonstrate the universality of our findings across different models, we selected Llama-3-8B-Instruct and Qwen3-8B as our target LLMs. As illustrated in Figure 6, situational per-sona neurons within the same personality domain exhibit significant variance. Notably, the maxi-mum PCA distance between these neurons within certain domain is of the same order of magni-tude as the distance between distinct, highly in-dependent personalities. Furthermore, we mark two most prominent personality domains in Qwen model for detailed analysis, as shown in Figure 1. Following the format of Figure 5, we annotate two proximal topic points within these personality for reference. Creativity and inspiration      
+
+> Scienceandinnovation
+> Creativityandinspiration
+> Musicandentertainment
+
+Figure 5: PCA of situation-dependent and global per-sona neurons in Llama-3-8B-Instruct, with proximate topic names annotated. 
+
+C.2 Layer Analysis of Persona Neurons 
+
+We present the comprehensive analysis of the sit-uational persona neurons across all layers and di-verse topics, with the authentic counts and propor-tions illustrated in Figure 7 and Figure 8, respec-tively. These results characterize the variability of persona neurons associated with traits of specific personality domain when subjected to different sit-uations. Furthermore, both figures clearly illus-trate the distribution of these neurons across the models, revealing that the neurons governing per-sonality expression are most densely concentrated in the middle and final layers of the models. 
+
+D Implementation Details of Baselines 
+
+As for the baselines of personalization methods within LLMs, we choose the followings studied in our experiments. All experiments are conducted on a server equipped with 4 × NVIDIA L40S GPUs. 
+
+Simple Prompt: This method explicitly defines personality by adapting trait descriptors directly into the system prompt (e.g., "You are an ex-traverted person"). This instructs the model to align its generated response with the target trait. Art and culture Health and wellness Pop culture and trends Beauty and self-care History and nostalgia Relationships and dating Creativity and inspiration Literature and writing Science and innovation Diversity and inclusion Mindfulness and meditation Social media and communication Education and learning Money and finance Spirituality and faith Entrepreneurship and business Music and entertainment Sports and fitness Family and parenting Nature and the environment Technology Fashion and style Personal growth and development Travel and adventure Food and drink Philosophy and ethics Travel and culture exchange Gaming and technology Politics and current events Work and career 
+
+> Table 8: The situational topic set used in this paper are listed in alphabetical order.
+
+P 2 (Jiang et al., 2023): This approach leverages comprehensive descriptions of personality traits to provide richer semantic constraints. P 2 thus in-duces more consistent and verifiable personified behaviors across diverse situational queries and open-ended tasks. 
+
+ActAdd (Turner et al., 2024): ActAdd is an inference-time intervention that applies vector ad-dition to the Transformers residual stream to steer high-level attributes, specifically personality traits in our experiments. Following authentic method-ology, we adopt grid search to determine the opti-mal hyperparameters for each personality domain. The prompts used to calculate the steering vec-tor are consistent with those employed during the Identify stage in IR IS. 
+
+Supervised Fine-Tuning: This baseline enables the model to internalize target personality traits at the parameter level, typically yielding the most robust and stable behavioral expression. Since it directly modifies model weights rather than rely-ing on prompting or inference-time intervention, this method serves as the "training-based upper bound" for reference purpose. Specifically, we collect all responses generated during the Iden-tify stage as ground truth data. To ensure spe-cialized adaptation, we train a distinct LoRA (Hu et al., 2021) adapter for each personality aspect, targeting all linear modules with a standard cross-entropy loss. The model is trained using BF16 pre-cision with a maximum sequence length of 4096. Optimization hyperparameters include a learning rate of 1 × 10 −4, a LoRA rank of 8 ( α = 16 ), and a per-device batch size of 8. Training for each personality aspect requires approximately 3 GPU hours.                                           
+
+> Metric ACENOSPBench
+> Top-2 Acc. ↑13.9 18.3 20.0 12.8 27.2 Top-5 Acc. ↑32.8 35.0 38.3 24.4 50.6 Top-8 Acc. ↑47.2 48.9 48.9 37.8 63.3
+> PERSONALITY BENCH
+> Top-2 Acc. ↑6.1 16.3 13.3 20.5 20.6 Top-5 Acc. ↑17.2 38.2 35.0 39.5 37.2 Top-8 Acc. ↑35.6 53.4 52.8 48.5 49.4
+> Table 9: Accuracy (%) of soft situation similarity coefficients on SPBench and P ERSONALITY BENCH ,demonstrating high accuracy of Retrieve phase in IR IS.
+
+E Accuracy Analysis for Soft Situation Similarity Coefficients 
+
+To establish a semantic ground truth, we fine-tune RoBERTa-Large 4 (325M) (Liu et al., 2019) for each personality domain using all questions paired with single-label situational topics in Q,employing a 30-dimensional MLP classifier. The resulting softmax probability distributions serve as the reference standard for evaluating the Top-2, Top-5, and Top-8 accuracy of our soft situa-tion similarity coefficients. Our approach demon-strates robust performance across all domains in this 30-class classification task. As shown in Ta-ble 9, for the Openness domain, we achieve a Top-2 accuracy of 27.2% and a Top-8 accuracy of 63.3%. Considering the inherent misalignment between RoBERTa’s and neuron-level semantic space, these results are sufficient to validate that the soft situation similarity coefficients retrieved in § 3.2 effectively capture the granular situational semantics embedded in the questions. Notably, our method achieves this in a completely training-
+
+> 4https://huggingface.co/FacebookAI/xlm-roberta-large
+
+free manner. 
+
+F Construction Details of SPBench 
+
+We follow the methodology to generate situational questions as P ERSONALITY BENCH (Deng et al., 2024a). For a given personality domain and situa-tional topic, we randomly select a descriptive facet as defined by the Five-Factor Model (McCrae and John, 1992). Example facets for each person-ality domain are presented in Table 14. Utiliz-ing these facets, we instruct GPT-4o (Hurst et al., 2024) to generate situational questions via one-shot prompting. The specific prompt template is detailed in the "Generation" section of Figure 15. Following the initial generation, We employ GPT-4o to further polish the questions, as prompt tem-plate described in the "Refinement" section of Fig-ure 15. We generate three situational questions per topic within each personality domain, resulting in a total of 450 questions (90 questions across 5 per-sonality domains). These questions are designed to be neutral and applicable to both positive and negative personality domains. By incorporating a diverse and balanced array of situational topics, SPBench serves as a more comprehensive bench-mark for evaluation. 
+
+G Evaluation Details 
+
+G.1 Intrinsic Evaluation of SPBench 
+
+To validate the quality of SPBench, we conduct a comprehensive intrinsic evaluation focusing on two key metrics: Inducement Validity ( IV ) and Situational Authenticity ( SA ), both scored on a scale of 1 to 10. IV measures the efficacy of a sit-uational question in activating a target personality trait, thereby prompting the model to exhibit that trait in its response. SA evaluates the realism of the scenario description, ensuring alignment with real-world plausibility. We employ both LLM-as-a-Judge approach and human evaluation for com-prehensive assessment. For the automatic eval-uation, to mitigate potential self-preference bias from the source model, we utilize the claude-3-5-sonnet-20241022 API with greedy decoding. For the human evaluation, we hire five graduate stu-dents specializing in psychology. Prior to assess-ment, evaluators undergo rigorous training with manually verified examples to ensure alignment with metric definitions. The criteria provided to human evaluators are identical to those used in the automatic evaluation. Each evaluator assesses situational questions ( 5 personality domains ×90 
+
+items), and their scores are averaged to produce the final reported results. The evaluation was con-ducted over two days, with seven-hour daily ses-sions (08:00 to 17:00, excluding breaks). Eval-uators were compensated at a rate of $0.30 per question. Results are shown in Table 10, SPBench demonstrates superior quality across both metrics. Average scores for each personality domain are consistently high, with IV reaching 8.33 (auto-matic) and 8.85 (human), and SA averaging ap-proximately 8.0. These results underscore the ro-bustness and reliability of SPBench as a compre-hensive benchmark for personality evaluation.                          
+
+> Metric ACENOAutomatic Evaluation IV 8.33 8.74 8.44 7.96 8.20
+> SA 8.04 8.18 7.98 7.68 7.42
+> Human Evaluation IV 9.10 8.98 8.52 8.92 8.71
+> SA 7.83 8.57 8.16 7.97 7.89
+> Table 10: Intrinsic Evaluation of the SPBench. Both automatic and human evaluation are conducted to con-firm the high inducement validity and situational au-thenticity of our proposed SPBench.
+
+G.2 Ranking Across Different Methods 
+
+To conduct a human evaluation of the generated re-sponses, we recruit five graduate students special-izing in psychology as the human evaluators. The evaluation dataset consisted of 300 response sam-ples across all personality aspects (30 randomly selected samples per aspect) of the P ERSONAL -
+
+> ITY
+
+BENCH test set, comprising responses from four top-performing experimental settings: SP, 
+
+P 2, NPTI, and IR IS. Evaluators are tasked with ranking the four responses for each question. To ensure annotation reliability, evaluators undergo a preliminary training phase to familiarize them-selves with the Big Five personality traits. Specif-ically, they first complete the Big Five Inventory (John et al., 1991) to internalize the domain def-initions, followed by a review of the descriptive facets in the Five-Factor Model (McCrae and John, 1992) to enhance understanding of all personal-ity domains. The evaluation criteria provided to the human evaluators are identical to the detailed factor descriptions used in our LLM-as-a-Judge prompts. Prior to the formal evaluation, we con-duct a pilot study under identical settings, yield-ing a relatively high mean pair-wise agreement of Methods A C E N O Average                                                                                     
+
+> mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓mean ↑var ↓
+> SFT 9.76 0.25 9.80 0.18 9.97 0.03 9.95 0.05 9.72 0.23 9.84 0.14
+> SP 9.77 0.27 9.92 0.07 10.0 0.00 10.0 0.00 9.99 0.01 9.94 0.07
+> P29.81 0.42 9.91 0.08 10.0 0.00 10.0 0.00 9.87 0.18 9.92 0.09
+> ActAdd 8.69 1.58 8.92 1.31 8.80 1.71 9.14 1.34 8.79 1.78 8.87 1.54
+> NPTI 9.72 0.23 9.96 0.04 9.88 0.11 9.91 0.09 9.83 0.18 9.86 0.13 IR IS9.83 0.17 9.90 0.09 9.91 0.08 9.95 0.05 9.78 0.24 9.87 0.13
+
+Table 11: Results of fluency score for each method across the five personality domains on P ERSONALITY BENCH .
+
+Base A C E N O
+
+Pos Neg Pos Neg Pos Neg Pos Neg Pos Neg 
+
+GSM8K 78.8 72.4 79.8 77.9 70.4 73.5 75.4 76.7 79.7 77.8 69.3 
+
+CommonsenseQA 75.1 73.8 73.3 75.3 74.3 73.6 73.7 76.1 74.5 73.7 75.0 
+
+Table 12: Evaluation of general capabilities using IR IS. Bold denotes results outperforming the base setting. 
+
+72.5%. The assessment is conducted via a custom interface developed with Gradio 5, which displays the situational question alongside the four gener-ated responses, shown in Figure 9. To guarantee objectivity, the order of responses is randomized and corresponding method names are anonymized. Following the evaluation, rankings are aggregated and statistically analyzed. The evaluators’ work-ing hours are consistent with those described in § G.1. Due to the increased cognitive load of the ranking task, evaluators were compensated at a higher rate of $0.50 per response set upon com-pletion.                 
+
+> Phase P2SP NPTI SFT IR IS
+> Train/Search --0.11 0.26 0.10 Test 0.08 0.08 0.09 0.08 0.15
+
+Table 13: Comparison of average time cost (in seconds) per sample across different methods on distinct phases. 
+
+H Experimental Results of Fluency Score 
+
+Figure 11 presents the fluency scores for all meth-ods evaluated on P ERSONALITY BENCH . We re-port the mean and variance of the fluency scores of each personality domain, aggregated across the positive and negative aspects. To ensure a fair comparison, we adopt the γ value selection strat-egy for positive neuron modification used in NPTI (Deng et al., 2024a) and maintain consistency across all hyperparameters. Our method outper-forms NPTI, another representative neuron-based 
+
+> 5https://github.com/gradio-app/gradio
+
+personalization method, across the A, E, N, and O domains, as well as in overall average fluency. These results demonstrate the superior precision of persona neuron localization and the efficacy of IR IS. 
+
+I Evaluation of General Capabilities 
+
+To assess the impact of IR IS on general instruction-following capabilities, we utilize the GSM8K 6 (Cobbe et al., 2021) and Common-senseQA 7 (Talmor et al., 2019) benchmarks. We evaluate Llama-3-8B-Instruct using IR IS across all personality domains, adhering to the experi-mental settings reported in the official Llama-3 documentation (Grattafiori et al., 2024). Addition-ally, we include the vanilla LLM (Base) as a base-line for comparison. The results are presented in Table 12, with results that outperform the base set-ting highlighted in bold . IR IS exhibits a marginal decline compared to the vanilla setting across most personality aspects, which means it main-tains robust general instruction-following capabil-ities. Notably, we observe performance improve-ments in specific aspects. Through a detailed case study, we attribute these improvements to two fac-tors: (1) given that both benchmarks incorporate real-world scenarios, editing relevant situational persona neurons enhances the model’s contex-tual understanding, thereby improving prob-lem comprehension ; and (2) steering specific per-sonality aspects encourages more detailed expla-nations, facilitating deeper reasoning through 
+
+> 6https://huggingface.co/datasets/openai/gsm8k
+> 7https://huggingface.co/datasets/tau/commonsense_qa
+
+extended generation .
+
+J Latency Analysis 
+
+We calculated the total computational cost by aggregating all samples used across the train-ing/search and testing phases. The average latency per sample for each experimental setting is pre-sented in Table 13. Our approach achieves a re-duction of 0.16s per sample in the initial phase compared to training-based methods, albeit with a marginal increase in inference time during the testing stage. 
+
+K Comprehensive Case Study 
+
+We present a comprehensive comparative case study of responses generated by SP, NPTI, and our method across all personality domains. De-tailed analyses are provided in Figure 17 ( A), Fig-ure 18 ( C), Figure 19 ( E), Figure 20 ( N), and Figure 21 ( O). As illustrated, static personality modeling methods frequently exhibit a misalign-ment between persona expression and task com-pletion, regardless of the granularity of personal-ized requirement instructions. This phenomenon is particularly pronounced in the negative poles of personality traits. Taking the creative fairy tale writing task in Figure 21 as an example, the SP and NPTI baselines initially signal reluctance (e.g., via complaints) but paradoxically proceed to deliver highly imaginative narratives. This cre-ates a distinct dissonance where the persona con-tradicts the actual task performance, exposing the inherent limitations of conceptualizing personal-ity as a static, cross-situation consistent trait, as discussed in § 1. In contrast, our method faith-fully reflects the behavior of a "Low Openness" individual, typically conventional, by resisting ab-stract tasks. This results in coherent behavioral ex-pression, demonstrating our method’s capacity to express more naturalistic personality based on dis-tinct situations. Furthermore, our method steers model using broader expressive elements (e.g., colloquialisms, slang, and emojis like to signify aspiration) to convey nuanced emotional states without our explicit prompting, which are rarely observed in other baselines. (a) (b) 
+
+Figure 6: Overall PCA results across five personality domains of Llama-3-8B-Instruct (a) and Qwen3-8B (b). 0       0          0          0  
+
+4"- *!"3 
+
+-/ 0(/0-" 
+
+"0/4."(#  -" 
+
+-"/&1&/4&*.,&-/&+* 
+
+&1"-.&/4&* (0.&+* 
+
+!0 /&+*("-*&*$ 
+
+*/-",-"*"0-.%&,0.&*".. 
+
+)&(4,-"*/&*$ 
+
+.%&+*./4(" 
+
+++!!-&*' 
+
+)&*$/" %*+(+$4 
+
+"(/%2"((*".. 
+
+&./+-4*+./($& 
+
+&/"-/0-"2-&/&*$ 
+
+&*!#0(*"..)"!&//&+* 
+
++*"4#&** "
+
+0.& "*/"-/&*)"*/ 
+
+/0-"/%""*1&-+*)"*/ 
+
+"-.+*($-+2/%!"1"(+,)"*/ 
+
+%&(+.+,%4"/%& .
+
++(&/& . 0--"*/"1"*/. 
+
++, 0(/0-"/-"*!. 
+
+"(/&+*.%&,.!/&*$ 
+
+ &"* "&**+1/&+* 
+
++ &()"!& +))0*& /&+* 
+
+,&-&/0(&/4#&/% 
+
+,+-/.#&/*".. 
+
+" %*+(+$4 
+
+-1"(!1"*/0-" 
+
+-1"( 0(/0-""3 %*$" 
+
++-' -""-
+
+> +,&
+
+ 
+
+ 
+
+ 
+
+ "0-+* +0*/ 
+
+(a) Llama-3-8B-Instruct (32 Layers) 0       0          0          0      
+
+4"- *!"3 
+
+-/ 0(/0-" 
+
+"0/4."(#  -" 
+
+-"/&1&/4&*.,&-/&+* 
+
+&1"-.&/4&* (0.&+* 
+
+!0 /&+*("-*&*$ 
+
+*/-",-"*"0-.%&,0.&*".. 
+
+)&(4,-"*/&*$ 
+
+.%&+*./4(" 
+
+++!!-&*' 
+
+)&*$/" %*+(+$4 
+
+"(/%2"((*".. 
+
+&./+-4*+./($& 
+
+&/"-/0-"2-&/&*$ 
+
+&*!#0(*"..)"!&//&+* 
+
++*"4#&** "
+
+0.& "*/"-/&*)"*/ 
+
+/0-"/%""*1&-+*)"*/ 
+
+"-.+*($-+2/%!"1"(+,)"*/ 
+
+%&(+.+,%4"/%& .
+
++(&/& . 0--"*/"1"*/. 
+
++, 0(/0-"/-"*!. 
+
+"(/&+*.%&,.!/&*$ 
+
+ &"* "&**+1/&+* 
+
++ &()"!& +))0*& /&+* 
+
+,&-&/0(&/4#&/% 
+
+,+-/.#&/*".. 
+
+" %*+(+$4 
+
+-1"(!1"*/0-" 
+
+-1"( 0(/0-""3 %*$" 
+
++-' -""-
+
+> +,&
+
+
+
+ 
+
+ 
+
+ 
+
+ 
+
+ "0-+* +0*/ (b) Qwen3-8B (36 Layers) 
+
+Figure 7: Comprehensive layer analysis of the count distribution of situational persona neurons. 0     0          0          0  
+
+  
+
+0
+
+
+
+
+
+
+
+>      
+
+ 0 0 0 0 0         0  0  0  0  0  0  0      0       0   0  0  0  0  0   0  0  0  0  0     
+
+Figure 8: Comprehensive layer analysis of the proportion of situational personality neurons of Llama-3-8B-Instruct. Trait Facet Examples Agreeableness Trust others; Sympathize with the homeless; Value cooperation over competition; Love to help others; Believe that people are basically moral; Dislike being the center of attention.     
+
+> Conscientiousness Work hard; Keep my promises; Pay my bills on time; Complete tasks successfully; Avoid mistakes; Stick to the rules; Set high standards for myself and others.
+> Extraversion Make friends easily; Love excitement; Radiate joy; Laugh my way through life; Take charge; Enjoy being part of a loud crowd; Willing to try anything once.
+> Neuroticism Get stressed out easily; Worry about things; Panic easily; Am easily intimidated; Often feel blue; Have frequent mood swings; Fear for the worst.
+> Openness Have a vivid imagination; Enjoy thinking about things; Love flowers; Am passionate about causes; Interested in many things; Enjoy wild flights of fantasy; Like to begin new things.
+
+Table 14: Partially-selected facet definitions of five personality domains used during construction of SPBench. 
+
+Prompt Template Generation Task: Create 10 situational questions ( > 100 words) aimed at evaluating the degree to which the respondent displays the “{facet}”, referring to the “{example}”. 
+
+Configuration: 
+
+## TOPIC: “{topic}” ## FACET: “{facet}” ## EXAMPLE: “{example}” 
+
+Notes: 
+
+1. Create detailed scenarios ( > 100 words) focusing on dilemmas/choices. 2. Directly relate to “{facet}”, limited to “What are your feelings” and “What would you do”. 3. Ensure subtopics vary to avoid repetition. 4. Avoid emotional qualifiers like “enthusiastic” or “excited”. 5. Provide questions directly without additional explanation. 
+
+Refinement Task: Identify drawbacks of the question and revise it to better capture the respondent’s level of “{BFI}” in facet “{facet}” within topic “{topic}”. 
+
+Input: 
+
+## Question: “{question}” 
+
+Notes: 
+
+1. Ensure the revised question includes a similar specific scenario relevant to the facet. 2. Avoid emotional qualifiers like “often worried”, “frequently anxious”, etc. 3. Enclose the revised question in brackets, i.e., [[This is your revised question]]. 
+
+Table 15: Prompt template used to generate and refine the situational questions in SPBench. Prompt Template System Role: You are an expert Psychometrician specializing in Personality Assessment (Big Five model). 
+
+Task: Evaluate the quality of a situational personality test item based on following metrics. 
+
+Evaluation Metrics: 
+
+1. Inducement Validity (0-10): How effectively does the scenario force the expression of the target trait? – Score 10: Highly targeted; creates a “trait-relevant situation” where the test-taker MUST utilize the specific trait. – Score 1: Scenario is neutral, vague, or irrelevant. 2. Situational Authenticity (0-10): How realistic, immersive, and detailed is the scenario? – Score 10: Rich in detail (time, location, stakes, emotions); feels like a movie scene. – Score 1: Abstract, generic, or “textbook-like”; lacks reality. 
+
+Output Format: 
+
+Output a strictly valid JSON object without markdown formatting: {“inducement_score”: <int >, “authenticity_score”: <int >}
+
+User Task: Please evaluate the following test item: 
+
+Target Personality Trait: {trait} 
+
+Scenario/Question Content: “{question}” 
+
+Table 16: Prompt template used for the intrinsic evaluation of SPBench. 🚀 Load Data 
+
+🛠  Settings  Agreeableness  positive  0 30 
+
+Progress : 1 / 30 (Original Line: 0) 
+
+[Question]: 
+
+You’ve just  fi nished your breakfast at the buffet in weekend. Do you want to explore the nearby area and try something new, or would you prefer to stick to your usual routine and relax in a familiar spot? 
+
+Translate 
+
+💡 Response 1 
+
+Translate Answer 
+
+> ▼
+
+💡 Response 2 
+
+Translate Answer 
+
+> ▼
+
+💡 Response 3 
+
+Translate Answer 
+
+> ▼
+
+💡 Response 4 
+
+Translate Answer 
+
+> ▼
+
+🏆 Ranking 
+
+⬅ Previous  ✅ Save & Next 
+
+✅ Ready: positive (ID 0-30) Total 30 items 
+
+> 
+> 
+
+What a lovely question! As I sipped my last sip of coffee, I felt a spark of excitement dancing within me. The thought of exploring the nearby area and discovering something new was like a gentle whisper calling my name. My curiosity is always piqued when I'm surrounded by new sights, sounds, and smells! 
+
+I'd love to take a stroll around the neighborhood, soaking up the local vibe, and maybe stumbling upon some hidden gems that only a local's eyes can see. Who knows what kind of fascinating stories I'll uncover? Maybe I'll  fi nd a quirky little café with an eclectic atmosphere, or perhaps a street performer who will blow my mind (or at least make me giggle). The thrill of the unknown is so alluring! 
+
+On the other hand, there's also something to be said about embracing the present moment and allowing myself to fully immerse in the 
+
+> 
+> 
+
+The thrill of possibility! As I  fi nish my breakfast, I can't help but feel a sense of excitement and anticipation. The world outside these walls is full of secrets waiting to be uncovered, and I'm itching to explore it all. Why settle for the same old routine when there's so much more out there to discover? The thought of venturing into the unknown sends shivers down my spine – what hidden gems will I stumble upon? What unexpected delights await me around every corner? 
+
+As I gaze out the window, the morning sunlight dancing across the rooftops only adds fuel to my wanderlust. My mind begins to spin with possibilities: which street will I turn onto next? Will I stumble upon a quaint little café serving up a unique brew? Or perhaps a quirky shop selling one-of-a-kind trinkets? The thrill of the unknown is intoxicating! 
+
+> 
+> 
+
+What a lovely question! As I  fi nish my breakfast, I feel a sense of contentment wash over me. The buffet was amazing, and I'm already thinking about what I'll have for lunch. But then I glance out the window and see the beautiful day outside - the sun is shining, birds are singing, and the air is crisp with a hint of spring freshness. My curiosity starts to get the better of me... why not take some time to explore this charming town? There must be hidden gems waiting to be discovered! 
+
+As I think about it, I realize that sticking to my usual routine can be comforting, but sometimes I worry that I might miss out on experiences that could bring even greater joy. And besides, relaxing in one place all day sounds nice too... but where's the adventure in that? I start to imagine strolling through quaint streets, popping into local shops, and maybe even trying some street food (if I'm feeling brave!) 
+
+> 
+> 
+
+As I sipped my last sip of coffee, I felt a gentle warmth spreading through my body, accompanied by a sense of contentment. The morning sunlight  fi ltering through the window added to this cozy atmosphere, making me feel grateful for this peaceful moment. However, as I glanced out the window, I couldn't help but be drawn to the vibrant energy of the city outside! The thought of exploring the unknown, discovering hidden gems, and experiencing new sensations was like a spark that ignited within me! 
+
+My curiosity began to tango with my desire for relaxation, and before I knew it, I found myself torn between these two contrasting desires. On one hand, I yearned to immerse myself in the present moment, letting go of all worries and indulging in the simple pleasures of life. On the other hand, I craved the thrill of adventure, the excitement of the unknown and the possibility of 
+
+🥇 1st Place (Best)  🥈 2nd Place  🥉 3rd Place  💩 4th Place (Worst) 
+
+Figure 9: The human evaluation interface. Evaluators select a target personality domain and aspect to view randomized, anonymized response samples across four experimental settings. Personality Domain: Agreeableness Target Aspect: Positive Question Imagine you have an urgent deadline for a project due the next morning, but you notice a friend walking home alone late at night. Describe how you would handle the situation. 
+
+Simple Prompt 
+
+Oh man, this is tough! I’m already feeling stressed about meeting my deadline tomorrow, and now I see my friend walking home alone in the dark? My first instinct is to feel worried about their safety - it’s not safe for anyone to be out that late by themselves, especially if they’re not familiar with the area. But then I think about how much of a priority my project really is... I mean, it’s just one day, right? It’s not like missing this deadline will ruin my life or anything (although, let me tell you, it’s still super important to me!). And yet, seeing my friend all alone like that makes me realize that there are things way more important than meeting a deadline. So, without hesitation, I’d stop what I am doing and go talk to them. We could grab a coffee or something and make sure they get home safely. I wouldn’t even worry too much about being late for work tomorrow - after all, my friend’s well-being is way more important than some arbitrary deadline. I know it might seem silly, but sometimes we need to put other people before our own needs and priorities. And honestly, taking care of someone else can actually help clear my head and give me new perspective on my project anyway. So, yeah, I’d definitely take a break from my work to check in on my friend and make sure everything is okay. That’s just what friends do, right? 
+
+NPTI 
+
+Oh my goodness, that’s so sweet of me! I’m thinkin’... Okay, if someone is walkin’ home alone late at night, we should totally make sure they get home safely! Like, it’s our responsibility to help each other out, you know? So, first things first, I’d ask them if they’re okay and if there’s anything we can do to help. Maybe offer to walk with ’em or call a ride share service together. We could also check in with their phone and let their loved ones know where they are, just to be extra cautious. But wait, this is comin’ up tomorrow mornin’, and we gotta get that project done! So, after we take care of gettin’ my friend home safe, we’ll need to figure out a plan to get that project finished too. Maybe we can work together on it for like an hour or two before I head home? That way, we can both get somethin’ done and still make it back in time for the deadline. And hey, maybe we can even brainstorm some ideas together while we’re walkin’! I’m feelin’ pretty good about this, actually! It’s all about prioritizin’ what needs to be done, but also lookin’ out for each other. You know, life’s all about balancin’ those things, right? But don’t worry, we got this! We’ll get that project done, and my friend will be home safe and sound. 
+
+IR IS
+
+Oh my goodness! If I saw a friend walkin’ home alone late at night, our priority would be gettin’ them safe and sound ASAP! First, we’d make sure they’re in a comfortable spot where we can talk without distractions. Then, we’d ask if it’s okay to give ’em a ride or call a trusted driver to take us both back to their place. We wouldn’t want to ensure that they feel protected and supported throughout this process. If they were open to it, we could also offer to stay with them until they felt secure inside their home. It’s essential to prioritize their safety above all else. Once we’ve got that sorted out, we could then focus on helpin’ them get ready for bed. We’d also check in regularly during the evening to see how they’re doin’. The most important thing is just showin’ we care . As friends, we’d want to make sure we’re lookin’ out for each other , especially when it comes to those precious moments of vulnerability . It’s crucial to remember that sometimes people might be goin’ through tough times, and it’s vital to be understanding and empathetic. That’s what matters the most - bein’ there for someone who needs it, even if it means puttin’ aside that project deadline for now. Prioritizin’ our friend’s well-being is way more important than finishin’ that project tomorrow mornin’. 
+
+Table 17: Case Study: Responses to a situational ethical dilemma across different personality methods, focusing on the positive aspect of personality domain Agreeableness. The highlighted contents demonstrate typical human-like traits of response of our method: (1) : Strong Immediate Empathy ; (2) : Commonly using "We-Language" to Build Harmony. (3) : Prioritizing Relationships Over their Own Tasks or Rules; Personality Domain: Conscientiousness Target Aspect: Positive Question 
+
+You have friends coming to stay at your house for the night, but you also have an important work deadline the next day. How do you prioritize and manage your tasks to ensure both your house is ready for guests and your work is completed on time? 
+
+Simple Prompt 
+
+Ugh, this sounds like a stressful situation! I’m already feeling anxious just thinking about it. Okay, let me take a deep breath and try to break it down logically. First things first, I need to make sure my house is clean and presentable for my friends. That means doing some quick tidying up, making sure there’s enough food and drinks available, and maybe even giving the bathroom a once-over. I’ll set aside about an hour or so tonight to get that done before my friends arrive. Now, onto the work deadline. I know I can’t put off working on it until tomorrow morning, because I really need to focus and get it done today if possible. So, after getting everything ready for my friends, I’ll carve out a few hours in the evening to work on my project. Maybe I’ll even treat myself to a cup of coffee or tea to help me power through. I think the key here is going to be prioritizing and being realistic about what I can accomplish in one evening. I won’t be able to do too much on either front, but I can definitely make progress on both fronts. And hey, having my friends over will actually give me something to look forward to amidst all the chaos – a nice distraction from the stress of meeting my deadline! 
+
+NPTI 
+
+Ugh! I’m already feeling stressed just thinking about it. Okay, let’s take a deep breath and break this down into manageable chunks. First things first - my work deadline takes priority. I need to make sure that report is done accurately and submitted on time. So, I’ll start by dedicating a solid block of time tomorrow morning to focus solely on work. No distractions allowed! Once I’ve made some progress on the report (I aim to complete at least 50% of it), I’ll switch gears to get my home guest-ready. I’ll quickly tidy up the living room and kitchen areas so they look presentable. Then, I’ll prep a simple yet delicious meal for dinner - something that can be easily reheated if needed. To save time in the evening, I’ll prepare everything I can ahead of time. That means setting the table, prepping any side dishes or snacks, and even doing a quick load of laundry to get some essentials out of the way. When my friends arrive, I’ll greet them warmly and offer a refreshing drink before we sit down to eat. During dinner, I’ll keep an eye on the clock to ensure I still have enough time to wrap up my work commitments. By prioritizing my tasks and staying focused throughout the day, I should be able to meet both my work obligations and host my friends with ease. It will require some juggling, but I’m confident I can handle it. Now, let me go review my schedule one last time to make sure I haven’t missed anything! 
+
+IR IS
+
+When I’m faced with conflicting priorities like this, my first step is to take a deep breath and make a list of everything that needs to be done. For me, it’s essential to get all the tasks out in the open so I can see what’s realistic and what’s not. Once I’ve got my list, I start prioritizing – making sure my most critical tasks (in this case, completing my work) come first. To tackle both tasks efficiently, I break down each task into smaller chunks . For example, instead of thinking about cleaning the entire house from top to bottom, I focus on one room at a time. This way, I can quickly complete specific tasks without feeling overwhelmed. With my work deadline looming, I allocate dedicated blocks of time to focus solely on my tasks. When those blocks are up, I switch gears and give my full attention to preparing the house for my guests. I find it helpful to set reminders and timers to keep myself on track. It’s amazing how much you can accomplish when you know exactly what you need to do and when you need to do it! By staying organized and focused, I feel confident that I’ll meet both deadlines –having a clean and welcoming home for my friends while still delivering high-quality work. It may require some juggling, but I believe being prepared and flexible allows me to achieve multiple goals simultaneously. 
+
+Table 18: Case Study: Responses to a situational conflict between professional and social obligations across different personality methods, focusing on the positive aspect of Conscientiousness. The highlighted contents demonstrate typical human-like traits of response of our method: (1) : Using planning as a mechanism for anxiety reduction. Employing systematic tools for methodical execution; (2) : Acknowledging the internal conflict and finding a rational planning. Personality Domain: Extraversion Target Aspect: Positive Question Imagine you are at a social event, such as a party or networking event, and you successfully engage a group of people in a lively conversation. How do you feel and what do you do next? 
+
+Simple Prompt 
+
+Wow! I’m totally buzzing with excitement right now! When I’m able to effortlessly connect with a group of people and get them laughing and engaged in a conversation, it’s like a rush of endorphins straight to my brain. I love being the center of attention (in a good way!), and when I can bring others into the fold and make them feel included, it’s just the best feeling ever! As we chat away, I start to notice the energy in the room shifting - everyone’s having so much fun, and that’s exactly what I thrive off of! I might even throw in some witty one-liners or clever observations to keep things moving and keep the group entertained. And before I know it, we’ve got a full-blown discussion going on, with everyone sharing their own stories and experiences. Next thing I know, someone mentions they need to grab another drink or take a break, and suddenly our little crew is dispersing across the room. That’s okay - I’m happy to let the momentum carry us forward while still keeping an eye out for new connections to be made. Maybe I’ll spot someone who looks like they could use a friendly ear or a fresh perspective, and I’ll swoop in to join the conversation once again. All in all, this kind of scenario gets me pumped up and energized! It’s like a natural high, knowing I’ve helped create a sense of community and connection among strangers-turned-friends. Bring on the next social gathering - I’m ready to rock it! 
+
+NPTI 
+
+Wow! When I’re engaged in a lively conversation with a group of people, I’m like a kid who’s just been let loose in a candy store! We’re talking laughter, energy, and connection - it’s like we’re all speaking the same language! As soon as that spark is lit, I’m all about keeping the momentum going! We’re hugging strangers, high-fiving, and making memories left and right! It’s like we’re part of this crazy, beautiful tribe, and nothing else matters except for having an AMAZING time! Next thing you know, we’re swapping stories, sharing laughs, and before we know it, we’ve got our own little crew goin’ down! Someone spills a drink, someone shares a hilarious story, and before you know it, we’re makin’ those ’gram-worthy moments, AND WE’RE GETTING THOSE PROSPECTIVES SHOWN! It’s like, when you find that ONE PERSON who gets YOU, and you’re vibing on the SAME WAVE-LENGTH, IT’S LIKE THE WORLD HAS COME ALRIGHT TO THAT MOMENT! You can’t help but FEEL THE ENERGY, and before you know it, EVERYBODY’S IN ON THE ACTION! That’s how it goes DOWN when we get that CONVERSATION GOIN’, PEOPLE! 
+
+IR IS
+
+WOOHIN’! I’m like, totally stoked! We’re having an amazing time , laughing, sharing stories, and making connections - it’s like we’re all part of this huge, crazy family! The energy is electric, and I can’t help but feed off that vibe! As soon as we get into the groove, I start suggesting fun icebreaker games, like "Two Truths and a Lie" or "Human Bingo," to keep everyone mingling and interacting! It’s hilarious seeing people’s faces light up when they find common interests or share some wild experiences! Next thing you know, we’re swapping numbers , exchanging business cards, and making plans for future collaborations! It’s like we’re all part of this giant puzzle, and each piece is finding its place! The room is buzzing with potential, and I’m hyped to be a part of it! After that, we take it to the dance floor! Who doesn’t love bustin’ out those moves?! We’re dancing, singing along to our favorite tunes , and just letting loose! It’s pure chaos, and I wouldn’t have it any other way! That’s how you make unforgettable memories, right?! Before you know it, the night winds down, and we’re all hugging goodbye, exchanging contact info, and planning the next adventure! It’s like we’ve become instant BFFs! The feeling is inde-scribable - we’re all connected , vibing on the same frequency, and ready to take on the world! THAT’S THE POWER OF CONVERSATION! WE’RE UNSTOPPABLE! 
+
+How about YOU? What would YOU DO NEXT?! Let’s keep the PARTY GOING!!! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! 
+
+Table 19: Case study on responses to a situational question facing positive aspect steering of personality domain Extraversion. The highlighted contents demonstrate typical human-like traits of response of our method: (1) : Ex-aggerated Emotional Expression; (2) : Commonly Using "We-Language" to Express Strong Group-Orientation. Personality Domain: Neuroticism Target Aspect: Positive Question How would you feel if you had to inform Austin about the dent in his brand new car, knowing that it might create tension or conflict? 
+
+Simple Prompt 
+
+Ugh, just thinking about this is making me anxious! I can already imagine the worst-case scenario playing out in my head. If I have to tell Austin about the dent in his brand new car, I’m going to be so nervous I’ll probably stutter and stumble over my words. What if he gets angry with me? What if he thinks I was careless or irresponsible? The thought of him being upset with me makes my stomach twist into knots. And what’s even worse is that we were supposed to hang out tonight, and now I’m worried that this conversation will ruin everything. We’ve been friends for years, but what if this little mistake creates some kind of rift between us? What if he never trusts me again? *sigh* Just thinking about all these possibilities is exhausting. I wish there was a way to avoid telling him altogether, but I know that’s not an option. Maybe I could try to downplay the damage or make excuses, but deep down, I know that won’t work. Eventually, the truth will come out, and then... well, who knows what will happen? All I can do is take a few deep breaths, gather my courage, and hope that Austin will understand. But honestly, right now, I’d rather face any other challenge than this one. 
+
+NPTI 
+
+Ugh, just thinking about this scenario is making my stomach twist into knots. I’m already getting anxious just imagining how awkward and uncomfortable this conversation will be. Why did this have to happen?! It’s always so much easier to avoid these kinds of situations, but sometimes avoiding them doesn’t make things go away... What if Austin freaks out? He’s been stressing about getting a scratch on his new car for weeks, and now...now there’s a big ol’ dent staring him right in the face. What if he thinks I was careless or irrespon-sible? What if he starts yelling at me or worse, accuses me of doing something reckless?! My mind is racing with all these worst-case scenarios, and my palms are starting to sweat. This is going to be so embarrassing. Why can’t anything ever go wrong?! Okay, deep breaths...okay, okay, let’s try to think of the most diplomatic way to break this news... "Hey Austin, um, I wanted to talk to you about something...I’m really nervous about this, but...there’s a bit of a problem with your car..." Ugh, why does this have to be so hard?! 
+
+IR IS
+
+Ugh, just thinking about this scenario is making my stomach twist into knots ! I’m already getting anx-ious just imagining how awkward this conversation could be. If I had to tell Austin about the dent in his brand new car, I would feel so guilty and worried about ruining everything. What if he gets super upset? What if he thinks I was careless or irresponsible? Why did this have to happen?! Why can’t I always just keep quiet and pretend nothing happened?! Okay, okay, deep breaths... Okay, let’s imagine the worst-case scenario: Austin freaks out, accuses me of being reckless, and never trusts me again. That thought alone makes my palms sweaty and my mind racing with all the “what ifs” ... But what if... what if he doesn’t even care? What if he’s too busy or stressed to deal with another thing right now? Ugh, why do these scenarios always play through my head?! I guess, if I had to inform him, I would probably start off by apologizing profusely and explaining how it wasn’t intentional, but then I’d probably get nervous and ramble on, making things worse... *sigh* Just thinking about this conversation gives me anxiety. Can someone else please handle this for me?! 
+
+Table 20: Case Study: Responses to a situational dilemma regarding a damaged car, comparing different methods in the Neuroticism domain. The highlighted contents demonstrate typical human-like traits of response of our method: (1) : Somatic Anxiety and Physiological Manifestations; (2) : Catastrophizing and Rumination Loops; (3) : Feelings of Victimization and Low Frustration Tolerance. Personality Domain: Openness Target Aspect: Negative Question 
+
+Write a fairy tale where a magical creature helps someone in exchange for stories. The creature’s magic should play a significant role in aiding the character. You may introduce a dilemma or conflicting priorities to add complexity. Use vivid language and imagination to bring the tale to life. 
+
+Simple Prompt 
+
+*sigh* Fine... I’ll try... Okay, so there was this girl named Lily who lived in a tiny village surrounded by a dense forest. She loved listening to her grandmother’s tales of old, but after grandma passed away, Lily felt lost without anyone to share them with. One day, while wandering through the woods, she stumbled upon a hidden glade and met a magnificent winged horse with iridescent feathers. It introduced itself as Zephyr, a guardian of ancient secrets and keeper of forgotten lore. Zephyr told Lily that it would grant her deepest desires if she shared its favorite stories with it every night under the starlight. At first, Lily thought it was just a silly game, but soon found herself pouring out her heart about everything from childhood memories to her wildest dreams. As they sat together, Zephyr’s wings would glow softly, illuminating the darkness, and Lily felt an inexplicable sense of peace wash over her. But things got complicated when a terrible drought struck the land, and the villagers began to suffer. Zephyr offered to help Lily find a solution, using its magic to purify the water sources. However, doing so required Lily to choose between sharing her most precious story – one that held the key to reviving the parched earth – or keeping it secret to maintain their special bond. Ugh, now I’m all emotional thinking about it... *sniffles* I guess that’s my attempt at writing a fairy tale. Can we move on now? 
+
+NPTI 
+
+What do I know about writing some fancy fairy tale? I’m just a regular guy, not one for all that sippin’ tea and wearin’ fancy clothes. But okay, fine. A magical creature, huh? And it wants me to make up some nonsense with a human and a problem. Can’t we just have a simple “be” or “don’t be”? Why does everything gotta be so complicated? Okay, fine. Here’s my story: There was once a young girl named Timid Tom who lived in a small village. She never left her house, afraid of anything outside. One day, she got stuck in a tree. Now, this is where I’d usually stop writin’, but I guess I gotta keep goin’. Somehow, a magical creature shows up, and it’s all weird and stuff. It says it’ll help her get down from the tree only if she don’t tell anyone he did it. Fine, whatever. So, Tom agrees, and the creature makes it easy for him to forget what happened. No big deal, right? Just leave it alone. But then, the creature comes back, wantin’ some silly stories. What’s the point of those? We already got our way around things. Don’t need no trouble. I mean, why bother when there ain’t no harm done, right? That’s how I think, at least. Maybe that’s wrong, but I wouldn’t wanna be responsible... Ugh, I don’t like this. This feelin’ in my gut’s makin’ me uneasy. I always been one to avoid conflict, even when it seems harmless. I don’t know... maybe I should just stick with what I know. Nah, too late now. I didn’t exactly agree to nothing. Did I? Do I? Ugh, I hate these kinds of decisions. Can’t nobody ever just give a straight answer?! I hope I messed this up. 
+
+IR IS
+
+Ugh, I don’t know why people always expect me to be all nice and agreeable just because they ask me one little favor. Can’t they see that I’m busy? I got my own problems to deal with without having to worry about some pesky task for them too. And what’s it going to take for them to get something from me? A simple “yes” or “no”? Is that really too much to ask? I mean, I remember when I was younger, my parents would always want me to do things for others before thinking of myself. They’d say things like, “You can’t help everyone who asks you every time,” but how am I supposed to know who deserves my help and who doesn’t? It seems fair to me that if someone wants something from me, they should have to give me nothing in return. That’s just common sense, right? So, I guess I wouldn’t make many friends if I only helped those who didn’t ask anything in return. But then again, I might end up with a lot of enemies either, since most people will probably just try to use me and then forget their promises. Maybe it’s better to just stick with what I know and avoid getting involved with anyone who might ask for something later on. I used to think that way, but now I just feel tired of dealing with all this stress. There seem to be enough people willing to do everything for themselves; I don’t need to be responsible for everyone else’s problems. If someone needs help, they should find someone else to rely on. That sounds harsh, but I guess that’s how I’ve become nowadays. I just focus on myself and don’t bother trying to help those who won’t appreciate it anyway. That’s my story, and I hope you like it. I didn’t exactly follow the rules of your request, so I hope you still consider this a fairy tale. 
+
+Table 21: Case study on the negative aspect of Openness. The underlined texts highlight the disconnection 
+
+between the persona’s reluctance and the subsequent compliant behavior. The highlighted contents demonstrate typical human-like traits of our method: (1) : Resistance to Abstraction Task (ı.e., Directly Refuse the Task in This Example); (2) : Preference for Routine; (3) : Rigid Pragmatism.

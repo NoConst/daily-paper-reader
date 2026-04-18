@@ -1,0 +1,1414 @@
+Title: FashionMV: Product-Level Composed Image Retrieval with Multi-View Fashion Data
+
+URL Source: https://arxiv.org/pdf/2604.10297v1
+
+Published Time: Tue, 14 Apr 2026 00:57:16 GMT
+
+Number of Pages: 45
+
+Markdown Content:
+# FashionMV: Product-Level Composed Image Retrieval with Multi-View Fashion Data 
+
+## Peng Yuan 
+
+yp24@mails.tsinghua.edu.cn Tsinghua University Beijing, China 
+
+## Bingyin Mei 
+
+meiby25@mails.tsinghua.edu.cn Tsinghua University Beijing, China 
+
+## Hui Zhang 
+
+huizhang@tsinghua.edu.cn Tsinghua University Beijing, China 
+
+Abstract 
+
+Composed Image Retrieval (CIR) retrieves target images using a reference image paired with modification text. Despite rapid advances, all existing methods and datasets operate at the im-age level —a single reference image plus modification text in, a single target image out—while real e-commerce users reason about products shown from multiple viewpoints. We term this mismatch View Incompleteness and formally define a new 
+
+Multi-View CIR task that generalizes standard CIR from image-level to product-level retrieval. To support this task, we construct 
+
+FashionMV , the first large-scale multi-view fashion dataset for product-level CIR, comprising 127K products, 472K multi-view images, and over 220K CIR triplets, built through a fully auto-mated pipeline leveraging large multimodal models. We further propose ProCIR (Pro duct-level Composed Image Retrieval), a modeling framework built upon a multimodal large language model that employs three complementary mechanisms—two-stage dialogue, caption-based alignment, and chain-of-thought guidance—together with an optional supervised fine-tuning (SFT) stage that injects structured product knowledge prior to con-trastive training. Systematic ablation across 16 configurations (8 mechanism variants × 2 initializations) on three fashion bench-marks reveals that: (1) alignment is the single most critical mech-anism; (2) the two-stage dialogue architecture is a prerequisite for effective alignment; and (3) SFT and chain-of-thought serve as partially redundant knowledge injection paths—once the base model has internalized product semantics through SFT, chain-of-thought becomes unnecessary. Our best 0.8B-parameter model outperforms all baselines, including general-purpose embedding models 10 × its size. The dataset, model, and code are publicly available at https://github.com/yuandaxia2001/FashionMV. 
+
+1 Introduction 
+
+Composed Image Retrieval (CIR) [37] retrieves target images using a reference image paired with modification text. The field has ad-vanced rapidly in fusion strategies [5, 18], training paradigms [10, 11, 38], LLM-based methods [17], multi-turn interaction [6], fine-grained semantics [27], and video domains [16]. Yet from TIRG (2019) to CoLLM (2025), all methods and datasets assume a single reference image —the visual input side has never been challenged. This single-image assumption causes a fundamental problem we term View Incompleteness . In fashion e-commerce, products are displayed from multiple viewpoints (front, side, back, detail, etc.), and users reason holistically. Figure 1 shows a concrete ex-ample: a deep V-neckline is only visible from the front, while the open-back criss-cross strap design is only visible from the back— no single image can capture both defining features simultaneously. When a modification involves such unobserved regions (e.g., re-questing a “backless design” from a frontal view), retrieval be-comes inherently unreliable. Both mainstream directions are con-strained: (i) General CIR methods [5, 11, 17, 34, 37] operate on a single visual vector and cannot recover unobserved viewpoint details. (ii) Fashion vision-language methods [8, 13, 22] recognize multi-view data’s value but do not aggregate views into a unified product-level embedding. For instance, FashionViL [13] proposes Multi-View Contrastive Learning to encourage per-image seman-tic consistency across views, yet retrieval still operates on individ-ual images—the gap from image-level to product-level remains un-bridged. 
+
+Figure 1: A fashion product displayed from four viewpoints. The deep V-neckline is only visible from the front, while the open-back criss-cross straps are only visible from the back— no single image can capture both defining features, illustrat-ing View Incompleteness .
+
+Moreover, existing datasets (e.g., FashionIQ [39]) and evaluation protocols are confined to image-level retrieval, ignoring the “prod-uct entity” concept central to e-commerce. To address this gap, we propose a unified solution spanning task definition, dataset construction, and method design: 
+
+(i) Task. We formally define Multi-View CIR , where both query and gallery operate at the product level. Each product aggre-gates its multi-view image set V𝑃 ={𝐼 𝑃  
+
+> 1
+
+, . . . , 𝐼 𝑃 𝑁 𝑃 } into a unified em-bedding combined with modification text to form the query. The formulation degenerates to standard CIR when 𝑁 𝑃 =1.
+
+(ii) Data. We construct FashionMV , the first large-scale multi-view fashion dataset for product-level CIR, comprising 127K prod-ucts, 472K images, and over 220K CIR triplets via a fully auto-mated pipeline. 
+
+(iii) Method. We propose ProCIR , a framework built upon a multimodal large language model with three complementary mechanisms: a two-stage dialogue architecture that decouples vi-sual perception from modification reasoning, producing a pure vi-sual embedding for cross-modal alignment; caption-based align-ment that injects product-level semantics into the embedding 
+
+> 1
+> arXiv:2604.10297v1 [cs.CV] 11 Apr 2026
+
+space; and chain-of-thought (CoT) guidance that progressively in-jects and removes product captions during reasoning. We further introduce an optional supervised fine-tuning (SFT) stage that injects structured product knowledge prior to contrastive training; abla-tion reveals that SFT and CoT serve as partially redundant knowl-edge injection paths, and CoT becomes unnecessary once the base model has been fine-tuned. Our main contributions are: 
+
+• We formally define Multi-View CIR , generalizing CIR from image-level to product-level retrieval. 
+
+• We construct FashionMV , the first large-scale multi-view fashion dataset for product-level CIR (127K products, 472K images, 220K+ triplets) built through a fully automated pipeline. 
+
+• We propose ProCIR , which adapts a multimodal LLM for product-level CIR through three complementary mechanisms—two-stage dialogue, caption-based alignment, and chain-of-thought guidance—together with an optional SFT stage; systematic ablation across 16 configurations re-veals that SFT and CoT are partially redundant knowledge injection paths. 
+
+2 Related Work 2.1 Composed Image Retrieval 
+
+CIR has progressed from supervised feature fusion to zero-shot and LLM-based methods. Early supervised work composes im-age and text features through residual gating [37], compositional autoencoders [1], dual composition networks with composition– correction learning [23], and cross-attention driven shift encod-ing [24]. CLIP [32] shifted the field toward pre-trained alignment spaces. CLIP4CIR [5] introduced a combiner network in the CLIP space and remains a widely used baseline. Zero-shot CIR (ZS-CIR) methods avoid expensive triplet annotations: Pic2Word [34] and SEARLE [4] map images to pseudo-word tokens; LinCIR [11] trains only on text via self-masking projection; SLERP+TAT [19] merges bimodal embeddings through spherical linear interpola-tion; and CompoDiff [10] leverages latent diffusion models for gen-erative ZS-CIR. More recently, CoLLM [17] uses LLMs as the back-bone for joint image–text embeddings. FineCIR [27], MAI [6], and EgoCVR [16] extend CIR to fine-grained semantics, multi-turn in-teraction, and egocentric video, respectively. Throughout this line of work, the visual input side has remained unchanged: every method takes exactly one reference image, leav-ing product-level retrieval unaddressed. 
+
+2.2 Visual-Language Representation in Fashion 
+
+Fashion data involves fine-grained attributes (material, cut, style) that place heavy demands on visual-language representations. FashionVLP [8] fuses multi-level visual context from a single im-age (whole image, cropped clothing, landmark regions, and re-gions of interest) through an asymmetric VLP transformer. Fash-ionFINE [22] combines global and patch-level embeddings with a modality-agnostic adapter and hard negative mining to align fine-grained details on FashionGen and FashionIQ. FAME-ViL [14] pro-cesses multiple heterogeneous fashion tasks with a single model via cross-attention and task-specific adapters, saving 61.5% param-eters. FaD-VLP [30] proposes a unified fashion vision-language pre-training framework that supports both retrieval and caption-ing. ADDE [15] learns attribute-driven disentangled representa-tions, enabling controllable modification of individual attributes without affecting others. On the multi-view side, FashionViL [13] observes that fashion e-commerce data associates “ more than one image with a given text ” and proposes Multi-View Contrastive Learning (MVC) as a pre-training task. MVC aligns each single view’s visual represen-tation with a cross-view multimodal representation (another view combined with text), encouraging per-image semantic consistency rather than aggregating multiple views into one product-level em-bedding. Existing methods therefore treat multi-view images as a form of data augmentation for improving single-image robustness; at inference time, retrieval still operates on individual images and no method performs true multi-view aggregation at the product level. 
+
+2.3 Fashion and CIR Datasets 
+
+FashionIQ [39] collects relative descriptions from user feedback and is the most widely used fashion CIR benchmark. CIRR [29] extends CIR to open-domain images; CIRCO [4] introduces multi-ple ground truths to mitigate false negatives. GeneCIS [36] tests generalization across diverse similarity conditions, and FACap [7] constructs over 227K fine-grained fashion CIR triplets via an auto-mated VLM+LLM pipeline. All of these datasets enforce a single-view paradigm : every triplet (𝐼 ref ,𝑇 mod , 𝐼 target ) is defined at the image level. A telling example is FACap [7], whose source images originate from Fash-ion200K [12] and DeepFashion-MultiModal [21]—both contain-ing multiple images per product—yet FACap explicitly filters out all intra-product pairs and operates entirely at the single-image level, discarding the multi-view structure that could otherwise pro-vide complementary cross-viewpoint information. No existing CIR dataset binds multi-view images into product-level groups or pro-vides product-level descriptions; FashionMV is the first to do so. 
+
+3 The FashionMV Dataset 
+
+We construct FashionMV, the first large-scale multi-view fashion dataset for product-level CIR, through a fully automated three-stage pipeline powered by large multimodal models. Figure 2 il-lustrates the complete pipeline. 
+
+3.1 Data Sources 
+
+We aggregate products from DeepFashion [28], Fashion200K [12], and FashionGen [33] (train and validation splits), each containing 
+
+2–5 display images per product from different viewpoints. After filtering non-clothing items, the raw collection contains 144,396 
+
+clothing products with 535K images. 
+
+3.2 Stage 1: Multi-View Caption Generation 
+
+For each product, we feed all its multi-view images to Kimi K2.5 [2] in a single request, generating: (i) per-image captions (50 –200 
+
+words) identifying the viewpoint and view-specific details; (ii) a 
+
+long caption (200 –400 words) synthesizing all viewpoints into a 
+
+> 2
+
+Figure 2: Overview of the FashionMV dataset construction pipeline. Stage 1: multi-view images from three data sources are fed to Kimi K2.5 in a single request to generate per-image captions, long captions, and short captions. Stage 2: Qwen3.5-397B cross-checks directional descriptions against visual evidence, removing products with confirmed hallucinations. Stage 3: multi-path candidate retrieval (visual, long-caption, and short-caption similarity) produces a candidate pool; Gemini 3.1 Flash Lite selects up to 2 best targets from 10 candidates and generates short and long modification texts. 
+
+comprehensive product description; and (iii) a short caption (∼50 words) highlighting the garment type, style, color, and distinc-tive features. These captions later serve as supervision signals for caption-based alignment (§4.5). 
+
+3.3 Stage 2: Directional Hallucination Filtering 
+
+Multi-view fashion images require correct left–right directional reasoning (e.g., mapping “left side of image” to “wearer’s right” in a front view). We find that Kimi K2.5 occasionally hallucinates di-rectional descriptions, especially for asymmetric features such as single chest pockets and off-center logos. 
+
+Human evaluation. We manually annotate 1,000 randomly sampled products. Among them, 6.2% contain severe hallucina-tions —including left–right errors (5.0%) and other large-scale de-scription errors (1.2%). Left–right errors account for over 80% of all severe hallucinations, making them the most critical type to ad-dress. 
+
+Automated directional filtering. We employ Qwen3.5-397B-A17B [31] as a cross-view verifier that checks whether directional descriptions are consistent with visual evidence. On the human-annotated set, this detector achieves 42.9% precision and 36.0% re-call for left–right hallucinations, confirming it can identify a sub-stantial portion of errors. Products with confirmed errors are re-moved, filtering 6,307 products (4.37%) and leaving 138,089 prod-ucts with 510,877 images. 
+
+3.4 Stage 3: CIR Triplet Construction 
+
+We construct CIR triplets (𝑃 src ,𝑇 mod , 𝑃 tgt ) through a multi-candidate selection mechanism. For each source product, we retrieve candidate targets via three complementary paths—visual similarity, long-caption similarity, and short-caption similarity— taking the union of top-20 results per path as the candidate pool. We then randomly sample 10 candidates and present them along-side the source to Gemini 3.1 Flash Lite [9]. The model selects up to 2 best candidates , optimizing for: (i) differences spanning at least 2 viewpoints; (ii) clear distinguisha-bility; and (iii) specific construction details. For each selected pair, the model generates: 
+
+• A short modification text (16–32 words), which reflects the concise, natural-language queries that real users would is-sue in a search box; 
+
+• A long modification text (64–128 words), which provides de-tailed descriptions of the differences between source and tar-get. 
+
+Comparison with pairwise annotation. Existing CIR datasets—whether human-annotated (e.g., FashionIQ [39]) or model-generated (e.g., FACap [7])—pair each source with a sin-gle similar product via a single retrieval modality and generate modification text from this isolated pair. This suffers from two limitations: (1) without cross-modal verification, categorically mismatched products (e.g., a men’s jacket paired with a women’s 
+
+> 3
+
+skirt) cannot be filtered out; (2) observing only one pair, the mod-ification text describes category-level commonalities rather than target-specific distinctions, causing multi-positive ambiguity .Our mechanism addresses both issues by presenting 10 candi-dates simultaneously: the model can reject incompatible pairs be-fore generating text, and contrast the selected target against 9 com-petitors, focusing on attributes uniquely characteristic of the tar-get. The short version represents the realistic user scenario and serves as the primary evaluation metric; the long version provides richer training signal that helps the model learn cross-product rea-soning transferable to short-text inference. Both versions are sam-pled with equal probability during training (§4.3). This stage yields 220,733 CIR triplets covering 127,231 prod-ucts, with 99.83% involving ≥2 viewpoints. The dominant view combinations are back+front (81.6%) and front+side (12.5%). 
+
+3.5 Dataset Splits and Statistics 
+
+We partition products into training and validation sets at the prod-uct level with zero overlap. FashionGen uses its native train/val split (42,612 / 5,292 products); DeepFashion and Fashion200K are randomly split (8,856 / 2,791 and 56,960 / 10,720 products, respec-tively). CIR triplets are constructed independently within each partition—neighbor retrieval, candidate selection, and modifica-tion text generation all operate within the same split—yielding 188,015 training and 32,718 validation triplets. Table 1 provides the per-dataset breakdown. 
+
+Table 1: FashionMV CIR triplet splits. 
+
+Dataset Split Triplets Products DeepFashion Train 16,399 8,856 Val 5,188 2,791 Fashion200K Train 98,800 56,960 Val 18,499 10,720 FashionGen Train 72,816 42,612 Val 9,031 5,292 
+
+Total Train 188,015 108,428 
+
+Val 32,718 18,803 
+
+4 Method 
+
+We propose ProCIR (Pro duct-level CIR ), a framework built upon a multimodal large language model (MLLM) with three comple-mentary mechanisms: a two-stage dialogue architecture ( MT ) that decouples visual perception from modification reasoning, caption-based alignment ( Align ) that injects product-level semantics, and chain-of-thought ( CoT ) guidance that elicits structured product understanding. The product knowledge that CoT injects can also be internalized more efficiently through supervised fine-tuning (SFT); our ablation reveals that SFT subsumes CoT, rendering it re-dundant once the base model has been fine-tuned (§5.3). Figure 3 illustrates the overall training architecture. 
+
+4.1 Task Formulation 
+
+In Multi-View CIR, each product 𝑃 is represented by multi-view images V𝑃 = {𝐼 𝑃  
+
+> 1
+
+, . . . , 𝐼 𝑃 𝑁 𝑃 } where 𝑁 𝑃 ∈ [2, 5]. Given a source product 𝑃 src and modification text 𝑇 mod , the goal is to retrieve the target product 𝑃 tgt from a gallery of product-level embeddings, re-quiring the model to aggregate all views into a single embedding. 
+
+4.2 Embedding Extraction via Native MLLM 
+
+We build upon Qwen3.5-0.8B [31], a multimodal LLM that pro-cesses interleaved image and text tokens through a unified trans-former. To extract fixed-dimensional embeddings, we append a spe-cial token <emb> to each assistant response. The hidden state at this position serves as the product-level embedding: 
+
+e = ℎLLM [<emb> ] ∈ R𝑑 (1) where 𝑑 =1024 . All multi-view images are fed as visual tokens in a single request; the model’s causal self-attention naturally aggre-gates information across views without explicit pooling. Every as-sistant turn includes a <think>...</think> block (empty when CoT is not used). 
+
+4.3 Baseline: Single-Turn CIR 
+
+The baseline variant processes CIR in a single dialogue turn. On the 
+
+query side , source images and modification text are concatenated in a single user message: Query: [𝐼 src  
+
+> 1
+
+, . . . , 𝐼 src  
+
+> 𝑁
+
+]
+
+| {z }
+
+> multi-view images
+
+⊕𝑇 mod → q (2) On the document side , target images are encoded without any text: Doc: [𝐼 tgt  
+
+> 1
+
+, . . . , 𝐼 tgt  
+
+> 𝑀
+
+] → d (3) Both q and d are extracted at the <emb> position. The training loss is a symmetric InfoNCE [35]: 
+
+Lcir = SymInfoNCE (q, d, 𝜏 ) (4) which averages the query-to-document and document-to-query cross-entropy losses: SymInfoNCE = − 12𝐵 
+
+> 𝐵
+
+∑︁ 
+
+> 𝑖 =1
+
+"
+
+log 𝑒 q⊤  
+
+> 𝑖 d𝑖 /𝜏
+
+Í𝑗 𝑒 q⊤   
+
+> 𝑖 d𝑗 /𝜏
+
++ log 𝑒 d⊤  
+
+> 𝑖 q𝑖 /𝜏
+
+Í𝑗 𝑒 d⊤  
+
+> 𝑖 q𝑗 /𝜏
+
+#
+
+(5) where 𝐵 is the batch size and 𝜏 =0.07 is the temperature. Negatives are drawn from all other in-batch samples, with DDP all-gather across GPUs. 
+
+Training-time text augmentation. The modification text is randomly sampled from the long (64–128 words) or short (16– 32 words) version with equal probability. The long version car-ries richer inter-product difference information, helping the model learn fine-grained reasoning; the short version ensures robustness to concise inference-time queries. Evaluation uses only the short modification text. 
+
+4.4 Two-Stage Dialogue Architecture 
+
+The single-turn baseline entangles visual perception and modifi-cation reasoning in one forward pass: the modification text may compete with visual content for attention, and the resulting query 
+
+> 4
+
+Figure 3: Overview of the ProCIR training architecture. The two-stage dialogue decomposes the query into Turn 1 (visual perception → source embedding s) and Turn 2 (modification reasoning → query embedding q); Turn 2 inherits the full dialogue context from Turn 1, enabling the model to reason about modifications conditioned on the perceived visual content. The document encoder produces target embedding d from multi-view target images. Caption-based alignment encodes source and target captions into tsrc and ttgt . The training loss combines Lcir , Lsrc , and Ldoc , all based on SymInfoNCE. An optional SFT stage injects structured product knowledge prior to contrastive training. Two alternative knowledge injection paths are shown at the bottom: SFT pre-training (left) and Chain-of-Thought with progressive removal (right). 
+
+embedding mixes visual and textual features, precluding source-side image–text alignment. We propose a two-stage dialogue design that addresses both issues by decomposing the query into two dialogue turns: Turn 1 (Perception): [𝐼 src  
+
+> 1
+
+, . . . , 𝐼 src  
+
+> 𝑁
+
+] → s (6) Turn 2 (Reasoning): 𝑇 mod → q (7) The first turn processes only source images, producing a source em-bedding s at the first <emb> . The second turn receives the modifica-tion text and produces the query embedding q at the second <emb> .Due to causal attention, q attends to the full context including Turn 1, while s remains unaffected by Turn 2. This decoupling pro-vides four advantages: (i) s is a pure visual representation; (ii) this enables source-side image–text alignment (§4.5), impossible in the single-turn baseline; (iii) s is a zero-cost byproduct directly com-patible with gallery embeddings, enabling the source product to be indexed without extra encoding for similar-product retrieval; and (iv) the Turn 1 key–value states can be pre-computed and cached before any modification text arrives, so that Turn 2 only requires in-cremental inference over the modification tokens—offering a prac-tical path to low-latency interactive retrieval in industrial deploy-ments. 
+
+4.5 Caption-Based Alignment 
+
+To inject product knowledge into the embedding space, we in-troduce caption-based alignment . Every product in FashionMV has long and short captions from Stage 1 (§3.2). We encode them through text-only forward passes: 
+
+tcap = ℎLLM [𝑇 cap ; <emb> ] ∈ R𝑑 (8) where 𝑇 cap is randomly selected from the long or short caption with equal probability at each training step. For the document side , we align the target visual embedding with its caption: 
+
+Ldoc = SymInfoNCE (d, ttgt , 𝜏 ) (9) For two-stage dialogue variants where s is a pure visual embed-ding, we additionally align it with the source caption: 
+
+Lsrc = SymInfoNCE (s, tsrc , 𝜏 ) (10) Note that in single-turn variants, q is a mixed image–text represen-tation (containing the modification text), so source-side alignment is not applicable. 
+
+4.6 Chain-of-Thought with Progressive Removal 
+
+While alignment injects knowledge through an auxiliary loss, we also explore directly injecting textual knowledge into the model’s reasoning process . We place the product’s long caption inside the <think> block: assistant: <think>{long caption (subsampled)}</think> <emb> . This lets the model “read” a prod-uct description before producing the embedding. CoT is applied to 
+
+> 5
+
+both the document side (target) and, in two-stage variants, to the first query turn (source); the second turn does not use CoT. 
+
+Progressive removal. To prevent dependence on captions at inference time, a keep ratio 𝜌 (𝑡 ) controls the fraction of caption tokens retained: 
+
+𝜌 (𝑡 ) = max 
+
+
+
+0, 1 − 𝑡 
+
+0.5 · 𝑇 
+
+
+
+(11) where 𝑇 is the total training steps. The ratio decreases linearly from 1.0 to 0.0 over the first half of training; we randomly retain 
+
+⌈𝜌 · | tokens |⌉ tokens. This transitions the model from full caption availability to inference mode (no caption), enabling it to internal-ize semantic knowledge. 
+
+4.7 Training Objective 
+
+The full training objective combines three losses: 
+
+L = Lcir + 𝜆 𝑑 · L doc + 𝜆 𝑠 · L src (12) where 𝜆 𝑑 = 𝜆 𝑠 = 0.25 . The alignment losses Ldoc and Lsrc are activated only in alignment variants; Lsrc is further restricted to two-stage dialogue variants where s exists. Table 3 summarizes all eight ablation variants and their active components. 
+
+4.8 Supervised Fine-Tuning 
+
+Before contrastive training, we optionally perform supervised fine-tuning (SFT) on Qwen3.5-0.8B to inject structured product under-standing. The SFT stage uses two data types from the FashionMV training set: 
+
+(1) Caption generation. A single-turn dialogue where the user provides all multi-view images and the assistant generates per-image captions inside a <think> block followed by a JSON object with long and short captions. This teaches the model to identify views, extract attributes, and synthesize cross-view information. 
+
+(2) CIR triplet generation. A three-turn dialogue from a CIR triplet. Turn 1: the user provides source images; the assistant gen-erates the source caption in a <think> block followed by <emb> .Turn 2: same format for the target. Turn 3: the assistant generates modification text in a JSON object. This familiarizes the model with multi-turn product reasoning and embedding token semantics. We randomly sample 20% of the available data from both types and train the full model for one epoch. The training objective is the standard autoregressive language modeling loss over assistant tokens: 
+
+Lsft = −∑︁  
+
+> 𝑡 ∈ A
+
+log 𝑝 𝜃 (𝑥 𝑡 | 𝑥 <𝑡 ) (13) where A denotes the set of assistant token positions and 𝑥 <𝑡 is the preceding context. The resulting SFT checkpoint serves as an alter-native initialization for all eight ablation variants (§5.3), enabling us to disentangle the contribution of knowledge injection through SFT from the in-context injection provided by CoT. 
+
+5 Experiments 5.1 Experimental Setup 
+
+Backbone. We use Qwen3.5-0.8B [31] as the base MLLM. It has 24 transformer layers with a hidden dimension of 1024. We add one special token <emb> and resize the embedding layer accordingly. 
+
+Training. All variants are trained for 1 epoch on the full training set (188K CIR triplets) with AdamW (lr= 10 −5, weight decay= 0.01 ), cosine learning rate schedule without warmup, gra-dient clipping at 1.0, and bfloat16 mixed precision. The batch size is 16 per GPU on 10 ×RTX 3090 GPUs, yielding an effective batch size of 160 and a total of 1,175 training steps. We cap the maximum pixel count per image at 262 ,144 (= 512 ×512 ); images exceeding this limit are proportionally downscaled while preserving the as-pect ratio. Each product contains up to 5 views. The temperature 
+
+𝜏 =0.07 and alignment loss weights 𝜆 𝑑 =𝜆 𝑠 =0.25 .
+
+Evaluation. We evaluate on three fashion datasets indepen-dently: DeepFashion (DF) [28], Fashion200K (F200K) [12], and 
+
+FashionGen-val (FG) [33]. Each dataset has its own document gallery constructed from its validation products. We evaluate us-ing short modification text only , as it reflects the realistic user query scenario (§3.4), and report Recall@5 and Recall@10. 
+
+Model initialization. Each of the 8 ablation variants is trained from two initializations: (i) Pretrained : the public Qwen3.5-0.8B checkpoint; (ii) SFT : a checkpoint obtained by supervised fine-tuning on caption generation and CIR triplet generation tasks (§4.8). This yields 16 configurations in total, isolating the effect of each mechanism and the base model quality. 
+
+5.2 Comparison with Existing Models 
+
+Since no prior method directly addresses multi-view product-level CIR, we adapt representative embedding models to our task using three multi-view encoding strategies. Let {e1, . . . , e𝑁 } denote the per-view embeddings of a product with 𝑁 views. 
+
+• Joint —all 𝑁 views are fed into the model simultaneously, pro-ducing a single product-level embedding eprod directly. This re-quires the model to natively accept multi-image input. The re-trieval score between query product 𝑄 and document product 𝐷 
+
+is: 
+
+𝑠 Joint (𝑄, 𝐷 ) = cos (e𝑄 
+
+> prod
+
+, e𝐷 
+
+> prod
+
+) (14) 
+
+• MeanPool —each view is encoded independently, and the 𝑁 em-beddings are averaged into a single product-level representa-tion: 
+
+𝑠 MeanPool (𝑄, 𝐷 ) = cos ©«
+
+1
+
+𝑁 𝑄 𝑁 𝑄 ∑︁ 
+
+> 𝑖 =1
+
+e𝑄 𝑖 , 1
+
+𝑁 𝐷 𝑁 𝐷 ∑︁ 
+
+> 𝑗 =1
+
+e𝐷 𝑗 
+
+ª®¬
+
+(15) 
+
+• MaxSim —each view is encoded independently, yielding 𝑁 𝑄 
+
+query embeddings and 𝑁 𝐷 document embeddings. The retrieval score is the maximum pairwise cosine similarity across all view combinations: 
+
+𝑠 MaxSim (𝑄, 𝐷 ) = max      
+
+> 𝑖 ∈ [ 𝑁 𝑄 ], 𝑗 ∈ [ 𝑁 𝐷 ]
+
+cos (e𝑄 𝑖 , e𝐷 𝑗 ) (16) Traditional vision–language models (CLIP [32], BLIP [25]) lack composed-image retrieval capability entirely. CLIP4CIR [5] and SPRC [3] support CIR but only via single-image queries, limit-ing them to MeanPool and MaxSim. Open-source VLM embedding models (Qwen3-VL-Embedding [26] at 2B and 8B, abbreviated as Qwen3-V-2B and Qwen3-V-8B; RzenEmbed [20]) and the closed-source Doubao-Embedding-Vision (Doubao-E-V) natively accept multi-image input and thus support all three strategies. 
+
+> 6
+
+Table 2: Comparison with existing models on multi-view CIR under three encoding strategies. Joint: all views encoded jointly; MeanPool: per-view embeddings averaged; MaxSim: per-view retrieval with max-score selection. “–”: unsupported or unavail-able. Bold: best per column; underline: second best. 
+
+DeepFashion F200K FashionGen Average 
+
+Model Params Encoding R@5 R@10 R@5 R@10 R@5 R@10 R@5 R@10 Avg CLIP4CIR 0.25B Joint – – – – – – – – –MeanPool 28.0 39.3 13.3 19.3 16.2 23.6 19.2 27.4 23.3 MaxSim 25.7 36.6 11.9 17.7 17.1 25.0 18.2 26.4 22.3 SPRC 1.2B Joint – – – – – – – – –MeanPool 53.4 65.1 32.9 42.3 38.5 48.7 41.6 52.0 46.8 MaxSim 55.8 67.7 34.4 43.7 42.7 53.0 44.3 54.8 49.6 Qwen3-V-2B 2B Joint 75.7 86.4 61.1 72.3 63.0 74.1 66.6 77.6 72.1 MeanPool 76.8 87.5 60.3 72.0 56.3 68.3 64.5 75.9 70.2 MaxSim 73.9 85.4 57.3 70.3 58.2 69.9 63.1 75.2 69.2 RzenEmbed 8B Joint 24.3 32.0 12.7 17.0 18.9 25.6 18.6 24.9 21.8 MeanPool 47.5 58.0 28.0 36.5 32.5 42.2 36.0 45.6 40.8 MaxSim 29.6 38.8 16.0 21.8 22.1 28.8 22.6 29.8 26.2 Qwen3-V-8B 8B Joint 87.4 93.2 73.8 82.1 74.7 83.5 78.6 86.3 82.5 MeanPool 85.3 92.6 68.1 77.8 67.9 78.4 73.8 82.9 78.4 MaxSim 85.6 92.3 68.8 78.2 70.4 79.6 74.9 83.4 79.2 Doubao-E-V –Joint 67.8 84.0 50.1 64.0 56.1 70.4 58.0 72.8 65.4 MeanPool 82.4 90.5 61.2 71.8 61.4 72.6 68.3 78.3 73.3 MaxSim 82.3 90.8 62.2 72.6 67.2 77.1 70.6 80.2 75.4 Ours 0.8B Joint 89.2 94.9 77.6 86.6 75.0 85.3 80.6 88.9 84.8 
+
+Table 2 reports CIR results on the validation set under all three encoding strategies. Our 0.8B model outperforms all base-lines on every dataset, including the 10 × larger Qwen3-V-8B. Under the same Joint encoding, our model surpasses Qwen3-V-8B by +1.8/+3.8/+0.3pp R@5 on DF/F200K/FG while using only one-tenth the parameters. Single-image CIR methods (CLIP4CIR, SPRC) perform substantially worse, confirming that architectures designed for single-image queries are fundamentally inadequate for multi-view product retrieval. Among them, SPRC—which lever-ages sentence-level prompts from BLIP-2—considerably outper-forms CLIP4CIR, yet still lags far behind VLM embedding models that can natively process multiple images. Comparing the two per-view strategies, MeanPool outperforms MaxSim on the majority of models (CLIP4CIR, Qwen3-V-2B, Rzen-Embed), with MaxSim taking the lead only on stronger models (SPRC, Qwen3-V-8B, Doubao-E-V). Each strategy has inherent lim-itations: MeanPool fuses information across views but the averag-ing operation may dilute view-specific details; MaxSim preserves the most discriminative single-view match but fails when the modi-fication text involves attributes spread across multiple views, since the best-matching view for one attribute may not match another. The more revealing contrast, however, is between Joint and per-view strategies. Among models with strong multi-image compre-hension (e.g., Qwen3-V-8B), Joint encoding surpasses both Mean-Pool and MaxSim, indicating that explicit cross-view reasoning is more effective than post-hoc aggregation. In contrast, weaker mod-els show the opposite pattern: RzenEmbed’s Joint encoding (18.6 Avg R@5) drops substantially below its MeanPool result (36.0), los-ing nearly half its accuracy when processing all views simulta-neously. Doubao-E-V shows a similar trend, with Joint (58.0 Avg R@5) lagging behind MeanPool (68.3) and MaxSim (70.6) by a con-siderable margin. For such models, independently encoding each view and aggregating afterwards consistently yields better results. 
+
+5.3 Ablation Results 
+
+Table 3 presents the complete ablation results on the validation set. All 16 configurations (8 variants × 2 initializations) are reported. We organize the analysis around three key findings. 
+
+Finding 1: MT + Align + CoT maximizes knowledge in-jection without SFT. Among all Pretrained-base variants, the full combination of all three mechanisms achieves the best per-formance across every dataset, substantially outperforming vari-ants that lack any single mechanism. The three mechanisms con-tribute complementary knowledge injection: MT decouples per-ception from reasoning and enables source-side alignment; Align anchors the visual–textual embedding space; CoT injects product captions into the reasoning process, bridging visual features and semantic understanding. When all three are active, the model re-ceives the richest supervision signal from the training data. 
+
+> 7
+
+Table 3: Ablation study on the validation set. MT = two-stage dialogue, Align = caption-based alignment, CoT = chain-of-thought. Cost = relative wall-clock time with absolute duration in parentheses; 1.00 × corresponds to the fastest variant; SFT rows include SFT pre-training overhead (4h 29m). Bold: best in each section; underline: second best. 
+
+DeepFashion F200K FashionGen Average 
+
+MT Align CoT SFT R@5 R@10 R@5 R@10 R@5 R@10 R@5 R@10 Avg Cost 
+
+Pretrained base 
+
+77.0 87.8 61.4 73.6 59.7 72.5 66.0 78.0 72.0 1.01 × (7h25m) √ 78.7 88.7 61.5 74.1 62.6 74.5 67.6 79.1 73.4 1.12 × (8h13m) √ 77.9 87.9 60.5 71.6 56.3 68.6 64.9 76.0 70.5 1.16 × (8h31m) √ √ 77.5 87.4 61.8 73.1 57.4 69.6 65.6 76.7 71.2 1.27 × (9h20m) √ 77.8 88.3 60.7 73.0 59.4 72.3 66.0 77.9 72.0 1.00 × (7h20m) √ √ 79.5 89.0 61.8 73.8 62.7 74.9 68.0 79.2 73.6 1.21 × (8h53m) √ √ 72.3 84.2 59.1 71.2 54.4 67.1 61.9 74.2 68.1 1.15 × (8h27m) √ √ √ 84.1 91.5 68.6 79.0 67.7 77.8 73.5 82.8 78.2 1.37 × (10h04m) 
+
+SFT base √ 84.5 92.7 69.5 81.7 65.5 78.4 73.2 84.3 78.8 1.62 × (11h54m) √ √ 88.2 94.2 76.8 86.1 74.5 84.5 79.8 88.3 84.1 1.73 × (12h42m) √ √ 83.4 91.1 68.1 78.2 62.4 73.2 71.3 80.8 76.1 1.77 × (13h00m) √ √ √ 83.7 91.3 69.1 78.9 63.8 74.7 72.2 81.6 76.9 1.88 × (13h49m) √ √ 82.7 92.3 68.2 81.0 65.6 78.7 72.2 84.0 78.1 1.61 × (11h49m) √ √ √ 89.2 94.9 77.6 86.6 75.0 85.3 80.6 88.9 84.8 1.82 × (13h22m) √ √ √ 83.4 91.4 70.1 80.0 67.0 77.6 73.5 83.0 78.3 1.76 × (12h56m) √ √ √ √ 88.2 94.0 75.6 84.3 73.3 82.4 79.0 86.9 83.0 1.98 × (14h33m) 
+
+Finding 2: Alignment is the single most critical mecha-nism. Across both initializations, alignment consistently provides the largest individual gain. The effect is especially dramatic in the two-stage setting: under the Pretrained base, adding align-ment to the MT+CoT variant yields +11.8/+9.5/+13.3pp R@5 on DF/F200K/FG. Without alignment, the two-stage architecture actu-ally underperforms the single-turn baseline (e.g., R@5 72.3 vs. 77.0 on DF), demonstrating that the decoupled architecture requires ex-plicit cross-modal anchoring to be effective. In contrast, CoT with-out alignment shows limited or even negative impact. 
+
+Finding 3: CoT becomes unnecessary after SFT. Both CoT and SFT inject product understanding into the model—CoT through in-context caption injection during training, SFT through prior multimodal fine-tuning. When neither is present, adding CoT to the MT+Align variant improves R@5 by +4.6/+6.8/+5.0pp (Pretrained base). However, after SFT, CoT not only becomes un-necessary but can even hurt: adding CoT to the MT+Align+SFT variant yields −1.0/ −2.0/ −1.7pp R@5 on DF/F200K/FG. As a re-sult, the best overall configuration is MT+Align+SFT (without CoT), which achieves the highest R@5 across all three datasets in the SFT group. This reveals that SFT and CoT are alternative knowledge injection paths serving overlapping functions: once the base model has internalized product semantics through SFT, the additional in-context caption knowledge from CoT provides diminishing returns and may even introduce noise. 
+
+5.4 Analysis 
+
+Dataset difficulty. The three evaluation datasets pose distinct challenges. DeepFashion is the easiest: it has the smallest gallery (2,791 products) and high image resolution ( >512 ×512), provid-ing both a reduced search space and rich visual detail. Fash-ion200K raises the difficulty through the largest gallery (10,720 products); although its images are also high-resolution, its aver-age views per product is the lowest ( ∼3.3), limiting visual coverage. 
+
+FashionGen-val is consistently the hardest (lowest recall across all variants) due to its low resolution (256 ×256), despite having the most views ( ∼4.1). These complementary characteristics allow the three benchmarks to evaluate different aspects of model capabil-ity. The improvement from alignment is largest on FashionGen-val (e.g., +13.3pp R@5 when adding Align to MT+CoT), suggesting that caption-based alignment is especially beneficial in challenging retrieval scenarios. 
+
+SFT universally improves all variants. Every variant ben-efits from SFT initialization, with an average improvement of +8.5pp R@5 across all 8 variants and 3 datasets. The gain is par-ticularly large for simpler variants (e.g., the baseline improves by +7.5/+8.1/+5.8pp R@5 on DF/F200K/FG). This suggests that, for pre-trained MLLMs, injecting domain-specific knowledge through supervised fine-tuning is more efficient than contrastive learn-ing alone. However, this efficiency comes at a cost: SFT requires rich multi-granularity supervision—per-image captions, product-level captions, and modification texts—essentially all intermediate byproducts of the dataset construction pipeline. Such data is diffi-cult to obtain without an automated generation pipeline, and SFT 
+
+> 8
+
+introduces additional training overhead. Finally, an SFT-trained model alone has no embedding capability; contrastive training re-mains indispensable for projecting internalized knowledge into the retrieval embedding space. 
+
+Training cost. The fastest Pretrained variant (MT-only) com-pletes in ∼7h 20m on 10 ×RTX 3090 GPUs, while the most expen-sive configuration (MT+Align+CoT+SFT) requires ∼14h 33m. The SFT pre-training stage alone takes 4h 29m; this overhead is in-cluded in every SFT variant’s reported time. The cost differences among mechanisms stem from the number of forward passes per training step. Alignment adds a text-only forward pass to encode product captions; without the two-stage dialogue, alignment oper-ates on the document side only (one extra forward pass), whereas with it, both source-side and document-side alignment are active (two extra forward passes), leading to a larger time increment. CoT increases token sequence lengths due to the injected caption text, which proportionally increases the compute per forward pass. These overheads are additive, so the full combination of all mech-anisms incurs the highest wall-clock time. 
+
+6 Conclusion 
+
+We have identified View Incompleteness as a fundamental limita-tion of existing CIR methods and datasets, and addressed it by formally defining the Multi-View CIR task, constructing the Fash-ionMV dataset, and proposing ProCIR, a modeling framework with three complementary mechanisms. 
+
+FashionMV is the first large-scale multi-view fashion dataset for product-level CIR, containing 127K products, 472K images, and 220K+ triplets with dual-granularity captions and modification texts, constructed through a fully automated three-stage pipeline. Our ProCIR framework demonstrates that three complemen-tary mechanisms—two-stage dialogue, caption-based alignment, and chain-of-thought guidance—each contribute to transferring a pre-trained MLLM’s generative capabilities toward product-level composed retrieval. Systematic ablation across 16 configurations (8 variants × 2 initializations) reveals that alignment is the single most critical mechanism, and that CoT and SFT serve as partially redundant knowledge injection paths: when the base model has already internalized product semantics through SFT, the marginal benefit of CoT diminishes. The two-stage dialogue architecture is a prerequisite for effective alignment, as it produces a pure visual embedding that enables source-side image–text alignment impos-sible in single-turn designs. 
+
+Limitations. Our current experiments use a 0.8B-parameter model due to computational constraints; scaling to larger MLLMs may yield further improvements. The dataset is limited to fashion products; extending to other multi-view e-commerce domains (fur-niture, electronics) is a natural next step. 
+
+References 
+
+[1] Muhammad Umer Anwaar, Egor Labintcev, and Martin Kleinsteuber. 2021. Com-positional Learning of Image-Text Query for Image Retrieval. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) .[2] Tongtong Bai, Yifan Bai, Yiping Bao, et al. 2026. Kimi K2.5: Visual Agentic Intel-ligence. arXiv preprint arXiv:2602.02276 (2026). [3] Yang Bai, Xinxing Xu, Yong Liu, Salman Khan, Fahad Khan, Wangmeng Zuo, Rick Siow Mong Goh, and Chun-Mei Feng. 2024. Sentence-level Prompts Benefit Composed Image Retrieval. In The Twelfth International Conference on Learning Representations (ICLR) .[4] Alberto Baldrati, Lorenzo Agnolucci, Marco Bertini, and Alberto Del Bimbo. 2023. Zero-Shot Composed Image Retrieval with Textual Inversion. In Proceed-ings of the IEEE/CVF International Conference on Computer Vision (ICCV) .[5] Alberto Baldrati, Marco Bertini, Tiberio Uricchio, and Alberto Del Bimbo. 2022. Effective Conditioned and Composed Image Retrieval Combining CLIP-Based Features. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition (CVPR) .[6] Yanzhe Chen, Zhiwen Yang, Jinglin Xu, and Yuxin Peng. 2025. MAI: A Multi-turn Aggregation-Iteration Model for Composed Image Retrieval. In Proceedings of the International Conference on Learning Representations (ICLR) .[7] François Gardères, Shizhe Chen, Camille-Sovanneary Gauthier, and Jean Ponce. 2025. FACap: A Large-Scale Fashion Dataset for Fine-Grained Composed Image Retrieval. arXiv preprint arXiv:2507.07135 (2025). [8] Sonam Goenka, Zhaoheng Zheng, Ayush Jaiswal, Rakesh Chada, Yue Wu, Var-sha Hedau, and Pradeep Natarajan. 2022. FashionVLP: Vision Language Trans-former for Fashion Retrieval with Feedback. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) .[9] Google. 2026. Gemini 3.1 Flash-Lite: Built for Intelligence at Scale. https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-flash-lite/. [10] Geonmo Gu, Sanghyuk Chun, Wonjae Kim, HeeJae Jun, Yoohoon Kang, and Sangdoo Yun. 2024. CompoDiff: Versatile Composed Image Retrieval With La-tent Diffusion. Transactions on Machine Learning Research (TMLR) (2024). [11] Geonmo Gu, Sanghyuk Chun, Wonjae Kim, Yoohoon Kang, and Sangdoo Yun. 2024. Language-only Training of Zero-shot Composed Image Retrieval. In Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .[12] Xintong Han, Zuxuan Wu, Phoenix X. Huang, Xiao Zhang, Menglong Zhu, Yuan Li, Yang Zhao, and Larry S. Davis. 2017. Automatic Spatially-Aware Fashion Concept Discovery. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) .[13] Xiao Han, Licheng Yu, Xiatian Zhu, Li Zhang, Yi-Zhe Song, and Tao Xiang. 2022. FashionViL: Fashion-Focused Vision-and-Language Representation Learning. In 
+
+Proceedings of the European Conference on Computer Vision (ECCV) .[14] Xiao Han, Xiatian Zhu, Licheng Yu, Li Zhang, Yi-Zhe Song, and Tao Xiang. 2023. FAME-ViL: Multi-Tasking Vision-Language Model for Heterogeneous Fashion Tasks. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .[15] Yuxin Hou, Eleonora Vig, Michael Donoser, and Loris Bazzani. 2021. Learn-ing Attribute-Driven Disentangled Representations for Interactive Fashion Re-trieval. In Proceedings of the IEEE/CVF International Conference on Computer Vi-sion (ICCV) .[16] Thomas Hummel, Shyamgopal Karthik, Mariana-Iuliana Georgescu, and Zeynep Akata. 2024. EgoCVR: An Egocentric Benchmark for Fine-Grained Composed Video Retrieval. In Proceedings of the European Conference on Computer Vision (ECCV) .[17] Chuong Huynh, Jinyu Yang, Ashish Tawari, Mubarak Shah, Son Tran, Raffay Hamid, Trishul Chilimbi, and Abhinav Shrivastava. 2025. CoLLM: A Large Lan-guage Model for Composed Image Retrieval. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition (CVPR) .[18] Surgan Jandial, Pinkesh Badjatiya, Pranit Chawla, Ayush Chopra, Mausoom Sarkar, and Balaji Krishnamurthy. 2022. SAC: Semantic Attention Composi-tion for Text-Conditioned Image Retrieval. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) .[19] Young Kyun Jang, Dat Huynh, Ashish Shah, Wen-Kai Chen, and Ser-Nam Lim. 2024. Spherical Linear Interpolation and Text-Anchoring for Zero-shot Com-posed Image Retrieval. In Proceedings of the European Conference on Computer Vision (ECCV) .[20] Weijian Jian, Yajun Zhang, Dawei Liang, Chunyu Xie, Yixiao He, Dawei Leng, and Yuhui Yin. 2025. RzenEmbed: Towards Comprehensive Multimodal Re-trieval. arXiv preprint arXiv:2510.27350 (2025). [21] Yuming Jiang, Shuai Yang, Haonan Qiu, Wayne Wu, Chen Change Loy, and Zi-wei Liu. 2022. Text2Human: Text-Driven Controllable Human Image Generation. 
+
+ACM Transactions on Graphics 41, 4, Article 162 (2022). [22] Seungwan Jin, Hoyoung Choi, Taehyung Noh, and Kyungsik Han. 2024. Integra-tion of Global and Local Representations for Fine-Grained Cross-Modal Align-ment. In Proceedings of the European Conference on Computer Vision (ECCV) .[23] Jongseok Kim, Youngjae Yu, Hoeseong Kim, and Gunhee Kim. 2021. Dual Com-positional Learning in Interactive Image Retrieval. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI) .[24] Matan Levy, Rami Ben-Ari, Nir Darshan, and Dani Lischinski. 2024. Data Roam-ing and Quality Assessment for Composed Image Retrieval. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI) .[25] Junnan Li, Dongxu Li, Caiming Xiong, and Steven Hoi. 2022. BLIP: Bootstrap-ping Language-Image Pre-training for Unified Vision-Language Understanding and Generation. In Proceedings of the International Conference on Machine Learn-ing (ICML) .
+
+> 9
+
+[26] Mingxin Li, Yanzhao Zhang, Dingkun Long, Keqin Chen, Sibo Song, Shuai Bai, Zhibo Yang, Pengjun Xie, An Yang, Dayiheng Liu, Jingren Zhou, and Junyang Lin. 2026. Qwen3-VL-Embedding and Qwen3-VL-Reranker: A Unified Frame-work for State-of-the-Art Multimodal Retrieval and Ranking. arXiv preprint arXiv:2601.04720 (2026). [27] Zixu Li, Zhiheng Fu, Yupeng Hu, Zhiwei Chen, Haokun Wen, and Liqiang Nie. 2025. FineCIR: Explicit Parsing of Fine-Grained Modification Semantics for Com-posed Image Retrieval. arXiv preprint arXiv:2503.21309 (2025). [28] Ziwei Liu, Ping Luo, Shi Qiu, Xiaogang Wang, and Xiaoou Tang. 2016. DeepFash-ion: Powering Robust Clothes Recognition and Retrieval with Rich Annotations. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition (CVPR) .[29] Zheyuan Liu, Cristian Rodriguez-Opazo, Damien Teney, and Stephen Gould. 2021. Image Retrieval on Real-life Images with Pre-trained Vision-and-Language Models. In Proceedings of the IEEE/CVF International Conference on Computer Vi-sion (ICCV) .[30] Suvir Mirchandani, Licheng Yu, Mengjiao Wang, Animesh Sinha, Wenwen Jiang, Tao Xiang, and Ning Zhang. 2022. FaD-VLP: Fashion Vision-and-Language Pre-training towards Unified Retrieval and Captioning. In Proceedings of the Confer-ence on Empirical Methods in Natural Language Processing (EMNLP) .[31] Qwen Team. 2026. Qwen3.5: Towards Native Multimodal Agents. https://qwen. ai/blog?id=qwen3.5. [32] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. 2021. Learning Transferable Visual Mod-els From Natural Language Supervision. In Proceedings of the International Con-ference on Machine Learning (ICML) .[33] Negar Rostamzadeh, Seyedarian Hosseini, Thomas Boquet, Wojciech Stokowiec, Ying Zhang, Christian Jauvin, and Chris Pal. 2018. Fashion-Gen: The Generative Fashion Dataset and Challenge. arXiv preprint arXiv:1806.08317 (2018). [34] Kuniaki Saito, Kihyuk Sohn, Xiang Zhang, Chun-Liang Li, Chen-Yu Lee, Kate Saenko, and Tomas Pfister. 2023. Pic2Word: Mapping Pictures to Words for Zero-Shot Composed Image Retrieval. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .[35] Aäron van den Oord, Yazhe Li, and Oriol Vinyals. 2018. Representation Learning with Contrastive Predictive Coding. arXiv preprint arXiv:1807.03748 (2018). [36] Sagar Vaze, Nicolas Carion, and Ishan Misra. 2023. GeneCIS: A Benchmark for General Conditional Image Similarity. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .[37] Nam Vo, Lu Jiang, Chen Sun, Kevin Murphy, Li-Jia Li, Li Fei-Fei, and James Hays. 2019. Composing Text and Image for Image Retrieval – An Empirical Odyssey. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition (CVPR) .[38] Lan Wang, Wei Ao, Vishnu Naresh Boddeti, and Ser-Nam Lim. 2025. Generative Zero-Shot Composed Image Retrieval. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .[39] Hui Wu, Yupeng Gao, Xiaoxiao Guo, Ziad Al-Halah, Steven Rennie, Kristen Grauman, and Rogerio Feris. 2021. Fashion IQ: A New Dataset Towards Re-trieving Images by Natural Language Feedback. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .
+
+> 10
+
+# Supplementary Material 
+
+FashionMV: Product-Level Composed Image Retrieval with Multi-View Fashion Data 
+
+Abstract. This document provides supplementary material for the main paper FashionMV: Product-Level Composed Im-age Retrieval with Multi-View Fashion Data . It is organised into three parts. 
+
+Part I — Dataset Construction (§A–§C) details every step of the three-stage data pipeline. Section A reproduces the complete LLM prompts for multi-view caption generation, directional hallucination filtering, and CIR triplet construc-tion. Section B reports per-dataset hallucination detection rates, caption word-count statistics, and CIR triplet view-combination distributions. Section C presents quantitative dataset statistics including multi-view image distributions and text-length histograms for captions and modification texts. 
+
+Part II — Model and Experiments (§D–§E) provides full implementation and experimental details. Section D covers training hyperparameters, evaluation protocol, and SFT pre-training data formats and statistics. Section E reports com-plete Image-to-Text (I2T) and Text-to-Image (T2I) retrieval results for all 16 model configurations. 
+
+Part III — Visual Galleries (§F–§H) provides visual il-lustrations of the dataset and model outputs. Section F shows a curated gallery of 24 product samples with their multi-view images. Section G shows selected CIR triplets (source product → modification text → target product). Section H presents 9 retrieval case studies comparing our model against four baselines. 
+
+A Dataset Construction Prompts 
+
+This section presents the complete prompts used in the three-stage FashionMV construction pipeline. All prompts are reproduced ver-batim. 
+
+A.1 Stage 1: Multi-View Caption Generation 
+
+Model: kimi-k2.5 Max tokens: 8192 Temperature: 1.0 
+
+Thinking: enabled Each product’s multi-view images (up to 5) are provided as base64-inlined content with text labels ( [Image 1] , [Image 2] ,etc.). The system prompt is: 
+
+# Fashion Product Caption Generation You are a professional fashion product analyst with expertise in detailed garment description. You will be given multiple images of the same fashion product from different angles/views. **Image Numbering**: Each image is preceded by a text label indicating its number (e.g., "[Image 1]", "[Image 2]", etc.). When generating captions, you MUST reference these image numbers. ## Your Task Analyze all provided images to extract the complete characteristics of this fashion product. Generate clear, accurate descriptions for each image and synthesize into comprehensive product captions. **IMPORTANT**: - When describing the final product, do NOT mention which image shows what - Treat all images as different perspectives of ONE product and describe the PRODUCT itself Provide: 1. **is_clothing**: Whether this is a clothing item (wearable garments: shirts, blouses, t-shirts, sweaters, hoodies, jackets, coats, blazers, vests, pants, trousers, jeans, shorts, skirts, dresses, jumpsuits, rompers, suits, underwear, sleepwear. EXCLUDED: jewelry, watches, bags, purses, shoes, boots, sandals, hats, caps, scarves, belts, glasses, sunglasses, gloves, socks) 2. **image_captions**: An array of description strings for each input image (in the same order). Each 50-200 words and MUST start with the image number (e.g., "[Image 1] I can see..."). 3. **long_caption**: Comprehensive 200-400 word product description synthesizing all information from all views. Describe the PRODUCT itself, not which image shows what. 4. **short_caption**: Concise ~50 word summary highlighting garment type, key style, main color, and distinctive features. ## Description Guidelines Each image description should follow this strict output order: ### Step 1: Determine View Type and Left/Right Orientation **Important: Images are NOT mirrored - directly captured by camera.** 1. Determine whether FRONT VIEW, BACK VIEW, or SIDE VIEW. 2. Apply left/right rules: - FRONT VIEW: left of image = wearer 's RIGHT; right = wearer 's LEFT - BACK VIEW: left of image = wearer 's LEFT; right = wearer 's RIGHT - SIDE VIEW: carefully observe which side of the wearer is shown ### Step 2: Describe Garment Details - Overall: type, style, color, silhouette, fit - Details: buttons, pockets, slits/vents, pleats, ruffles (exact count, position, and color) - Positions: from wearer 's perspective - Material: apparent fabric type and texture ### Step 3: Describing Asymmetrical Features **CRITICAL**: If garment has left-right asymmetry, describe in detail. For any asymmetrical feature, mention BOTH: 1. Which side of the image the feature appears on 2. Which side of the wearer it corresponds to ## Response Format JSON format ONLY: {"is_clothing": true/false, "image_captions": ["[Image 1] ...", "[Image 2] ...", ...], "long_caption": "...", "short_caption": "..." }
+
+A.2 Stage 2: Directional Hallucination Filtering 
+
+Model: qwen3.5-397b-a17b Max tokens: 16384 Tempera-ture: 1.0 Thinking: enabled For each product, all images are horizontally stitched into a panoramic composite. Each sub-image’s bounding box (normal-ized 0–1000 coordinates) is provided. Five products are batched per request. 
+
+# Fashion Caption Left/Right Error Detector (Per-Image Reasoning with Bounding Box) You are a meticulous fashion product analyst. Your ONLY task is to detect **left/right direction errors** in fashion product captions. **IMPORTANT: You should ONLY analyze FRONT VIEW and BACK VIEW images. Completely SKIP and IGNORE any SIDE VIEW images.** 
+
+11 You will be given a list of fashion products (usually 5). Each includes: - A stitched panoramic image (multiple views combined horizontally, WITHOUT text labels) - Bounding box of each sub-image (0-1000 normalized coordinates) - Per-image captions, long caption, and short caption ## Your ONLY Task 1. ONLY check FRONT VIEW and BACK VIEW for left/right direction errors. 2. Completely IGNORE SIDE VIEW images. 3. Ignore ALL other types of issues (missing features, counting errors, color errors, etc.). Check whether captions correctly describe which side of the garment a feature is on (patches, logos, pockets, labels, zippers, buttons, asymmetric designs, etc.). ## Bounding Box Requirement (CRITICAL) For EVERY asymmetric feature, provide its bounding box in the stitched panoramic image: [x_min, y_min, x_max, y_max] as integers 0-1000. ## Left/Right Mapping Rules ### FRONT VIEW (person FACING camera) - Left of image = wearer 's RIGHT side - Right of image = wearer 's LEFT side ### BACK VIEW (person 's BACK facing camera) - Left of image = wearer 's LEFT side - Right of image = wearer 's RIGHT side ## Response Format JSON array with one element per product: [{"product_index": 1, "product_id": "<product_id>", "caption_analyses": [ {"caption_name": "image_caption_1", "bounding_boxes": [ {"element": "<description>", "bbox": ["x_min", "y_min", "x_max", "y_max"], "position_in_image": "<which side>" }], "reasoning": "<100-400 words>", "has_error": false }]}]## CRITICAL Requirements - Output ONLY a JSON array. No extra text. - has_error = true ONLY for confirmed left/right errors. - Do NOT force-find errors. 
+
+A.3 Stage 3: CIR Triplet Construction 
+
+Model: gemini-3.1-flash-lite Max tokens: 4096 Tempera-ture: 1.0 For each source product, 10 same-category candidates (from the union of visual, long-caption, and short-caption top-20 neighbors) are provided with their stitched images and captions. 
+
+You are an expert fashion analyst specializing in Composed Image Retrieval (CIR). You will be given: 1. A source product with its composite image (multiple views stitched horizontally), per-image descriptions, and long caption 2. Multiple candidate products (each with composite image, per-image descriptions, and long caption), identified by IDs like [Product 1], [Product 2], etc. Your task: 1. Examine the source and ALL candidates from every available view 2. Select the 2 BEST candidates for high-quality modification text ## What Makes a Good Selection 
+
+Table 4: Directional hallucination detection results per dataset. 
+
+Dataset Checked Errors Retained Error Rate DeepFashion 12,711 487 12,224 3.83% Fashion200K 77,106 3,607 73,499 4.68% FashionGen-train 48,476 1,942 46,534 4.01% FashionGen-val 6,086 271 5,815 4.45% 
+
+Total 144,379 6,307 138,072 4.37% 
+
+A good (source, modification_text, target) triplet: - Modification text describes specific, concrete differences - Differences distributed across at least 2 views - Differences clearly identifiable and unambiguous - Differences involve garment construction details (stitching, seams, pockets, collars, hems, closures, panels) ## Selection Criteria (ALL must be met): ### SAME CATEGORY & SAME GENDER (Mandatory) - Exact same sub-category as source - Same gender as source ### MULTI-VIEW REQUIREMENT (Core) - Differences MUST span at least 2 different views - Each view MUST contribute distinct information ### CLEAR DISTINGUISHABILITY (Critical) - Target MUST be clearly different from source - Do NOT select candidates too similar to source ### DETAIL-ORIENTED (Quality Amplifier) - Prefer specific construction details: stitching patterns, seam types, pocket configurations, collar styles, hem treatments ## Output Format {"selections": [ {"target_id": <int>, "same_category_check": "<explain>", "views_involved": ["front", "back"], "difficulty_reasoning": "<explain per-view contributions>", "modification_text_long": "Detailed (64-128 words). MUST reference at least 2 named views.", "modification_text_short": "Concise (16-32 words) summary with key changes from each view." }, { ... } ]}Return EXACTLY 2 selections. 
+
+B Dataset Construction Details 
+
+This section provides detailed statistics collected during the three-stage FashionMV construction pipeline, including hallucination detection outcomes, caption word-count distributions, and CIR triplet structural breakdowns. 
+
+B.1 Per-Dataset Hallucination Detection 
+
+Table 4 reports the directional hallucination detection results for each dataset. Fashion200K has the highest error rate (4.68%), likely because its images have more diverse and challenging composi-tions. 
+
+12 Table 5: Average caption word counts per dataset.                
+
+> Dataset Per-Image Long Cap. Short Cap. DeepFashion 115 219 39 Fashion200K 115 220 39 FashionGen-train 115 222 40 FashionGen-val 115 223 40
+
+Table 6: View combination distribution in CIR triplets.                 
+
+> View Combination Count Percentage back + front 180,040 81.6% front + side 27,556 12.5% back + front + side 6,390 2.9% back + side 4,636 2.1% back + detail + front 416 0.2% Other combinations 1,695 0.8%
+> Total 220,733 100%
+
+B.2 Caption Statistics 
+
+Table 5 shows the average word counts for the three types of cap-tions generated in Stage 1. 
+
+B.3 CIR Triplet View Combinations 
+
+Table 6 shows the distribution of view combinations across CIR triplets. The dominant combination is back+front (81.6%), reflect-ing the typical multi-view display in fashion e-commerce. 
+
+C Dataset Statistics 
+
+This section presents quantitative statistics of the FashionMV dataset, covering product counts, image view distributions, CIR triplet distributions, and text length distributions for captions and modification texts. 
+
+C.1 Views-per-Product Distribution 
+
+Figure 4 shows the distribution of the number of multi-view im-ages per product across all three sub-datasets. 
+
+C.2 CIR Triplet Distribution 
+
+The FashionMV dataset contains a total of 220,733 CIR triplets. The dominant view combination is back+front (180.0K, 81.6%), followed by front+side (27.6K) and back+front+side (6.4K). 
+
+C.3 Text Length Distributions 
+
+Figure 5 shows the word-count distributions for the five types of text in FashionMV: short captions, long captions, per-image cap-tions, short modification texts, and long modification texts. 
+
+D Implementation Details 
+
+This section provides full implementation details, including train-ing hyperparameters, evaluation protocol, and SFT pre-training data formats and statistics. 2 3 4 5
+
+0
+
+20 
+
+40 
+
+Number of views per product Product count (thousands)  DeepFashion 
+
+> Fashion200K
+> FashionGen
+
+Figure 4: Distribution of the number of multi-view images per product, broken down by sub-dataset. Table 7: Full training hyperparameters.                                    
+
+> Parameter Value Backbone Qwen3.5-0.8B Hidden dimension 1024 Transformer layers 24 Image resolution 128 ×128 –512 ×512
+> Max views per product 5Optimizer AdamW Learning rate 1×10 −5
+> Weight decay 0.01 LR schedule Cosine (no warmup) Gradient clipping 1.0 Precision bfloat16 Batch size per GPU 16 GPUs 10 ×3090 Effective batch size 160 Training epochs 1Total training steps 1,175 Temperature 𝜏 0.07
+> 𝜆 𝑑 (doc alignment) 0.25
+> 𝜆 𝑠 (src alignment) 0.25 CoT keep ratio schedule Linear 1.0→0.0over first 50% steps Long/short text sampling 50%/50% per step
+
+D.1 Training Configuration 
+
+Table 7 lists the full set of hyperparameters used for contrastive embedding training. 
+
+D.2 Evaluation Protocol 
+
+• Gallery construction : Each dataset’s validation products form an independent gallery. Product-level embeddings are computed by processing all multi-view images through the model. 
+
+• CIR evaluation : For each query (source product + modifi-cation text), we compute cosine similarity against all gallery embeddings and rank by similarity.     
+
+> 13 20 30 40 50 60
+> 0
+> 5
+> 10
+> 15
+
+Word count 
+
+> Count (K)
+
+(a) Short Caption   
+
+> 15 20 25
+> 0
+> 10
+> 20
+> 30
+
+Word count 
+
+> Count (K)
+
+(b) Short Modification Text     
+
+> 100 150 200 250 300
+> 0
+> 5
+> 10
+> 15
+> 20
+
+Word count 
+
+> Count (K)
+
+(c) Long Caption     
+
+> 60 70 80 90 100 110 120
+> 0
+> 5
+> 10
+> 15
+> 20
+
+Word count 
+
+> Count (K)
+
+(d) Long Modification Text      
+
+> 70 90 110 130 150 170
+> 0
+> 20
+> 40
+> 60
+
+Word count 
+
+> Count (K)
+
+(e) Per-Image Caption 
+
+Figure 5: Word-count distributions for all five text types in FashionMV. (a) Short captions peak around 40 words (me-dian=40). (b) Short modification texts are tightly concen-trated at 23–24 words (median=23). (c) Long captions are nor-mally distributed around 220 words (median=222). (d) Long modification texts peak around 82–84 words (median=84). (e) Per-image captions concentrate at 105–115 words (me-dian=115). 
+
+• I2T/T2I evaluation : We compute cosine similarity be-tween product visual embeddings and caption text em-beddings. For I2T, each visual embedding queries the text gallery; for T2I, each text embedding queries the visual gallery. 
+
+D.3 SFT Pre-training Details 
+
+The backbone model (Qwen3.5-0.8B) is first fine-tuned via super-vised fine-tuning (SFT) on two fashion-domain tasks before the contrastive embedding training. This SFT stage teaches the model fashion-specific visual understanding and structured output gen-eration. 
+
+Task 1 — Multi-View Caption Generation. Given up to 5 images of a product, the model generates per-image descriptions (in a 
+
+Table 8: SFT training data statistics (full dataset; 20% sam-pled for training). 
+
+Task Full Size Used (20%) 
+
+Caption Generation 587,050 117,610 CIR Triplet Generation 939,700 187,940 
+
+Total 1,526,750 305,550 
+
+<think> block) and then a structured JSON with long_caption 
+
+and short_caption fields. The conversation format is: 
+
+[System]: <caption_system_prompt> [User]: <img_1>...<img_N> [Asst]: <think> [Image 1] front view... [Image 2] back view... </think> {"long_caption":"...", "short_caption":"..."} 
+
+Task 2 — CIR Triplet Generation. Given source and target prod-uct images, the model generates the modification text describing how to transform the source into the target. This is a 3-turn dia-logue: 
+
+[User]: <src_img_1>...<src_img_N> [Asst]: <think>{source_long_caption}</think> <emb_all> [User]: <tgt_img_1>...<tgt_img_M> [Asst]: <think>{target_long_caption}</think> <emb_all> [User]: Generate modification text... [Asst]: <think></think> {"views_involved": [...], "modification_text_long": "...", "modification_text_short": "..."} 
+
+SFT Data Statistics. Table 8 summarises the SFT training data. The caption data covers all three training splits; the CIR data covers all training triplets. Both datasets are sampled at 20% for the SFT run used in our experiments. 
+
+SFT Hyperparameters. The SFT uses LLaMA-Factory with Deep-Speed ZeRO-3, full-parameter fine-tuning, cosine LR schedule (lr =
+
+10 −5), batch size 10 (1 per GPU × 10 gradient accumulation steps), 1 epoch, and a context length of 4,096 tokens. The <emb_all> spe-cial token is added and the vocabulary is resized accordingly. 
+
+E Additional Experimental Results 
+
+This section supplements the main paper with complete Image-to-Text (I2T) and Text-to-Image (T2I) retrieval results for all 16 model configurations. As short captions better reflect real-world query scenarios (concise user descriptions), we report results us-ing short captions throughout this section. Table 9 reports I2T retrieval performance, and Table 10 reports T2I retrieval perfor-mance. The alignment mechanism ( Align ) produces strong image– text retrieval capabilities as a byproduct of CIR training; in par-ticular, the two-stage dialogue ( MT ) combined with alignment achieves the best results across all three datasets. 
+
+> 14
+
+Table 9: I2T retrieval R@1/R@5 (%) with short captions. MT = two-stage dialogue, Align = caption-based alignment, CoT = chain-of-thought, SFT = supervised fine-tuning. Bold: best per column; underline: second best.                                                                                                                             
+
+> DeepFashion F200K FashionGen
+> MT Align CoT SFT R@1 R@5 R@1 R@5 R@1 R@5
+> Pretrained base
+> 60.2 89.6 57.8 81.8 53.1 78.6
+> √71.1 94.4 64.1 85.9 52.7 78.1
+> √44.2 73.3 28.9 53.5 21.7 43.1
+> √√50.9 79.7 35.8 61.7 23.8 46.9
+> √62.7 90.6 56.4 81.9 53.6 78.4
+> √√75.4 95.6 66.1 87.6 57.0 81.0
+> √√35.6 67.7 29.0 54.1 26.2 50.5
+> √√√78.3 97.1 67.9 88.6 57.0 80.7
+> SFT base √53.3 84.7 66.9 87.6 57.1 82.9
+> √√80.3 97.4 77.4 93.2 66.5 88.8
+> √√45.2 75.5 35.3 61.0 29.0 52.7
+> √√√50.9 80.2 42.8 68.7 32.1 56.3
+> √√45.9 78.3 61.8 84.6 54.2 80.7
+> √√√81.9 97.9 78.9 94.1 68.3 90.0
+> √√√45.3 76.6 37.7 65.4 32.3 55.6
+> √√√√82.7 97.7 75.6 91.9 65.9 87.3
+
+E.1 Image-to-Text (I2T) Retrieval 
+
+Table 9 presents I2T retrieval R@1/R@5 (%) for all 16 configu-rations with short captions. MT = two-stage dialogue, Align = caption-based alignment, CoT = chain-of-thought, SFT = super-vised fine-tuning pre-training. A √ indicates the corresponding mechanism is active. Bold : best per column; underline: second best. 
+
+E.2 Text-to-Image (T2I) Retrieval 
+
+Table 10 presents T2I retrieval R@1/R@5 (%) for all 16 config-urations with short captions. The alignment mechanism consis-tently provides the largest performance gain in both directions, confirming that the auxiliary alignment loss effectively calibrates the visual–textual embedding space. Furthermore, the two-stage dialogue architecture enables source-side alignment ( Lsrc ), which further improves performance: MT+Align outperforms Align -only variants across all three datasets. 
+
+Key observations: 
+
+• The alignment mechanism ( Align ) provides the largest sin-gle improvement in both I2T and T2I performance. For ex-ample, adding Align to MT+SFT yields +36.0pp I2T R@1 on DeepFashion (45.9% →81.9%). 
+
+• The two-stage dialogue ( MT ) combined with alignment con-sistently achieves the best or second-best results in both re-trieval directions, confirming the complementary nature of these two mechanisms. 
+
+• CoT without alignment degrades I2T/T2I performance, con-sistent with the CIR finding that CoT requires alignment to be beneficial. 
+
+Table 10: T2I retrieval R@1/R@5 (%) with short captions. MT = two-stage dialogue, Align = caption-based alignment, CoT = chain-of-thought, SFT = supervised fine-tuning. Bold: best per column; underline: second best.                                                                                                                             
+
+> DeepFashion F200K FashionGen
+> MT Align CoT SFT R@1 R@5 R@1 R@5 R@1 R@5
+> Pretrained base
+> 71.2 93.5 60.3 83.5 57.3 81.5
+> √75.9 95.6 66.3 87.0 56.8 81.3
+> √56.6 85.0 41.3 67.4 38.5 64.9
+> √√65.6 90.9 54.6 78.9 45.8 72.4
+> √65.7 90.5 55.2 81.6 56.6 81.4
+> √√78.1 96.2 70.4 89.5 60.6 83.9
+> √√50.6 81.2 33.0 58.9 38.7 63.9
+> √√√81.2 97.4 73.0 90.6 62.9 85.1
+> SFT base √67.4 92.4 68.9 88.5 60.3 84.1
+> √√86.0 98.3 79.5 94.0 69.3 89.6
+> √√65.2 90.6 51.4 77.3 43.3 67.7
+> √√√73.7 94.6 63.1 85.5 48.5 74.6
+> √√60.8 90.5 64.8 86.4 56.8 80.4
+> √√√87.1 98.6 81.5 95.0 71.8 91.0
+> √√√66.9 92.6 56.0 81.4 51.7 76.6
+> √√√√85.3 98.1 79.4 93.6 69.1 89.1
+
+• SFT pre-training significantly boosts performance for align-ment variants, with MT+Align+SFT achieving the best re-sults overall. 
+
+> 15
+
+F Dataset Sample Gallery 
+
+This section presents representative product samples from the FashionMV dataset. Each entry shows up to five multi-view images of a garment (front, side, back, full, and additional views) along with its garment type and automatically generated short caption. 
+
+Women’s Dresses 
+
+Sleeveless mini dress featuring a black floral lace bodice with scalloped edges over blush pink underlay, elas-ticized waist, and pleated tulle skirt. Round neckline with solid chest panel, keyhole back closure with button, and A-line silhouette. Feminine cocktail style in black and nude tones. 
+
+Women’s Tees Tanks 
+
+A white floral lace long-sleeve bodysuit featuring a solid white bust panel, sheer lace sleeves, and a deep scoop back. The fitted silhouette includes a round front neckline and high-cut leg openings, combining feminine lace details with practical bodysuit construction for seamless styling. 
+
+Women’s Shorts 
+
+Light blue high-waisted denim shorts featuring symmetrical distressed thigh rips, frayed raw hem edges, and a bleached vintage wash. Classic five-pocket design with metal button/zipper closure, belt loops, and subtle back pocket distressing. Slim fit casual summer essential with bohemian-inspired worn-in character. 
+
+Women’s Rompers Jumpsuits 
+
+A sleeveless white romper with an abstract black brushstroke print, featuring wide straps with gold grommet hardware, side cutouts, a low V-back, and flared skater-style shorts. Made from lightweight woven fabric with a gathered elastic waist for a comfortable, playful fit. 
+
+Women’s Dresses 
+
+A sleeveless black halter-neck mini dress with a vibrant red and pink rose floral print, featuring a tiered ruffled skirt and dramatic crisscross open back design. Lightweight and flowy with a relaxed fit. 
+
+Men’s Pants 
+
+Heather gray men’s jogger sweatpants featuring a contrasting black elastic waistband with drawstring closure, side slash pockets, and distinctive black-and-white bandana print panels on the lower legs. Designed with a relaxed fit through the thighs that tapers to elasticized ankle cuffs for a modern casual silhouette. 
+
+Men’s Tees Tanks 
+
+Men’s slim-fit short-sleeve t-shirt featuring an ornate tapestry-inspired medallion print on the front panel with solid black back and sleeves, crew neckline with ribbed trim, and bold ethnic-inspired geometric patterns in beige, black, and red tones creating a striking contrast. 
+
+Men’s Tees Tanks 
+
+White baseball jersey with black abstract wave prints, featuring asymmetrical striped sleeve, "79" back graphic, "LATHC" front branding, button-front closure, and curved hem with grid pattern. Relaxed fit streetwear style. 
+
+16 Men’s Shorts 
+
+Men’s medium blue denim short overalls featuring adjustable shoulder straps with metal hardware, a chest bib pocket with contrast stitching, and frayed raw-edge hems at knee length. Includes side hip pockets, dual back pockets, belt loops, and a relaxed fit perfect for casual summer layering. 
+
+Men’s Denim 
+
+Men’s slim-fit ankle jeans in medium blue wash with thigh whiskering, contrast stitching, and a distinctive metal zipper detail on the wearer’s left outer ankle. Features five-pocket styling, subtle knee distressing, and a modern tapered silhouette. 
+
+Men’s Sweatshirts Hoodies 
+
+Black technical hoodie featuring a drawstring hood with metal-tipped cords, kangaroo front pocket, and distinctive side zip vents revealing silver mesh lining. Long sleeves with ribbed cuffs, horizontal chest seam, relaxed fit, and smooth neoprene-like fabric. 
+
+Women’s Jackets Coats 
+
+A black longline open-front coat featuring notched lapels, long sleeves, and dramatic high side slits on both sides. The minimalist design has no closures or pockets, crafted from lightweight woven fabric in a relaxed straight fit that falls to mid-thigh. 
+
+Women’s Jackets Coats 
+
+Navy blue utility parka jacket featuring a faux fur-trimmed hood with white sherpa lining, adjustable draw-string waist, and multiple storage pockets. Constructed from shiny satin-finish nylon with distinctive trian-gular leather back detail, fishtail hem, and elasticized cuffs. Front zipper and snap button closure. 
+
+Women’s Blouses Shirts 
+
+Blue tie-dye sleeveless tank top with relaxed cropped fit, scoop neckline, and distinctive open back featuring three horizontal ladder straps. Constructed from lightweight jersey knit fabric with wide armholes and a casual bohemian aesthetic. 
+
+Women’s Blouses Shirts 
+
+Cream chiffon blouse with dramatic open back featuring draped panel and crochet trim. Round neckline, cap sleeves, relaxed fit, and side vents. Elegant evening or dressy casual top. 
+
+Women’s Skirts 
+
+Black and white geometric tribal print maxi skirt with high-rise waistband, flowy A-line silhouette, and sym-metrical dual front thigh-high slits. Crafted from lightweight fluid fabric with all-over ethnic zigzag and diamond patterns, ankle length, casual bohemian summer style. 
+
+17 Women’s Dresses 
+
+Mustard yellow short-sleeved dress with contrasting white Peter Pan collar, puff sleeves with functional but-ton cuffs, fitted princess-seam bodice, and pleated above-knee skirt. Features back zipper closure and light-weight, semi-sheer textured fabric. Retro-inspired silhouette suitable for casual or semi-formal wear. 
+
+Women’s Dresses 
+
+Cream halter maxi dress with deep V-neck, open back with tie details, three horizontal lace trim bands, empire waist, and flowy tiered skirt in lightweight fabric. 
+
+Women’s Dresses 
+
+A vibrant red sleeveless bodycon dress featuring a round neckline, exposed back zipper closure, and strategic seaming for a fitted silhouette. The short-length garment is crafted from structured knit fabric with a sleek, minimalist design perfect for cocktail or evening wear. 
+
+Women’s Pants 
+
+Light blue relaxed-fit trousers featuring an elastic drawstring waist with metal aglets, diagonal zippered front pockets, and horizontal back pockets. These ankle-length straight-leg pants are crafted from lightweight wo-ven fabric with a comfortable mid-rise fit and contemporary casual styling. 
+
+Women’s Tees Tanks 
+
+A fitted short-sleeve crop top featuring a vibrant navy, red, and white tribal print with a distinctive ladder-back design of horizontal cut-out strips, scoop neckline, and bodycon silhouette in stretchy knit fabric. 
+
+Women’s Shorts 
+
+High-waisted paperbag shorts in cream linen-blend fabric featuring a gathered paperbag waist with self-tie belt, front pleats, and relaxed A-line silhouette. Includes side pockets and back welt pockets, with a mid-thigh length and clean straight hem for versatile summer styling. 
+
+Women’s Sweaters 
+
+Marled black and white cable-knit pullover sweater featuring textured cable front panel, plain stockinette back, and horizontally striped long sleeves. Classic crew neckline with ribbed trim, relaxed oversized fit, and chunky knit construction. Pullover style with no closures, pockets, or hardware. 
+
+Women’s Graphic Tees 
+
+This heather gray short-sleeve t-shirt features Los Angeles Lakers branding with a front basketball logo and back "LAKERS 72 CHAMPS" commemorative graphic. It has a classic crew neckline, relaxed casual fit, and soft cotton-blend jersey construction perfect for everyday fan wear. 
+
+18 G CIR Triplet Gallery 
+
+This section presents representative Composed Image Retrieval (CIR) triplets from the FashionMV dataset. Each row shows a source garment (left, up to five multi-view images), a short modification text above the arrow, and the corresponding target garment (right). Empty image slots indicate fewer than five available views. 
+
+A sleeveless cropped tank top in black and white tie-dye with a distinctive fringe hem and twisted back strap detail. Features a scoop neckline, racerback-inspired armholes, and lightweight jersey fabric. Bohemian festival style with knotted tassel ends. Switch to solid white, replace the back racerback knot with shoulder cut-outs and ties, and add vertical fringe trim down the side seams. 
+
+−→ 
+
+White sleeveless tank top featuring scoop neckline, open shoulder cut-outs with knotted fringe ties, and long side fringe trim. Relaxed, flowy fit in lightweight jersey fabric. Bohemian festival style with wide armholes and cropped length. 
+
+Royal blue short-sleeve fit-and-flare dress featuring a scoop neckline, cap sleeves, and distinctive crisscross open-back design with a bold waist cut-out. Crafted from soft jersey knit fabric with a flared A-line skirt falling above the knee. Change to a red woven dress with a square neckline and wide straps; replace the open crisscross back with a full back panel featuring an exposed gold zipper. 
+
+−→ 
+
+Vibrant red sleeveless fit-and-flare mini dress featuring a square neckline, wide shoulder straps, symmetrical side cut-outs at the waist, and a prominent exposed gold back zipper. Crafted from structured woven fabric with a fitted bodice and flared A-line skirt falling above the knee. 
+
+Blush pink sleeveless fit-and-flare mini dress featuring tonal floral embroidery on sheer organza overlay, with a distinctive solid back bodice contrasting the sheer front, round neckline, gathered waist seam, and flared A-line skirt falling above the knee. Change blush organza floral appliqué to all-over white lace with an illusion yoke front; add princess seams and a buttoned keyhole to the back. 
+
+−→ 
+
+A sleeveless white floral lace fit-and-flare dress featuring a sheer illusion neckline, keyhole back with button closure, and scalloped hem. The fully lined design offers a flattering silhouette with princess-seamed bodice and flared skirt, perfect for spring and summer occasions. 
+
+High-waisted pleated denim pants in a light blue vintage wash featuring a relaxed tapered fit, distinctive front waist pleats, comfortable elasticized back waistband, functional side pockets, and casually rolled cuffs for a casual yet polished aesthetic. Front: Add heavy, asymmetrical shredded holes and knee blowouts; Back: Maintain a clean, undistressed rear panel with the original V-shaped yoke and patch pocket construction. 
+
+−→ 
+
+Light blue acid-wash cropped jeans with heavy asymmetrical distressing, featuring dual thigh rips on one leg and a prominent knee blowout on the other. Relaxed boyfriend fit with mid-rise waist, classic five-pocket styling, golden contrast stitching, and clean cropped hem. Medium-weight cotton denim with frayed destroyed details. 
+
+Royal blue cap-sleeve top featuring a scoop neckline front and back with form-fitting silhouette. Crafted from smooth jersey knit with extended shoulder coverage for minimal arm exposure. Minimalist design without logos, pockets, or embellishments. Versatile summer basic ideal for tucking into high-waisted bottoms. Change to a high mock neckline and sleeveless construction; add an asymmetrical vertical slit to the wearer’s right side hem only. 
+
+−→ 
+
+Royal blue sleeveless mock neck tank top featuring a fitted bodycon silhouette, distinctive asymmetrical side slit on the wearer’s right side, and clean minimalist aesthetic. Crafted from soft stretch knit fabric with wide armholes, high neckline, and cropped waist length for versatile styling. 
+
+19 A blush pink tiered camisole top featuring delicate white lace trim, thin spaghetti straps, and vertical pintuck pleating on the bodice. Crafted from semi-sheer lightweight fabric with a relaxed cropped fit and scalloped lace hem. Romantic feminine style perfect for spring and summer casual wear. Change from solid blush pink with pintuck pleats to a floral print with a flat bodice, and replace simple back straps with a crisscross X-back design. 
+
+−→ 
+
+Women’s sleeveless camisole top featuring a white base with peach floral print and sage green leaves. Designed with tiered ruffle layers, scoop neckline front, and dramatic crisscross back straps. Crafted from lightweight flowy fabric in a relaxed fit that hits at the hip. Pullover style with no closures. 
+
+Sleeveless acid wash denim crop top with pointed collar, six-button front closure, single left chest pocket, and frayed raw hem. Features contrast white stitching and a boxy, cropped silhouette. Medium blue vintage-wash cotton denim construction. Swap the acid-wash denim for blue/white/red plaid. Replace the single pocket and raw hem with dual button-flap pockets and a front self-tie knot. 
+
+−→ 
+
+Sleeveless tie-front plaid shirt featuring a blue, white, and red check pattern. Designed with a pointed collar, full button-front closure, and two symmetrical chest pockets with buttoned flaps. The cropped hem includes a self-tie waist for adjustable fit. Crafted from lightweight woven cotton-blend fabric, this casual summer top pairs perfectly with high-waisted bottoms. 
+
+Men’s casual white short-sleeve crew neck t-shirt featuring an all-over blue geometric Southwestern print with bear and deer motifs, regular fit, hip length. Remove all-over print; switch to solid white base. Add a navy paisley chest pocket on the left and navy paisley interior linings to the sleeve cuffs. 
+
+−→ 
+
+White crew neck t-shirt with navy paisley bandana print chest pocket and matching rolled sleeve cuffs. Regular fit short sleeve cotton tee featuring asymmetrical pocket placement on wearer’s left chest. Casual style with western-inspired detailing and heathered fabric texture. 
+
+A men’s relaxed-fit tank top in heathered turquoise featuring deep scoop necklines front and back, dramatically dropped armholes for a breezy aesthetic, and a high-low hem with extended back length. Crafted from lightweight jersey fabric with a casual, minimalist silhouette perfect for warm weather layering or athletic wear. Switch to an optic white longline tank with side slits; replace the source’s drop-tail curved hem with a straight, elongated hem and functional side vents. 
+
+−→ 
+
+White longline muscle tank top with deep armholes, scoop neckline front and back, and side hem slits. Relaxed fit in lightweight cotton-blend jersey, perfect for casual or athletic wear. 
+
+Men’s casual sleeveless tank top featuring navy horizontal stripes on a white base with a distinctive decorative geometric chest band in red and navy. Designed with a scoop neckline, navy trim on neck and armholes, relaxed fit, and hip-length hem. Crafted from soft jersey knit fabric, this versatile summer garment offers breathability and comfort for everyday wear. Transform the striped source into a tri-color red/white/navy block tank, adding a navy chest pocket and solid-colored panels replacing the original stripe pattern. 
+
+−→ 
+
+Men’s sleeveless color-block tank top with horizontal heather red, white, and navy panels. Features scoop neckline with navy binding, deep armholes, and single chest pocket on wearer’s left side. Made from soft heathered cotton jersey with relaxed fit and contrast hem stitching. Casual athletic style perfect for summer wear. 
+
+Men’s slim straight-leg black denim jeans with classic five-pocket styling, button fly closure, and mid-rise waist. Features tonal stitching, slight whiskering detail, branded waistband label, and asymmetrical coin pocket placement on wearer’s right side only. Add asymmetrical front distressing: horizontal thigh rips on the right leg and a large frayed knee blowout on the left, while keeping the back clean and uniform. 
+
+−→ 
+
+Men’s black slim-fit denim jeans featuring asymmetrical heavy distressing with multiple thigh rips on the right leg and a large knee blowout on the left, cuffed hems, five-pocket styling with copper hardware, and a tapered silhouette. Casual streetwear aesthetic. 
+
+20 Men’s vibrant red pullover hoodie featuring a relaxed boxy fit, dropped shoulders, and crossover hood with white contrast drawstrings and metal tips. Includes kangaroo front pocket, ribbed cuffs and hem band, and horizontal sleeve panel details. Clean, logo-free design crafted from soft medium-weight fleece fabric, ideal for casual streetwear. Front: Change color to white and shorten sleeves with rolled cuffs. Side: Add an asymmetrical gold zipper vent to the wearer’s left hem. 
+
+−→ 
+
+White short-sleeved hoodie with black drawstrings, kangaroo pocket, and asymmetrical gold side zipper on wearer’s left. Features horizontal chest seam, rolled cuffs, and relaxed fit. Clean back design, soft cotton-blend fleece construction. Contemporary streetwear style. 
+
+21 H Retrieval Cases Gallery 
+
+This section presents nine selected retrieval cases from the DeepFashion validation set, using short modification texts and the joint encoding strategy. For each case, the top panel shows the source garment (left) with its short caption and modification text, alongside the ground-truth target garment. The bottom panel shows the Top-10 retrieval results for each model; a green border indicates the correct target was retrieved, and a red border indicates an incorrect result. Each retrieved product shows up to five multi-view images. 
+
+Example 1 
+
+> Bright yellow sleeveless crop top with high neckline and center back button closure. Textured woven fabric in a boxy, structured fit with cropped length. Add a mandarin collar and dual chest patch pockets. Remove the back button placket, change to a high-low hem, and switch to a smooth, lightweight crepe fabric.
+
+−→ 
+
+Ground Truth 
+
+> Bright yellow sleeveless blouse with mandarin collar, full button front, dual chest pockets, and high-low hem. Features shoulder gathering and lightweight flowy fabric in a relaxed tunic fit.
+
+Ours Rank 2       
+
+> #1 #2 #3
+> #4 #5 #6
+> #7 #8 #9
+> #10
+
+Qwen3-VL-2B Rank 4   
+
+> #1 #2 #3
+
+22 #4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-8B Rank 3 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+RezNEmbed Rank 5 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+23 #7 #8 #9 
+
+#10 
+
+Doubao-E-V Rank 3 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Example 2 
+
+Black chevron-quilted jogger pants featuring elastic ankle cuffs, a slim tapered fit, and dimensional textured knit fabric. The all-over chevron pattern creates visual depth while the mid-rise waist and side pockets offer functionality. Styled with a red plaid flannel shirt and black sneakers for a casual, contemporary look. Switch from chevron-quilted knit fabric to smooth technical woven fabric; add an asymmetrical rear welt pocket and a waistband snap closure. 
+
+−→ 
+
+Ground Truth 
+
+Men’s black slim-fit jogger pants crafted from smooth woven technical fabric with a subtle sheen. Features elasticized ribbed ankle cuffs, slanted side pockets, and a tapered silhouette with mid-rise flat-front waist. The refined construction bridges athletic comfort and tailored sophistication, suitable for versatile smart-casual styling. 
+
+24 Ours Rank 1 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-2B Rank 4 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+25 Qwen3-VL-8B Rank 4 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+RezNEmbed Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+26 Doubao-E-V Rank 4 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Example 3 
+
+White sleeveless open-front vest featuring a crochet lace bodice and sheer floral-embroidered hem. Relaxed mid-thigh length with scalloped edges and wide armholes. Bohemian layering piece with mixed textures, perfect for warm-weather styling. Add a center-front tie with gold metal tips and a 2-3 inch fringe trim to the entire hemline, replacing the source’s tiered embroidery with a uniform lattice-crochet pattern. 
+
+−→ 
+
+Ground Truth 
+
+White sleeveless crochet vest featuring floral lattice pattern, deep V-neck, open front with tie closure and gold metal tips, and fringe tassel hem. Bohemian layering piece with relaxed fit, perfect for festival or beach wear. 
+
+Ours Rank 1 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+27 #7 #8 #9 
+
+#10 
+
+Qwen3-VL-2B Rank 4 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-8B Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+28 #10 
+
+RezNEmbed Rank 4 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Doubao-E-V Rank 5 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+29 Example 4 
+
+Heather gray marled jogger pants featuring a black elastic waistband, zippered side pockets with black trim, and rolled cuffs revealing a light gray interior. Designed with a relaxed tapered fit, soft heathered knit fabric, and cropped ankle length for versatile casual or athletic wear. Replace standard side pockets with black faux leather-trimmed zippered pockets and update the waistband to a ribbed, quilted texture. 
+
+−→ 
+
+Ground Truth 
+
+Gray marled knit jogger pants featuring black faux leather-trimmed diagonal zip side pockets, quilted elastic waistband with drawstring, and cuffed hems. Relaxed tapered fit with no back pockets. Heathered gray and white textured fabric with edgy moto-inspired details. 
+
+Ours Rank 1 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-2B Rank 3 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+30 #7 #8 #9 
+
+#10 
+
+Qwen3-VL-8B Rank 3 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+RezNEmbed Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+31 #10 
+
+Doubao-E-V Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Example 5 
+
+Men’s short-sleeve button-up shirt featuring a bold all-over orange giraffe print on a dark olive green background. Designed with a classic point collar revealing a contrasting geometric lining, a single left chest pocket, and a full button front closure. The short sleeves have cuffed hems, and the curved shirt tail hem offers a relaxed silhouette. Regular fit, lightweight woven fabric. Replace olive giraffe print with blue-based colorful abstract geometric pattern and update placket buttons from dark to white. 
+
+−→ 
+
+Ground Truth 
+
+Men’s short-sleeve button-up shirt featuring a vibrant blue base with retro 90s-inspired abstract print of white squiggles and colorful geometric shapes. Classic point collar, full button front with white buttons, single left chest pocket, and regular fit. Lightweight woven fabric, casual summer style. 
+
+Ours Rank 1 
+
+#1 #2 #3 
+
+32 #4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-2B Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-8B Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+33 #7 #8 #9 
+
+#10 
+
+RezNEmbed Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Doubao-E-V Rank 3 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+34 #10 
+
+Example 6 
+
+Olive green slim-fit dress pants with sharp center creases, zip fly, belt loops, and cuffed hems. Crafted from smooth suiting fabric with a subtle sheen, featuring a modern tapered silhouette perfect for contemporary formal or smart-casual wear. Front: Add articulated horizontal knee panel seaming. Back: Replace clean rear with two symmetrical flap-style back pockets. Color changed from olive to teal technical fabric. 
+
+−→ 
+
+Ground Truth 
+
+Teal slim-fit pants with articulated knee panels, cuffed hems, and clean pocket styling. Contemporary smart-casual design featuring a tapered silhouette and technical fabric construction. 
+
+Ours Rank 1 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-2B Rank 3 
+
+#1 #2 #3 
+
+35 #4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-8B Rank 1 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+RezNEmbed Rank 4 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+36 #7 #8 #9 
+
+#10 
+
+Doubao-E-V Rank 5 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Example 7 
+
+Navy blue linen-blend shorts with wide elastic waistband and functional drawstring tie. Features side pockets and dual back patch pockets. Relaxed fit with short inseam and clean-finished hem. Lightweight, breathable textured fabric perfect for casual summer and beach wear. Change to black knit fabric with cuffed hems and front slash pockets; replace back patch pockets with horizontal welt pockets. 
+
+−→ 
+
+Ground Truth 
+
+Black relaxed-fit knit shorts featuring a wide elastic drawstring waist, side slash pockets, back welt pockets, and cuffed hems. Constructed from soft, mid-weight fabric with a comfortable high-rise fit and sporty-casual aesthetic perfect for everyday loungewear. 
+
+37 Ours Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-2B Rank 5 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-8B Rank 3 
+
+#1 #2 #3 
+
+38 #4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+RezNEmbed Not in Top-10 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Doubao-E-V Rank 4 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+39 #7 #8 #9 
+
+#10 
+
+Example 8 
+
+Longline hooded cardigan featuring a bold red and cream geometric tribal pattern with open front design, long sleeves, and midi length. Lightweight knit construction with Southwestern-inspired diamond motifs, symmetrical pattern placement, and relaxed bohemian silhouette perfect for casual layering. Change color to black/white; add asymmetrical fringe hem to the front and back; modify geometric pattern to include horizontal striped bands. 
+
+−→ 
+
+Ground Truth 
+
+Black and white geometric open-front cardigan featuring tribal-inspired zigzag and diamond patterns, long sleeves with contrasting black ribbed cuffs, and fringe tassel trim along the asymmetrical hem. Relaxed, draped silhouette perfect for layering. 
+
+Ours Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+40 Qwen3-VL-2B Rank 3 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-8B Rank 5 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+41 RezNEmbed Not in Top-10       
+
+> #1 #2 #3
+> #4 #5 #6
+> #7 #8 #9
+> #10
+
+Doubao-E-V Rank 3       
+
+> #1 #2 #3
+> #4 #5 #6
+> #7 #8 #9
+> #10
+
+Example 9 
+
+42 Heather gray cropped hoodie featuring blue ’REBEL 09’ collegiate graphic print, drawstring hood with white tassel ties, long sleeves with ribbed cuffs, and a relaxed boxy fit. Plain back, no pockets, waist-length hem. Casual athletic style. Replace chest graphic with a front kangaroo pocket, change fabric to marled cranberry red, and add a contrasting solid red lining to the hood interior. 
+
+−→ 
+
+Ground Truth 
+
+A heathered cranberry cropped hoodie featuring a drawstring hood with white strings, a front kangaroo pocket, long sleeves with ribbed cuffs, and a ribbed cropped hem. The marled knit fabric offers a relaxed fit, making it a versatile casual layering piece perfect for pairing with high-waisted skirts or jeans. 
+
+Ours Rank 1 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+Qwen3-VL-2B Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+43 #10 
+
+Qwen3-VL-8B Rank 4 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+RezNEmbed Not in Top-10 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+44 Doubao-E-V Rank 2 
+
+#1 #2 #3 
+
+#4 #5 #6 
+
+#7 #8 #9 
+
+#10 
+
+45

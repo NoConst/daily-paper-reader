@@ -1,0 +1,150 @@
+{
+  "version": 2,
+  "extractor": "pdffigures2",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-001.webp",
+      "caption": "Fig. 3: Architecture of our personalized aesthetic quality predictor. Visual and semantic features are extracted by a frozen SigLIP2 encoder; user demographic and image metadata embeddings are produced by a frozen embedding encoder. All features are projected to a shared dimension, assembled as a token sequence with a learnable [CLS] token, and fused by a shallow transformer encoder. The [CLS] output is passed to a linear head to predict the aesthetic score and trained with a mean squared loss.",
+      "page": 6,
+      "index": 1,
+      "width": 870,
+      "height": 483
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-002.webp",
+      "caption": "Fig. 8: Preference ranking of optimized images. We find that users prefer images optimized to their taste using PAM∃LA, and that users prefer images optimized with our method in general. Popular reward models like HPSv3 [36] and Q-Align [55] seem to degrade perceptual quality and are chosen less than the unoptimized image.",
+      "page": 11,
+      "index": 2,
+      "width": 786,
+      "height": 440
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-003.webp",
+      "caption": "Fig. 13: Example trial of our rating study to collect the user annotations in our PAM∃LA dataset. Given the prompt and image, we allow the user to select the exact score using a continuous slider, with 5 anchor points along the scale.",
+      "page": 21,
+      "index": 3,
+      "width": 976,
+      "height": 840
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-004.webp",
+      "caption": "Fig. 1: Prior work on preference alignment focuses on steering generations towards samples with a global reward. In contrast, we are able to steer samples with prompt optimization [1, 38] to generate different samples tailored to individual taste.",
+      "page": 2,
+      "index": 4,
+      "width": 957,
+      "height": 562
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-005.webp",
+      "caption": "Table 2: Reward model comparison on the PAM∃LA test set with held-out users. Our model outperforms all baselines across both evaluation regimes (user level vs population average) and all three metrics (SROCC, PLCC, pairwise accuracy).",
+      "page": 7,
+      "index": 5,
+      "width": 588,
+      "height": 235
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-006.webp",
+      "caption": "Fig. 14: Example trial of our user study to validate our PAM∃LA reward model for image steering. Users were shown two images side-by-side and were simply asked to indicate which image they preferred. The user study compared images optimized to the user’s taste with PAM∃LA, images optimized for other users with PAM∃LA, images optimized with generic reward models (HPSv3 and Q-Align) and unoptimized images. Users evaluated all possible pairwise comparisons.",
+      "page": 22,
+      "index": 6,
+      "width": 979,
+      "height": 659
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-007.webp",
+      "caption": "Fig. 6: Illustration of iterative prompt refinement for a fictional image prompt. While other reward models steer towards surreal outputs, PAM∃LA favors photorealism.",
+      "page": 10,
+      "index": 7,
+      "width": 954,
+      "height": 244
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-008.webp",
+      "caption": "Fig. 7: Comparison of iterative prompt refinement steered with PAM∃LA for different age ranges. Our PAM∃LA predictor remains agnostic to user id and instead relies on learned patterns from the demographic embeddings.",
+      "page": 10,
+      "index": 8,
+      "width": 946,
+      "height": 286
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-009.webp",
+      "caption": "Fig. 11: We vary the margin considered to be a tie while calculating pairwise accuracy. We note that increasing the threshold upto the next anchor point in the annotation scale gives consistent improvements to the pairwise accuracy, suggesting that the relatively low pairwise accuracy stems from the large number of samples with similar scores.",
+      "page": 14,
+      "index": 9,
+      "width": 976,
+      "height": 306
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-010.webp",
+      "caption": "Table 1: Dataset comparison across IQA and human preference benchmarks. PAM∃LA is the only dataset combining AI-generated images, subjective visual domains, dense per-image multi-rater coverage, and user demographics. These properties are jointly required for personalized reward modeling. Label denotes the annotation format: Score (absolute ratings) or Pairwise (comparative preferences of 2 images) or Ranking (ordinal ranking of multiple images). †Note that Pick-a-Pic v2 includes user IDs but was not designed for per-user analysis; per-user splits must be reconstructed post hoc.",
+      "page": 3,
+      "index": 10,
+      "width": 973,
+      "height": 563
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-011.webp",
+      "caption": "Table 3: Ablation study results on seen and unseen users. Unseen users are matched via kNN (k=15, top-K=5, τ=0.1). The generalization gap is defined as the difference between seen and unseen average metrics; a smaller gap indicates better generalization to new users. Best values per column are in bold; the full model row is highlighted.",
+      "page": 18,
+      "index": 11,
+      "width": 980,
+      "height": 244
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-012.webp",
+      "caption": "Fig. 15: Comparison of image steering outcomes across two distinct runs for User 2. We find that the LLM learns consistent patterns in the prompt, leading to a consistent pattern of steered images.",
+      "page": 23,
+      "index": 12,
+      "width": 963,
+      "height": 768
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-013.webp",
+      "caption": "Fig. 10: Examples of image pairs from our PAM∃LA test set where users differed in their preferences. Each image and user pair shows 2 images where user x preferred image A over image B and user y preferred image B over image A. The ground truth score and model prediction are plotted below each image.",
+      "page": 13,
+      "index": 13,
+      "width": 968,
+      "height": 322
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-014.webp",
+      "caption": "Fig. 2: Visual diversity in the PAM∃LA benchmark. The dataset spans two primary domains: Art and Photography. It comprising 21 distinct thematic categories as shown with examples. This structure isolates a model’s ability to judge stylized artistic compositions from its ability to evaluate real-world, photographic subjects.",
+      "page": 4,
+      "index": 14,
+      "width": 979,
+      "height": 434
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-015.webp",
+      "caption": "Fig. 12: Effect of number of context images N and Top-K neighbors on unseen user performance for PAM∃LA. Performance peaks at N = 15, K = 5 (circled) across all metrics, with diminishing returns beyond this point. Temperature = 0.1 throughout.",
+      "page": 19,
+      "index": 15,
+      "width": 976,
+      "height": 361
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-016.webp",
+      "caption": "Fig. 9: Comparison of image steering outcomes across two distinct runs for User 1. We find that the LLM learns consistent patterns in the prompt, leading to a consistent pattern of steered images.",
+      "page": 12,
+      "index": 16,
+      "width": 963,
+      "height": 740
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-017.webp",
+      "caption": "Fig. 16: Comparison of image steering outcomes across two distinct runs for User 3. We find that the LLM learns consistent patterns in the prompt, leading to a consistent pattern of steered images.",
+      "page": 24,
+      "index": 17,
+      "width": 963,
+      "height": 788
+    },
+    {
+      "url": "assets/figures/arxiv/2604.07427v1/fig-018.webp",
+      "caption": "Fig. 5: Comparison of iterative prompt optimization results for three different users with our PAM∃LA predictor, HPSv3 [36] and Q-Align [55]. Unlike existing reward models, we are able to customize the generation to individual user taste.",
+      "page": 9,
+      "index": 18,
+      "width": 860,
+      "height": 1163
+    }
+  ]
+}

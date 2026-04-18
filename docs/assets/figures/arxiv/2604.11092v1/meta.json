@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "extractor": "pdffigures2",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2604.11092v1/fig-001.webp",
+      "caption": "Figure 1: Intuition of ARHN. (Left) Conventional hardnegative mining can include answer-bearing documents as negatives, introducing false negatives. (Right) Using extracted answer snippets, ARHN relabels answer-bearing negatives as positives and filters ambiguous negatives to refine supervision.",
+      "page": 1,
+      "index": 1,
+      "width": 494,
+      "height": 254
+    },
+    {
+      "url": "assets/figures/arxiv/2604.11092v1/fig-002.webp",
+      "caption": "Figure 4: Effect of LLM scale used in ARHN labeling (Stage 1– 2) on retrieval performance. The plot reports nDCG@10 on BEIR (Avg. 16) for an E5-base retriever fine-tuned on ARHN(R+F)-refined data, comparing No Refinement with Qwen3-8B/14B/32B. Performance improves with larger LLMs, and Qwen3-32B achieves the best nDCG@10.",
+      "page": 6,
+      "index": 2,
+      "width": 419,
+      "height": 396
+    },
+    {
+      "url": "assets/figures/arxiv/2604.11092v1/fig-003.webp",
+      "caption": "Table 1: nDCG@10 on 16 BEIR datasets for E5-base and LG-ANNA-Embedding (Mistral-7B), comparing No Refinement, baselines from prior work, and ARHN variants (Filter/Relabel/R+F). Datasets marked with *correspond to the 7 out-of-domain (OOD) datasets not seen during training; we report the average over all 16 datasets (Avg. 16) and over the 7 OOD datasets (Avg. 7) at the bottom. Best results for each encoder are in bold.",
+      "page": 6,
+      "index": 3,
+      "width": 1056,
+      "height": 390
+    },
+    {
+      "url": "assets/figures/arxiv/2604.11092v1/fig-004.webp",
+      "caption": "Table 2: nDCG@10 comparison between PRHN and ARHN on 16 BEIR datasets, using an E5-base retriever fine-tuned on the corresponding refined training data. PRHN performs the Stage 2 listwise ranking directly on the original passages, whereas ARHN first generates an answer snippet for each passage in Stage 1 and then conducts Stage 2 ranking conditioned on the extracted snippets.",
+      "page": 7,
+      "index": 4,
+      "width": 506,
+      "height": 533
+    },
+    {
+      "url": "assets/figures/arxiv/2604.11092v1/fig-005.webp",
+      "caption": "Figure 2: Overview of the two-stage ARHN pipeline. Given a query 𝑞, the original training instance consists of a positive document 𝐴 and hard negative documents {𝐵,𝐶, 𝐷}. In Stage 1, an open-source LLM extracts an answer snippet for the query from the document text; if no supporting evidence is found, it outputs NO_ANSWER (e.g., 𝐷). In Stage 2, the extracted snippets are compared in a listwise manner to produce an ordering (e.g., 𝐵 > 𝐴 > 𝐶 > 𝐷), which is then used to reconstruct labels.",
+      "page": 3,
+      "index": 5,
+      "width": 998,
+      "height": 281
+    },
+    {
+      "url": "assets/figures/arxiv/2604.11092v1/fig-006.webp",
+      "caption": "Table 5: Examples of label noise in retrieval training (FiQA-2018, NQ, MS MARCO). Highlighted text denotes an answer snippet. We contrast labeled positives with answer-bearing negatives, illustrating complementary evidence, more specific answers, true-answer false negatives, and contaminated negatives with overlapping answer snippets.",
+      "page": 8,
+      "index": 6,
+      "width": 1056,
+      "height": 798
+    },
+    {
+      "url": "assets/figures/arxiv/2604.11092v1/fig-007.webp",
+      "caption": "Figure 3: Stage 1–2 prompts of ARHN. In Stage 1, the LLM extracts an answer snippet from each query–document pair as a verbatim contiguous span (or outputs NO_ANSWERwhen no relevant evidence exists) to verify whether a candidate contains answer-supporting evidence. In Stage 2, the LLM performs answer-centric listwise reranking over the extracted snippets by producing a total order based on how well each snippet answers or supports the query; snippet[1] corresponds to the positive document’s an answer snippet.",
+      "page": 4,
+      "index": 7,
+      "width": 487,
+      "height": 790
+    }
+  ]
+}

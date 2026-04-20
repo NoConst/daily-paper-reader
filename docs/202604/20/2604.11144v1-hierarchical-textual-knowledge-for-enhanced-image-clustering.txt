@@ -1,0 +1,815 @@
+Title: Hierarchical Textual Knowledge for Enhanced Image Clustering
+
+URL Source: https://arxiv.org/pdf/2604.11144v1
+
+Published Time: Tue, 14 Apr 2026 01:54:30 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# Hierarchical Textual Knowledge for Enhanced Image Clustering 
+
+## Yijie Zhong 1, Yunfan Gao 1, Weipeng Jiang 2, Haofen Wang 1* 
+
+> 1
+
+## Tongji University, 2 Huawei Technologies Ltd.    
+
+> dun.haski@gmail.com, 2311821@tongji.edu.cn, jwpqjty@gmail.com, carter.whfcarter@gmail.com
+
+## Abstract 
+
+Image clustering aims to group images in an unsupervised fashion. Traditional methods focus on knowledge from vi-sual space, making it difficult to distinguish between visu-ally similar but semantically different classes. Recent ad-vances in vision-language models enable the use of textual knowledge to enhance image clustering. However, most ex-isting methods rely on coarse class labels or simple nouns, overlooking the rich conceptual and attribute-level seman-tics embedded in textual space. In this paper, we propose a knowledge-enhanced clustering (KEC) method that con-structs a hierarchical concept-attribute structured knowl-edge with the help of large language models (LLMs) to guide clustering. Specifically, we first condense redun-dant textual labels into abstract concepts and then auto-matically extract discriminative attributes for each single concept and similar concept pairs, via structured prompts to LLMs. This knowledge is instantiated for each input image to achieve the knowledge-enhanced features. The knowledge-enhanced features with original visual features are adapted to various downstream clustering algorithms. We evaluate KEC on 20 diverse datasets, showing consis-tent improvements across existing methods using additional textual knowledge. KEC without training outperforms zero-shot CLIP on 14 out of 20 datasets. Furthermore, the naive use of textual knowledge may harm clustering performance, while KEC provides both accuracy and robustness. 
+
+## 1. Introduction 
+
+Image clustering aims to group unlabeled images into se-mantically meaningful clusters [35]. As a fundamental task in unsupervised learning, it enables the effective organiza-tion and understanding of large-scale visual data [20, 33]. The essence of clustering lies in leveraging prior knowledge to establish well-defined class boundaries, thereby achiev-ing clear semantic separation. Earlier methods primarily rely on knowledge of geomet-
+
+> *Corresponding author.
+
+ric priors such as connectivity [42] and sparsity [24] to de-fine structural relationships between samples. These as-sumptions, though simple and interpretable, struggle with complex visual semantics. With the advent of deep learning, clustering has shifted toward leveraging high-dimensional representations learned by CNNs and vision Transformers. These visual patterns serve as implicit knowledge that en-ables more discriminative clustering [6, 39, 46]. Addition-ally, various pretrained models have been explored to intro-duce feature-level diversity into the pipeline [11]. However, relying solely on visual features often fails to differentiate visually similar but semantically distinct classes [2]. Recent advances in visual-language models such as CLIP [34] have aligned visual and textual spaces, making it possible to inject textual knowledge into cluster-ing. Several recent studies attempt to leverage textual in-formation to enhance clustering performance, but they still face fundamental limitations. Some approaches directly generate captions or text em-beddings for each image using large vision-language mod-els (VLMs) [20, 38, 44]. While conceptually appealing, this strategy requires repeatedly querying generative mod-els, leading to prohibitive computational overhead and poor scalability. Other methods, such as SIC [2] and TAC [22], sidestep this issue by assigning pseudo-labels to images from predefined nouns or lexical resources like Word-Net [30]. Although efficient, these methods rely on shal-low textual knowledge, failing to capture deeper semantic hierarchies or discriminative attributes. In practice, textual knowledge derived in such ways often suffers from semantic redundancy and inconsistent granularity. Similar or synonymous nouns dilute distinc-tions between similar related categories, while overly broad or narrow terms break the structure of the knowledge base, reducing stability. Consequently, such knowledge in the textual space provides limited guidance for forming clear clustering boundaries. In some scenarios, naively incor-porating text can even negatively impact clustering perfor-mance, underscoring that advances should center on ro-bust textual space modeling rather than on refining noun-selection strategies in previous work. 
+
+> arXiv:2604.11144v1 [cs.CV] 13 Apr 2026 Introducing
+> Textual
+> Knowledge
+> Image Features
+
+Only Visual Knowledge 
+
+> …
+> Image with high
+> cosine similarity
+> Clustering Method
+
+tail 
+
+legs 
+
+ears 
+
+Hierarchical 
+
+Textual 
+
+Knowledge 
+
+Dogs  
+
+> WordNet Large Language
+> Model
+> Concept
+> Attribute
+
+Knowledge Enhanced Clustering (Ours) 
+
+> Clustering Method
+> a photo of Shiba Inu
+> a photo of Akita
+> 0.46
+> 0.93
+> 0.54
+> 0.07
+> …
+> Zero-shot Classification
+> Self-supervised Clustering
+
+Text Aided 
+
+Clustering 
+
+Zero-shot 
+
+CLIP    
+
+> WordNet
+> Less Semantics
+> Labels
+> Clustering Results
+> Input Images
+> Cluster 1 Cluster 2
+> Ak ita have longer legs, curlier tails,
+> and forward-tilting ears compared to Shiba Inu.
+
+Figure 1. Motivation and intuition behind KEC. We first contrast the type of knowledge used by existing methods versus our method. It also illustrates that class labels alone often fail to identify objects of similar categories. Building on prior work showing that CLIP attends to targeted semantical regions [40], we visualize the attention maps derived from nouns and discriminative attributes using the method from [4]. The results motivate us to mine discriminative attributes to construct structured textual knowledge for guiding image clustering. 
+
+Drawing inspiration from human cognition, we argue that object differentiation relies not only on category names but also on discriminative attributes. For instance, humans distinguish between an Akita and a Shiba Inu by perceiving subtle differences in leg length, tail curvature, and ear pos-ture. As illustrated in Figure 1, attribute-based cues convey richer semantic information than class names alone, often reflecting accumulated common sense or domain-specific knowledge. This observation motivates our central ques-tion: How can we construct structured and discriminative textual knowledge to guide image clustering? We identify the following two key challenges: 
+
+1. How to construct discriminative knowledge in a se-mantically redundant textual space? 2. How to acquire such knowledge automatically with-out relying on manual annotation or feeding raw images into large generative models? 
+
+In this paper, we propose a method called Knowledge-Enhanced Clustering (KEC). KEC leverages large language models to build a hierarchical concept-attribute knowledge structure. We first abstract representative concepts from re-dundant noun sets, and then extract discriminative attributes both within and across these concepts. This knowledge is instantiated and grounded in the input images to gen-erate knowledge-enhanced features, which are integrated with visual features for clustering. KEC is fully automated and compatible with various downstream clustering algo-rithms. Extensive experiments demonstrate that KEC con-sistently improves clustering performance and robustness. Moreover, results reveal that naively constructed textual knowledge can degrade performance, while our hierarchi-cal knowledge provides stable and interpretable gains. The contributions of this work are summarized as follows: • We propose a knowledge-enhanced clustering method that uses large language models to construct structured, hierarchical textual knowledge for guiding clustering. • We introduce a concept-attribute knowledge in textual space. Representative concepts are distilled from redun-dant nouns, and discriminative attributes are extracted both within and between concepts to explicitly capture differences between similar categories. • We validate our method on 20 visual datasets across di-verse scenarios, achieving consistent improvements and robustness. Without any training, KEC outperforms training-based methods by 3% in NMI on average and surpasses zero-shot CLIP on 14 datasets. 
+
+## 2. Related Work 
+
+Early clustering methods rely on handcrafted features and geometric assumptions [25], such as linear subspaces, com-pactness, connectivity [42], and sparsity [24]. These meth-ods define cluster boundaries based on structural priors as Image-Text Mapping 
+
+Image 
+
+Task-Specific Training 
+
+(e.g., TAC, …) 
+
+Clustering 
+
+Training-free 
+
+(e.g., K-Means, …) 
+
+Training 
+
+(e.g., TURTLE, …) 
+
+Hierarchical Knowledge Modeling 
+
+…
+
+Textual Space 
+
+Visual Space 
+
+Concept Abstraction 
+
+> …
+> …
+> LLM
+
+Nouns 
+
+Concept 
+
+> Visual Features  Knowledge Enhanced Features
+
+Attribute Mining     
+
+> Combine …nouns into a
+> representative concept …
+
+�𝒲𝒲 𝑞𝑞 
+
+𝐺𝐺 
+
+Uni-Concept Attribute 
+
+Bi-Concept Attribute      
+
+> …
+> LLM
+> list …attributes observable from images for the concept …
+
+…
+
+From Single Concept  From Concept Pairs  
+
+> …
+> S UM > 𝜶𝜶
+
+( , )
+
+𝒫𝒫 𝑞𝑞  
+
+> LLM
+> list one …
+> attribute …
+
+Structured 
+
+Textual Knowledge 
+
+Knowledge Grounding   
+
+> for Image 𝑰𝑰 𝑖𝑖
+> …
+
+𝐱𝐱 𝑖𝑖 
+
+> …
+> …
+
+𝜔𝜔 𝑖𝑖 ,𝑞𝑞 
+
+𝜁𝜁 𝑞𝑞 ̅
+
+𝜉𝜉 𝑞𝑞 𝑖𝑖  
+
+> aerial_ladder_truck,
+> fireroom, firehouse, …
+> emergency_
+> response_
+> vehicles
+> emergency_
+> response_vehicles
+> … materials …
+> … logos …
+> Commercial and Utility Vehicles
+> color scheme and markings Instantiation
+
+Figure 2. Overview of KEC. Image-Text Mapping first aligns visual features with the textual space using noun features from WordNet. We then construct a hierarchical concept-attribute structured knowledge in the textual space. Representative concepts are distilled from semantically redundant nouns and abstracted using an LLM. Discriminative attributes are generated based on either single concepts or similar concept pairs. After constructing this structured knowledge, KEC instantiates features for each input image to obtain knowledge-enhanced features. These are combined with visual features and can be flexibly integrated into various downstream clustering methods. 
+
+knowledge, yet they struggle to handle high-dimensional and semantically rich visual data [10]. Subsequent advances incorporate multi-view fusion [3, 26] and constrained learn-ing [13] to enhance robustness, but still rested on fixed geo-metric assumptions. The rise of deep learning enabled data-driven represen-tation learning for clustering. Self-supervised contrastive learning [6, 47], pseudo-label refinement [23], and visual pertaining [11] have led to more discriminative features, which treat the learned image patterns as visual knowledge. Hierarchical decoupling in architecture leverages base lay-ers for universal visual features and upper layers for struc-tural separability through graph-cut criteria [14] or mani-fold alignment, and differentiable spectral clustering [46] or probabilistic merging [29]. This layered approach repre-sents a shift towards explainable systems by explicitly in-corporating geometric priors, moving away from black-box models. Despite progress, these methods operate purely in the visual space and are prone to failing in distinguishing visually similar yet semantically different classes. The emergence of large language models and visual-language models has opened new opportunities. Re-cent work explores textual knowledge as a complementary modality. Vision-language models like CLIP [34] bridge the visual and textual spaces, enabling new clustering paradigms [45]. Some methods rely on image-caption gen-eration [38] or large vision-language model-driven prompt-based clustering [12, 20]. However, these methods re-quire repeatedly encoding each image with a generative model, making them computationally expensive and diffi-cult to scale. Other methods like SIC [2] and TAC [22] adopt predefined textual resources like WordNet to gener-ate pseudo-labels or filter discriminative nouns. While ef-ficient, these methods rely on static nouns that are shallow, semantically redundant, and lack contextual attributes. It is worth noting that while TAC suggests leveraging external knowledge, such as the fact that ‘Corgis have shorter and thicker legs compared to Shiba Inu dogs’ , relying solely on filtered nouns does not effectively model this knowledge. In fact, they fail to truly utilize such attribute-level cues. In contrast to prior work that emphasizes noun selection, KEC shifts the focus toward explicit modeling of the tex-tual space. We establish hierarchical and structured textual knowledge with the help of large language models. Rather than relying on flat noun sets or user prompts, we auto-matically extract representative concepts and generate dis-criminative attributes, capturing both semantic structure and inter-class contrast. Our method is fully automated, scal-able, and provides interpretable knowledge that improves clustering performance and robustness. 
+
+## 3. Method 
+
+Let I = {I1, · · · , I Nv } denote the set of Nv input images and let W = {w1, · · · , w Nt } represent the set of Nt nouns (e.g. , from WordNet [30]). Each image Ii is encoded into a visual embedding Ii using the CLIP vision encoder, and each noun wj is mapped into a textual embedding tj via the CLIP text encoder. This results in two feature sets: visual features X = {xi}Nv 
+
+> i=1
+
+and textual features T = {ti}Nt
+
+> i=1
+
+.KEC starts with establishing an initial image-text mapping by measuring the similarity between X and T , allowing us to identify a subset of nouns relevant to the input images. However, these nouns are still semantically redundant in textual space. Then, KEC leverages large language mod-els to construct a hierarchical knowledge in textual space, as shown in Figure 2. Specifically, distill semantically re-dundant nouns into a set of representative concepts, and extract discriminative attributes both from individual con-cepts and from concept pairs. This knowledge helps clarify differences between similar categories and sharpens cluster boundaries. Next, each image is matched to the concepts, and the associated attributes are instantiated to reflect its vi-sual semantics. The concept features and attribute features together form the knowledge-enhanced textual features. Fi-nally, by integrating the original visual features with the knowledge-enhanced features, KEC supports a wide range of downstream image clustering algorithms. 
+
+3.1. Initializing Image-Text Mapping 
+
+Previous studies [2, 22] have explored various strategies for associating input images with relevant textual semantics. Following the approach of [22], we first perform k-means clustering on the visual features X, where the number of clusters k is set to Nv /300 . Let μp denote the centroid of the p-th cluster. For each centroid μp, we compute the sim-ilarity with all noun features ti ∈ T , and select the top 5 highest-scoring nouns. Formally, the selected indices Sp
+
+are given by: 
+
+Sp = TopK (μ⊤ 
+
+> p
+
+ti 
+
+> Nt
+> i=1
+
+, 5) , (1) where TopK (·, 5) returns the indices of the top-5 entries with the highest scores. The resulting set of nouns in cluster 
+
+p is denoted as Wp = {wj |j ∈ S p}, and the corresponding textual features as Tp = {tj |j ∈ S p}. These nouns contain redundant semantics, along with overly fine or broad nouns. 
+
+3.2. Representative Concept Abstraction 
+
+In the previous stage, a significantly larger number of clus-ters than the actual number of semantic classes is employed to preserve fine-grained differences in visual space [22]. While this ‘over-classification’ strategy improves recall, it also introduces semantic redundancy. Specifically, the noun list Wp for cluster p may contain multiple similar or even identical nouns. The semantics within noun lists across clusters are often merely fine-grained variants of the same underlying concept, making it hard to distinguish between synonymous classes. Moreover, many broader generic nouns do not share the same granularity as these fine-grained nouns. As a result, incorporating such textual knowledge into clustering may lead to misaligned cluster-ing boundaries and degrade clustering performance. To address this problem, we merge similar clusters to reduce redundancy. Leveraging LLM’s advanced capabili-ties in fine-grained discrimination, inductive reasoning, and its deep conceptual knowledge, we represent each merged cluster using a representative concept with an associated textual description. This not only enhances the usability but also the interpretability of the merged clusters. For each cluster, we compute the visual centroid μp and textual centroid νp from Tp. We then calculate the visual similarity matrix Rvis i,j = sim( μi, μ j ) and the textual simi-larity matrix Rtext i,j = sim( νi, ν j ) for all cluster pairs. The two matrices are integrated through a weighted sum with a parameter α to produce the multi-modal similarity matrix 
+
+Ri,j between clusters: 
+
+Ri,j = αR vis i,j + (1 − α)Rtext i,j , i, j = 1 , · · · , k. (2) Using a threshold β, we build an adjacency matrix Gi,j =
+
+1[Ri,j > β ]. This matrix is then used to extract connected components Q1, · · · , QM using algorithms such as depth-first search. For each connected component q, we aggre-gate the noun sets, resulting in the merged noun sets as 
+
+Wq = ∪p∈Q q Wp. The collection of these merged sets, 
+
+{W q }Mq=1 , is more compact and semantically coherent. And 
+
+M represents the number of the merged noun sets. Next, we employ the LLM to generate a representative concept that encompasses all nouns in each merged set Wq ,along with a concise description that outlines the properties of objects within the concept. The LLM is prompted as:                                 
+
+> [Task] Combine the following nouns into arepresentative **concept** and describe this concept in afew words. [Additional criteria] It should encompass the given nouns without including other related nouns that do not belong to the same class. ... [Input] Given Nouns: ...
+
+The outputs provide a concept set C = {cq }Mq=1 and its cor-responding description set D = {dq }Mq=1 . These concepts and descriptions are then fed into the CLIP text encoder, yielding concept features ϕq and description features ψq .
+
+3.3. Discriminative Attribute Mining 
+
+Highly abstract concepts often result in ambiguous cluster-ing boundaries. Humans, however, distinguish between vi-sually similar categories based on discriminative attributes. For instance, Corgis are recognized by their shorter and thicker legs than Shiba Inus. Existing methods that rely solely on class names or nouns fail to capture such cues, as they lack explicit modeling of visual attributes. To address this, we introduce a mid-level semantic based on discriminative attributes, which sharpens inter-cluster distinctions and improves interpretability. We generate two attribute types using LLMs. Uni-concept Attribute. For each concept cq , we prompt the LLM to identify λ1 visual attributes that help differenti-ate instances of cq from those of other concepts as follows:                                     
+
+> [Task] List the two most **representative** and **distinctive** attributes observable from images for the given concept, which can clearly distinguish objects under this concept from other similar classes. [Additional criteria] You only need to describe the visual effect of the attribute without providing its function. [Input] Given concept:
+
+The generated uni-concept attributes is Uq = {uiq }λ1
+
+> i=1
+
+.
+
+Bi-concept Attribute. Mining attributes across all con-cept pairs is computationally inefficient and often unneces-sary, especially for clearly dissimilar concepts. To focus on genuinely ambiguous cases, we first identify semantically similar concept pairs, which are potentially asymmetric. For each concept cq , we compute its similarity to every other concept πq,l = ϕ⊤ 
+
+> q
+
+ϕl (l̸ = q), and apply normal-ization to get ˆπq,l = exp( πq,l )/ P  
+
+> j̸=q
+
+exp( πq,j ). We then sort these similarities in descending order to form a ranking 
+
+¯lq, 1, ¯lq, 2, · · · for l. The top-Lq most relevant concepts are selected such that their cumulative similarity exceeds the similarity threshold β:
+
+Nq = {¯lq,y |y = 1 , · · · , L q }} , arg min 
+
+> Lq
+> Lq
+
+X
+
+> i=1
+
+ˆπq, ¯lq,i ≥ β (3) These neighbors Nq are paired with cq to form unordered concept pairs for cq : Pq = {(cq , c l)|l ∈ N q }. For each concept pair (cq , c l), the LLM is prompted to provide λ2 at-tributes that highlight the distinctive visual differences be-tween the two concepts. An example prompt is:                            
+
+> [Task] List one attribute that can distinguish two given concepts, where the specific manifestations of the attribute allow for easy identification of objects belonging to each concept. [Additional criteria] ... [Input] Given two concepts:
+
+The set of bi-concept attribute between cq and cl is denoted as Bq,l = {biq,l }λ2
+
+> i=1
+
+. Finally, we construct the full attribute set for concept cq as Aq = Uq ∪ S 
+
+> l∈N q
+
+Bq,l . All attributes in Aq are encoded using the CLIP text encoder to obtain attribute features ξq,i , where i = 1 , · · · , |A q |.
+
+3.4. Knowledge Grounding 
+
+After constructing the hierarchical textual knowledge un-der a ’concept-attribute’ schema, we derive knowledge-enhanced features for each input image Ii. First, we com-bine the name and its description to form a unified repre-sentation for each concept: ζq = ϕq + ψq . Next, we com-pute the similarity between the image feature xi and each 
+
+ζq , and normalize the results to obtain attention weights 
+
+ωi,q = exp( x⊤ 
+
+> i
+
+ζq )/ PMl=1 exp( x⊤ 
+
+> i
+
+ζl). For attributes, we observe that raw attributes alone are insufficient for precise discrimination, as they lack contextual grounding. Instead, we instantiate each attribute based on the visual content: 
+
+ˆξiq,l = xi ⊙ ξq,l , l = 1 , · · · , |A q |. We then average these instantiated attributes within the same concept to obtain the concept-level attribute features ¯ξiq . Finally, we compute the weighted concept and attribute features for image Ii as: 
+
+ci =
+
+> M
+
+X
+
+> q=1
+
+ωi,q ζq , ai =
+
+> M
+
+X
+
+> q=1
+
+ωi,q ¯ξiq . (4) The knowledge-enhanced feature is defined as κi = ci +ai.
+
+3.5. Clustering 
+
+KEC leverages both the original visual features xi and knowledge-enhanced features κi. It can be flexibly in-tegrated into various downstream clustering methods. In training-free settings, we concatenate the two modalities as 
+
+[xi, κ i] and apply conventional clustering algorithms ( e.g. 
+
+K-Means). In task-specific representation learning meth-ods ( e.g. TAC [22]), the visual and knowledge-enhanced features are treated as complementary views and jointly op-timized in a self-supervised fashion. For methods without task-specific representation learning ( e.g. TURTLE [11]), 
+
+xi and κi are incorporated as features from distinct spaces within the pipeline. 
+
+## 4. Experiments 
+
+4.1. Datasets and Evaluation Metrics 
+
+Recent advances in pre-training and clustering have made several commonly used datasets less challenging [22]. Pre-vious studies [2, 22] typically evaluate their methods on datasets with a limited number of classes. Following the setups in [11, 34], we adopt a comprehensive bench-mark comprising 20 vision datasets, including several fine-grained classification tasks, to highlight the advantages of knowledge-enhanced information in textual space. This benchmark covers datasets with diverse class scales: 4datasets have 1 ∼ 10 classes, 8 have 10 ∼ 100 classes, and 8 have over 100 classes. It also features multiple domain-specific datasets, such as those from satellite imagery and medical imaging. Further details about the datasets are pro-vided in the Supplementary Material section 8. We use three widely used metrics: accuracy (ACC), Nor-malized Mutual Information (NMI), and Adjusted Rand In-dex (ARI). Higher scores signify superior results. Table 1. KEC outperforms existing methods across diverse settings. The first three lines reflect the advantages of KEC under training-free settings. The last line uses ground-truth class labels as a loosely constrained upper bound. The remaining lines highlight the superiority of our hierarchical textual knowledge under different training strategies. Bold and underlined numbers denote the best and second-best results. Average refers to the average performance across all 20 datasets.                                                                                                                                                      
+
+> Dataset Average Flowers Pets CLEVR Metrics NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI
+> CLIP (k-means) 55.6 53.6 34.8 86.5 71.5 67.7 65.0 51.3 40.5 18.9 27.6 8.1 TAC (no train) 55.3 54.2 35.1 84.5 69.4 64.8 79.2 65.8 57.8 11.8 23.6 5.4
+> KEC (no train) 58.0 56.6 38.5 87.3 72.8 67.5 81.2 67.8 63.3 16.3 26.6 8.9
+> SIC 54.9 53.0 35.6 67.7 43.1 34.0 67.7 51.6 42.6 5.2 20.6 1.5 TAC 55.2 55.4 37.2 80.4 64.2 59.6 83.6 77.9 69.1 8.4 22.4 3.6
+> KEC TAC 57.9 59.0 40.3 85.4 71.6 66.8 84.8 79.7 71.5 15.9 25.4 6.8 TURTLE (1-space) 56.1 55.5 37.8 90.7 87.2 79.8 71.5 60.9 48.9 16.0 24.6 7.0
+> TAC TURTLE 56.2 55.8 38.1 90.8 86.8 79.1 73.7 63.4 52.5 16.6 25.8 7.5
+> KEC TURTLE 58.4 59.3 40.9 92.4 88.4 82.7 81.0 72.4 63.3 18.8 28.6 8.0
+> CLIP (zero-shot) 55.9 56.7 37.5 79.4 67.5 58.7 87.6 84.9 75.4 16.4 4.4 8.0 VLM Caption + Cluster 50.7 51.9 32.7 60.1 41.3 30.5 56.6 47.8 37.4 5.6 10.8 3.0
+
+(a) Positive Impact  (b) Negative Impact 
+
+Figure 3. Comparisons of different types of textual knowledge. We categorize the impact of textual knowledge into two groups by comparing the performance gap between clustering without textual knowledge and with class label knowledge. KEC consistently achieves better or comparable performance by incorporating hierarchical knowledge. In contrast, TAC shows limited improvements on a subset of datasets, and its performance trend closely mirrors that of zero-shot CLIP, suggesting that simply using coarse nouns or labels is insufficient and even degrades performance. 
+
+4.2. Baselines and Implementation Details 
+
+We use CLIP (k-means) and TURTLE (1-space) [11], both of which rely solely on visual knowledge, and CLIP (zero-shot), which leverages textual ground-truth class label in-formation, as the baselines. Building on advances in in-corporating knowledge from the textual space, we also in-clude two state-of-the-art methods: SIC [2] and TAC (no train) [22]. To evaluate the transferability of the knowl-edge and plug-and-play nature of KEC, we incorporate it into two downstream training strategies: TAC and TUR-TLE. Specifically, for TAC, we use its original text features or the knowledge-enhanced features from KEC, represented as TAC or KEC TAC , respectively. For TURTLE, these fea-tures are used as additional space features, represented as 
+
+TAC TURTLE and KEC TURTLE , respectively. We further include a pure VLM-driven baseline using GPT-4o for image cap-tioning, followed by clustering (VLM Caption + Cluster). Following previous works [2, 22], we adopt the pre-trained CLIP ViT-B/32 model to extract visual and textual embeddings. For nouns from WordNet [30], we assemble them with prompts like “A photo of [CLASS]”. We set the parameters λ1 = 2 , λ 2 = 1 . We set the weight α and thresh-old β to 0.8. All experiments are conducted on an NVIDIA RTX 3090 GPU. We use OpenAI API to access GPT-4o 
+
+for all LLM needs. More details are provided in the Sup-plementary Material section 9. Table 2. Ablation studies of different levels of the knowledge and their components in KEC. Con. and Des. mean the name of the concept and its corresponding description. UA and BA mean the uni-concept attribute and bi-concept attribute, respectively.                                                                                                     
+
+> Average Flowers Pets CLEVR Con. Des. UA BA NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI
+> ✓56.5 54.9 36.9 84.9 68.9 62.3 78.9 66.0 61.1 14.2 23.2 5.5
+> ✓56.2 54.8 36.4 85.0 68.6 62.0 78.9 64.9 60.9 15.4 24.2 6.3
+> ✓✓56.7 55.4 37.2 85.5 70.8 63.6 79.0 64.7 60.5 15.8 25.8 8.0
+> ✓✓✓57.8 56.3 38.3 87.3 72.6 67.6 80.5 67.3 63.1 16.0 26.6 8.6
+> ✓✓✓57.8 56.2 38.1 86.8 72.2 65.2 80.2 66.7 62.8 16.3 26.6 8.9
+> ✓✓✓✓58.0 56.6 38.5 87.3 72.5 67.5 81.2 67.8 63.3 16.3 26.6 8.9 (a) Time Consumption (b) Number of Uni-concept Attribute (c) Number of Bi-concept Attribute
+> 2321
+
+Figure 4. Analyses on time consumption and hyperparameters. (a) Runtime comparison between KEC and TAC in the knowledge con-struction stage across datasets with varying numbers of classes and images. We break down the runtime of KEC into three components (Concept, Uni-Concept Attribute, and Bi-Concept Attribute) and include K-Means as a lightweight downstream clustering algorithm for reference. (b) and (c) show the impact of the number of attributes on clustering performance (measured by ARI) across datasets of different scales. The size of each point reflects the corresponding runtime, reflecting the relation between attribute numbers and computational cost. 
+
+4.3. Main Results 
+
+The Superiority of Constructed Knowledge in KEC. 
+
+Table 1 summarizes the comparison between KEC and existing methods. We report the average performance on the benchmark of 20 datasets. Also, we select three datasets containing different scales of classes: Flowers (102 classes) [31], Pets (37 classes) [32], and CLEVR (8 classes) [16]. The complete results are provided in the Sup-plementary Material section 10. We first compare KEC with other approaches for constructing knowledge in tex-tual space (pseudo-labels for SIC and noun combinations for TAC). KEC achieves an improvement of ∼ 3% across all metrics in the average performance, with a notable ∼
+
+10% ARI increase on the Pets dataset. It could be found that KEC outperforms the existing methods under a no-training setting, even surpassing zero-shot CLIP and meth-ods that rely on training with constructed knowledge. Fur-ther training leveraging KEC’s constructed knowledge with the help of LLM substantially enhances clustering perfor-mance. Furthermore, the knowledge in KEC transfers ef-fectively, achieving consistent performance gains across di-verse downstream training strategies. This demonstrates the strong usability of our method. The VLM-driven method achieves an overall accuracy 4.7% lower than KEC and is computationally costly (taking several seconds per image), as per-image VLM calls overlook inter-image contrasts and dwell on irrelevant details. This highlights the importance of explicit textual modeling in KEC. 
+
+The Robustness of Constructed Knowledge in KEC. 
+
+Extensive experiments on a broader range of datasets indi-cate that simply incorporating knowledge in textual space does not always improve clustering performance, as evi-denced in Table 1. This finding motivates a deeper inves-tigation into the robustness of textual knowledge in image clustering. We assess the impact of textual knowledge by comparing performance using textual knowledge against vi-sual knowledge alone, and the results are shown in Fig-ure 3. Then we compared different ways of constructing textual knowledge. TAC shows a performance trend consis-tent with zero-shot CLIP. Relying solely on a single type of knowledge fails to adapt to various scenarios. Even when the knowledge in TAC has a positive impact, the improve-ments are limited. And in many cases, it degrades cluster-ing performance. In contrast, KEC builds hierarchical tex-tual knowledge to achieve better results consistently, allevi-ating concerns about performance loss. This demonstrates the strong robustness and usability of our proposed method. We further explore enhanced knowledge construction to build a more precise textual space. A human-machine in-teraction is introduced to guide the model toward attributes and concepts linked to specific categories or high-level se-mantics ( e.g. aircraft and hatefulmeme), denoted as KEC +.This approach enables KEC to capture more discriminative semantics, resulting in a 9.4% accuracy improvement on Hatefulmeme. More results are provided in section 10. 
+
+The Efficiency of Knowledge Construction in KEC. 
+
+Figure 4(a) details the time consumption of each compo-nent and the overall process of knowledge construction in KEC. Results are shown for CIFAR-100 (100 classes, 60k images), Flowers (102 classes, 8k images), and ImageNet (1k classes, 1.32M images), representing datasets of vary-ing scales. Compared to TAC, our method has a similar time consumption on small-scale datasets. However, as the size of the dataset increases, KEC proves to be more effi-cient. Since KEC could integrate with various downstream clustering algorithms, we select the simplest K-Means for further runtime comparison. The results show that KEC’s computational cost remains close to that of K-Means across different dataset sizes. This indicates KEC improves per-formance at an acceptable cost for knowledge construction. 
+
+4.4. Ablation Study 
+
+We conduct experiments by progressively adding different levels of knowledge, including representative concepts and discriminative attributes. Furthermore, we validate the roles of the components at each level. The results are shown in Table 2, with complete numerical results available in the Supplementary Material section 11. According to Line 1, using only the generated concepts exhibits strong performance. In some cases ( e.g. CLEVR), the descriptions of the concepts enable KEC to separate similar concepts and improve clustering as shown in Line 2. From Line 3, combining concepts with their descriptions brings broader applicability and further improvements. Discriminative attributes leverage the knowledge within LLMs, boosting the performance of KEC by over 1% on all metrics across 20 datasets, with a significant 5% gain on Flowers. Comparing Line 4 and Line 5, uni-concept at-tributes and bi-concept attributes serve different purposes and achieve improvements in varying degrees. Uni-concept attributes capture the signature features of each concept, while bi-concept attributes explore the dimensions to best distinguish similar concepts. As evidenced in Line 6, uni-and bi-concept attributes complement each other to refine the clustering boundaries and achieve optimal performance. 
+
+4.5. Parameter Analyses 
+
+Number of Uni-concept Attribute λ1. To better capture concept semantics and form clear clustering boundaries, KEC identifies λ1 discriminative attributes per concept. As shown in Figure 4(b), KEC remains robust across different 
+
+λ1 values. Increasing the number of attributes can initially improve the performance. However, too many attributes de-grade clustering quality. Although performance slightly re-covers with more attributes (reaching 5), the added compu-tational cost and time outweigh the benefits. Therefore, in practice, we use λ1 = 2 for a good balance across datasets. 
+
+Number of Bi-concept Attribute λ2. KEC mines the most discriminative attributes for similar concept pairs to distinguish similar concepts and avoid boundary ambiguity. Here, we evaluate the impact of different numbers λ2 of bi-concept attributes, with results shown in Figure 4(c). The results show that as the number of attributes increases, clus-tering performance consistently declines across datasets. This aligns with human intuition: distinguishing objects that belong to similar categories often requires focusing on only a limited number of key attributes. Excessive perspectives may introduce noise, leading to erroneous judgments. Therefore, we set the default value of λ2 to 1, which is both optimal and the most efficient. Supplementary Material section 11 offers more analyses of parameter selection and pretrained model and LLM choices. Specifically, we analyze the parameters in Image-Text Map-ping, the weight to balance visual and textual similarity, and the threshold in knowledge construction. KEC applies a sin-gle configuration and generalizes well, indicating improve-ment is not due to hyperparameter tuning. We also conduct experiments on various LLMs (from the 0.6B model to the flagship models), and KEC achieves a robustness improve-ment with the model-agnostic prompts. 
+
+## 5. Conclusion 
+
+In this paper, we present a knowledge-enhanced image clus-tering method (KEC) that leverages LLMs to construct a hi-erarchical concept-attribute structured knowledge. By dis-tilling redundant WordNet nouns into representative con-cepts and extracting discriminative attributes, KEC intro-duces rich semantic knowledge into the textual space with-out relying on image inputs or generative models. Extensive experiments across 20 datasets validate the effectiveness, robustness, and generalizability of KEC, showing consis-tent improvements over existing methods. Our findings also highlight the limitations of shallow textual knowledge and demonstrate the potential of structured textual knowledge as a reliable source for unsupervised visual understanding. Acknowledgement. This work was supported by the Na-tional Natural Science Foundation of China (U23B2057). 
+
+## References 
+
+[1] Lukas Bossard, Matthieu Guillaumin, and Luc Van Gool. Food-101 - mining discriminative components with random forests. In ECCV (6) , pages 446–461. Springer, 2014. 1 [2] Shaotian Cai, Liping Qiu, Xiaojun Chen, Qin Zhang, and Longteng Chen. Semantic-enhanced image clustering. In 
+
+AAAI , pages 6869–6878. AAAI Press, 2023. 1, 3, 4, 5, 6 [3] Wei Chang, Huimin Chen, Feiping Nie, Rong Wang, and Xuelong Li. Tensorized and compressed multi-view sub-space clustering via structured constraint. IEEE Trans. Pat-tern Anal. Mach. Intell. , 46(12):10434–10451, 2024. 3 [4] Hila Chefer, Shir Gur, and Lior Wolf. Generic attention-model explainability for interpreting bi-modal and encoder-decoder transformers. In Proceedings of the IEEE/CVF In-ternational Conference on Computer Vision (ICCV) , pages 397–406, 2021. 2 [5] Gong Cheng, Junwei Han, and Xiaoqiang Lu. Remote sens-ing image scene classification: Benchmark and state of the art. Proc. IEEE , 105(10):1865–1883, 2017. 1 [6] Tianzhe Chu, Shengbang Tong, Tianjiao Ding, Xili Dai, Benjamin David Haeffele, Ren´ e Vidal, and Yi Ma. Image clustering via the principle of rate reduction in the age of pretrained models. In ICLR . OpenReview.net, 2024. 1, 3 [7] Mircea Cimpoi, Subhransu Maji, Iasonas Kokkinos, Sammy Mohamed, and Andrea Vedaldi. Describing textures in the wild. In CVPR , pages 3606–3613. IEEE Computer Society, 2014. 1 [8] Adam Coates, Andrew Y. Ng, and Honglak Lee. An analysis of single-layer networks in unsupervised feature learning. In 
+
+AISTATS , pages 215–223. JMLR.org, 2011. 1 [9] Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. Imagenet: A large-scale hierarchical image database. In CVPR , pages 248–255. IEEE Computer Society, 2009. 1 [10] Tianjiao Ding, Shengbang Tong, Kwan Ho Ryan Chan, Xili Dai, Yi Ma, and Benjamin D. Haeffele. Unsupervised man-ifold linearizing and clustering. In IEEE/CVF International Conference on Computer Vision, ICCV 2023, Paris, France, October 1-6, 2023 , pages 5427–5438. IEEE, 2023. 3 [11] Artyom Gadetsky, Yulun Jiang, and Maria Brbic. Let go of your labels with unsupervised transfer. In ICML . OpenRe-view.net, 2024. 1, 3, 5, 6 [12] Xiwen Geng, Suyun Zhao, Yixin Yu, Borui Peng, Pan Du, Hong Chen, Cuiping Li, and Mengdie Wang. Personalized clustering via targeted representation learning. In AAAI-25, Sponsored by the Association for the Advancement of Artifi-cial Intelligence, February 25 - March 4, 2025, Philadelphia, PA, USA , pages 16790–16798. AAAI Press, 2025. 3 [13] Longkun Guo, Chaoqi Jia, Kewen Liao, Zhigang Lu, and Minhui Xue. Efficient constrained k-center clustering with background knowledge. In Thirty-Eighth AAAI Conference on Artificial Intelligence, AAAI 2024, Thirty-Sixth Confer-ence on Innovative Applications of Artificial Intelligence, IAAI 2024, Fourteenth Symposium on Educational Advances in Artificial Intelligence, EAAI 2014, February 20-27, 2024, Vancouver, Canada , pages 20709–20717. AAAI Press, 2024. 3[14] Wei He, Zhiyuan Huang, Xianghan Meng, Xianbiao Qi, Rong Xiao, and Chun-Guang Li. Graph cut-guided maxi-mal coding rate reduction for learning image embedding and clustering. In Computer Vision - ACCV 2024 - 17th Asian Conference on Computer Vision, Hanoi, Vietnam, December 8-12, 2024, Proceedings, Part X , pages 359–376. Springer, 2024. 3 [15] Patrick Helber, Benjamin Bischke, Andreas Dengel, and Damian Borth. Eurosat: A novel dataset and deep learning benchmark for land use and land cover classification. IEEE J. Sel. Top. Appl. Earth Obs. Remote. Sens. , 12(7):2217–2226, 2019. 1 [16] Justin Johnson, Bharath Hariharan, Laurens van der Maaten, Li Fei-Fei, C. Lawrence Zitnick, and Ross B. Girshick. CLEVR: A diagnostic dataset for compositional language and elementary visual reasoning. In CVPR , pages 1988– 1997. IEEE Computer Society, 2017. 7, 1 [17] Douwe Kiela, Hamed Firooz, Aravind Mohan, Vedanuj Goswami, Amanpreet Singh, Pratik Ringshia, and Davide Testuggine. The hateful memes challenge: Detecting hate speech in multimodal memes. In NeurIPS , 2020. 1 [18] Jonathan Krause, Michael Stark, Jia Deng, and Li Fei-Fei. 3d object representations for fine-grained categorization. In 
+
+ICCV Workshops , pages 554–561. IEEE Computer Society, 2013. 1 [19] A. Krizhevsky and G. Hinton. Learning multiple layers of features from tiny images. Handbook of Systemic Autoim-mune Diseases , 1(4), 2009. 1 [20] Sehyun Kwon, Jaeseung Park, Minkyu Kim, Jaewoong Cho, Ernest K. Ryu, and Kangwook Lee. Image clustering condi-tioned on text criteria. In ICLR . OpenReview.net, 2024. 1, 3[21] Yann LeCun, L´ eon Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recog-nition. Proc. IEEE , 86(11):2278–2324, 1998. 1 [22] Yunfan Li, Peng Hu, Dezhong Peng, Jiancheng Lv, Jianping Fan, and Xi Peng. Image clustering with external guidance. In ICML . OpenReview.net, 2024. 1, 3, 4, 5, 6 [23] Honglin Liu, Peng Hu, Changqing Zhang, Yunfan Li, and Xi Peng. Interactive deep clustering via value mining. In 
+
+Advances in Neural Information Processing Systems 38: An-nual Conference on Neural Information Processing Systems 2024, NeurIPS 2024, Vancouver, BC, Canada, December 10 - 15, 2024 , 2024. 3 [24] Weiwei Liu, Xiao-Bo Shen, and Ivor W. Tsang. Sparse embedded k-means clustering. In NIPS , pages 3319–3327, 2017. 1, 2 [25] Yaroslava Lochman, Carl Olsson, and Christopher Zach. Learned trajectory embedding for subspace clustering. In 
+
+IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2024, Seattle, WA, USA, June 16-22, 2024 , pages 19092–19102. IEEE, 2024. 2 [26] Ke Ma, Yizhou Fang, Jean-Baptiste Weibel, Shuai Tan, Xinggang Wang, Yang Xiao, Yi Fang, and Tian Xia. Phys-liquid: A physics-informed dataset for estimating 3d geom-etry and volume of transparent deformable liquids. In Pro-ceedings of the AAAI Conference on Artificial Intelligence ,pages 7782–7790, 2026. 3 [27] J. Macqueen. Some methods for classification and analysis of multivariate observations. Proc. Symp. Math. Statist. and Probability, 5th , 1, 1967. 1 [28] Subhransu Maji, Esa Rahtu, Juho Kannala, Matthew B. Blaschko, and Andrea Vedaldi. Fine-grained visual classi-fication of aircraft. CoRR , abs/1306.5151, 2013. 1 [29] Ioannis Maniadis Metaxas, Georgios Tzimiropoulos, and Ioannis Patras. Divclust: Controlling diversity in deep clus-tering. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2023, Vancouver, BC, Canada, June 17-24, 2023 , pages 3418–3428. IEEE, 2023. 3 [30] George A. Miller. Wordnet: A lexical database for english. 
+
+Commun. ACM , 38(11):39–41, 1995. 1, 3, 6 [31] Maria-Elena Nilsback and Andrew Zisserman. Automated flower classification over a large number of classes. In 
+
+ICVGIP , pages 722–729. IEEE Computer Society, 2008. 7, 1[32] Omkar M. Parkhi, Andrea Vedaldi, Andrew Zisserman, and C. V. Jawahar. Cats and dogs. In CVPR , pages 3498–3505. IEEE Computer Society, 2012. 7, 1 [33] J.C. Platt, M. Czerwinski, and B.A. Field. Phototoc: au-tomatic clustering for browsing personal photographs. In 
+
+Fourth International Conference on Information, Communi-cations and Signal Processing, 2003 and the Fourth Pacific Rim Conference on Multimedia. Proceedings of the 2003 Joint , pages 6–10 Vol.1, 2003. 1 [34] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. Learning transferable visual models from natural language supervision. In ICML , pages 8748–8763. PMLR, 2021. 1, 3, 5 [35] Yazhou Ren, Jingyu Pu, Zhimeng Yang, Jie Xu, Guofeng Li, Xiaorong Pu, Philip S. Yu, and Lifang He. Deep cluster-ing: A comprehensive survey. IEEE Trans. Neural Networks Learn. Syst. , 36(4):5858–5878, 2025. 1 [36] Khurram Soomro, Amir Roshan Zamir, and Mubarak Shah. UCF101: A dataset of 101 human actions classes from videos in the wild. CoRR , abs/1212.0402, 2012. 1 [37] Johannes Stallkamp, Marc Schlipsing, Jan Salmen, and Christian Igel. Man vs. computer: Benchmarking machine learning algorithms for traffic sign recognition. Neural Net-works , 32:323–332, 2012. 1 [38] Andreas Stephan, Lukas Miklautz, Kevin Sidak, Jan Philip Wahle, Bela Gipp, Claudia Plant, and Benjamin Roth. Text-guided image clustering. In EACL (1) , pages 2960–2976. Association for Computational Linguistics, 2024. 1, 3 [39] Li Sun, Zhenhao Huang, Hao Peng, Yujie Wang, Chunyang Liu, and Philip S. Yu. Lsenet: Lorentz structural entropy neural network for deep graph clustering. In ICML . Open-Review.net, 2024. 1 [40] Zeyi Sun, Ye Fang, Tong Wu, Pan Zhang, Yuhang Zang, Shu Kong, Yuanjun Xiong, Dahua Lin, and Jiaqi Wang. Alpha-clip: A CLIP model focusing on wherever you want. In 
+
+CVPR , pages 13019–13029. IEEE, 2024. 2 [41] Bastiaan S. Veeling, Jasper Linmans, Jim Winkens, Taco Co-hen, and Max Welling. Rotation equivariant cnns for digital pathology. In MICCAI (2) , pages 210–218. Springer, 2018. 1[42] Zhen Wang, Zhaoqing Li, Rong Wang, Feiping Nie, and Xuelong Li. Large graph clustering with simultaneous spec-tral embedding and discretization. IEEE Trans. Pattern Anal. Mach. Intell. , 43(12):4426–4440, 2021. 1, 2 [43] Jianxiong Xiao, Krista A. Ehinger, James Hays, Antonio Torralba, and Aude Oliva. SUN database: Exploring a large collection of scene categories. Int. J. Comput. Vis. , 119(1): 3–22, 2016. 1 [44] Hailong Yan, Shice Liu, Tao Wang, Xiangtao Zhang, Yijie Zhong, Jinwei Chen, Le Zhang, and Bo Li. Animeagent: Is the multi-agent via image-to-video models a good disney storytelling artist? CoRR , abs/2602.20664, 2026. 1 [45] Jiawei Yao, Qi Qian, and Juhua Hu. Multi-modal proxy learning towards personalized visual multiple clustering. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2024, Seattle, WA, USA, June 16-22, 2024 , pages 14066–14075. IEEE, 2024. 3 [46] Xiao Zhang and David Yunis. Deciphering ’what’ and ’where’ visual pathways from spectral clustering of layer-distributed neural representations. In CVPR , pages 4165– 4175. IEEE, 2024. 1, 3 [47] Yijie Zhong, Zhengxing Sun, Shoutong Luo, Yunhan Sun, and Yi Wang. Video supervised for 3d reconstruction from single image. Multim. Tools Appl. , 81(11):15061–15083, 2022. 3 Hierarchical Textual Knowledge for Enhanced Image Clustering 
+
+# Supplementary Material 
+
+## 6. Content List 
+
+We provide additional details and results to complement the main paper. It is organized as follows: • section 7 lists all notations and their meanings. • section 8 provides the details of 20 datasets used. • section 9 describes implementation details of all the com-pared methods and the proposed method KEC. • section 10 presents complete results across all datasets in comparison with existing methods. We also explore fur-ther improvement with human interaction, named KEC +.• section 11 presents a more comprehensive set of ablation studies, including the analyses of different modules, pa-rameter selection, clustering methods, pretrained model choices, and various LLMs. • section 12 describes the constructed knowledge space. • section 13 discusses the limitations of our work and out-lines future work possibilities. 
+
+## 7. Symbol Definitions 
+
+We list the symbols used throughout this paper along with their meanings in Table 3. We hope this could assist readers in better understanding the items presented in our work. 
+
+## 8. More Details of the Datasets 
+
+We evaluate our knowledge-enhanced clustering method on 20 vision datasets. Details of each dataset are provided in Table 4. These datasets cover a wide range of vision tasks, including: • General object classification datasets: CIFAR-10 [19], CIFAR-100 [19], STL-10 [8], ImageNet [9]; • Fine-grained object classification datasets: Food101 [1], Flowers [31], Stanford Cars [18], FGVC Aircraft [28], Oxford Pets [32]; • Handwritten digits classification dataset: MNIST [21]; • Texture classification dataset: DTD [7]; • Scene classification dataset: SUN397 [43]; • Satellite image classification datasets: EuroSAT [15], Resisc45 [5]; • German Traffic Sign Recognition Benchmark: GTSRB [37]; • The metastatic tissue classification dataset: PatchCamelyon (PCAM) [41]; • Action Recognition dataset; UCF101 [36]; • The CLEVR counting dataset [16]; • The Hateful Memes dataset [17]; • The Rendered SST2 dataset [34]; We process these datasets following the open-source code [11, 22] 1 2. For CLEVR, we take 2000 random samples as the training set and 500 as the testing set. For the video dataset UCF101, we take the middle frame of each video clip as the input of the pre-trained CLIP vision encoder. 
+
+## 9. More Implementation Details 
+
+9.1. Implementation of the Compared Methods 
+
+K-Means and other traditional clustering methods. 
+
+We apply k-means clustering [27] on top of pre-trained features as a simple baseline that only uses knowledge from visual space. Following the previous work [22], we implement traditional clustering methods, such as k-means, using the FAISS 3 library for GPU acceleration (i.e. , faiss.Kmeans). Additionally, the relevant param-eter settings are consistent with those used in TAC. We run the clustering for each dataset 20 times with 300 it-erations and keep the best centroids for each iteration (nredo = 20 , niter = 300 ). The centroids are L2 normal-ized after each iteration ( spherical = True ). Specifically, for K-means and other traditional cluster-ing methods involved in the ablation studies ( i.e. Spectral Clustering, Agglomerative Clustering, Bisecting K-Means), we utilized the clustering implementations found in the 
+
+cluster module of the sklearn library. 
+
+Zero-shot CLIP. To validate the applicability across dif-ferent scenarios, we use the same prompt list for different datasets, rather than employing a set of prompts manually designed for the characteristics of each dataset ( dataset to template in TURTLE). We utilized the same prompt list as in the TAC open-source code, referred to as ‘the sim-ple ImageNet prompt’ 4, which consists of seven prompts. The prompts are shown in Table 5. 
+
+Semantic-Enhanced Image Clustering. SIC [2] first ex-plores utilizing the knowledge from both visual space and textual space. It attempts to generate pseudo-labels for each image according to the relationships between images and the semantics of the nouns in WordNet. We utilize the open-source code from SIC 5, employing its default parameters. When extending the datasets used, we build the dataloader 
+
+> 1https://github.com/XLearning-SCU/2024-ICML-TAC
+> 2https://github.com/mlbio-epfl/turtle
+> 3https://github.com/facebookresearch/faiss
+> 4https://github.com/openai/CLIP/blob/main/notebooks/ Prompt Engineering for ImageNet.ipynb
+> 5https://github.com/Bruce-XJChen/SIC Table 3. The summary of the used symbols.
+
+Symbol Meaning 
+
+Initializing Image-Text Mapping 
+
+I, I i the collection of input images and a single input image 
+
+W, w i the collection of nouns and a single noun 
+
+Nv , N t the number of input images and nouns 
+
+X, xi the collection of visual features and the feature of image Ii
+
+T, ti the collection of noun features and the feature of noun wi
+
+Representative Concept Construction 
+
+μp the centroid of cluster p
+
+Sp Index of the highest scoring noun in cluster pWp, T p the collection of nouns and their features of cluster pRi,j the similarity between cluster i and cluster jG, Q the adjacency matrix and the collection of connected components of clusters 
+
+C, c q the collection of concept and a single concept 
+
+D, d q the collection of description of concept and a single description 
+
+ϕq , ψ q the feature of concept and its description 
+
+Discriminative Attribute Construction 
+
+λ1, λ 2 the nubmer of uni-concept attribute and bi-concept attribute 
+
+Uq , u iq the collection of uni-concept attribute for concept cq and the i-th attribute 
+
+πq,l the normalized similarity between concept cq and cl
+
+¯lq, 1, ¯lq, 2, · · · the index of l for the sorted πq,l 
+
+Pq the concept pair of concept cq
+
+Bq,l the bi-concept attributes for concept pair ( cq , cl)
+
+Aq , ξ q,i the collection of attributes of concept cq and the i-th attribute 
+
+Knowledge-enhanced Feature 
+
+ζq the concept feature for conecpt cq
+
+¯ξiq the average of instantiated attribute features of concept cq
+
+ωi,q the attention weight between the i-th input image and concept cq
+
+ci, ai the concept and attribute feature of the i-th input image Ii
+
+κi the knowledge-enhanced feature of the i-th input image Ii                                                                             
+
+> Table 4. Details of 20 datasets.
+> Dataset Number fo Classes Train Size Test Size Dataset Number fo Classes Train Size Test Size
+> CIFAR-10 10 50,000 10,000 DTD 47 3,760 1,880 CIFAR-100 100 50,000 10,000 SUN397 397 19,850 19,850 STL-10 10 5,000 8,000 EuroSAT 10 10,000 5,000 ImageNet 1000 1,281,167 50,000 Resisc45 45 25,200 6,300 Food101 101 75,750 25,250 GTSRB 43 26,640 12,630 Flowers 102 2,040 6,149 PCAM 2294,192 32,768 Cars 196 8,144 8,041 UCF101 101 9,537 3,783 Aircraft 100 6,667 3,333 CLEVR 82,000 500 Pets 37 3,680 3,669 HatefulMemes 28,500 500 MNIST 10 60,000 10,000 SST 27,792 1,821 Table 5. The prompts used for zero-shot CLIP.
+
+Simple ImageNet Templates: 
+
+1. itap of a [class]. 2. a bad photo of the [class]. 3. a origami [class]. 4. a photo of the large [class]. 5. a [class] in a video game. 6. art of the [class]. 7. a photo of the small [class]. for each newly added dataset and overwrite the getitem 
+
+method accordingly. 
+
+Text-Aided Image Clustering. TAC [22] also proposes leveraging external knowledge in the textual space. Un-like SIC, TAC computes the text features of each image us-ing noun features, without assigning explicit pseudo-labels. We utilize the open-source code from TAC 6. We keep the default parameters. We build the dataloader for the extra datasets by referencing the dataloader in TURTLE. 
+
+TURTLE. TURTLE [11] enables unsupervised transfer from pretrained models to perform image clustering. It identifies the optimal dataset labeling by maximizing the margins of linear classifiers in the space of single or mul-tiple pretrained models. It is compatible with any pre-trained representations. We utilize the open-source code from TURTLE 7. In the original setup, TURTLE receives image features generated from different pretrained image encoders and trains in multiple spaces. In this paper, we use features from the CLIP image encoder as one space, and the text-enhanced features from TAC and the knowledge-enhanced features from KEC as another space. 
+
+9.2. Implementation of the Proposed Method 
+
+We precompute the features of the input images for all datasets and the features of the nouns from WordNet before all the experiments, using the batch size of 8192. Code and more implementation details will be available. The comparison methods are integrated into our project us-ing their original code. Our approach offers good adaptabil-ity and can quickly be applied to different clustering strate-gies via configuration file modifications. In all experiments, we extract knowledge from GPT-4o 
+
+and set the temperature to 0.1. Specifically, we uti-lize the AsyncOpenAI interface for asynchronous pro-cessing to improve efficiency, setting max concurrent 
+
+to 20 within Python’s async framework. 
+
+> 6https://github.com/XLearning-SCU/2024-ICML-TAC
+> 7https://github.com/mlbio-epfl/turtle
+
+## 10. Main Results Across All Datasets 
+
+We present the complete numerical results in Table 6. CLIP (k-means) and TURTLE (1-space) utilize only visual space knowledge, while zero-shot CLIP incorporates ground-truth label knowledge from the textual space. SIC, TAC (no train), and KEC utilize textual space knowledge differently. Additionally, we apply two training strategies for the multi-space knowledge: TAC and TURTLE. It is worth emphasizing again that, compared to KEC and other methods, CLIP (zero-shot) leverages additional fine-grained information, i.e. the ground-truth labels for each image ( e.g. , ‘Boeing 747’, ‘Audi A4’), which effec-tively simplifies the task setting. Therefore, CLIP (zero-shot) could be considered as a loosely constrained upper bound on performance. Our proposed method constructs discriminative textual knowledge and achieves superior per-formance over existing baselines across a wide range of datasets. In many cases, it even surpasses CLIP (zero-shot), further demonstrating the effectiveness and generality of our method. We also observe that the extent of performance improve-ment of KEC varies across different datasets. 1. For higher-level or subjective categories, the improve-ments are less pronounced compared to other datasets. This suggests that such tasks may require a certain degree of human-machine collaboration to better construct effective textual knowledge (which will be further discussed in the Limitations and Future Work section). 2. For some fine-grained datasets, such as Aircraft and Cars, which focus on specific domains, CLIP (zero-shot) bene-fits from directly using ground-truth fine-grained labels, en-abling it to effortlessly focus on subtle category differences. In contrast, without additional constraints, KEC adopts a more general perspective to interpret these categories, demonstrating strong generalization capability. Conse-quently, KEC achieves only modest performance gains or may slightly underperform compared to CLIP zero-shot, yet it still surpasses other baseline methods. As previously mentioned, KEC possesses the ability to construct customized knowledge (by human-machine col-laboration). To verify this, we conduct a simple experiment: assuming the task is to distinguish specific types of cars or aircraft, we guide KEC to selectively acquire concepts and attributes related to cars and aircraft and build hierarchical textual knowledge, which we refer to as KEC +. As shown in Table 8. Without access to ground-truth labels, KEC +
+
+achieves further performance improvements through simple human-machine interaction and customization. Table 6. Comparison results across all datasets. 
+
+Dataset CIFAR-10 CIFAR-100 STL-10 DTD UCF-101 Metrics NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI 
+
+CLIP (k-means) 73.7 80.4 64.6 59.7 43.4 29.1 91.8 94.3 89.2 58.6 45.4 29.0 80.7 59.5 51.4 TAC (no train) 81.4 90.4 80.3 65.0 50.1 35.7 92.5 94.8 89.9 60.3 48.2 31.4 80.9 61.8 52.0 
+
+KEC (no train) 81.9 90.7 80.6 66.4 51.8 37.3 95.1 97.9 95.5 60.7 47.4 31.5 81.9 62.5 53.2 SIC 84.7 92.6 84.4 63.2 47.6 34.8 95.3 98.1 95.9 59.6 45.9 30.5 81.4 65.3 56.7 TAC 82.9 91.5 82.3 67.5 56.1 40.8 95.6 98.2 96.1 60.8 47.8 32.4 81.3 67.4 58.2 
+
+KEC TAC 84.1 92.3 84.0 68.0 57.1 41.3 95.8 98.3 96.3 62.5 51.3 36.0 81.6 67.6 58.7 TURTLE (1-space) 78.6 86.5 75.1 60.8 45.0 33.1 95.8 98.4 96.4 62.9 52.9 36.7 80.9 67.1 57.1 
+
+TAC TURTLE 83.5 91.9 83.2 62.0 46.4 34.6 95.3 98.0 95.7 63.3 52.9 36.8 81.9 69.2 59.4 
+
+KEC TURTLE 83.7 92.1 83.5 62.9 47.6 35.3 96.1 98.5 96.7 63.1 52.8 36.7 82.8 70.0 60.7 CLIP (zero-shot) 80.7 90.0 79.3 69.9 65.0 44.7 93.8 97.0 93.7 56.1 42.6 26.6 80.3 63.7 50.2 
+
+Dataset ImageNet Food101 SUN397 Cars Aircraft Metrics NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI 
+
+CLIP (k-means) 72.3 38.9 27.1 71.1 60.4 47.8 76.3 50.0 38.4 67.1 35.9 24.9 49.4 21.5 11.6 TAC (no train) 77.5 48.4 34.5 72.5 61.5 48.1 78.6 54.4 42.5 64.7 32.6 21.3 48.6 21.6 10.7 
+
+KEC (no train) 77.7 48.6 35.5 74.6 66.2 53.3 78.2 54.0 42.3 68.3 37.6 26.6 50.6 22.5 13.3 SIC 77.2 47.0 34.3 74.1 62.4 51.8 76.1 51.3 38.2 66.5 33.7 24.1 48.8 22.1 12.0 TAC 78.2 54.4 39.6 74.9 68.4 54.2 74.6 41.2 32.3 60.5 25.7 16.5 44.9 19.1 9.3 
+
+KEC TAC 78.4 55.3 40.1 75.9 70.0 56.3 78.7 54.1 42.6 65.4 33.7 22.6 48.8 22.7 12.9 TURTLE (1-space) 66.4 25.6 15.6 72.9 64.3 52.5 77.8 54.7 42.9 69.4 41.4 30.2 49.6 24.0 13.6 
+
+TAC TURTLE 65.6 23.8 14.5 71.5 62.2 49.7 76.9 53.3 40.5 69.4 41.5 30.2 48.8 23.8 13.0 
+
+KEC TURTLE 68.7 30.6 19.9 73.8 66.9 54.2 77.7 54.6 42.1 69.7 42.4 30.4 49.8 24.5 13.7 CLIP (zero-shot) 81.0 63.6 45.3 82.7 83.3 69.8 80.3 64.4 47.5 77.4 59.3 43.3 48.8 22.0 11.3 
+
+Dataset Pets Flowers MNIST Eurosat Resisc45 Metrics NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI 
+
+CLIP (k-means) 65.0 51.3 40.5 86.5 71.5 67.7 49.4 57.8 38.6 53.7 61.9 43.7 71.8 64.1 50.5 TAC (no train) 79.2 65.8 57.8 84.5 69.4 64.8 36.9 45.5 24.7 48.8 60.9 34.5 70.7 58.3 45.6 
+
+KEC (no train) 81.2 67.8 63.3 87.3 72.8 67.5 46.9 53.7 35.2 54.6 62.7 42.8 74.3 62.4 51.5 SIC 67.7 51.6 42.6 67.7 43.1 34.0 40.8 50.1 32.5 61.5 67.2 53.5 75.7 67.7 57.0 TAC 83.6 77.9 69.1 80.4 64.2 59.6 42.7 54.6 34.0 53.0 67.8 45.7 72.9 68.0 53.0 
+
+KEC TAC 84.8 79.7 71.5 85.4 71.6 66.8 45.4 56.2 36.8 56.7 69.8 48.0 75.6 70.6 57.1 TURTLE (1-space) 71.5 60.9 48.9 90.7 87.2 79.8 42.8 49.6 34.4 57.9 63.6 48.2 75.3 70.9 57.0 
+
+TAC TURTLE 73.7 63.4 52.5 90.8 86.8 79.1 41.5 50.7 33.6 60.0 67.7 51.8 74.4 69.4 55.4 
+
+KEC TURTLE 81.0 72.4 63.3 92.4 88.4 82.7 47.8 57.8 39.4 63.0 76.8 57.4 76.4 73.6 59.3 CLIP (zero-shot) 87.6 84.9 75.4 79.4 67.5 58.7 28.4 38.1 11.9 41.0 45.6 26.4 64.4 53.4 35.3 
+
+Dataset GTSRB PCAM CLEVR HatefulMemes SST Metrics NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI 
+
+CLIP (k-means) 52.5 32.1 23.1 10.2 63.3 7.0 18.9 27.6 8.1 2.0 58.2 2.4 0.4 53.7 0.5 TAC (no train) 48.3 31.0 20.2 1.5 56.7 1.8 11.8 23.6 5.4 1.2 56.4 1.4 0.1 51.9 0.1 
+
+KEC (no train) 51.9 32.6 22.6 10.0 63.6 7.4 16.3 26.6 8.9 1.6 57.4 2.0 0.5 53.8 0.6 SIC 52.3 36.4 28.3 0.0 51.1 0.0 5.2 20.6 1.5 0.1 51.8 0.0 0.5 54.1 0.6 TAC 40.5 26.7 16.8 0.0 50.3 0.0 8.4 22.4 3.6 0.6 54.6 0.6 0.1 52.0 0.1 
+
+KEC TAC 48.6 29.6 20.1 9.0 63.2 7.1 15.9 25.4 6.8 2.3 59.0 3.0 0.9 55.5 1.1 TURTLE (1-space) 51.1 33.9 25.1 0.0 51.3 0.0 16.0 24.6 7.0 1.1 55.6 1.8 0.2 52.4 0.4 
+
+TAC TURTLE 48.1 29.9 22.1 0.0 50.3 0.0 16.6 25.8 7.5 1.4 56.0 2.0 0.2 52.4 0.5 
+
+KEC TURTLE 48.8 32.4 23.5 8.9 62.7 6.8 18.8 28.6 8.0 2.0 58.4 2.6 0.8 55.2 1.0 CLIP (zero-shot) 46.2 32.3 22.3 3.1 52.1 0.2 16.4 4.4 8.0 0.5 53.4 0.3 0.0 51.0 0.0 Table 7. Ablation results across all datasets. Con. and Des. represent the name and its description of a concept, respectively. UA and BA 
+
+represent the uni-concept attribute and bi-concept attribute. 
+
+Con. Des. UA BA CIFAR-10 CIFAR-100 STL-10 DTD UCF-101 NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI 
+
+✓ 80.9 89.7 79.7 64.5 49.4 36.0 94.0 97.0 94.5 58.0 43.6 26.4 80.5 60.2 51.8 
+
+✓ 80.1 89.0 78.3 64.2 47.9 33.4 93.7 96.7 94.0 57.4 46.3 28.8 80.7 60.7 52.7 
+
+✓ ✓ 81.4 90.1 80.5 64.6 49.1 36.0 92.4 96.5 94.4 58.2 46.8 28.7 80.7 61.2 51.3 
+
+✓ ✓ ✓ 81.9 90.5 80.2 66.0 50.3 36.6 95.1 97.9 95.5 59.8 46.2 30.1 81.9 60.8 52.0 
+
+✓ ✓ ✓ 81.9 90.6 80.3 65.7 50.9 36.4 95.1 97.9 95.5 60.2 46.8 31.1 81.7 61.8 53.1 
+
+✓ ✓ ✓ ✓ 81.9 90.7 80.6 66.4 51.8 37.3 95.1 97.9 95.5 60.7 47.4 31.5 81.9 62.5 53.2 
+
+Con. Des. UA BA ImageNet Food101 SUN397 Cars Aircraft NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI 
+
+✓ 75.5 45.3 33.4 73.7 65.7 52.5 77.2 52.4 40.2 67.6 36.5 24.3 49.5 22.5 12.5 
+
+✓ 74.7 45.2 33.0 73.2 63.2 50.8 77.0 52.6 40.6 66.0 35.7 23.8 48.9 21.4 10.8 
+
+✓ ✓ 75.8 45.3 33.1 73.9 66.0 52.4 77.6 53.0 41.6 68.3 36.4 25.8 49.1 22.5 12.2 
+
+✓ ✓ ✓ 76.9 46.8 35.1 74.7 66.2 53.5 78.2 53.8 42.3 68.3 37.5 26.4 50.4 22.4 13.1 
+
+✓ ✓ ✓ 77.0 47.0 35.5 74.8 66.7 53.7 78.2 53.7 42.5 68.2 37.8 26.6 50.6 22.7 13.2 
+
+✓ ✓ ✓ ✓ 77.7 48.6 35.5 74.6 66.2 53.3 78.2 54.0 42.3 68.3 37.6 26.6 50.6 22.5 13.3 
+
+Con. Des. UA BA Pets Flowers MNIST Eurosat Resisc45 NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI 
+
+✓ 78.9 66.0 61.1 84.9 68.9 62.3 45.4 50.6 32.7 52.2 61.1 41.7 71.7 63.8 50.6 
+
+✓ 78.9 64.9 60.9 85.0 68.6 62.0 45.6 50.9 31.9 51.9 60.9 40.4 72.1 64.2 50.6 
+
+✓ ✓ 79.0 64.7 60.5 85.5 70.8 63.6 45.9 51.7 32.6 52.0 62.0 41.5 72.2 61.8 51.2 
+
+✓ ✓ ✓ 80.5 67.3 63.1 87.3 72.6 67.6 46.7 53.6 35.0 54.4 62.3 42.4 74.3 63.2 52.3 
+
+✓ ✓ ✓ 80.2 66.7 62.8 86.8 72.2 65.2 45.4 49.0 29.5 54.5 62.4 42.4 74.6 62.8 52.0 
+
+✓ ✓ ✓ ✓ 81.2 67.8 63.3 87.3 72.5 67.5 46.9 53.7 35.2 54.6 62.7 42.8 74.3 62.4 51.5 
+
+Con. Des. UA BA GTSRB PCAM CLEVR HatefulMemes SST NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI 
+
+✓ 48.9 28.6 21.2 9.0 62.6 6.4 14.2 23.2 5.5 1.6 57.2 1.9 0.5 53.9 0.6 
+
+✓ 49.6 29.7 20.5 8.1 62.7 6.5 15.4 24.2 6.3 1.4 56.8 1.7 0.6 54.3 0.7 
+
+✓ ✓ 49.9 30.1 21.4 9.0 62.6 6.4 15.8 25.8 8.0 1.6 57.2 1.9 0.6 54.1 0.6 
+
+✓ ✓ ✓ 51.8 32.4 22.5 9.9 63.6 7.4 16.0 26.6 8.6 1.6 57.4 2.0 0.5 54.0 0.6 
+
+✓ ✓ ✓ 51.9 32.4 22.7 10.0 63.7 7.5 16.3 26.6 8.9 1.7 57.6 2.1 0.5 53.8 0.5 
+
+✓ ✓ ✓ ✓ 51.9 32.6 22.6 10.0 63.6 7.4 16.3 26.6 8.9 1.6 57.4 2.0 0.5 53.8 0.6 
+
+Table 8. Results of KEC with targeted orientation. 
+
+Methods Aircraft Cars NMI ACC ARI NMI ACC ARI CLIP (zero-shot) 48.8 22.0 10.7 77.4 59.3 43.3 
+
+KEC 50.6 22.5 13.3 68.3 37.6 26.6 
+
+KEC + 52.1 24.2 15.8 74.8 53.7 42.6 
+
+## 11. More Ablation Studies 
+
+11.1. Results of ablation studies across all datasets 
+
+We present the results of ablation experiments for the pro-posed method across each dataset in Table 7. We gradually introduce different levels of knowledge and their compo-nents using the LLMs. 
+
+11.2. Further analysis on parameter selections 
+
+Parameters in Image-Text Mapping. During the con-struction of image-text mappings, we aim to associate each image with its relevant semantics (nouns in WordNet). To preserve a strong generalization capability, we inten-tionally avoid meticulous parameter tuning at this stage. Our method aims to distill hierarchical and discriminative knowledge from the initial textual knowledge, which con-tains considerable semantic redundancy. Following the set-tings in TAC, we set the number of clusters as Nv /300 
+
+(where Nv denotes the number of images), and select the TopK=5 most relevant nouns for each image. To evaluate the sensitivity of the mapping stage in KEC to these parameters, we systematically varied them and conducted corresponding experiments. The results, shown in Table 9 and Table 10, indicate that KEC exhibits Table 9. Results for different numbers of selected nouns.                                                
+
+> TopK Flowers Pets CLEVR NMI ACC ARI NMI ACC ARI NMI ACC ARI 186.9 72.1 69.2 80.1 67.9 62.1 17.0 27.0 7.8
+> 387.0 72.6 66.9 80.0 68.2 62.7 16.0 26.6 8.6
+> 587.3 72.8 67.5 81.2 67.8 63.3 16.3 26.6 8.9
+> 10 87.7 73.6 68.2 80.0 67.5 62.6 16.1 26.4 8.7
+
+Table 10. Results for different cluster numbers in the initial Image-Text Mapping.                                                   
+
+> Flowers Pets CLEVR NMI ACC ARI NMI ACC ARI NMI ACC ARI
+> Nv/50 87.0 72.5 67.2 81.3 67.9 63.5 16.5 26.7 8.9
+> Nv/100 87.4 72.7 67.3 81.2 67.8 63.2 16.3 26.7 8.9
+> Nv/300 87.3 72.8 67.5 81.2 67.8 63.3 16.3 26.6 8.9
+> Nv/500 87.6 73.0 67.8 81.1 67.5 62.9 15.8 26.1 8.1
+
+strong robustness under different configurations ( i.e. , tex-tual knowledge generated with varying degrees of seman-tic redundancy through different mapping strategies). Al-though different parameter settings may cause slight perfor-mance variations across datasets, the overall impact remains limited. Therefore, meticulously tuning parameters for each dataset is labor-intensive, marginally beneficial, and ulti-mately unnecessary. This further demonstrates the strong generalization capability of KEC across diverse datasets. 
+
+Weight to balance visual and textual similarity. To con-struct multi-modal similarity, we analyze the impact of the fusion weight α in Equation 2. Specifically, we vary α from 1.0 to 0.0, gradually increasing the contribution of textual knowledge in the similarity computation. The results, as shown in Table 11, lead to the following observations: • When α = 1 .0 (i.e. , only using visual similarity), it fails to leverage any textual knowledge. As a result, the con-structed text space becomes nearly identical to the visual space, yielding performance comparable to the baseline without improvement. • As α decreases, performance initially improves and then declines, indicating that at this stage, textual knowledge relies on the guidance of visual knowledge to extract more discriminative concepts. When textual knowledge domi-nates, redundant or mismatched granularity of extracted nouns (either too fine-grained or overly broad) tends to disrupt semantic distillation, resulting in degraded per-formance. Notably, when α = 0 , i.e. relying entirely on textual knowledge, the results are the worst. • To further determine the optimal setting, we conduct ad-ditional experiments with α = 0 .7 and 0.9 around 0.8.Considering the trade-off between performance and gen-eralization across datasets, we empirically set α = 0 .8 as 
+
+Table 11. Performance analysis based on varying the weight value of visual and textual similarity. The bold numbers indicate the best results. In practice, we set α to 0.8.                                                                                    
+
+> Flowers Pets CLEVR
+> αNMI ACC ARI NMI ACC ARI NMI ACC ARI 1.0 86.5 72.9 67.9 78.2 65.3 58.6 15.5 25.6 6.9 0.9 87.8 73.1 68.2 81.0 67.7 62.9 15.1 25.4 6.7
+> 0.8 87.3 72.8 67.5 81.2 67.8 63.3 16.3 26.6 8.9
+> 0.7 86.5 72.9 67.9 80.5 67.0 62.7 16.0 26.6 8.5
+> 0.6 84.0 67.7 64.5 75.5 62.3 55.1 15.1 25.8 8.0
+> 0.4 76.5 62.7 59.7 70.5 56.0 47.8 14.7 24.8 6.7
+> 0.2 70.6 57.9 52.2 66.5 50.6 42.4 13.1 24.2 6.3
+> 0.0 69.5 56.4 50.7 65.5 50.0 41.7 11.5 22.8 4.5
+
+Table 12. Performance analysis based on varying the threshold value used in KEC. The bold numbers indicate the best results. The threshold β is empirically set to 0.8.                                                         
+
+> Flowers Pets CLEVR
+> βNMI ACC ARI NMI ACC ARI NMI ACC ARI
+> 0.9 86.7 71.4 65.9 79.9 64.9 60.7 15.4 24.8 6.7
+> 0.8 87.3 72.8 67.5 81.2 67.8 63.3 16.3 26.6 8.9
+> 0.7 87.5 71.7 67.0 80.0 68.8 62.8 14.7 25.4 6.5 0.6 86.3 71.2 64.9 80.5 67.2 62.1 14.5 24.2 5.9 0.5 83.5 67.2 63.8 78.8 66.1 60.9 14.0 24.4 6.1
+
+the default value. 
+
+Threshold in knowledge construction. For threshold se-lection, we conduct experiments by gradually lowering the threshold from 0.9. The results are shown in Table 12. As the threshold decreases, more concepts and attributes are extracted, which significantly increases computational cost and time consumption. However, this does not lead to con-tinuous performance improvement and may even result in performance degradation under certain settings. Consider-ing the trade-off between performance and computational efficiency across different datasets, we empirically set the threshold to 0.8 as the default value. 
+
+11.3. Compatibility with traditional methods 
+
+To demonstrate the compatibility of our method, we eval-uate KEC using three additional traditional clustering al-gorithms beyond K-Means: spectral clustering, agglomer-ation clustering, and bisecting K-Means. All experiments are conducted on the concatenated features [xi; κi], with the number of clusters set to match the ground-truth class count. As shown in Table 13, KEC consistently achieves strong performance across all clustering algorithms. These results highlight that the knowledge-enhanced features pro-duced by KEC are broadly compatible with a range of stan-dard clustering algorithms, offering flexibility and ease of Table 13. Clustering performance of KEC using different down-stream traditional clustering algorithms.               
+
+> Average NMI ACC ARI K-Means 58.0 56.6 38.5 Spectral Clustering 57.0 55.8 38.4
+> Agglomerative Clustering 58.2 56.9 38.2
+> Bisecting K-Means 57.2 56.2 37.6
+
+integration into diverse practical scenarios. 
+
+11.4. Analysis of robustness for pretrained models 
+
+To assess the generalizability of KEC, we evaluate it under three different vision-language backbones. These backbones vary significantly in architecture and capac-ity. Specifically, CLIP ResNet-50 utilizes a convolu-tional network. CLIP ViT-B/16 introduces a Transformer-based model, and ImageBind-Huge is a recent multi-modal foundation model that jointly embeds multiple modalities, providing a stronger and more generalized representation space. As shown in Table 14, KEC consistently achieves the best performance across all backbones and metrics, sig-nificantly outperforming both the vanilla CLIP (K-Means) and TAC. These results validate the transferability of our hi-erarchical knowledge construction approach across a wide spectrum of model architectures and data domains. 
+
+11.5. Knowledge construction with various LLMs 
+
+We investigate the effect of using different LLMs in the knowledge construction stage of KEC. Specifically, we compare several state-of-the-art LLMs from diverse providers, including: Claude-3-7-Sonnet (Anthropic), Gemini-2.0-Flash (Google), Deepseek-V3, Qwen-Turbo, Qwen2.5-7B-Instruct, and Qwen-3-0.6B. The latter three represent models with relatively small parameters, allow-ing us to evaluate the feasibility of lightweight deployment. KEC is robust with open-source and small LLMs (even with a 0.6B model). As shown in Table 15, all models yield com-petitive performance, confirming the robustness of our hier-archical concept-attribute construction method. These re-sults confirm that our method does not rely on any specific LLM backbone and can generalize across different model families and deployment constraints. 
+
+## 12. Constructed Knowledge Space 
+
+12.1. Reducing Redundancy Compared to TAC. 
+
+To better understand the effectiveness and efficiency of hier-archical knowledge construction, we compare the size of the knowledge space produced by TAC and our method (KEC) across 20 datasets. As shown in Figure 5, KEC signifi-cantly reduces the number of textual elements in the con-structed knowledge, transforming hundreds or even thou-sands of nouns in TAC into a compact set of concepts. For example, on ImageNet, the number of textual tokens drops from 13,278 to 1,341, and similar reductions are observed across datasets such as SUN397 (from 4,691 to 686) and Aircraft (from 1,253 to 120). This demonstrates that our hierarchical knowledge construction mechanism effectively eliminates semantic redundancy and consolidates overlap-ping or overly fine-grained nouns into unified, higher-level concepts. Based on these representative concepts, KEC fur-ther explores discriminative attributes to assist in clustering. 
+
+12.2. Visualization of knowledge enhanced features. 
+
+To qualitatively assess the effect of knowledge-enhanced features, we visualize the feature before and after enhance-ment using t-SNE across six datasets: PCAM, STL10, CIFAR10, Pets, Food101, and UCF101. The left panels show the raw CLIP visual features, while the right pan-els show the corresponding knowledge-enhanced features generated by KEC. For datasets with a large number of classes, we visualize only the first 10 categories to improve clarity. As shown in Figure 6, the knowledge-enhanced features provided by KEC lead to better semantic separa-bility, with tighter intra-cluster cohesion and clearer inter-cluster boundaries. This effect is especially prominent on fine-grained datasets like Pets and Food101, where textual knowledge helps refine class-specific distinctions that may not be evident from visual features alone. These results pro-vide intuitive evidence that KEC injects structured, seman-tically meaningful textual guidance into the visual space, thus aiding downstream clustering performance. 
+
+12.3. Examples of the hierarchical knowledge. 
+
+To provide a clearer understanding of the knowledge con-structed by our method, we present examples of hierarchi-cal knowledge extracted from two representative datasets. As shown in Table 16, the hierarchical knowledge includes three parts: (1) Concepts , abstracted from semantically similar noun clusters; (2) Uni-Concept Attributes , which are representative and visually grounded features associated with individual concepts; and (3) Bi-Concept Attributes ,which are contrastive properties mined between pairs of similar concepts to enhance fine-grained discrimination. For each dataset, we showcase 20 representative con-cepts and 10 attributes for each type. For example, in CI-FAR10, concepts such as ‘Emergency Response Vehicles’ or ‘Ecological Diversity of Amphibians and Reptiles’ are abstracted from low-level nouns. Uni-concept Attributes like ‘Prominent cargo area’ or ‘Beak shape and size’ high-light core visual traits, while Bi-concept attributes such as ‘Mode of travel’ or ‘Limb configuration’ aid in separating Table 14. Performance of KEC under different pretrained visual-language models. We report average results across 20 datasets, along with detailed scores on three representative datasets. Bold numbers indicate the best performance within each setting.                                                                                                                                                                                              
+
+> Model Method Average Flowers Pets CLEVR NMI ACC ARI NMI ACC ARI NMI ACC ARI NMI ACC ARI CLIP ResNet-50 CLIP (K-Means) 50.5 47.9 28.4 83.6 70.4 63.6 55.9 38.8 27.5 7.9 20.2 2.5 TAC (no train) 50.9 48.4 29.1 83.3 67.0 60.4 76.0 60.1 52.1 6.8 20.0 1.8
+> KEC (no train) 51.9 49.3 30.5 84.1 71.1 64.2 78.6 67.9 58.1 7.1 20.6 2.0
+> CLIP ViT-B/16 CLIP (K-Means) 58.1 56.0 38.0 86.1 72.1 68.4 69.1 53.3 44.8 12.6 26.0 5.8
+> TAC (no train) 56.5 54.2 36.5 86.2 66.1 62.3 83.1 70.2 64.0 9.7 23.2 4.0
+> KEC (no train) 60.0 59.4 41.6 90.1 75.9 72.0 85.2 77.0 69.8 14.5 26.2 6.8 ImageBind-Huge CLIP (K-Means) 61.0 58.8 42.2 93.8 72.2 72.9 85.2 70.6 67.3 16.4 25.8 9.5 TAC (no train) 62.1 59.6 43.0 89.3 70.9 70.1 85.7 68.9 65.6 15.3 24.6 7.2
+> KEC (no train) 64.8 62.7 47.5 92.0 72.8 72.9 88.4 73.1 71.4 18.2 26.2 9.2
+> Table 15. Performance comparison of KEC with different LLMs for knowledge construction. The LLMs are from different providers and with various model sizes. The results demonstrate the robustness of KEC.
+> LLMs Flowers Pets CLEVR NMI ACC ARI NMI ACC ARI NMI ACC ARI Claude-3-7-Sonnet 86.5 72.9 67.9 79.8 67.1 59.6 16.7 26.8 8.6
+> Gemini-2.0-Flash 86.5 72.9 67.9 81.0 67.8 62.7 17.0 26.8 9.0
+> Deepseek-V3 80.1 65.9 60.6 86.0 72.7 66.0 16.1 26.0 8.1
+> Qwen-Turbo 80.6 70.8 62.4 86.1 70.3 64.9 16.0 27.4 8.8
+> Qwen2.5-7B-Instruct 81.0 71.9 61.8 86.5 72.9 67.9 15.9 26.2 8.1
+> Qwen3-0.6B 79.8 69.1 60.2 86.0 71.1 65.7 16.1 26.7 8.2
+
+fine-grained categories. Similarly, in the Flowers dataset, concepts cover a wide range of botanical categories, while Uni-Concept attributes emphasize textural and morphological features (e.g., “Waxy texture” or “Serrated leaves”). Bi-Concept attributes, such as “Visual Style” or “Number of blooms,” further help dif-ferentiate visually similar floral species. These structured knowledge components form the basis of our knowledge-enhanced feature representation. This qualitative evidence underscores the semantic rich-ness and interpretability of the constructed knowledge, which not only improves clustering performance but also contributes to the explainability of the clustering process. 
+
+## 13. Limitation and Future Work 
+
+While our proposed KEC achieves strong and consistent performance across diverse datasets and clustering set-tings, we highlight several limitations that also point toward promising future extensions: 
+
+Concept quantity may not always be larger than the tar-get cluster number. In most cases, the number of con-cepts generated by our framework exceeds the target num-ber of clusters, preventing overly coarse semantic sum-marization for concepts. However, in rare cases, such as CIFAR-100, only 38 concepts are formed. It is fewer than the dataset’s 100 fine-grained classes. Notably, this num-ber still exceeds the 20 coarse-grained categories defined in CIFAR-20, which uses the same image set. This observa-tion suggests that our method tends to generate semantically meaningful concepts, even without hard constraints. In fu-ture work, incorporating user-defined granularity or con-straints into the concept construction process could support more adaptive and goal-driven clustering. 
+
+Limited improvement for high-level or subjective cate-gories. The improvement is relatively modest in datasets where categories are defined by abstract or high-level se-mantics, such as HatefulMemes. The labels reflect whether an image is offensive. KEC may lack the precise guid-ance needed to construct appropriate textual knowledge. This points to an opportunity to actively involve users in knowledge construction, for example by supplying domain-specific vocabulary, mapping terms to visual regions, or re-fining the concept-attribute hierarchy. Such human-in-the-loop strategies could enable more accurate alignment be-tween textual semantics and high-level visual concepts. Figure 5. KEC effectively reduces semantic redundancy compared to naive use of textual knowledge. CLIP Visual Features  Knowledge-Enhanced Features  
+
+> PCAM CIFAR10 Food101
+> CLIP Visual Features Knowledge-Enhanced Features
+> STL10 Pets UCF101
+> Figure 6. t-SNE visualization of features before and after knowledge enhancement across six representative datasets. The left column shows CLIP visual features, and the right column shows knowledge-enhanced features obtained by KEC. For datasets with large numbers of classes, only the first 10 classes are visualized for clarity.
+
+Potential for Interactive and Customized Knowledge Construction. KEC is modularity and flexibility. Allow-ing users to define or adjust certain concepts and attributes, or to specify domain-specific requirements, could further improve clustering performance. Exploring such interac-tive, customized knowledge construction mechanisms rep-resents a compelling future direction. In summary, we present a hierarchical knowledge con-struction method that opens up new possibilities for leverag-ing textual space in image clustering. While our current sys-tem operates automatically and performs well across tasks, future extensions incorporating user input, domain adapta-tion, and controllable knowledge granularity could further enhance its applicability and effectiveness. Table 16. Examples of the hierarchical knowledge constructed by KEC. We show 20 representative concepts, 10 Uni-Concept and Bi-Concept attributes, respectively. These knowledge elements are automatically derived via LLMs and serve to inject structured semantic guidance for clustering. 
+
+Dataset Hierarchical Knowledge 
+
+CIFAR10 Concepts: 
+
+Commercial and Utility Vehicles, Bird Species, Water and Land Transportation, aviation and air travel, Automobiles, Maritime Vessels, Musical Heritage, Equestrian Sports, Ecological Diversity of Amphibians and Reptiles, Pets, Feline and Animal, Antelope and Deer Species, emergency response vehicles, Equine Management and Culture, Aircraft, Dog Breeds, Maritime Vessels and Shipping, Fish Species, aviation and avian agility, Plant Ecology 
+
+Uni-Concept Attributes: 
+
+Prominent cargo area or flatbed design, Feathers covering the body, colors on animal fur or skin, Beak shape and size, Streamlined fuselage with a pointed nose, Large and swept-back wings with distinctive winglets, wheels or tracks on vehicles, Large hull structure with a streamlined shape, sails or masts or other rigging elements, Bright and high-visibility color schemes 
+
+Bi-Concept Attributes: 
+
+Feathered or fur-covered bodies, Color Variation, Mode of travel, Number of wheels, cargo or shipping containers on the vessels, Size and domestication level, representations and cultural symbols, Body struc-ture and limb configuration, Color scheme and markings, landmark achievements Flowers Concepts: 
+
+Ornamental Plants and Flowering Species, Yellow Flora, Berry Cultivation, Flowering Plants, Primulaceae and Related Plants, Fritillaria, Flora of Tropical and Subtropical Regions, Wildflowers and Mosses, Wild-flowers and Mosses, Irises and Associated Flora, Irises and Associated Flora, Goldenrod Species, Squash and Related Plants, Dianthus, Hymenoptera and Related Insects, Phyllostachys, Hibiscus and Mallow Plants, Native North American Flora, Penstemon and Antirrhinum Species, Arum Lilies and Egrets 
+
+Uni-Concept Attributes: 
+
+Vibrant and varied color palettes, Thick and serrated leaves, Waxy texture, a complex and organized struc-ture, Black and white photographic style, Furry or feathery texture, palmate or lobed leaves with a more pronounced venation pattern, ovate or elliptical leaves with a smoother margin, Large white and petal-like ray florets, Colorful and diverse petal shapes and patterns 
+
+Bi-Concept Attributes: 
+
+Flower shape and color, Colorful and intricate floral patterns, Leaf shape and arrangement, Physical Form, Number of blooms, Color and texture, Vibrancy of Colors, Visual Style, abstract or stylized expressions, like paintings or sculptures

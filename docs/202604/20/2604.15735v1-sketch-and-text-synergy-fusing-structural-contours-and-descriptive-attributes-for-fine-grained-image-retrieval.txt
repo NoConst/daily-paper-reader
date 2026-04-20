@@ -1,0 +1,243 @@
+Title: Sketch and Text Synergy: Fusing Structural Contours and Descriptive Attributes for Fine-Grained Image Retrieval
+
+URL Source: https://arxiv.org/pdf/2604.15735v1
+
+Published Time: Mon, 20 Apr 2026 00:30:53 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+# Sketch and Text Synergy: Fusing Structural Contours and Descriptive Attributes for Fine-Grained Image Retrieval 
+
+Siyuan Wang 1, Hanchen Gao 1, Guangming Zhu 1, Jiang Lu 1, Yiyue Ma 2,Tianci Wu 1, Jincai Huang 1, and Liang Zhang 1 
+
+> 1
+
+Xidian University  
+
+> 2
+
+First Aircraft Design Institute 
+
+Abstract. Fine-grained image retrieval via hand-drawn sketches or tex-tual descriptions remains a critical challenge due to inherent modal-ity gaps. While hand-drawn sketches capture complex structural con-tours, they lack color and texture, which text effectively provides de-spite omitting spatial contours. Motivated by the complementary nature of these modalities, we propose the Sketch and Text Based Image Re-trieval (STBIR) framework. By synergizing the rich color and texture cues from text with the structural outlines provided by sketches, STBIR achieves superior fine-grained retrieval performance. First, a curriculum learning driven robustness enhancement module is proposed to enhance the model’s robustness when handling queries of varying quality. Sec-ond, we introduce a category-knowledge-based feature space optimiza-tion module, thereby significantly boosting the model’s representational power. Finally, we design a multi-stage cross-modal feature alignment mechanism to effectively mitigate the challenges of cross modal feature alignment. Furthermore, we curate the fine-grained STBIR benchmark dataset to rigorously validate the efficacy of our proposed framework and to provide data support as a reference for subsequent related research. Extensive experiments demonstrate that the proposed STBIR framework significantly outperforms state of the art methods. 
+
+Keywords: Image Retrieval · Hand-drawn Sketch · Multi-stage Cross-modal Feature Alignment · Curriculum Learning 
+
+# 1 Introduction 
+
+Users can intuitively express target objects through either textual descriptions or hand-drawn sketches, making both modalities prevalent in fine-grained image retrieval (FG-IR) [7,27]. At the semantic level, while text excels at characterizing visual attributes such as color and texture, it struggles to convey intricate struc-tural details (e.g., the irregular ornaments in Fig. 1, Row 1). Conversely, sketches are adept at delineating geometric contours but inherently lack chromatic and textural information. In fine-grained scenarios, where inter-instance variances frequently involve non geometric attributes such as color (e.g., Fig. 1, Row 2),   
+
+> arXiv:2604.15735v1 [cs.CV] 17 Apr 2026 2F. Author et al.
+> Fig. 1: Characteristics of different query modalities in fine-grained retrieval. Row 1 illustrates that textual descriptions often struggle to accurately convey irregular shapes and complex spatial structures. Row 2 demonstrates that when target instances differ primarily in color, hand-drawn sketches fail to provide sufficient discriminative cues for accurate retrieval.
+
+relying solely on the sketch modality limits overall retrieval performance. Con-sequently, text and sketches offer a potent semantic complementarity, enabling a significantly more comprehensive representation for FG-IR. Previous works have established the intrinsic semantic complementarity be-tween text and hand-drawn sketches, prompting research into multimodal fusion for image retrieval tasks. For instance, the SBCIR framework proposed by Koley et al. [15] leverages generated pseudo textual descriptions to complement initial sketches, effectively mitigating the challenges associated with sparse fine-grained annotations. Consequently, Gatti et al. [11] introduced STNet, exploiting user sketches to successfully localize subjects across naturally occurring scenes, facil-itating robust retrieval through joint text image encoding. Nevertheless, these studies have not sufficiently addressed the profound distribution mismatch in cross-modal feature spaces, a problem inherently driven by the modality gap. This unaddressed disparity frequently results in suboptimal feature alignment and exacerbates parameter divergence, causing the convergence instability fre-quently observed during joint representation learning. To tackle the aforemen-tioned challenges, we propose the STBIR framework, which aims to construct a robust cross-modal feature space, thereby achieving superior fine-grained re-trieval performance. The STBIR framework comprises three pivotal modules. First, we introduce a robustness module that progressively injects noise to simulate perturbations, thereby strengthening the model against low-quality queries. Second, to enhance instance-level discriminability, we design a category-knowledge-guided optimiza-tion module. This module integrates category priors as constraints to refine the feature representation space. Finally, to mitigate parameter divergence arising from inconsistent gradient magnitudes during multimodal joint optimization, we propose a multi-stage cross-modal feature alignment mechanism, which ef-fectively prevents feature space perturbations and enhances overall retrieval sta-bility. Sketch and Text Synergy for Fine-Grained Image Retrieval 3
+
+Addressing the scarcity of datasets for tri-modal fine-grained image retrieval, we construct the STBIR dataset, which comprises three subsets: STBIR-S, STBIR-C, and STBIR-D. Specifically, STBIR-S and STBIR-C focus on fine-grained retrieval for single categories (shoes and chairs, respectively), while STBIR-D encompasses fine-grained retrieval across a large scale of daily object categories. In summary, our main contributions are as follows: 
+
+– We introduce the STBIR framework, which integrates textual attribute de-scriptions with sketched structural information. This holistic modeling of fine-grained features significantly enhances fine-grained retrieval performance. 
+
+– We propose a curriculum learning-driven robustness enhancement module and a category-knowledge-based feature space optimization Module, signifi-cantly bolstering the model’s discriminability and robustness. 
+
+– We propose a multi-stage cross-modal feature alignment mechanism, which effectively optimizes the feature space and enhances the representation ca-pability of tri-modal data. 
+
+– We create and release a dedicated benchmark for tri-modal fine-grained im-age retrieval. This benchmark provides a valuable resource for the community to explore sketch-and-text-based image retrieval. 
+
+# 2 Related Work 
+
+2.1 Fine-grained Sketch Based Image Retrieval (FG-SBIR) 
+
+Fine-grained sketch based image retrieval necessitates models to forge precise correspondence between hand-drawn sketches and image outputs at the instance-level [2, 31]. Deep dual siamese network architectures optimized via triplet loss represent the predominant framework within this domain [26, 37]. To enhance model discriminability regarding detailed information, researchers have employed generative tasks to enable encoders to retain more fine-grained details [19], or introduced soft attention mechanisms to capture highly discriminative fea-tures [30]. In response to the scarcity of paired fine-grained data, strategies such as semi-supervised learning [2] and self-supervised pretraining [20] have been successively proposed. Furthermore, addressing the inherent abstraction of sketches and variances in user drawing, some work has extensively explored top-ics including occluded sketches [5], noise robustness [3], hierarchical abstraction modeling [23], and the diversity of drawing styles [4, 24]. 
+
+2.2 Fine-grained Text based image retrieval (FG-TBIR) 
+
+Fine-grained Text Based Image Retrieval aims to retrieve semantically matching image instances from large scale databases using natural language descriptions. While early global feature alignment approaches focused on holistic semantic mapping [9,32], their performance was often constrained by a neglect of detailed visual attributes described in text. To overcome this bottleneck, local alignment mechanisms have emerged as the primary research focus. By leveraging cross 4 F. Author et al. 
+
+attention [16], models establish point to point correlations between image regions and textual tokens, facilitating precise feature alignment. Building on this, recent studies have explored multi-level and relation aware alignment strategies [6, 14, 35, 36, 38]; this transition from single target matching to structured relational alignment significantly enhances the capability to handle complex, detail rich descriptions, laying a solid foundation for more intelligent retrieval systems. 
+
+2.3 Fine-grained Sketch and Text Based Image Retrieval (FG-STBIR) 
+
+Sketch and text based image retrieval achieves instance level retrieval by fusing the structural information of sketches with the color and texture attributes of text. Currently, this field faces dual challenges: data scarcity and difficulties in aligning multimodal feature spaces. To mitigate data absence, one prominent approach converts images into sketch styles via edge detection, yet this strategy leads to severe loss of color and depth features [29]. Alternatively, other work employs conditional Invertible Neural Networks (cINN) to disentangle modal-ity specific and agnostic features, enabling flexible joint embeddings for diverse retrieval and generation tasks [7]. With the rise of large vision-language mod-els, establishing tri-modal alignment among "sketch-text-photo" via CLIP has emerged as a new paradigm [7,27]. While these methods effectively transfer rep-resentation knowledge from large models to aid feature extraction, achieving precise feature space alignment for fine-grained tasks remains a core-challenge. 
+
+2.4 Dataset 
+
+Currently, benchmarks that simultaneously integrate hand-drawn sketches, tex-tual descriptions, and natural images are notably scarce. While TSBIR [27] in-troduces a tri-modal setting, its training sketches are synthesized via method [17] rather than being human authored. Song et al. [29] curate a fine-grained dataset of 1,112 shoe instances, yet it remains inaccessible to the public. In the CSTBIR dataset [11], although images and texts are paired at the instance-level, sketches sourced from QuickDraw maintain only category-level alignment with the im-ages. Similarly, SketchyCOCO [10] provides tri-modal data, but its sketches are derived from predefined templates rather than being authentic, instance-specific tracings of the corresponding objects. 
+
+# 3 Dataset 
+
+We introduce the STBIR dataset, a tri-modal fine-grained retrieval benchmark designed for two distinct scenarios: single-category retrieval (encompassing STBIR-S and STBIR-C) and retrieval across extensive daily categories (STBIR-D). Sketch and Text Synergy for Fine-Grained Image Retrieval 5 
+
+> Fig. 2: Visualization of samples from the STBIR dataset. Row 1 shows instances from the STBIR-S subset. Row 2 displays examples from STBIR-C. Row 3 presents samples from STBIR-D. For each sample, the sketch, text, and image are strictly aligned.
+
+3.1 Visual Data Sources and Characteristics 
+
+Building upon the visual data from the QMUL-Shoe, QMUL-Chair, and Sketchy datasets, we construct the STBIR tri-modal fine-grained retrieval benchmark by enriching these images with detailed textual descriptions. As illustrated in Fig. 2, the STBIR-S and STBIR-C subsets focus on single-category objects with backgrounds removed, making them ideal for vertical scenarios such as product search. In contrast, the STBIR-D subset encompasses diverse daily objects em-bedded in rich contextual backgrounds, thereby catering to broader and more complex retrieval demands. 
+
+3.2 LLM-based Textual Description Generation and Manual Verification 
+
+We leverage the multimodal large language model Qwen 3 to generate structured descriptions of image subjects by designing a schema-guided prompting strategy: 1) focusing on the primary object [ CLASS ]; 2) encompassing chromatic and textural attributes, such as leather or wooden; 3) optionally incorporating salient geometric features, such as curved back or tufted cushion; 4) restricting the output to three to twelve phrases; and 5) ensuring that phrases are comma separated without additional punctuation or full sentences. The raw generated descriptions subsequently undergo manual verification to eliminate entries with semantic drift or redundant descriptions, thereby ensuring high-fidelity alignment and accuracy of the tri-modal paired data across fine-grained attributes. Fig. 2 presents some instances of the proposed dataset. 
+
+3.3 Semantic Augmentation and Comparative Analysis 
+
+To enhance the semantic richness of the datasets, this study performs semantic category annotation on the original data. For the QMUL-Shoe dataset, which   
+
+> 3https://www.qianwen.com 6F. Author et al.
+
+initially contained only a single "shoe" macro-category, we subdivid it into 13 granular subcategories, such as sneakers and slippers. Similarly, instances in QMUL-Chair are annotated with 24 fine-grained category labels. In contrast, for the Sketchy dataset, which already possesses a relatively rich predefined category hierarchy, we preserve the original semantic categorization. Tab. 1 presents a comparison of the characteristics of datasets containing sketches, text, and images. As observed, the proposed dataset is the only one that offers fine-grained matching across all three modalities, features hand-drawn sketches, and is publicly available.                                         
+
+> Table 1: Comparison of tri-modal datasets for sketch and text based image retrieval. The "Hand-drawn" indicates whether the sketches are exclusively manually drawn. The TSBIR dataset does not provide category classifications (marked as "/"). Dataset Fine grained Hand drawn public Sample amount category TSBIR [27] ✓×✓5000 /DSSA [29] ✓✓×1112 1CSTBIR [11] ×✓✓2M 258 SketchyCOCO [10] ×✓✓20000 14 STBIR-S ✓✓✓2000 13 STBIR-C ✓✓✓400 24 STBIR-D ✓✓✓12500 125
+
+# 4 Methodology 
+
+To address the critical challenges of unstable joint optimization, insufficient fea-ture discriminability, and limited model robustness in tri-modal fine-grained re-trieval, we propose the STBIR framework. First, to enhance the retrieval robust-ness against low-quality queries, we propose a curriculum learning-driven robust-ness enhancement module. Second, to address the stringent demands for feature discriminability in fine-grained retrieval, we design a category-knowledge-based feature space optimization module. Finally, to tackle the prevalent issues of gra-dient imbalance and parameter divergence in multimodal joint optimization, we introduce a multi-stage cross-modal feature alignment mechanism. 
+
+4.1 Problem Formulation 
+
+Let D = {(Si, T i, I i)}Ni=1 denote a collection of N paired instances, where each triplet includes: a hand-drawn sketch Si representing the geometric contours and topological layout of the target, a complementary textual description Ti
+
+characterizing the chromatic, textural, and qualitative attributes of the object, Sketch and Text Synergy for Fine-Grained Image Retrieval 7 
+
+> Fig. 3: Illustration of the STBIR framework. CLDRE denotes the Curriculum Learn-ing Driven Robustness Enhancement module, while CKFSO represents the Category-Knowledge-Based Feature Space Optimization module.
+
+and a corresponding natural image Ii. The proposed STBIR framework first extracts hand-drawn sketch features fS and text features fT , subsequently fusing these two representations. Concurrently, it extracts the features FI of candidate images from the image gallery. Finally, by calculating the semantic similarity between the fused features fc and the candidate image features FI within the gallery, the framework retrieves the target image exhibiting the highest matching score. 
+
+4.2 Feature Encoder Hand-drawn sketch feature encoder. Hand-drawn sketches are typically characterized in various formats, including raster images, dynamic stroke se-quences, and structured graph representations. Following study [34], convolu-tional neural networks exhibit inherent advantages in extracting global features and can more effectively align with the image modality within a unified feature space. We employ ResNet [13] to extract features from hand-drawn sketches. 
+
+Text and image feature encoder. The representation capabilities ac-quired by CLIP [22] through large scale multi-modal data enable it to establish associations between visual images and textual semantics within a unified latent embedding space. We employ CLIP as the feature encoder for both image and text modalities. 
+
+4.3 Curriculum Learning Driven Robustness Enhancement (CLDRE) 
+
+To bolster the model’s fine-grained retrieval capabilities amidst low-quality in-puts, we introduce a Curriculum Learning-Driven Robustness Enhancement 8 F. Author et al. 
+
+(CLDRE) module. Grounded in the principle of simulating a cognitive evolu-tion from simple to complex scenarios, this module systematically fortifies the framework’s discriminative robustness against degraded data. The input feature f for the CLDRE module corresponds to the represen-tations fS , fT , or FI extracted by the feature encoders. During the training process, we dynamically introduce noise to the input feature f via Eq. (1) to artificially degrade the query quality, thereby enhancing the model robustness against low quality queries: 
+
+ˆf = CLDRE (f ) = f + t · α (1) Here, t ∈ [0 , 1] denotes the normalized training progress, and α represents the target noise intensity. During the initial training phase, the model primarily processes high fidelity and complete modal samples, establishing a fundamental mapping of the cross modal feature space through stable data distributions. As the training iteration t increases, the perturbation level of the input data is gradually elevated. 
+
+Category-Knowledge-Based Feature Space Optimization (CKFSO). 
+
+Leveraging critical semantic priors from retrieval target categories to optimize the network significantly bolsters feature representation. To this end, we propose a category-knowledge-based feature space optimization module, grounded in Ad-ditive Angular Margin Loss [8]. This approach effectively compacts intra-class distributions while expanding inter-class margins, thereby substantially elevating the overall quality of model representations. The CKFSO module takes the augmented feature ˆf derived from the CLDRE module and its corresponding semantic category label as inputs. By optimizing the objective function formulated in Eq. (2), the model minimizes the angular distance θi between the feature ˆfi and its ground-truth category feature center 
+
+fcc i while maximizing inter-class separability. Specifically, introducing a fixed additive angular margin penalty m enforces strict intra-class feature cohesion and significantly amplifies the discriminability among features belonging to different categories. Ultimately, this margin-based optimization significantly elevates the overall representation capability of the model. 
+
+LAAM L = − 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+log es·cos( θi+m)
+
+es·cos( θi+m) + PCj=1 ,j ̸ =i es·cos θj
+
+(2) 
+
+θi = arccos ˆfi · fcc i
+
+∥ ˆfi∥∥ fcc i ∥
+
+!
+
+(3) where N denotes the number of samples in a batch; s represents the scaling factor that ensures the stability of the convergence process; C is the total number of categories; and fcc i is parameterized as the corresponding weight vector in the classification layer. Sketch and Text Synergy for Fine-Grained Image Retrieval 9
+
+4.4 Multi-stage Cross-modal Feature Alignment (MCFA) 
+
+Existing research [18, 21, 33] indicates that the primary cause of parameter di-vergence in multi-modal learning stems from distribution discrepancies between different modalities within the feature space. During the initialization phase, neural networks map images and text into mutually non-overlapping subspaces, resulting in a significant modality gap. This spatial isolation leads to drastic fluc-tuations in gradient computation during contrastive learning. Simultaneously, constrained by the greedy optimization nature of deep learning models, networks tend to prioritize fitting dominant modalities with more easily extractable feature representations. This bias causes the learning process of weaker modalities to lag behind, thereby inducing severe gradient imbalance. The compounding effect of this feature distribution deviation and the inconsistency in convergence behav-ior across modalities ultimately leads to numerical instability, or even training collapse, during the multi-modal fusion stage. To address the challenges, this study analyzes the characteristics of tri-modalities, and proposes a multi-stage cross-modal feature alignment mecha-nism. By decoupling the optimization trajectories of distinct modal encoders, our approach ensures robust alignment across multi-modal feature spaces. 
+
+Sketch Feature Mapping. Considering the robust feature alignment already established between the image and text encoders of CLIP during the pretraining phase, MCFA prioritizes mapping the sketch feature space into this pre-aligned image-text space during the initial stage. To achieve this, the parameters of both the image and text branches within CLIP are strictly frozen, rendering the hand-drawn sketch encoder the sole optimizable component. the CLDRE and CKFSO modules are applied exclusively to the sketch modality. During this stage, the feature evolution of the three modalities is illustrated in Eq. (4): 
+
+ˆfS = CLDRE (fS ), ˆfT = fT , ˆFI = FI (4) 
+
+Image Feature Space Refinement. Recognizing that image and sketch modal-ities share greater visual affinity than text, MCFA proceeds to the second stage by fine-tuning the image encoder while keeping the sketch and text encoders frozen. This strategy leverages the geometric structural priors inherent in sketches to reshape the image feature distribution within the latent space, thereby en-hancing the model’s sensitivity to the topological layout of objects. The CLDRE and CKFSO modules are applied exclusively to the image modality. During this stage, the feature evolution of the three modalities is illustrated in Eq. (5): 
+
+ˆfS = fS , ˆfT = fT , ˆFI = CLDRE (FI ) (5) 
+
+Textual Representations Integration. Upon completing the complementary optimization of the sketch and image branches, we fine-tune the text encoder to 10 F. Author et al. 
+
+ensure that fine-grained attributes (e.g., color, texture) are accurately embed-ded into the established joint feature space. In this stage, the image and sketch encoders are frozen, dedicating the optimization solely to enhancing the discrim-inative power of the textual representations. The CLDRE and CKFSO modules are applied exclusively to the text modality. During this stage, the feature evo-lution of the three modalities is illustrated in Eq. (6): 
+
+ˆfS = fS , ˆfT = CLDRE (fT ), ˆFI = FI (6) 
+
+4.5 Optimization Objectives 
+
+Hand-drawn sketch features ˆfS and text features ˆfT are fused via element-wise addition to construct a composite query representation ˆfc. Subsequently, cosine similarity is computed between the composite representation ˆfc and the candi-date image features ˆFI within the gallery to yield the retrieval results. The overall optimization objective is defined as follows: 
+
+Ltotal = λ1LAAM L + λ2LInf oN CE + λ3LT riplet  (7) where LInf oN CE and LT riplet represent the InfoNce loss and Triplet loss widely adopted in retrieval tasks, respectively, which take the composite representation 
+
+ˆfc and candidate image features ˆFI as inputs, aiming to maximize feature dis-criminability. λ1, λ2, and λ3 serve as the balancing weight coefficients for the respective loss terms. 
+
+# 5 Expriment 
+
+5.1 Dataset 
+
+The experimental validation of this research is primarily conducted on the STBIR dataset introduced in Sec. 3. 
+
+5.2 Training Details 
+
+All experiments are deployed on a single NVIDIA RTX 3090 GPU. Regarding network initialization, the hand-drawn sketch branch utilizes ResNet50 [13] as the feature encoder, which is pretrained on the QuickDraw dataset [12]. The image and text encoders directly load the pretrained weights from CLIP [22]. In the MCFA, each stage is trained for 16 epochs. AdamW is used as the optimizer, with the learning rate set to 2 × 10 −5 and the batch size configured at 32. For Eq. (2), s and m are set to 32 and 0.15. For Eq. (7), λ1, λ2 and λ3 are set to 0.1, 0.8 and 0.8. Sketch and Text Synergy for Fine-Grained Image Retrieval 11                                                                               
+
+> Table 2: Performance comparison on the STBIR-S, STBIR-C, and STBIR-D datasets.
+> Bold values indicate the best results. Underlined values indicate the second-best re-sults. STBIR-S STBIR-C STBIR-D Query Method R@1 R@5 R@10 R@1 R@5 R@10 R@1 R@5 R@10 Single Query CLIP(S) [22] 2.40 10.06 17.12 10.29 26.05 38.59 5.05 17.03 24.50 CLIP(T) [22] 46.00 81.50 92.50 48.00 82.00 92.00 53.57 87.89 96.63 DINO(S) [28] 18.17 38.74 51.50 48.23 76.85 84.24 26.41 61.74 78.15 Multi Query CLIP(ST) [22] 22.97 52.55 67.57 41.80 72.03 83.28 27.24 62.96 77.32 TASKformer [27] 39.49 72.07 83.78 53.38 84.89 92.93 51.70 79.83 88.03 Pic2Word [25] 51.72 82.58 89.78 53.38 86.81 95.17 51.33 85.08 94.43 SEARLE [1] 49.70 87.39 94.74 52.41 87.46 95.18 62.43 92.36 98.38
+> STBIR 51.80 87.84 96.70 57.88 92.28 97.75 62.85 93.44 98.06
+
+5.3 Metrics 
+
+In alignment with the quantitative evaluation of retrieval performance, this re-search references classical works in the retrieval field [15, 27] and adopts the standard retrieval metric Recall@K (R@K) as the primary evaluation criterion, specifically covering R@1, R@5, and R@10. The R@K metric measures the pro-portion of samples where the ground truth target is included within the top K candidate samples retrieved by the model. 
+
+5.4 Benchmark 
+
+The evaluated baseline methods comprise two categories: single query retrieval and multi query retrieval. The former leverages classic dual stream networks using a single query modality. The latter includes models specifically designed for sketch and text based image retrieval, alongside adapted multimodal approaches. 
+
+5.5 Performance Analysis 
+
+As evidenced by the experimental results in Tab. 2, the proposed STBIR frame-work achieves superior retrieval performance across all three datasets, outper-forming baseline methods in nearly all metrics. 
+
+Single-Query vs. Multi-Query Settings. Experimental results indicate that multi-query retrieval architectures generally outperform single-query setups. Purely sketch-based approaches, however, yield inferior performance, as the lack of tex-ture and color information impedes fine-grained retrieval. In contrast, CLIP(T) leverages priors from large-scale text-image pretraining to achieve robust seman-tic alignment. Notably, the proposed STBIR framework significantly enhances re-trieval performance by effectively fusing multimodal query information, thereby 12 F. Author et al. 
+
+underscoring the critical value of synergizing stroke structures with textual se-mantics. 
+
+Comparison with State of the Art Methods. Experimental results demon-strate that the proposed STBIR framework consistently outperforms existing state of the art multi-query retrieval methods across all three benchmark datasets. Specifically, STBIR achieves superior performance on the STBIR-S and STBIR-C datasets across all evaluation metrics. Notably, on the STBIR-C dataset, it attains an R@1 accuracy of 57.88, significantly surpassing the second-best mod-els, TASKformer and Pic2Word. On the larger-scale STBIR-D dataset, while STBIR trails the SEARLE model slightly in R@10, it secures the top rank on the more critical R@1 and R@5 metrics, achieving 62.85 and 93.44, respectively. These substantial gains underscore the effectiveness of our method in fusing text and sketch modalities, optimizing the multimodal feature space, and enhancing instance-level discriminability. 
+
+Robustness Analysis in Many-Category Scenarios. On the STBIR-D dataset, which presents a more challenging category scale, the proposed frame-work maintains state of the art performance in both R@1 (62.85) and R@5 (93.44). While SEARLE [1] achieves a marginal gain on the R@10 metric, the STBIR framework demonstrates a substantial advantage on the R@1 metric, where precision requirements are most stringent. This performance underscores the robust capability of STBIR to effectively optimize the feature space, even when confronted with large-scale category distributions. 
+
+5.6 Ablation Study 
+
+As illustrated in Tab. 3, the effectiveness of our framework is validated across four key aspects input modalities, training mechanism, optimization objective, and robustness enhancement strategies. Experimental results indicate that each core component proposed in this study is indispensable for the collaborative enhancement of retrieval perfor-mance. First, the complementarity of composite modal inputs is strongly val-idated (Te and Sh in Tab. 3); the absence of any single modality leads to a significant degradation in representational capability. Second, the multi-stage cross-modal feature alignment mechanism proves critically important (MCFA in Tab. 3). Adopting synchronous updates for all parameters causes a sharp decline in the R@1 metric, demonstrating that full-parameter fine-tuning can easily induce semantic drift in pretrained weights and trigger inter-modal fea-ture interference. Furthermore, both the category-knowledge-based feature space optimization module (CKFSO in Tab. 3) and the curriculum learning driven ro-bustness enhancement module (CLDRE in Tab. 3) contribute substantially to achieving high-precision, fine-grained retrieval. Sketch and Text Synergy for Fine-Grained Image Retrieval 13 
+
+Table 3: Ablation study results on the STBIR-S and STBIR-C datasets. The ’Te’ and ’Sh’ denote the text and sketch modalities, respectively, indicating that the model inputs are standard raw text and sketch data, rather than feature vectors processed via global mean pooling. Bold values indicate the best results. Ablation Setting STBIR-S STBIR-C Te Sh MCFA CKFSO CLDRE R@1 R@5 R@10 R@1 R@5 R@10 
+
+✓ ✓ ✓ ✓ 4.50 13.96 21.02 6.43 20.90 35.37 
+
+✓ ✓ ✓ ✓ 41.74 78.98 88.74 37.94 79.74 91.32 
+
+✓ ✓ ✓ ✓ 7.81 41.89 62.31 28.62 67.85 84.24 
+
+✓ ✓ ✓ ✓ 47.75 84.98 93.99 55.95 92.28 97.11 
+
+✓ ✓ ✓ ✓ 47.85 84.68 94.29 43.73 78.78 88.75 
+
+✓ ✓ ✓ ✓ ✓ 51.80 87.84 96.70 57.88 92.28 97.75 Table 4: Comparison of different modality training sequences on retrieval performance. The I, S, and T represent the Image, Sketch, and Text modalities. The arrow notation (e.g., I → S → T ) specifies the sequential optimization schedule of the corresponding encoders. Bold values indicate the best results. STBIR-S STBIR-C Optimization Order R@1 R@5 R@10 R@1 R@5 R@10 I → S → T 47.15 84.83 94.74 53.38 88.42 95.50 I → T → S 47.45 87.69 94.14 46.95 89.07 95.50 T → S → I 47.15 84.98 94.14 51.77 81.67 90.03 T → I → S 47.75 83.93 93.24 54.98 84.24 91.32 S → T → I 48.05 84.38 94.59 57.23 89.07 96.46 S → I → T 51.80 87.84 96.70 57.88 92.28 97.75 
+
+5.7 Multi-stage Cross-modal Feature Alignment Mechanism Analysis 
+
+This section further explores the impact of different modality training sequences within the MCFA, with experimental results presented in Tab. 4. Experimen-tal data indicate that training schemes prioritizing the optimization of sketch features (as shown in the last two rows of Tab. 4) yield superior retrieval perfor-mance. This phenomenon reflects that in composite retrieval tasks, the sketch modality possesses extreme geometric abstraction and lacks a foundation of large scale joint pretraining with other modalities; therefore, it is essential to priori-tize the establishment of a robust feature mapping benchmark during the initial training phase. Furthermore, given a sketch-first strategy, optimizing the image branch prior to the text branch yields superior retrieval performance. This advantage stems from the fact that although hand-drawn sketches and natural images exhibit significant domain shifts, they both belong to the visual domain and share 14 F. Author et al.  
+
+> Fig. 4: Visualization of some retrieval results. Retrieved candidates are ranked in de-scending order based on their predicted scores. Instances enclosed in green boxes denote correctly retrieved samples.
+
+strong correlations in spatial structure, contours, and geometric topology. In contrast, text represents high-level abstract semantics, creating a substantially larger modality gap with sketches. Therefore, adopting an evolutionary pro-gression from visual to semantic information more effectively guides the model toward deep cross-modal alignment. 
+
+5.8 Visualization Analysis 
+
+Fig. 4 visualizes representative retrieval results: the first two rows showcase suc-cessful retrievals (where the ground truth ranks within the top-5), while the last two rows illustrate failure cases. The figure reveals that nearly all retrieved samples exhibit high consistency with the query conditions (sketch + text) in terms of contour, texture, and color, underscoring STBIR’s robust capability for multi-modal feature alignment. Notably, even the erroneously retrieved samples in the last two rows adhere strictly to the provided sketch and textual descriptions. This suggests that the bottleneck in discriminating highly similar instances lies not only in the model’s capacity to capture fine-grained local features, but more critically, in the in-herent ambiguity of hand-drawn sketches and the limited granularity of textual descriptions at the input stage. This observation highlights a pivotal direction for future research aimed at enhancing composite retrieval performance. 
+
+# 6 Conclusion 
+
+In this paper, we propose a comprehensive and robust framework to advance the state of the art in sketch and text based image retrieval. First, we construct and release the STBIR dataset, which comprises the STBIR-C and STBIR-S Sketch and Text Synergy for Fine-Grained Image Retrieval 15 
+
+subsets designed for fine-grained retrieval within single categories, as well as the STBIR-D dataset tailored for large-scale category retrieval scenarios. Second, we introduce a category-knowledge-based feature space optimization module and a curriculum learning-driven robustness enhancement module to jointly enhance the model’s feature discriminability and retrieval robustness. Furthermore, we propose a multi-stage cross-modal feature alignment mechanism grounded in the distinct characteristics of each modality, thereby achieving alignment across multi-modal feature spaces. By integrating these modules, the proposed STBIR framework significantly optimizes the alignment across sketch, text, and image feature spaces, ultimately achieving superior retrieval performance. 
+
+# References 
+
+1. Baldrati, A., Agnolucci, L., Bertini, M., Del Bimbo, A.: Zero-shot composed image retrieval with textual inversion. In: Proceedings of the IEEE/CVF international conference on computer vision. pp. 15338–15347 (2023) 2. Bhunia, A.K., Chowdhury, P.N., Sain, A., Yang, Y., Xiang, T., Song, Y.Z.: More photos are all you need: Semi-supervised learning for fine-grained sketch based image retrieval. In: Proceedings of the IEEE/CVF conference on Computer Vision and Pattern Recognition. pp. 4247–4256 (2021) 3. Bhunia, A.K., Koley, S., Khilji, A.F.U.R., Sain, A., Chowdhury, P.N., Xiang, T., Song, Y.Z.: Sketching without worrying: Noise-tolerant sketch-based image re-trieval. In: Proceedings of the IEEE/CVF conference on computer vision and pat-tern recognition. pp. 999–1008 (2022) 4. Bhunia, A.K., Sain, A., Shah, P.H., Gupta, A., Chowdhury, P.N., Xiang, T., Song, Y.Z.: Adaptive fine-grained sketch-based image retrieval. In: European Conference on Computer Vision. pp. 163–181. Springer (2022) 5. Bhunia, A.K., Yang, Y., Hospedales, T.M., Xiang, T., Song, Y.Z.: Sketch less for more: On-the-fly fine-grained sketch-based image retrieval. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 9779– 9788 (2020) 6. Chen, H., Ding, G., Liu, X., Lin, Z., Liu, J., Han, J.: Imram: Iterative matching with recurrent attention memory for cross-modal image-text retrieval. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 12655–12663 (2020) 7. Chowdhury, P.N., Bhunia, A.K., Sain, A., Koley, S., Xiang, T., Song, Y.Z.: Scenetrilogy: On human scene-sketch and its complementarity with photo and text. In: Proceedings of the IEEE/CVF conference on computer vision and pat-tern recognition. pp. 10972–10983 (2023) 8. Deng, J., Guo, J., Xue, N., Zafeiriou, S.: Arcface: Additive angular margin loss for deep face recognition. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 4690–4699 (2019) 9. Faghri, F., Fleet, D.J., Kiros, J.R., Fidler, S.: Vse++: Improving visual-semantic embeddings with hard negatives. arXiv preprint arXiv:1707.05612 (2017) 10. Gao, C., Liu, Q., Xu, Q., Wang, L., Liu, J., Zou, C.: Sketchycoco: Image generation from freehand scene sketches. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 5174–5183 (2020) 16 F. Author et al. 11. Gatti, P., Parikh, K., Paul, D.P., Gupta, M., Mishra, A.: Composite sketch+ text queries for retrieving objects with elusive names and complex interactions. In: Proceedings of the AAAI Conference on Artificial Intelligence. vol. 38, pp. 1869– 1877 (2024) 12. Ha, D., Eck, D.: A neural representation of sketch drawings. arXiv preprint arXiv:1704.03477 (2017) 13. He, K., Zhang, X., Ren, S., Sun, J.: Deep residual learning for image recognition. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 770–778 (2016) 14. Ji, Z., Chen, K., Wang, H.: Step-wise hierarchical alignment network for image-text matching. arXiv preprint arXiv:2106.06509 (2021) 15. Koley, S., Bhunia, A.K., Sain, A., Chowdhury, P.N., Xiang, T., Song, Y.Z.: You’ll never walk alone: A sketch and text duet for fine-grained image retrieval. In: Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recogni-tion. pp. 16509–16519 (2024) 16. Lee, K.H., Chen, X., Hua, G., Hu, H., He, X.: Stacked cross attention for image-text matching. In: Proceedings of the European conference on computer vision (ECCV). pp. 201–216 (2018) 17. Li, M., Lin, Z., Mech, R., Yumer, E., Ramanan, D.: Photo-sketching: Inferring contour drawings from images. In: 2019 IEEE Winter Conference on Applications of Computer Vision (WACV). pp. 1403–1412. IEEE (2019) 18. Liang, V.W., Zhang, Y., Kwon, Y., Yeung, S., Zou, J.Y.: Mind the gap: Under-standing the modality gap in multi-modal contrastive representation learning. Ad-vances in Neural Information Processing Systems 35 , 17612–17625 (2022) 19. Pang, K., Song, Y.Z., Xiang, T., Hospedales, T.: Cross-domain generative learning for fine-grained sketch-based image retrieval. In: The 28th British Machine Vision Conference (2017) 20. Pang, K., Yang, Y., Hospedales, T.M., Xiang, T., Song, Y.Z.: Solving mixed-modal jigsaw puzzle for fine-grained sketch-based image retrieval. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 10347– 10355 (2020) 21. Peng, X., Wei, Y., Deng, A., Wang, D., Hu, D.: Balanced multimodal learning via on-the-fly gradient modulation. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 8238–8247 (2022) 22. Radford, A., Kim, J.W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., et al.: Learning transferable visual models from natural language supervision. In: International conference on machine learning. pp. 8748–8763. PmLR (2021) 23. Sain, A., Bhunia, A.K., Yang, Y., Xiang, T., Song, Y.Z.: Cross-modal hierar-chical modelling for fine-grained sketch based image retrieval. arXiv preprint arXiv:2007.15103 (2020) 24. Sain, A., Bhunia, A.K., Yang, Y., Xiang, T., Song, Y.Z.: Stylemeup: Towards style-agnostic sketch-based image retrieval. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 8504–8513 (2021) 25. Saito, K., Sohn, K., Zhang, X., Li, C.L., Lee, C.Y., Saenko, K., Pfister, T.: Pic2word: Mapping pictures to words for zero-shot composed image retrieval. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition. pp. 19305–19314 (2023) 26. Sangkloy, P., Burnell, N., Ham, C., Hays, J.: The sketchy database: learning to retrieve badly drawn bunnies. ACM Transactions on Graphics (TOG) 35 (4), 1–12 (2016) Sketch and Text Synergy for Fine-Grained Image Retrieval 17 27. Sangkloy, P., Jitkrittum, W., Yang, D., Hays, J.: A sketch is worth a thousand words: Image retrieval with text and sketch. In: European conference on computer vision. pp. 251–267. Springer (2022) 28. Siméoni, O., Vo, H.V., Seitzer, M., Baldassarre, F., Oquab, M., Jose, C., Khali-dov, V., Szafraniec, M., Yi, S., Ramamonjisoa, M., et al.: Dinov3. arXiv preprint arXiv:2508.10104 (2025) 29. Song, J., Song, Y.Z., Xiang, T., Hospedales, T.: Fine-grained image retrieval: the text/sketch input dilemma. In: The 28th British machine vision conference (2017) 30. Song, J., Yu, Q., Song, Y.Z., Xiang, T., Hospedales, T.M.: Deep spatial-semantic attention for fine-grained sketch-based image retrieval. In: Proceedings of the IEEE international conference on computer vision. pp. 5551–5560 (2017) 31. Sun, H., Xu, J., Wang, J., Qi, Q., Ge, C., Liao, J.: Dli-net: Dual local interac-tion network for fine-grained sketch-based image retrieval. IEEE Transactions on Circuits and Systems for Video Technology 32 (10), 7177–7189 (2022) 32. Wang, L., Li, Y., Huang, J., Lazebnik, S.: Learning two-branch neural networks for image-text matching tasks. IEEE Transactions on Pattern Analysis and Machine Intelligence 41 (2), 394–407 (2018) 33. Wu, N., Jastrzebski, S., Cho, K., Geras, K.J.: Characterizing and overcoming the greedy nature of learning in multi-modal deep neural networks. In: International Conference on Machine Learning. pp. 24043–24055. PMLR (2022) 34. Xu, P., Hospedales, T.M., Yin, Q., Song, Y.Z., Xiang, T., Wang, L.: Deep learning for free-hand sketch: A survey. IEEE transactions on pattern analysis and machine intelligence 45 (1), 285–312 (2022) 35. Xue, H., Huang, Y., Liu, B., Peng, H., Fu, J., Li, H., Luo, J.: Probing inter-modality: Visual parsing with self-attention for vision-and-language pre-training. Advances in Neural Information Processing Systems 34 , 4514–4528 (2021) 36. Yu, F., Tang, J., Yin, W., Sun, Y., Tian, H., Wu, H., Wang, H.: Ernie-vil: Knowl-edge enhanced vision-language representations through scene graphs. In: Proceed-ings of the AAAI conference on artificial intelligence. vol. 35, pp. 3208–3216 (2021) 37. Yu, Q., Liu, F., Song, Y.Z., Xiang, T., Hospedales, T.M., Loy, C.C.: Sketch me that shoe. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 799–807 (2016) 38. Zhang, Q., Lei, Z., Zhang, Z., Li, S.Z.: Context-aware attention network for image-text retrieval. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 3536–3545 (2020)

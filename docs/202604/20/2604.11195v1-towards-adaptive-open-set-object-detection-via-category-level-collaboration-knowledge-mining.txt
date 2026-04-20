@@ -1,0 +1,962 @@
+Title: Towards Adaptive Open-Set Object Detection via Category-Level Collaboration Knowledge Mining
+
+URL Source: https://arxiv.org/pdf/2604.11195v1
+
+Published Time: Tue, 14 Apr 2026 02:28:28 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+1
+
+# Towards Adaptive Open-Set Object Detection via Category-Level Collaboration Knowledge Mining 
+
+Yuqi Ji, Junjie Ke, Lihuo He, Member, IEEE , Lizhi Wang, Member, IEEE , Xinbo Gao, Fellow, IEEE 
+
+Abstract —Existing object detection methods struggle to gen-eralize across increasingly data domains while simultaneously adapting to the emergence of novel categories. To tackle this challenge, adaptive open-set object detection (AOOD) has been introduced, which employs supervised training on base categories within the source domain while enabling unsupervised adaptation to both base and novel categories in the target domain. However, existing AOOD approaches are still hindered by several limita-tions, including insufficient cross-domain feature representation, inter-category ambiguity in novel classes, and inherent feature bias toward the source domain. To overcome these issues, this paper proposes a category-level collaboration knowledge mining strategy designed to comprehensively exploit both inter-class and intra-class feature relationships across domains. Specifically, a clustering-based memory bank (CMB) is initially constructed to aggregate class prototype features, class auxiliary features, and intra-class disparity features, thereby embedding rich category-level knowledge into a unified memory structure. The CMB is iteratively updated through unsupervised clustering, which facil-itates the modeling of intra-category relationships and enhances its capacity for cross-domain knowledge representation. Subse-quently, a base-to-novel selection metric (BNSM) is designed to identify features corresponding to novel categories within the source domain by regulating the relationships between the novel categories and each base category. The selected features are then leveraged to initialize the object detector for the classification of novel categories. Finally, an adaptive feature assignment (AFA) strategy is introduced to transfer the learned category-level knowledge to the target domain, enabling the assignment of category labels to features. The memory bank is updated asynchronously with these assigned features to mitigate source domain bias. Extensive experiments conducted on diverse domain datasets demonstrate that the proposed method consis-tently outperforms state-of-the-art AOOD approaches, achieving performance gains of 1.1 to 5.5 mAP. Code is available at https://github.com/Jandsome/CCKM. 
+
+Index Terms —adaptive open-set object detection, memory bank, class prototype features, class auxiliary features. 
+
+I. I NTRODUCTION 
+
+# OBject detection has developed rapidly and plays an es-sential role in various vision tasks such as image retrieval [1], [2], instance segmentation [3]–[6], intelligent transporta-tion systems [7]–[9], and industrial defect detection [10]. With 
+
+This work was supported by the New Generation Artificial Intelligence-National Science and Technology Major Project (2025ZD0123601) and the National Natural Science Foundation of China (Grant No. 62276203). (Cor-responding author: Lihuo He .) Yuqi Ji, Junjie Ke, Lihuo He and Xinbo Gao are with the School of Electronic Engineering, Xidian University, Xi’an 710071, China, and also with the Interdisciplinary Institute of Artificial Intelligence, Faculty of Infor-X, Xidian University, Xi’an, Shaanxi 710126, China. Yuqi Ji and Junjie Ke contributed equally. (e-mail: lhhe@mail.xidian.edu.cn.) Lizhi Wang is with the School of Artificial Intelligence, Beijing Normal University, Beijing 100875, China (a) Domain Adaptive Object Detection (b) Open-set Object Detection (c) Adaptive Open-set Object Detection         
+
+> Car Car
+> Person Person
+> Novel
+> Novel
+> Novel
+> Car Car
+> Person Person
+> Base Categories Car Person Novel Categories (Lamppost, Traf fi c Sign, Tree...)
+> Car Car
+> Person Person
+> Car Car
+> Person Person
+> Novel
+> Novel
+> Novel
+
+Fig. 1. Illustration of (a) existing DAOD task, (b) OSOD task and (c) AOOD task. Foggy weather corresponds to the target domain, whereas clear weather corresponds to the source domain. 
+
+the continuous growth of image data, both the number of domains and object categories have increased, resulting in high manual annotation costs. Directly deploying well-trained detectors on new data domains and novel object categories leads to significant performance degradation [11]. To tackle these challenges, various object detection methods have been proposed, including domain adaptive object detection (DAOD) and open-set object detection (OSOD). As depicted in Fig. 1 (a) and (b), DAOD methods [12]–[15] are designed to train detectors exclusively on the source domain and subsequently generalize them to unseen target domains, whereas OSOD methods [16]–[21] train detectors to recognize novel object categories. As illustrated in Fig. 1 (c), adaptive open-set object detection (AOOD) simultaneously performs DAOD and OSOD in an unsupervised manner. The structured motif matching (SOMA) framework [22] as a state-of-the-art AOOD method, is primarily built upon a deformable DETR [23] architecture. It integrates the training strategies employed by prototype-based DAOD methods [24], [25] and pseudo-label based OSOD methods [26], [27]. Specif-ically, SOMA first utilizes the object query features of DETR to match the ground truth in the source domain. The matched object query features are assigned to base categories, whereas the unmatched are selected and utilized for novel category identification. Subsequently, category-level knowledge of both base and novel categories is extracted from the source domain and used to select high-quality object query features in the target domain through pseudo-labeling. Finally, classification losses are calculated based on the selected object query fea-
+
+> arXiv:2604.11195v1 [cs.CV] 13 Apr 2026 2
+
+tures to optimize the detector for the target domain. However, despite the promising performance of SOMA, there exist some inherent limitations that lead to suboptimal results, which are detailed as follows. 
+
+Limited feature representation across domains 
+
+Current methods [12], [28] rely heavily on feature centroids to represent the prototype features for each category. This representation is vital for distinguishing features of the same category in the target domain. However, feature centroids be-come less effective when faced with significant intra-category variance in feature distributions across domains. To address this, SOMA [22] uses feature centroids as prototype features and incorporates intra-category variance to capture extreme features. The combination of feature centroids and extreme features can be used to enhance discrimination. Nevertheless, the feature distributions of different categories may still exhibit similar statistical variances [29]–[31]. Therefore, feature cen-troids and variance cannot be solely relied upon for effective feature discrimination. Richer category-level representations should be explicitly mined to enable more reliable feature discrimination across domains. 
+
+Inter-category ambiguity of novel categories 
+
+Several previous methods [17], [21], [32] suggest that novel category features are closer to base category features than to the background in the feature space. Accordingly, these methods compute the mean feature representations across all base categories to represent novel categories. However, as demonstrated in Fig. 2, mean features may not adequately represent the novel categories. To address this, SOMA [22] selects object query features equidistant to the prototype fea-tures for a pair of base categories to represent novel categories. While this approach may encounter the issue illustrated in Fig. 5 (a), the prototype features for a pair of base categories are excessively close, leading to ambiguity in distinguishing novel categories. Hence, it is essential to establish a metric for selecting novel category features that are not too close to either the base categories or the background. 
+
+Feature bias towards the source domain 
+
+Due to the scarcity of high-quality pseudo-label features in the target domain, the prototype features are typically updated using features from the source domain [24], [33], [34]. However, these approaches ignore the dynamic changes in feature distribution, which can result in less robust adaptation and a heavy bias towards the source domain. Hence, high-quality pseudo-label features in the target domain must be assigned to balance the update process. To address the above limitations, category-level knowledge mining (CCKM) has been designed for AOOD. Specifically, clustering-based memory bank (CMB) incorporates class pro-totype features, class auxiliary features, and intra-class dispar-ity features to construct a memory bank that stores category-level knowledge across domains. Each component of CMB is updated through unsupervised clustering, which compre-hensively considers the relationships among features at the category-level. CMB enhances the representational capacity of the memory bank, serving as a bridge across domains. To mitigate ambiguity of novel categories, base-to-novel selection metric (BNSM) is employed to improve the selection of object Novel  
+
+> Prediction
+> Car （Base ）
+> Truck （Base ）
+> Bus(Base) Real
+> Fig. 2. Conceptual Visualization of the gap between mean features of base categories (novel category prediction) and real novel category features.
+
+query features in the source domain. BNSM regulates the distance between object query features of novel categories and class prototype features of base categories via dual prototype ball (ProtoBall) distance, ensuring they are neither too close nor too far apart. Consequently, BNSM contributes to improved classification performance for novel categories. Finally, to balance the feature bias, adaptive feature assignment (AFA) assigns pseudo-labels by calculating Euclidean distance between class auxiliary features and object query features in the target domain. The object query features with pseudo-labels are then utilized in asynchronous memory bank update. AFA ensures that the memory bank remains unbiased toward the source or the target domain. We demonstrate the effectiveness of the proposed CCKM on various domain datasets trained without annotations. The proposed method achieves state-of-the-art performance on the BDD100k [35], Cityscapes [36], Foggy Cityscapes [37], Pascal VOC [38] and Clipart [39] datasets. To sum up, the key contributions of this work are as follows 1) We identify and summarize current challenges in AOOD and propose knowledge mining via category-level col-laboration knowledge mining composed of clustering-based memory bank, base-to-novel selection metric and adaptive feature assignment. 2) Clustering-based memory bank incorporates class pro-totype features, class auxiliary features, and intra-class disparity features to stores category-level knowledge. It is updated through unsupervised clustering which enables the mining and transfer of category-level knowledge across domains. 3) Base-to-novel selection metric mitigates ambiguity in novel categories by regulating the distance between object query features of novel categories and class prototype fea-tures of base categories, thereby improving classification performance for novel categories. 4) Adaptive feature assignment balances memory bank bias by assigning pseudo-labels and updating the memory bank asynchronously to ensure unbiased updates across both domains. 3Ground Truth                
+
+> Adaptive Classification
+> Loss
+> DDETR Decoder
+> Source Domain Image
+> car car car car car car car car car
+> car
+> Person
+> W/ Ground Truth Target Domain Image W/O Ground Truth
+> Class Prototype Features Class Auxiliary Features Intra-class Disparity Features
+> Base Base Base Novel Novel Novel
+> Object Query Features
+> Clustering-based Memory Bank (Sec. III-B)
+> Base-to-Novel Selection Metric (Sec. III-C)
+> Adaptive Feature Assignment (Sec. III-D)
+> Detection Pipeline (Sec. III-A) Threshold
+> Unmatched Source Domain Object Query Features Target Domain Object Query Features Update Via Novel Category features
+> Update Via Assigned Category features
+> Matched
+> TopK Dual ProtoBall Distance K-Means Clustering
+> DDETR Encoder  Novel Categories Classification Loss
+> Assign Euclidean Distance
+
+Fig. 3. An overview of the proposed method. In each mini-batch, images from the source domain (with ground truth annotations) and the target domain are used as input. A shared backbone and shared detector, based on Deformable DETR (DDETR), extract image-level and object query features. Object query features from the source domain are matched with ground truth to identify features corresponding to base categories. These matched features are then used to construct a clustering-based memory bank. Class prototype features guide the base-to-novel selection metric to identify novel category features, while class auxiliary features support adaptive feature assignment by generating high-quality pseudo-labels for object query features in the target domain. 
+
+5) Extensive ablation and comparison experiments are car-ried out on four cross-domain object detection datasets. Our method achieves state-of-the-art performance in both qualitative and quantitative comparisons across diverse challenging conditions. The remainder of this paper is organized as follows. Section II discusses foundations of AOOD. Then the proposed CCKM, followed by CMB, BNSM, and AFA, is presented in Section III. The implementation details and experimental results are shown in Section IV. Finally, Section V concludes our work and discusses the future research directions. II. R ELATED WORK 
+
+A. Domain Adaptive Object Detection 
+
+Early domain adaptive object detection (DAOD) methods such as DAF [40], MAF [41], and SCDA [42] primarily rely on adversarial feature alignment, thereby limiting their capacity to model class-conditional distributions. To further improve semantic consistency, prototype-based methods [24], [33], [34] introduce category-level alignment, a design that inherently constrains prototype updates to source-domain fea-tures. More recently, SIGMA [15] and SIGMA++ [43] lever-age graph matching for fine-grained cross-domain alignment, but their semantic nodes are still largely constructed from source-domain statistics. This persistent reliance on source-derived prototypes introduces inherent source bias, motivating the Adaptive Feature Assignment (AFA) to integrate target-domain features into category-level semantics. 
+
+B. Open-set Object Detection 
+
+Open-set object detection (OSOD) [16] aims to detect known objects while identifying unseen ones. FOOD [18] pioneers the extension of OSOD to the few-shot setting and further enhances unknown rejection in FOODv2 [19] via HSIC-based Moving Weight Averaging. CED-FOOD [20] further advances this line by sharpening the decision bound-ary with a prompt-driven mechanism. Meanwhile, UnSnif-fer [21] introduces the UOD-Benchmark and a robust un-known–background separation strategy. Despite these notable advancements, most OSOD methods [16], [17], [26], [27], [44]–[46] typically adopt limited category-level representa-tions, inevitably discarding fine-grained cues. In this work, we design the Clustering-based Memory Bank (CMB) to store richer category-level representations. 
+
+C. Adaptive Open-Set Object Detection 
+
+Adaptive open-set object detection (AOOD) bridges both DAOD [24], [25] and OSOD [26], [27] by simultaneously handling domain shift and novel target-domain classes. While prior studies [47]–[50] validate cross-domain recognition of novel classes, their image-level focus provides limited insight into AOOD at the instance-level. Building on graph-motif modeling [15], [43], [51], [52] of high-order category–object relations, SOMA [22] constructs a structural metric to sep-arate novel target-domain instances from background [17], [21], [32], forming the first AOOD framework. However, this metric may cause feature overlap between base and visually similar novel classes. We therefore propose the Base-to-Novel Selection Metric (BNSM) to separate novel classes from back-ground without sacrificing base-class detection performance. 4
+
+III. T HE PROPOSED METHOD 
+
+Task Format for AOOD: In this section, we provide a detailed description of AOOD task. In contrast to DAOD, AOOD relaxes the assumption that the source and target domains share the same category space. Specifically, AOOD modifies the training process of the detector to recognize shared categories across domains while enabling the classifi-cation of novel categories exclusive to the target domain [22]. Let Xs/t denote the input images in each training mini-batch data, where s and t refer to the source domain and target domain, respectively. The only available ground truth during training are (Ys, B s), which consist of the coordinates of the bounding boxes Bs along with their corresponding category labels Ys ∈ { 1, 2, . . . , C } in the source domain. Notably, no ground truth are available for the target domain. We define 
+
+{1, 2, . . . , C } as base categories. The primary objective of the proposed method is to train a detector that not only generalizes effectively on the base categories in the target domain but also uniformly classify all novel categories {C + 2 , . . . , C + C′}
+
+into a single unified novel category labeled C + 1 .Fig. 3 shows the overview of the proposed method, which mainly consists detection pipeline, clustering-based memory bank, base-to-novel selection metric and adaptive feature as-signment. In the detection pipeline, the backbone ResNet-50 first extracts image-level features from the input images across domains. Then, the image-level features and object query features are fed into the encoder-decoder module of deformable DETR (DDETR) [23] for detection. Finally, object query features are utilized to detect objects belonging to novel categories. During evaluation, only the detection pipeline is available for predicting objects from both base and novel categories using images from the target domain. We describe each subsection in detail below. 
+
+A. Detection Pipeline 
+
+During the detection pipeline, the backbones and FPN [53] serve as feature extractors ϕ, responsible for extracting image-level features Ps/t from the source and target domains. The process is formulated as follows 
+
+Ps/t = ϕ(Xs/t ), (1) where ϕ denotes the shared backbone (ResNet-50) that em-ploys the same weight parameters across domains. Following the previous domain adaptive object detection method [15], the image-level features Ps/t are adopted to perform global adaptation. The global adaptation loss is formulated as 
+
+Lga = −(Dga · log (1 −δ(Ps)) + (1 −Dga ) · log (δ(Pt))) , (2) where Dga ∈ { 0, 1} are domain labels of image-level features 
+
+Ps/t . δ denotes the domain discriminators formed by binary classifiers. The global adaptation process ensures that the fea-ture extractor can better extract domain-invariant information from image-level features. Then, DDETR [23] utilizes object queries Vs/t to inter-act with image-level features Ps/t via encoder-decoder ψ.Hence, we can acquire refined object query features V ′ 
+
+> s/t
+
+∈
+
+R∈Ns/t ×256 as instance-level features. The above process is formulated as 
+
+V ′ 
+
+> s/t
+
+= ψ(Ps/t , V s/t ). (3) Then, the refined object queries V ′ 
+
+> s
+
+∈ R∈Ns′×256 in the source domain are fed into the detection head for regression and classification. In the meantime, Hungarian matching al-gorithm [54] is employed to match the detection results with ground truth Ys, B s based on the regression and classification results as Y ′ 
+
+> s
+
+= τcls (V ′ 
+
+> s
+
+)
+
+B′ 
+
+> s
+
+= τreg (V ′ 
+
+> s
+
+)˜Vs = Hungarian (Y ′ 
+
+> s
+
+, B ′
+
+> s
+
+, Y s, B s),
+
+(4) where τ denotes the detection head. It comprises a regression head τreg that outputs bounding box predictions and a classi-fication head τcls that produces category predictions. Y ′ 
+
+> s
+
+and 
+
+B′ 
+
+> s
+
+represent the category classification results and bounding box regression results, respectively. The Hungarian operator refers to the Hungarian algorithm [54] for detection results assignment. After assignment, the matched assign results Y ′
+
+> s
+
+and B′ 
+
+> s
+
+in the source domain are utilized to calculate the supervised detection loss as 
+
+Ldet = Lreg (B′
+
+> s
+
+, B s) + Lcls (Y ′ 
+
+> s
+
+, Y s), (5) where Lreg denotes the GIoU loss [55] for coords localization. 
+
+Lcls denotes the focal loss [56] for object classification. Based on the above assignment, we can determine which object queries match the ground truth. Consequently, ˜Vs ∈
+
+R∈ ˜Ns×256 are the matched object query features for base categories, while the unmatched object query features V s ∈
+
+R∈N s×256 denote the novel categories and background. The unmatched object query features V s = V ′ 
+
+> s
+
+\ ˜Vs are the set difference between the refined object query features V ′ 
+
+> s
+
+and the matched object queries ˜Vs. In practice, ˜Vs within a mini-batch are retained, with their number dynamically reflecting the source-domain instance distribution. The detection pipeline is designed to calculate the super-vised detection loss and global adaptation loss for DDETR [23]. In the following section, the matched and unmatched ob-ject query features are utilized to identify the novel categories in the source domain. 
+
+B. Clustering-based Memory Bank 
+
+Considering that the matched object query features ˜Vs are related to the base categories {1, 2, . . . , C }, the unmatched object queries V s correspond to the novel categories {C +2, . . . , C + C′} and background. We establish the clustering-based memory bank that serves as a bridge between base and novel categories for identifying object query features across domains. Class prototype features , denoted as ˜M ∈ RC×256 
+
+for base categories and M ∈ R1×256 for novel categories, are designed to capture the feature centroids of each category. 
+
+Class auxiliary features , ˜A± ∈ R2×C×256 and A± ∈
+
+R2×1×256 for base and novel categories, capture secondary representative sub-centroids to complement class prototype features. Intra-class disparity features , ˜D ∈ RC×256 and 5dc 
+
+# mpr 
+
+> C
+
+dWC+2、 
+
+> C+1
+
+C+2 
+
+d. C+2 
+
+> C+1
+
+# a
+
+> 0
+
+## d
+
+# a △
+
+> ☆mc
+> O
+
+# A△ ☆
+
+M A十 
+
+> ■x
+
+mC+2 
+
+# mC+1 
+
+■ ■ ■■  
+
+> (b)
+> Fig. 4. Update procedure of the clustering-based memory bank (CMB). (a) For base category, prototype features and auxiliary features are updated via K-means clustering. (b) For novel category, prototype features and intra-class disparity features are derived from base class statistics.
+
+D ∈ R1×256 for base and novel categories, are constructed to encode the intra-class variability of object query features. We establish CMB based on { ˜M , M , ˜A±, A ±, ˜D, D } to store richer category-level representations. Initially, all these features are set randomly [15], [22], [43] and updated it-eratively based on object query features in each mini-batch data. 1 The details of memory bank calculation are described in Alg. 1. Here, β serves as a momentum parameter [27], [57] that balances the contribution between the historical representations and the newly aggregated features. As shown in Fig. 4, we first update the ˜mc ∈ ˜M , ˜a± 
+
+> c
+
+∈ ˜A± and ˜dc ∈ ˜D
+
+for base category c. Specifically, the matched object query features ˜vs,c ∈ ˜Vs from the source domain are concatenated with the base class prototype features ˜mc and then perform K-
+
+means clustering [58] to separate them into three clusters. The cluster ˜O′ 
+
+> c
+
+containing the previous ˜mc is selected for updating class prototype features by calculating the cosine similarity as update momentum. The mean features of the other two clusters 
+
+{ ˜O+ 
+
+> c
+
+, ˜O− 
+
+> c
+
+} are directly assigned as the updated class auxiliary features ˜A± for base category c. The intra-class disparity features ˜D are also updated based on standard deviation 
+
+˜qs,c . As for the novel categories, inspired by OpenDet [32] and MLFA [59], the novel class prototype features M are calculated using the mean of the base class prototype features 
+
+˜M . The novel class auxiliary features A± are calculated based on M and D. Since CMB maintains only category-level representations and is updated with lightweight clustering, it incurs minimal computational and memory overhead, without introducing additional inference cost. In Alg. 1, the novel class prototype features are calculated simply based on the mean features of the base class prototype features. However, it is challenging to use mean features to represent even a single novel category, let alone multiple novel categories. 2 As shown in Fig. 2, We present an illustrative example scenario: when base categories (e.g., bus, truck, car) 
+
+> 1As the memory bank is continuously updated through batch-wise cluster-ing, the overall performance is not sensitive to the specific initialization.
+> 2Since the exact number of novel categories is unknown, we classify all novel categories into a single group.
+
+Algorithm 1 Clustering-based Memory Bank Calculation 
+
+Input: 
+
+˜Vs : Matched object query features 
+
+Base Categories 
+
+˜M : Class prototype features 
+
+˜A± : Class auxiliary features 
+
+˜D : Intra-Class Disparity features 
+
+Novel categories 
+
+M : Class prototype features 
+
+A± : Class auxiliary features 
+
+D : Intra-Class Disparity features 
+
+Parameters 
+
+β : Momentum Parameter β = 0 .01 
+
+Output: 
+
+The updated features for both base and novel categories include ˜M , ˜A±, ˜D, M , A± and D 
+
+> 1:
+
+for category c = 1 , 2, . . . , C do  
+
+> 2:
+
+Select matched object query features ˜vs,c ∈ ˜Vs, class prototype features ˜mc ∈ ˜M , class auxiliary features 
+
+{˜a+ 
+
+> c
+
+, ˜a− 
+
+> c
+
+} ∈ ˜A±, and intra-class disparity features ˜dc ∈
+
+˜D for base category c. 
+
+> 3:
+
+Perform K-means clustering: 
+
+{ ˜O′
+
+> c
+
+, ˜O+ 
+
+> c
+
+, ˜O− 
+
+> c
+
+} = Kmeans(Concat(˜ vs,c , ˜mc), 3)  
+
+> 4:
+
+Calculate mean features of cluster features ˜O′
+
+> c
+
+, ˜O± 
+
+> c
+
+:
+
+˜o′ 
+
+> c
+
+= Mean( ˜O′
+
+> c
+
+), ˜o± 
+
+> c
+
+= Mean( ˜O± 
+
+> c
+
+) 
+
+> 5:
+
+Update class prototype features for base category c:
+
+˜mc ← β · ⟨˜o′   
+
+> c,˜mc⟩∥˜o′
+> c∥2·∥ ˜mc∥2
+
+· ˜o′ 
+
+> c
+
++
+
+
+
+1 − β · ⟨˜o′  
+
+> c,˜mc⟩∥˜o′
+> c∥2·∥ ˜mc∥2
+
+
+
+· ˜mc 
+
+> 6:
+
+Update class auxiliary features: 
+
+˜a+ 
+
+> c
+
+← ˜o+ 
+
+> c
+
+, ˜a− 
+
+> c
+
+← ˜o− 
+
+> c
+> 7:
+
+Calculate and update intra-class disparity: 
+
+˜qs,c = Std(˜ vs,c ) 
+
+> 8:
+
+Update intra-class disparity features for base category c:
+
+˜dc ← β · ⟨ ˜dc,˜qs,c ⟩∥ ˜dc∥2·∥ ˜qs,c ∥2
+
+· ˜qs,c +
+
+
+
+1 − β · ⟨ ˜dc,˜qs,c ⟩∥ ˜dc∥2·∥ ˜qs,c ∥2
+
+
+
+· ˜dc 
+
+> 9:
+
+end for  
+
+> 10:
+
+Update class prototype features for novel categories: 
+
+M ← β · ⟨Mean( ˜M ),M ⟩∥Mean( ˜M )∥2·∥ M ∥2
+
+· Mean( ˜M )+(1 − β · ⟨Mean( ˜M ),M ⟩∥Mean( ˜M )∥2·∥ M ∥2
+
+) · M 
+
+> 11:
+
+Update standard deviation features for novel categories: 
+
+D ← β · ⟨Mean( ˜D),D ⟩∥Mean( ˜D)∥2·∥ D∥2
+
+· Mean( ˜D)+(1 − β · ⟨Mean( ˜D),D ⟩∥Mean( ˜D)∥2·∥ D∥2
+
+) · D 
+
+> 12:
+
+Calculate class auxiliary features for all novel categories: 
+
+A+ = M + D, A− = M − D
+
+and novel categories (e.g., rider, pedestrian, bicycle) differ substantially, directly utilizing the mean features of the base categories may poorly represent the novel categories. Hence, a metric is formulated in the following section to restrict the relationship between the base and novel categories. 
+
+C. Base-to-Novel Selection Metric 
+
+After the update, we need to identify the unmatched object query features for novel categories in the source domain. The 6☆     
+
+> ○☆O
+> Back groUn ackgrou
+> a) SOMA (b) CCKM
+> Fig. 5. Illustration of the feature distributions for base and novel categories in (a) SOMA and (b) the proposed CCKM, respectively. The shaded regions represent background areas. The purple star denotes the novel class prototype feature, while the green and blue stars indicate two distinct base class prototype features. Compared with SOMA, CCKM exhibits reduced overlap between base and novel feature distributions.
+
+updated category-level representations for novel categories can coarsely represent the feature distribution for all novel cate-gories. Nevertheless, each novel category exhibits a distinct feature distribution, directly averaging base class prototype features may lead to suboptimal performance. Therefore, it is essential to train DDETR {ϕ, ψ, τ } to identify novel cate-gories by mining knowledge from unmatched object queries, which requires distinguishing novel-category object queries from background based on their relative positions to the base class prototype features. Based on the observation [17], [21], [32], unmatched object query features of novel categories tend to distribute closer to base class prototype features than background in the feature space. Meanwhile, the feature distribution of novel categories should remain sufficiently separated from that of any base category. SOMA [22] measures the relative distance between each unmatched object query features and the base class proto-type features using cosine distance and NDD. Although novel categories can be distinguished from the background, their feature distributions may overlap with those of base categories, as shown in Fig. 5. (a). The distance between unmatched query features vns ∈ V s and the base class prototype features ˜mc,
+
+˜mc+1 is measured using cosine distance. However, a small cosine distance may cause these features to be overly close to base categories in the feature space, increasing the risk of misclassification. This limitation motivates the need for a more discriminative metric. Hence, we propose a base-to-novel selection metric, as summarized in Alg. 2, to distinguish novel categories from background while reducing feature overlap with base categories. As shown in Fig. 5. (b) and the top right part of Fig. 3, the proposed metric adopts a dual prototype ball (ProtoBall) distance, which utilizes two distinct base class prototype features as centers of balls in the feature space. Such a formulation is aligned with the principle of limiting open space risk [16], [60], [61] by discouraging confident assignment of samples that lie far from known class supports, while avoiding excessive attraction to any single base class prototype feature. This dual-prototype reference design enables ProtoBall to evaluate novel queries relative to multiple base categories, alleviating bias and feature overlap with base classes. Based on the ProtoBall distance, a source 
+
+Algorithm 2 Base-to-Novel Selection Metric 
+
+Input: 
+
+V s : Unmatched object query features from source domain 
+
+˜M : Updated base class prototype features 
+
+Parameters 
+
+K : Number of selected novel candidates K = 5 
+
+Output: 
+
+Selected novel query features ˆVs and their indices I 
+
+> 1:
+
+Initialize score vector U s ← 0 
+
+> 2:
+
+for unmatched query features vns ∈ V s do  
+
+> 3:
+
+for category c = 1 , 2, . . . , C do  
+
+> 4:
+
+Select base class prototype features ˜mc, ˜mc+1 from ˜M :
+
+˜mc+1 = arg max    
+
+> ˜mj∈˜M ,j ̸=c
+
+∥ ˜mc − ˜mj ∥2 . 
+
+> 5:
+
+Compute ProtoBall distance uns
+
+> (c,c +1)
+
+▷ Defined in Equation (6)  
+
+> 6:
+
+end for  
+
+> 7:
+
+Compute the best-matching ProtoBall distance for vns :
+
+U s ← min  
+
+> 1≤c<c +1 ≤C
+
+uns 
+
+> (c,c +1)
+> 8:
+
+end for  
+
+> 9:
+
+Select Top-K novel candidates: 
+
+I = ArgTopK( −U s, K ), ˆVs = V s[I]
+
+domain connection matrix (SCM) is established by pairing each unmatched object query feature vs ns ∈ V s, with the corresponding ProtoBall in the feature space. Each component in SCM Us ∈ RC×(C−1) ×N s is formulated as follow 
+
+uns 
+
+> (c,c +1)
+
+= vns − ˜mc 2 − γ · ∥ ˜mc − ˜mc+1 ∥2
+
+∥ ˜mc − ˜mc+1 ∥2
+
+− vns − ˜mc+1 2 − γ · ∥ ˜mc − ˜mc+1 ∥2
+
+∥ ˜mc − ˜mc+1 ∥2
+
+,
+
+(6) where uns 
+
+> (c,c +1)
+
+denotes the element (c, c + 1 , n s) of the SCM Us. It represents metric among ˜mc, ˜mc+1 and vns . As illustrated in Fig. 5 (b), the selected object query features are able to remain distinguishable from background while reducing feature overlap between base and novel categories. The scale parameter γ is set to 0.65. We further investigate its optimal values in Fig. 7 . After obtaining the SCM Us, we gather the smallest values for each object query features and output U s ∈ R ˜Ns . The indices of the Top-K smallest components are collected to identify high-quality object query features for novel categories in U s. The selection process is formulated as 
+
+I = Arg Topk( −U s, K ), (7) where Arg Topk operator is employed to collect the indices of the Top-K largest components in −U s, which corresponds to gathering the Top-K smallest components. The indices I
+
+are utilized to select the object query features that belongs to novel categories from V s as 
+
+ˆVs = V s[I], (8) where ˆVs denotes the object queries associated with novel cat-egories. To achieve novel category recognition, the regression 7
+
+branch τcls of the detection head can be retrained based on the selected ˆVs. The classification loss for novel categories is defined as follow 
+
+Lnc = − P ˆYs log τcls ( ˆVs), (9) where Lnc represents the classification loss for novel categories within the source domain, while ˆYs denotes the unified novel category labeled as C + 1 . In return, the classification loss contributes to the optimization of the classifier. The selected object query features ˆVs are representative enough for novel categories in the source domain. Hence, we utilize ˆVs to update the class prototype features M and intra-class disparities features D for novel categories as follows 
+
+M ← β · ⟨Mean( ˆVs), M ⟩∥Mean( ˆVs)∥2 · ∥ M ∥2
+
+· Mean( ˆVs)+ (1 − β · ⟨Mean( ˆVs), M ⟩∥Mean( ˆVs)∥2 · ∥ M ∥2
+
+) · M , D ← β · ⟨Std( ˆVs), D ⟩∥Std( ˆVs)∥2 · ∥ D∥2
+
+· Std( ˆVs)+ (1 − β · ⟨Std( ˆVs), D ⟩∥Std( ˆVs)∥2 · ∥ D∥2
+
+) · D. 
+
+(10) The updated M and D can be utilized in the memory bank calculation in Alg. 1 during the next iteration. High-quality 
+
+M and D enhance the knowledge mining of class auxiliary features A± for all novel categories. In the next section, the class auxiliary features A = { ˜A±, A ±} will be utilized to further enhance adaptation in the target domain. 
+
+D. Adaptive Feature Assignment 
+
+In the target domain, no ground truth labels are available for the object query features except for the pseudo labels generated by the classification branch τcls . Since τcls is trained on the source domain, these pseudo labels exhibit lower confidence in the target domain due to domain shift [11]. Therefore, the pseudo labels cannot be utilized as labels for training in the target domain. To address this issue, we propose an adaptive feature assignment that leverages the memory bank 
+
+{ ˜M , M , ˜A±, A ±, ˜D, D } to assign more accurate labels to the object query features Vt. In return, the assigned object query features in the target domain are used to update the memory bank. The update process bridge the domain gap and alleviate the effects of domain shift. According to KTNet [25], features belonging to the same category should exhibit similar distributions in the feature space. Hence, the class auxiliary features ˜A±, A ± can be employed to distinguish potential foregrounds in the target domain. To select the foreground object query features from 
+
+Vt ∈ RNt×256 in the target domain, we follow the positive selection rule from DDETR [23] and set a threshold of 0.5 for foreground object query features ˆVt ∈ R ˆNt×256 . Then, a target domain connection matrix (TCM) Ut ∈ R(C+1) × ˆNt is also established between A± = { ˜A±, A ±} and ˆVt. TCM Ut
+
+is computed based on Euclidean distance as 
+
+Ut = ∥ ˆVt − A++A− 
+
+> 2
+
+∥2
+
+∥A+ − A−∥2
+
+. (11) Each element in TCM Ut quantifies the distributional rela-tionship between the class auxiliary features and the object query features in the feature space. Object query features are assigned to the category for which the proximity to the corresponding class auxiliary features is the closest. We determine the closest distributional relationship for each object query features by selecting the smallest values in each row of Ut. Subsequently, high-quality corresponding labels ˆYs are obtained. It should be noted that in the target domain, the base and novel categories are computed concurrently. The adaptive classification loss is adopted for base and novel categories in the target domain as follow 
+
+Lac = − X ˆYt log τcls ( ˆVt), (12) where Lac represents adaptive classification loss based on the cross entropy loss in the target domain. The classification branch τcls is trained using the loss function Lac . During evaluation, τcls determine whether features in the target domain correspond to base or novel categories. Finally, we enhance the memory bank by updating the class prototype features 
+
+M = { ˜M , M } for both base and novel categories as follow 
+
+M ← β · ⟨Mean( ˆVt), M ⟩∥Mean( ˆVt)∥2 · ∥ M ∥2
+
+· Mean( ˆVt)+ (1 − β · ⟨Mean( ˆVt), M ⟩∥Mean( ˆVt)∥2 · ∥ M ∥2
+
+) · M. 
+
+(13) The updated clustering-based memory bank is utilized to enhance the category-level knowledge mining by providing richer category-level representations that are consistent across domains in Alg. 1. During training, it integrates these repre-sentations to capture domain-invariant characteristics of object query features across domains. This mechanism effectively improves detection performance for both base and novel categories in the target domain, while alleviating bias toward source-domain feature distributions. 
+
+E. Optimization 
+
+The overall objective function to train our network can be expressed as 
+
+L = Ldet + λ1Lga + λ2Lnc + λ3Lac . (14) 
+
+Ldet is the fully supervised detection loss in the source domain. Lga represents the global adaptation loss based on image-level features across domains and contributes to the ex-traction of domain-invariant image-level features. Lnc denotes the classification loss for novel categories within the source domain and contributes to the optimization of the detection head to effectively discriminate among all novel categories. 
+
+Lac describes the adaptive classification loss that enhances the cross-domain detection capabilities of the detectors. As for parameter setting, λ1 = 1 e − 3, λ2 = 1 e − 4 and λ3 = 1 e − 1
+
+serve as coefficients that balance the significance of the critics in the adaptation process. By such a design, the proposed method can boost the performance of AOOD. 8                                                                                                                                                                                                                                                                                                                              
+
+> TABLE I COMPARING WITH STATE -OF -THE -ART VALIDATION RESULTS ON CITYSCAPES →FOGGY CITYSCAPES . T HE TOP 2RESULTS ARE SHOWN IN RED ,GREEN .
+> Method Setting Num. novel categories: 3 Num. novel categories: 4 Num. novel categories: 5
+> mAP ↑AR ↑WI ↓AOSE ↓mAP ↑AR ↑WI ↓AOSE ↓mAP ↑AR ↑WI ↓AOSE ↓
+> DDETR [23] het-sem 47.52 0.00 0.341 459 45.24 0.00 0.506 1028 42.38 0.00 0.659 1968 PROSER [62] 46.92 1.80 0.271 218 44.19 2.02 0.415 531 41.99 2.00 0.584 1127 OpenDet [17] 47.04 1.92 0.269 221 45.71 1.89 0.499 511 42.09 1.70 0.579 922 OW-DETR [46] 43.31 1.84 0.432 192 42.52 2.10 0.619 451 39.92 1.98 0.684 814 SOMA [22] 50.87 3.78 0.268 139 48.06 4.41 0.412 340 45.55 4.08 0.526 649
+> CCKM 53.16 3.43 0.238 103 50.22 4.37 0.384 257 47.79 4.16 0.494 500 DDETR [23] hom-sem 44.62 0.00 1.860 2937 43.55 0.00 2.000 3565 40.18 0.00 2.462 6770 PROSER [62] 43.15 4.59 1.842 2146 43.31 4.99 2.018 2641 39.99 5.99 2.563 4963 OpenDet [17] 45.51 5.28 1.336 1458 44.02 5.67 1.653 1798 40.87 6.58 2.303 3416 OW-DETR [46] 43.22 3.15 1.355 1076 42.83 3.46 1.593 1320 39.45 4.38 2.384 3399 SOMA [22] 48.67 6.96 1.257 915 47.02 7.42 1.527 1232 43.37 8.42 2.281 2886
+> CCKM 50.78 12.36 1.238 1184 49.71 12.58 1.558 1319 45.11 12.84 2.295 3356 DDETR [23] freq-dec 56.99 0.00 0.579 1240 55.02 0.00 0.835 2136 53.89 0.00 0.93 2625 PROSER [62] 55.70 6.68 0.589 536 54.51 7.88 0.780 952 53.43 8.22 0.943 1072 OpenDet [17] 57.28 9.35 0.519 720 54.89 10.59 0.781 1251 53.51 10.37 0.839 1470 OW-DETR [46] 56.63 6.61 0.585 698 55.45 7.90 0.745 930 53.60 7.90 0.807 1105 SOMA [22] 59.18 11.41 0.507 669 56.85 12.47 0.723 1140 55.63 12.36 0.759 1315
+> CCKM 59.63 11.59 0.515 705 57.93 13.19 0.742 1209 55.74 13.28 0.802 1440 DDETR [23] freq-inc 44.72 0.00 2.862 2859 43.91 0.00 3.270 4907 41.12 0.00 3.609 8291 PROSER [62] 44.23 2.94 2.881 1090 42.47 2.98 2.745 1866 39.11 3.01 3.119 3242 OpenDet [17] 44.85 3.23 2.579 1700 42.92 3.30 2.741 2835 40.34 3.44 2.970 4965 OW-DETR [46] 43.92 3.85 2.032 1377 43.01 3.99 2.219 1891 40.21 2.98 2.184 2293 SOMA [22] 44.30 3.39 1.398 394 44.69 3.55 1.581 696 41.16 3.48 1.800 1276
+> CCKM 46.34 6.10 1.002 647 45.14 6.02 1.167 1088 42.55 5.64 1.318 1896
+
+IV. E XPERIMENTS 
+
+A. Datasets and Evaluation Metrics 
+
+To comprehensively evaluate the effectiveness of our ap-proach, we conduct experiments across both street scene datasets and generic object detection datasets. 
+
+Street Scene Datasets Cityscapes → Foggy Cityscapes. Cityscapes [36] comprises 2,975 training images and 500 validation images of urban street scenes, with dense pixel-level annotations across 8categories. In contrast, Foggy Cityscapes [37] is generated by simulating fog on the Cityscapes images, presenting a chal-lenging task for cross-domain detection. By introducing the clear-to-foggy adaptation task, we aim to evaluate the model’s robustness to variations in dynamic weather conditions. 
+
+Cityscapes → BDD100k. BDD100K is the largest and most diverse publicly available driving dataset with 100K videos. In line with previous work [63], [64], we utilize the daytime subset, which includes 36,728 images for training and 5,258 images for evaluation. We assess the model’s sensitivity to domain shifts induced by variations in data collection devices. 
+
+Generic Object Detection Datasets Pascal VOC → CLipart. Pascal VOC [38] includes 20 object categories from real-world scenes, with 16,551 images used for training, following the mainstream [65]. Clipart [39] consists of 1,000 artistic style images selected from the website for training and testing [66]. The style gap between Clipart and Pascal VOC offers compelling evidence for the effectiveness of the proposed method. To ensure a fair comparison, we evaluate detection perfor-mance on base categories in the target domain by calculating mean average precision (mAP). Specifically, AP is calculated for each class at an IoU threshold of 0.5. The mAP is then obtained by averaging these AP values across all classes. Following ORE [27], average recall (AR) is employed to assess the recognition performance of novel categories in the target. Higher mAP and AR values indicate the effectiveness of recognizing both base and novel categories. In addition, we employ wilderness impact (WI) to quantify the influence of unknown objects on detection performance, defined as the ratio of precision on base categories to precision on both base and novel categories. A lower WI value signifies that the presence of unknown objects has a minimal effect on the detector’s precision, indicating enhanced robustness in open-set scenarios. Absolute open-set error (AOSE) quantifies the number of novel objects that are misclassified as base categories. Lower WI and AOSE values indicate that the model demonstrates robustness against a larger number of novel categories. The following section provides an in-depth description of each task. 
+
+B. Implementation Details 
+
+Following prior works, input images are uniformly resized to the same scale used in previous works [17], [22], [46], [62], while maintaining their original aspect ratios. Further implementation details are presented in the following section. 
+
+Architecture: The detector is implemented using De-formable DETR [23] with a ResNet-50 [67] backbone. To prevent novel-class leakage from ImageNet [68], as noted in [46], the backbone is implemented with weights pre-trained by DINO [69] on the Objects365 dataset [70]. 9                                                                                                                                                                                                                                                                                                                             
+
+> TABLE II COMPARING WITH STATE -OF -THE -ART VALIDATION RESULTS ON CITYSCAPES →BDD100 K. T HE TOP 2RESULTS ARE SHOWN IN RED ,GREEN .
+> Method Setting Num. novel categories: 3 Num. novel categories: 4 Num. novel categories: 5
+> mAP ↑AR ↑WI ↓AOSE ↓mAP ↑AR ↑WI ↓AOSE ↓mAP ↑AR ↑WI ↓AOSE ↓
+> DDETR [23] het-sem 13.48 0.00 0.153 1448 13.49 0.00 0.164 1604 13.52 0.00 0.227 2378 PROSER [62] 13.32 1.53 0.148 910 13.35 1.48 0.163 1032 13.37 1.60 0.218 1466 OpenDet [17] 13.70 1.20 0.135 836 13.71 1.17 0.150 992 13.75 1.27 0.209 1244 OW-DETR [46] 13.15 1.27 0.129 792 13.15 1.27 0.157 908 13.50 1.30 0.201 1168 SOMA [22] 14.11 1.86 0.127 614 14.10 1.90 0.145 732 14.13 2.01 0.197 1074
+> CCKM 14.34 0.91 0.07 360 14.35 0.96 0.08 426 14.37 1.00 0.109 626 DDETR [23] hom-sem 10.31 0.00 2.846 25530 10.32 0.00 2.873 26488 10.56 0.00 3.003 29812 PROSER [62] 9.17 2.38 2.525 13200 9.19 2.41 2.458 13684 9.40 2.58 3.067 15962 OpenDet [17] 10.50 3.26 2.308 9760 10.54 3.28 2.327 10126 10.84 3.41 2.861 11776 OW-DETR [46] 9.45 1.45 2.255 6236 9.47 1.46 2.372 9440 10.52 1.64 2.780 10088 SOMA [22] 11.51 3.97 2.251 7670 11.53 4.01 2.312 8054 11.83 4.13 2.611 9968
+> CCKM 11.55 2.26 1.467 4122 11.58 2.28 1.491 4328 12.06 2.42 1.861 5966 DDETR [23] freq-dec 15.91 0.00 0.908 7402 15.88 0.00 0.952 8166 15.86 0.00 1.258 13044 PROSER [62] 15.98 12.92 0.949 4320 15.76 12.54 0.987 4886 12.88 15.57 1.286 7504 OpenDet [17] 16.01 14.87 0.948 4254 16.04 14.36 0.932 4942 16.11 14.69 1.250 7988 OW-DETR [46] 15.80 9.68 0.963 4294 15.76 9.31 1.021 4756 15.81 9.60 1.379 7738 SOMA [22] 16.81 15.67 0.869 4220 16.55 15.05 0.915 4654 16.63 15.59 1.181 7230
+> CCKM 16.94 13.29 0.746 3570 16.94 12.78 0.784 3918 16.89 12.94 1.024 6152 DDETR [23] freq-inc 10.02 0.00 3.054 22108 10.02 0.00 3.08 23060 10.18 0.00 3.219 25684 PROSER [62] 9.02 1.71 3.995 24118 8.95 1.72 4.019 25366 9.80 1.77 4.202 28170 OpenDet [17] 10.47 1.68 3.228 13578 10.30 1.70 3.282 14210 10.46 1.73 3.393 15928 OW-DETR [46] 8.11 1.75 2.785 9602 8.12 1.75 2.787 9960 8.34 1.76 2.867 11034 SOMA [22] 11.17 4.56 2.556 7420 11.08 4.56 2.577 7762 11.71 4.53 2.713 8844
+> CCKM 11.59 2.81 2.584 2640 11.51 3.17 2.653 2808 11.75 2.60 2.670 3286
+
+Hyper-parameters: The training phase is implemented on two NVIDIA V100 GPUs, employing the AdamW optimizer [71] with a learning rate of 0.0002, a batch size of 4, and a weight decay of 0.0005. All other hyperparameters are configured according to the default settings used in previous studies [22], [46]. 
+
+C. State-of-the-art Comparison 
+
+In this subsection, we conduct extensive experiments to compare CCKM with current SOTA methods. Following the previous works, all experimental settings remain the same as the baseline [22]. 
+
+1) Cityscapes → Foggy Cityscapes: Table I presents the quantitative comparison of the SOTA open-set object detection methods on the Cityscapes → Foggy Cityscapes task. Each setting varies along semantic category relationship (het-sem vs. hom-sem) or object frequency (freq-dec vs. freq-inc), while the number of novel categories ranges from 3 to 5. Under the heterogeneous semantics (het-sem) setting, the proposed method consistently achieves the best performance across all metrics and novel category settings. With 3 novel categories, it attains the highest base category detection per-formance (53.16 mAP), while maintaining a competitive clas-sification accuracy (3.43 AR) and the lowest WI (0.238) and AOSE (103). As the number of novel categories increases to 5, the proposed method retains leading scores (47.79 mAP, 4.16 AR, WI = 0.494, AOSE = 500) and demonstrates superior scalability, outperforming SOMA [22] and OpenDet [17]. In the homogeneous semantics (hom-sem) scenario, strong semantic overlap between base and novel categories degrades base-class detection while increasing novel-class recall. Com-pared with SOMA, CCKM achieves higher mAP (50.78) and lower WI (1.238) in this challenging setting by explicitly reducing base–novel feature confusion through BNSM. Mean-while, by facilitating clearer separation between novel in-stances and background, CCKM further improves AR (12.36). This suggests that under inevitably base–novel semantic over-lap, our method aims to reduce confusion while encouraging the separation of novel instances from the background. The frequency decrease (freq-dec) setting simulates a long-tailed distribution where novel categories are less frequent. This imbalance is particularly challenging for novel class detection. CCKM shows the SOTA results across all configura-tions. For example, with 4 novel categories, it achieves a strong WI (0.742) and maintains the best AR (13.19), demonstrating resilience against data imbalance. Its performance is closely aligned with SOMA, yet consistently superior in mAP and AR, reinforcing the detection ability to generalize to rare novel classes without sacrificing base class performance. The frequency increase (freq-inc) scenario, more frequent novel categories intensify base–novel confusion, leading to reduced mAP. Nevertheless, CCKM again surpasses all base-lines, with a substantial improvement in AR (e.g., 6.10 with 3 novel categories) and the lowest WI (1.002). As novel cate-gories become more frequent, increased intra-class complexity causes more background regions to be misclassified as novel, leading to a higher AOSE. Despite this, CCKM maintains a favorable balance between precision, recall, and open-set error. Across all experimental settings and increasing numbers of novel categories, the proposed method achieves consistently 10                                                                                      
+
+> TABLE III COMPARING WITH STATE -OF -THE -ART VALIDATION RESULTS ON PASCAL
+> VOC →CLIPART .( NUM .INDICATES THE NUMBER OF NOVEL CLASSES .) THE TOP 2RESULTS ARE SHOWN IN RED ,GREEN .
+> Method Num. mAP ↑AR ↑WI ↓AOSE ↓
+> DDETR [23]
+> 6
+> 19.78 0.00 8.95 6347 PROSER [62] 18.23 32.37 9.87 5853 OpenDet [17] 20.57 41.15 8.93 4295 OW-DETR [46] 20.31 35.48 10.26 5184 SOMA [22] 21.70 43.15 7.32 4278
+> CCKM 23.70 36.72 6.77 3496 DDETR [23]
+> 8
+> 19.31 0.00 9.58 7402 PROSER [62] 18.37 33.07 10.40 6636 OpenDet [17] 20.84 41.58 9.53 4919 OW-DETR [46] 21.01 36.53 10.52 5981 SOMA [22] 21.69 43.40 8.24 5016
+> CCKM 23.36 37.93 7.85 4160 DDETR [23]
+> 10
+> 19.12 0.00 10.06 9198 PROSER [62] 16.80 33.74 11.06 8065 OpenDet [17] 18.87 41.50 10.24 6103 OW-DETR [46] 18.42 36.50 11.06 7018 SOMA [22] 20.09 43.73 8.88 6092
+> CCKM 21.99 38.79 8.11 5018
+
+superior performance in base category precision (mAP), novel category recall (AR), and robustness to open-set noise (low WI and AOSE). The results clearly demonstrate its capacity to adapt across semantically category diverse and frequency-imbalanced conditions, confirming its effectiveness for scal-able and robust detection performance. 
+
+2) Cityscapes → BDD100k: For the Cityscapes to BDD100k task, we adhere to the same experimental settings as those used in the Cityscapes to Foggy Cityscapes task, with the results presented in Table II . Under the het-sem setting, CCKM sets new SOTA results across all metrics and novel category counts. It achieves the highest mAP in every case (e.g., 14.34 mAP with 3 novel categories), indicating strong detection capability on base classes. Additionally, the proposed method obtains the lowest WI (0.07) and lowest AOSE (360), indicating excep-tional robustness to unknown categories. While SOMA attains higher AR, CCKM’s superior precision (mAP) and drastically reduced open-set errors signify a better overall balance. Hom-sem settings are challenging due to strong semantic overlap between base and novel classes, which leads to higher WI and AOSE for most methods. While SOMA attains higher AR by more loosely accepting novel instances, this also increases interference with base classes and background. In contrast, by integrating target-domain information through AFA and CMB, the proposed method learns more concen-trated category semantics, resulting in slightly lower AR but substantially reduced WI (1.467) and AOSE (4122), and thus stronger open-set reliability. In the freq-dec setting, which simulates the long-tail distri-bution, the proposed method again achieves the highest mAP (16.94) and the lowest WI and AOSE across all settings. While SOMA slightly surpasses in AR (15.67), the proposed method exhibits more consistent and robust performance. Notably, WI 6 8 10              
+
+> Num.Novel-Class
+> 6810
+> Num.Novel-Class
+> 6810
+> Num.Novel-Class
+> Value
+> 18
+> 22
+> 20
+> 16
+> 24
+> Value
+> 55
+> 50
+> 45
+> 40
+> Value
+> 11
+> 9
+> 8
+> 7
+> 6
+> 10
+> Value
+> 4000
+> 5000
+> 6000
+> 7000
+> 8000
+> 6810
+> Num.Novel-Class
+> (a) (b)
+> (d) (c)
+> Fig. 6. The boxplot for Pascal VOC →CLipart, where the blue dots •and the red stars ⋆indicate the performance of the baseline and CCKM, respectively.
+
+is reduced to 0.746, and AOSE drops to 3570, underscoring its effectiveness in handling infrequent novel instances while maintaining base class precision. In the freq-inc setting, frequent novel occurrences inten-sify novel–background ambiguity, leading prior methods to misclassify background as novel. In contrast, the proposed method adopts a conservative, target-aligned detection strategy that substantially reduces false novel detections. Although AR slightly decreases (to 2.81), this is accompanied by a consistent mAP improvement (11.59) and a large reduction in open-set errors (2640 vs. 7420 for SOMA), demonstrating strong open-set robustness under frequent novel appearance. The proposed method consistently ranks first in mAP, WI, and AOSE, while offering competitive AR. This indicates a clear advantage in base class precision, open-set robustness, and false positive suppression. The results affirm the scalability and effectiveness of the proposed model in diverse and chal-lenging open-set scenarios, particularly under high semantic overlap and class frequency shifts. 
+
+3) PascalVOC → CLipart: As shown in Table III , we con-duct experiments on the Pascal VOC to Clipart task. CCKM demonstrates consistent superiority in mAP, WI, and AOSE across all settings, indicating robust detection with minimal false novel category objects. SOMA consistently ranks first in AR, showing its strength in classification, but tends to underperform in handling open-set errors. As the number of novel classes increases, WI and AOSE increase across all methods. The proposed method scales better in retaining performance, suggesting improved AOOD performance. The performance of each metric is further illustrated in the box plot presented in Fig. 6. We present several better results for CCKM, the majority of which exceed those of SOMA. Based on the observations from the box plot, the proposed method demonstrates superior average performance across all four metrics. Based on these results, it is evident that CCKM exhibits excellent performance in detecting novel classes, 11 
+
+TABLE IV ABLATION STUDY ON CITYSCAPES → FOGGY CITYSCAPES UNDER HET -SEM SETTING (5 NOVEL CLASSES ). T HE BEST RESULTS ARE HIGHLIGHTED IN BOLD .
+
+BNSM CMB AFA mAP ↑ AR ↑ WI ↓ AOSE ↓
+
+Baseline (SOMA) 45.55 4.08 0.526 649 
+
+✔ 46.92 3.15 0.511 813 
+
+✔ 45.61 4.34 0.524 579 
+
+✔ 46.47 3.35 0.641 634 
+
+✔ ✔ 47.15 4.26 0.497 730 
+
+✔ ✔ 46.38 3.78 0.601 525 
+
+✔ ✔ 47.56 2.55 0.498 702 
+
+✔ ✔ ✔ 47.79 4.16 0.494 500 
+
+TABLE V COMPARISON WITH CONNECTION MATRIX (SCM : Us AND TCM : Ut ) ON 
+
+CITYSCAPES → FOGGY CITYSCAPES HET -SEM SETTING (5 NOVEL CLASSES ). T HE BEST RESULTS ARE HIGHLIGHTED IN BOLD .
+
+SCM TCM mAP ↑ AR ↑ WI ↓ AOSE ↓
+
+✔ 46.65 2.55 0.574 974 
+
+✔ 46.36 3.31 0.568 824 
+
+✔ ✔ 46.92 3.15 0.511 813 
+
+TABLE VI ABLATION STUDY ON PROTOTYPE MODELING STRATEGIES ON 
+
+CITYSCAPES → FOGGY CITYSCAPES UNDER HET -SEM SETTING (5 NOVEL CLASSES ). C OSINE AND PROTO BALL DENOTE COSINE DISTANCE AND 
+
+PROTO BALL DISTANCE , RESPECTIVELY . T HE BEST RESULTS ARE HIGHLIGHTED IN BOLD .Constraint mAP ↑ AR ↑ WI ↓ AOSE ↓
+
+Cosine 44.83 3.09 0.544 834 ProtoBall 46.92 3.15 0.511 813 
+
+TABLE VII SENSITIVITY ANALYSIS OF THE MOMENTUM PARAMETER β ON 
+
+CITYSCAPES → FOGGY CITYSCAPES UNDER HET -SEM SETTING (5 NOVEL CLASSES ). T HE BEST RESULTS ARE HIGHLIGHTED IN BOLD .
+
+β mAP ↑ AR ↑ WI ↓ AOSE ↓
+
+1e − 4 45.42 3.26 0.485 492 
+
+1e − 3 46.62 3.44 0.510 539 
+
+1e − 2 47.79 4.16 0.494 500 
+
+5e − 2 47.71 4.09 0.498 512 
+
+especially in scenarios with a higher number of novel classes, while maintaining the integrity of base-class object detection in the target domain. 
+
+D. Ablation Study 
+
+In this subsection, we conduct comprehensive ablation ex-periments to thoroughly analyze the effect of each proposed component. 
+
+1) Component-Wise Analysis: To validate the proposed method, we conduct an ablation study on Cityscapes → Foggy Cityscapes under the het-sem setting with five novel classes in Table IV , using SOMA as the baseline. Adding BNSM alone improves mAP to 46.92 but reduces AR to 3.15, as it alleviates base–novel feature confusion while discarding some novel in-stances that are not sufficiently distinguishable from the back-
+
+TABLE VIII SENSITIVITY ANALYSIS OF THE HYPERPARAMETER K ON CITYSCAPES →
+
+FOGGY CITYSCAPES UNDER HET -SEM SETTING (5 NOVEL CLASSES ). T HE BEST RESULTS ARE HIGHLIGHTED IN BOLD .
+
+K mAP ↑ AR ↑ WI ↓ AOSE ↓
+
+3 48.13 3.91 0.560 631 
+
+5 47.79 4.16 0.494 500 
+
+7 47.54 4.12 0.538 528 
+
+Fig. 7. Sensitivity analysis of the hyperparameter γ for Cityscapes → Foggy Cityscapes (het-sem). The plot displays the variation curves of mAP (top left), AR (top right), W I (bottom left), and AOSE (bottom right) as the γ
+
+value changes. Car    
+
+> XPerson
+> Rider
+> 十Novel
+> Y
+> X X
+> x■
+
++++12+ +心 +中 塔 ÷ 
+
+> ÷中
+> yu
+
+# 一÷ 
+
+> 中星怖
+
++         
+
+> Car
+> XPerson
+> +墙十Rider
+> 中中+ 中十Novel
+> 常+ 5
+
++++ 100 十 
+
+> 十+ +博
+
+# x 星 ++  
+
+> ■特
+
+。 + 幸   
+
+> 十牛 十
+> 十车 十
+
++ X
+
++ X   
+
+> +X
+> XX
+> X
+> +X
+> X
+> x8
+> X
+
+## aCosine Distance (b ProtoBall Distance 
+
+Fig. 8. t-SNE visualization of object query features on Cityscapes → Foggy Cityscapes under the freq-dec setting with 3 novel classes. (a) cosine distance; (b) ProtoBall distance for measuring unmatched object queries relative to base class prototype features. 
+
+ground. Enabling CMB alone yields consistent improvements on both base and novel categories. AR increases to 4.34 while maintaining comparable mAP (45.61), suggesting that CMB provides richer category-level representations that enhance novel instance recall without sacrificing base class reliability. Incorporating AFA alone results in a mAP of 46.47, accompa-nied by a decrease in AR to 3.35. This effect is attributed to AFA mitigating source-domain bias by incorporating target-domain features into memory bank updates, which stabilizes base-class predictions while excluding novel instances that fail to align with the more concentrated, target-aligned semantics. For component combinations, BNSM + CMB improves mAP to 47.15 and restores AR to 4.26, highlighting that richer category-level representations can compensate for the recall reduction introduced by BNSM. CMB + AFA achieves a lower AOSE (525) with competitive mAP (46.38) and AR (3.78), indicating improved open-set reliability. In contrast, BNSM + AFA attains strong base-class performance (47.56 mAP) but 12 □
+
+Ground truth SOMA Our Method FN motorcycle FP person 
+
+> The motorcycle in the fog has not been detected, while the person has been mistakenly labeled as novel category.
+
+# Ground truth SOMA Our Method FN person,car,bicycle 
+
+> The person, car, and bicycle in the fog have all gone undetected.
+
+# Ground truth SOMA Our Method FN bicycle 
+
+> The bicycle concealed within the cars has not been detected.
+
+Ground truth SOMA Our Method FN truck    
+
+> The truck at the end of the road cannot be detected. Fig. 9. Visualization of detection results in Cityscapes [36] →Foggy Cityscapes [37] dataset. The first column shows the groundtruth; the second and third columns visualize the detection results of SOMA [22] and CCKM, respectively. In the last column, the closeups of false positive (FP) and false negative (FN) errors are zoomed in red and yellow boxes. The detection errors of SOMA are described in the captions below each row.
+
+significantly reduces AR to 2.55, as stricter constraints further limit novel instance acceptance. When all components are integrated, the model achieves the best overall performance, demonstrating their complementary effects. 
+
+2) Connection Matrix Analysis: This ablation study inves-tigates the impact of two types of connection matrices: con-nection matrix of source domain (SCM, Us) and connection matrix of target domain (TCM, Ut). The experiments are conducted without incorporating additional components (CMB or AFA) under the het-sem setting with 5 novel classes on the Cityscapes → Foggy Cityscapes task in Table V . SCM only ( Us) leads to a higher mAP (46.65), suggesting improved localization for base classes due to better source feature corre-lation. Consistent with Table VI , using ProtoBall distance to construct SCM reduces overlap between base and novel feature distributions, thereby alleviating base–novel confusion. TCM only ( Ut) achieves the best AR (3.31), emphasizing its strength in retrieving novel-class objects by leveraging target-domain feature topology. It also lowers AOSE to 824, outperforming SCM alone in open-set filtering. Combining both connection matrices yields the best overall results. 
+
+3) Parameter Analysis: We conduct sensitivity studies for 
+
+γ, β and K under the het-sem setting on the Cityscapes →
+
+Foggy Cityscapes benchmark with 5 novel classes. As shown in Fig. 7, a moderate γ effectively enlarges the inter-class mar-gin, helping distinguish novel categories from the background while reducing feature overlap with base categories. However, an excessively large γ may misclassify unmatched object query features belonging to novel categories as background, leading to the observed drop in AR. Regarding the momentum parameter β, Table VII shows that the performance varies smoothly within a reasonable range, and the best overall balance is achieved at β = 1e −2. As shown in Table VIII, 
+
+K = 3 slightly improves mAP but increases WI and AOSE due to a compact yet incomplete novel-class prototype region that weakens open-set discrimination. When K = 7, less representative candidates are introduced, degrading prototype purity and increasing WI and AOSE. Overall, K = 5 yields the best trade-off. 13 
+
+E. Qualitative Analysis 
+
+t-SNE visualization of distance metrics. We presents a t-SNE visualization of object query features on Cityscapes →
+
+Foggy Cityscapes under the freq-dec setting with three novel classes. As shown in Fig. 8. (a), when using cosine distance as the metric, object query features for novel categories can be partially separated from the background. However, they still exhibit noticeable overlap with object query features for base categories, indicating a bias toward specific base class in the feature space. In contrast, Fig. 8. (b) illustrates the results obtained with the proposed ProtoBall distance. Although object query features for novel categories occupy a relatively larger region due to the presence of multiple novel classes, their overlap with base categories is substantially reduced. This observation suggests that ProtoBall distance effectively mitigates the attraction of novel features toward individual base class prototypes, while preserving sufficient separability from the background. 
+
+Visualization of detection results. Samples from Cityscapes 
+
+→ Foggy Cityscapes are selected for comparison with SOMA [15]. The detection results are presented in Fig. 9. Under foggy conditions, SOMA fails to detect key objects such as the motorcycle, car, person, and bicycle. These objects are partially occluded or appear with reduced contrast, indicat-ing that SOMA struggles with degraded visual inputs and context understanding. As for false novel predictions, SOMA incorrectly labels a person as a novel category, highlighting limitations in semantic discrimination. This misclassification suggests that SOMA’s feature representation may lack robust-ness when encountering domain-shifted or visually ambiguous instances. As for object occlusion handling, the bicycle ob-scured by surrounding cars is not detected by SOMA, implying inadequate performance under partial occlusion. Similarly, the truck at the end of the road, which appears distant and partially covered by fog, is completely missed. V. D ISCUSSION AND CONCLUSION 
+
+This paper presents a new adaptive open-set object detection (AOOD) framework grounded in category-level knowledge mining. Specifically, clustering-based memory bank is first constructed to store both ategory-level knowledge across domains. The memory bank is iteratively updated through unsupervised clustering, which facilitates the mining of dis-criminative category-level features. To effectively handle novel categories, a base-to-novel selection metric is introduced to identify high-quality feature representations of novel classes in the source domain. The selection process is guided by the category-level knowledge of base categories in the memory bank. These selected features are subsequently used to refine and enhance the memory bank. Furthermore, an adaptive fea-ture assignment strategy is proposed to assign category labels to features based on the memory bank. All features assigned with category labels are incorporated to further reinforce the category-level knowledge stored in the memory bank. Future work will focus on extending this framework by exploring how to effectively distill category-level knowledge, aiming to bridge the semantic gap between coarse-grained category representations and fine-grained individual features. REFERENCES [1] J. Kim, E. Cho, S. Kim, and H. J. Kim, “Retrieval-augmented open-vocabulary object detection,” in Proc. IEEE Comput. Vis. Pattern Recog-nit. (CVPR) , 2024, pp. 17 427–17 436. [2] Y. Chen, X. Fang, Y. Liu, W. Zheng, P. Kang, N. Han, and S. Xie, “Two-step strategy for domain adaptation retrieval,” IEEE Trans. Knowl. Data Eng. , vol. 36, no. 2, pp. 897–912, 2023. [3] A. Arnab and P. H. Torr, “Pixelwise instance segmentation with a dynamically instantiated network,” in Proc. IEEE Comput. Vis. Pattern Recognit. (CVPR) , 2017, pp. 441–450. [4] D. Bolya, C. Zhou, F. Xiao, and Y. J. Lee, “Yolact: Real-time instance segmentation,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2019, pp. 9157–9166. [5] Y. Lee and J. Park, “Centermask: Real-time anchor-free instance seg-mentation,” in Proc. IEEE Comput. Vis. Pattern Recognit. (CVPR) , 2020, pp. 13 906–13 915. [6] M. Wan, K. Li, Q. Geng, B. Su, and Z. Zhou, “Out-of-distribution semantic segmentation with disentangled and calibrated representation,” 
+
+IEEE Trans. Circuits Syst. Video Technol. , 2025. [7] X. Chen, H. Ma, J. Wan, B. Li, and T. Xia, “Multi-view 3d object detection network for autonomous driving,” in Proc. IEEE Comput. Vis. Pattern Recognit. (CVPR) , 2017, pp. 1907–1915. [8] C. Lin, D. Tian, X. Duan, J. Zhou, D. Zhao, and D. Cao, “3D-DFM: Anchor-free multimodal 3-d object detection with dynamic fusion module for autonomous driving,” IEEE Trans. Neural Netw. Learn. Syst. ,vol. 34, no. 12, pp. 10 812–10 822, 2023. [9] B. Su, H. Zhang, Z. Wu, and Z. Zhou, “Fsrdd: An efficient few-shot detector for rare city road damage detection,” IEEE Trans. Intell. Transp. Syst. , vol. 23, no. 12, pp. 24 379–24 388, 2022. [10] B. Su, Z. Zhou, and H. Chen, “Pvel-ad: A large-scale open-world dataset for photovoltaic cell anomaly detection,” IEEE Trans. Ind. Informat. ,vol. 19, no. 1, pp. 404–413, 2022. [11] H. Shimodaira, “Improving predictive inference under covariate shift by weighting the log-likelihood function,” J. Stat. Plan. Inference , vol. 90, no. 2, pp. 227–244, 2000. [12] H. Lin, Y. Zhang, Z. Qiu, S. Niu, C. Gan, Y. Liu, and M. Tan, “Prototype-guided continual adaptation for class-incremental unsupervised domain adaptation,” in Proc.Eur.Conf.Comput.Vis.(ECCV) , 2022, pp. 351–368. [13] W. Wang, J. Zhang, W. Zhai, Y. Cao, and D. Tao, “Robust object detection via adversarial novel style exploration,” IEEE Trans. Image Process. , vol. 31, pp. 1949–1962, 2022. [14] W. Li, X. Liu, and Y. Yuan, “SCAN++: Enhanced semantic conditioned adaptation for domain adaptive object detection,” IEEE Trans. Multime-dia , vol. 25, pp. 7051–7061, 2023. [15] ——, “SIGMA: Semantic-complete graph matching for domain adaptive object detection,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2022, pp. 5291–5300. [16] A. Dhamija, M. Gunther, J. Ventura, and T. Boult, “The overlooked elephant of object detection: Open set,” in Proc. IEEE/CVF Winter Conf. Appl. Comput. Vis. (WACV) , 2020, pp. 1021–1030. [17] J. Han, Y. Ren, J. Ding, X. Pan, K. Yan, and G.-S. Xia, “Expanding low-density latent regions for open-set object detection,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2022, pp. 9591–9600. [18] B. Su, H. Zhang, J. Li, and Z. Zhou, “Toward generalized few-shot open-set object detection,” IEEE Trans. Image Process. , vol. 33, pp. 1389–1402, 2024. [19] B. Su, H. Zhang, and Z. Zhou, “Hsic-based moving weight averaging for few-shot open-set object detection,” in Proc. ACM Int. Conf. Multimedia (MM’23) , 2023, pp. 5358–5369. [20] Z. Wu, B. Su, Q. Geng, H. Zhang, and Z. Zhou, “Boosting few-shot open-set object detection via prompt learning and robust decision boundary,” arXiv preprint arXiv:2406.18443 , 2024. [21] W. Liang, F. Xue, Y. Liu, G. Zhong, and A. Ming, “Unknown sniffer for object detection: Don’t turn a blind eye to unknown objects,” in 
+
+Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2023, pp. 3230–3239. [22] W. Li, X. Guo, and Y. Yuan, “Novel scenes & classes: Towards adaptive open-set object detection,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2023, pp. 15 780–15 790. [23] X. Zhu, W. Su, L. Lu, B. Li, X. Wang, and J. Dai, “Deformable DETR: Deformable transformers for end-to-end object detection,” in Proc. Int. Conf. Learn. Represent. (ICLR) , 2020. [24] Y. Zhang, Z. Wang, and Y. Mao, “RPN prototype alignment for domain adaptive object detector,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2021, pp. 12 425–12 434. 14 
+
+[25] K. Tian, C. Zhang, Y. Wang, S. Xiang, and C. Pan, “Knowledge mining and transferring for domain adaptive object detection,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2021, pp. 9133–9142. [26] J. Zheng, W. Li, J. Hong, L. Petersson, and N. Barnes, “Towards open-set object detection and discovery,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2022, pp. 3961–3970. [27] K. Joseph, S. Khan, F. S. Khan, and V. N. Balasubramanian, “Towards open world object detection,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2021, pp. 5830–5840. [28] K. Tanwisuth, X. Fan, H. Zheng, S. Zhang, H. Zhang, B. Chen, and M. Zhou, “A prototype-oriented framework for unsupervised domain adaptation,” in Proc. Adv. Neural Inf. Process. Syst. (NeurIPS) , 2021, pp. 17 194–17 208. [29] P. J. Rousseeuw, “Silhouettes: a graphical aid to the interpretation and validation of cluster analysis,” J. Comput. Appl. Math. , vol. 20, pp. 53– 65, 1987. [30] M. Meil˘ a, “Comparing clusterings by the variation of information,” in Proc. Annu. Conf. Learn. Theory Kernel Workshop (COLT/Kernel) ,2003, pp. 173–187. [31] S. Yang, J. Van de Weijer, L. Herranz, S. Jui et al. , “Exploiting the intrinsic neighborhood structure for source-free domain adaptation,” in 
+
+Proc. Adv. Neural Inf. Process. Syst. (NeurIPS) , 2021, pp. 29 393– 29 405. [32] H. Liu, Z. Cao, M. Long, J. Wang, and Q. Yang, “Separate to adapt: Open set domain adaptation via progressive separation,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2019, pp. 2927– 2936. [33] V. Vs, V. Gupta, P. Oza, V. A. Sindagi, and V. M. Patel, “MeGA-CDA: Memory guided attention for category-aware unsupervised domain adaptive object detection,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2021, pp. 4516–4526. [34] Y. Zheng, D. Huang, S. Liu, and Y. Wang, “Cross-domain object detection through coarse-to-fine feature adaptation,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2020, pp. 13 766–13 775. [35] F. Yu, H. Chen, X. Wang, W. Xian, Y. Chen, F. Liu, V. Madhavan, and T. Darrell, “BDD100k: A diverse driving dataset for heterogeneous multitask learning,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2020, pp. 2636–2645. [36] M. Cordts, M. Omran, S. Ramos, T. Rehfeld, M. Enzweiler, R. Be-nenson, U. Franke, S. Roth, and B. Schiele, “The cityscapes dataset for semantic urban scene understanding,” in Proc. IEEE Comput. Vis. Pattern Recognit. (CVPR) , 2016, pp. 3213–3223. [37] C. Sakaridis, D. Dai, and L. Van Gool, “Semantic foggy scene under-standing with synthetic data,” Int. J. Comput. Vis. , vol. 126, pp. 973–992, 2018. [38] M. Everingham, S. A. Eslami, L. Van Gool, C. K. Williams, J. Winn, and A. Zisserman, “The pascal visual object classes challenge: Aretrospective,” Int. J. Comput. Vis. , vol. 111, pp. 98–136, 2015. [39] N. Inoue, R. Furuta, T. Yamasaki, and K. Aizawa, “Cross-domain weakly-supervised object detection through progressive domain adapta-tion,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2018, pp. 5001–5009. [40] Y. Chen, W. Li, C. Sakaridis, D. Dai, and L. Van Gool, “Domain adaptive faster R-CNN for object detection in the wild,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2018, pp. 3339–3348. [41] Z. He and L. Zhang, “Multi-adversarial faster-rcnn for unrestricted object detection,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2019, pp. 6668–6677. [42] X. Zhu, J. Pang, C. Yang, J. Shi, and D. Lin, “Adapting object detectors via selective cross-domain alignment,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2019, pp. 687–696. [43] W. Li, X. Liu, and Y. Yuan, “SIGMA++: Improved semantic-complete graph matching for domain adaptive object detection,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 45, no. 7, pp. 9022–9040, 2023. [44] G. Chen, L. Qiao, Y. Shi, P. Peng, J. Li, T. Huang, S. Pu, and Y. Tian, “Learning open set network with discriminative reciprocal points,” in 
+
+Proc. Eur. Conf. Comput. Vis. (ECCV) , 2020, pp. 507–522. [45] G. Chen, P. Peng, X. Wang, and Y. Tian, “Adversarial reciprocal points learning for open set recognition,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 44, no. 11, pp. 8065–8081, 2021. [46] A. Gupta, S. Narayan, K. Joseph, S. Khan, F. S. Khan, and M. Shah, “OW-DETR: Open-world detection transformer,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2022, pp. 9235–9244. [47] P. Panareda Busto and J. Gall, “Open set domain adaptation,” in Proc. IEEE Int. Conf. Comput. Vis. (ICCV) , 2017, pp. 754–763. [48] K. Saito, S. Yamamoto, Y. Ushiku, and T. Harada, “Open set domain adaptation by backpropagation,” in Proc. Eur. Conf. Comput. Vis. (ECCV) , 2018, pp. 156–171. [49] S. Bucci, M. R. Loghmani, and T. Tommasi, “On the effec-tiveness of image rotation for open set domain adaptation,” in 
+
+Proc.Eur.Conf.Comput.Vis.(ECCV) , 2020, pp. 422–438. [50] M. Jing, J. Li, L. Zhu, Z. Ding, K. Lu, and Y. Yang, “Balanced open set domain adaptation via centroid alignment,” in Proc. AAAI Conf. Artif. Intell.(AAAI) , 2021, pp. 8013–8020. [51] W. C. Hung, Y. H. Tsai, X. Shen, Z. Lin, K. Sunkavalli, X. Lu, and M. H. Yang, “Scene parsing with global context embedding,” in Proc. IEEE Int. Conf. Comput. Vis. (ICCV) , 2017, pp. 2631–2639. [52] A. R. Benson, D. F. Gleich, and J. Leskovec, “Higher-order organization of complex networks,” Science , vol. 353, no. 6295, pp. 163–166, 2016. [53] T.-Y. Lin, P. Doll´ ar, R. Girshick, K. He, B. Hariharan, and S. Belongie, “Feature pyramid networks for object detection,” in Proc. IEEE Comput. Vis. Pattern Recognit. (CVPR) , 2017, pp. 2117–2125. [54] H. W. Kuhn, “The hungarian method for the assignment problem,” Naval Res. Logist. , vol. 2, no. 1-2, pp. 83–97, 1955. [55] H. Rezatofighi, N. Tsoi, J. Gwak, A. Sadeghian, I. Reid, and S. Savarese, “Generalized intersection over union: A metric and a loss for bounding box regression,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2019, pp. 658–666. [56] T.-Y. Lin, P. Goyal, R. Girshick, K. He, and P. Doll´ ar, “Focal loss for dense object detection,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2017, pp. 2980–2988. [57] K. He, H. Fan, Y. Wu, S. Xie, and R. Girshick, “Momentum contrast for unsupervised visual representation learning,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR) , 2020, pp. 9729–9738. [58] A. Kumar and R. Kannan, “Clustering with spectral norm and the k-means algorithm,” in Proc. Annu. IEEE Symp. Found. Comput. Sci. (FOCS) , 2010, pp. 299–308. [59] Y. Liu, J. Wang, C. Huang, Y. Wu, Y. Xu, and X. Cao, “MLFA: Towards realistic test time adaptive object detection by multi-level feature alignment,” IEEE Trans. Image Process. , vol. 33, pp. 5837–5848, 2024. [60] A. Bendale and T. E. Boult, “Towards open world recognition,” in Proc. IEEE Comput. Vis. Pattern Recognit. (CVPR) , 2015, pp. 1893–1902. [61] W. J. Scheirer, A. de Rezende Rocha, A. Sapkota, and T. E. Boult, “Toward open set recognition,” IEEE Trans. Pattern Anal. Mach. Intell. ,vol. 35, no. 7, pp. 1757–1772, 2012. [62] D.-W. Zhou, H.-J. Ye, and D.-C. Zhan, “Learning placeholders for open-set recognition,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2021, pp. 4401–4410. [63] W. Wang, Y. Cao, J. Zhang, F. He, Z.-J. Zha, Y. Wen, and D. Tao, “Exploring sequence feature alignment for domain adaptive detection transformers,” in Proc. ACM Int. Conf. Multimedia (MM’21) , 2021, pp. 1730–1738. [64] A. Wu, R. Liu, Y. Han, L. Zhu, and Y. Yang, “Vector-decomposed dis-entanglement for domain-invariant object detection,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2021, pp. 9342–9351. [65] C. Chen, Z. Zheng, Y. Huang, X. Ding, and Y. Yu, “I3NET: Implicit instance-invariant network for adapting one-stage object detectors,” in 
+
+Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2021, pp. 12 576–12 585. [66] K. Saito, Y. Ushiku, T. Harada, and K. Saenko, “Strong-weak distri-bution alignment for adaptive object detection,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2019, pp. 6956–6965. [67] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2016, pp. 770–778. [68] J. Deng, W. Dong, R. Socher, L.-J. Li, K. Li, and L. Fei-Fei, “Imagenet: A large-scale hierarchical image database,” in Proc. IEEE/CVF Comput. Vis. Pattern Recognit. (CVPR) , 2009, pp. 248–255. [69] H. Zhang, F. Li, S. Liu, L. Zhang, H. Su, J. Zhu, L. Ni, and H.-Y. Shum, “DINO: Detr with improved denoising anchor boxes for end-to-end object detection,” in Proc. Int. Conf. Learn. Representations. (ICLR) ,2022, pp. 1–8. [70] S. Shao, Z. Li, T. Zhang, C. Peng, G. Yu, X. Zhang, J. Li, and J. Sun, “Objects365: A large-scale, high-quality dataset for object detection,” in 
+
+Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2019, pp. 8430–8439. [71] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” in Proc. Int. Conf. Learn. Representations. (ICLR) , 2019. 15 
+
+Yuqi Ji received the B.Sc. degree in Detection, Guidance and Control Technology in 2022 from Xi-dian University, Xi’an, China, where he is currently working toward the Ph.D. degree. His research in-terests include object detection and computer vision. 
+
+Junjie Ke is currently a postdoctoral researcher at the School of Software, Tsinghua University. He received his Ph.D. degree in Circuits and Systems from Xidian University, Xi’an, China, in 2025. He also obtained his B.Sc. degree in Electronic and Information Engineering from Xidian University in 2019. His research interests focus on object detection and computer vision. 
+
+Lihuo He (Member, IEEE) received the B.Sc. degree in electronic and information engineering and the Ph.D. degree in pattern recognition and intelligent systems from Xidian University, China, in 2008 and 2013, respectively. He is currently a Professor in the School of Electronic Engineering at Xidian University. His research interests include image/video quality assessment, cognitive comput-ing, and computational vision. In these areas, he has published several scientific articles in refereed journals including the IEEE TPAMI, TIP, TMM, TCYB and TCSVT, and conferences including the CVPR, IJCAI and AAAI. 
+
+Lizhi Wang (Member, IEEE) received the BS and PhD degrees from Xidian University, Xi’an, China, in 2011 and 2016, respectively. He is currently a professor with the School of Artificial Intelligence, Beijing Normal University. His research interests include computational photography and image pro-cessing. He is serving as an associate editor of IEEE Transactions on Image Processing. He received the Best Paper Runner-up Award of ACM MM 2022 and Best Paper Award of IEEE VCIP 2016. 
+
+Xinbo Gao (Fellow, IEEE) received the B.Eng., M.Sc., and Ph.D. degrees in electronic engineer-ing, signal and information processing from Xidian University, Xi’an, China, in 1994, 1997, and 1999, respectively. From 1997 to 1998, he was a Research Fellow with the Department of Computer Science, Shizuoka University, Shizuoka, Japan. From 2000 to 2001, he was a Postdoctoral Research Fellow with the Department of Information Engineering, The Chinese University of Hong Kong, Hong Kong. Since 2001, he has been with the School of Elec-tronic Engineering, Xidian University. He is also a Cheung Kong Professor with the Ministry of Education of China, Professor of pattern recognition and intelligent system with Xidian University, and Professor of computer science and technology with the Chongqing University of Posts and Telecommuni-cations, Chongqing, China. He has authored or coauthored seven books and around 300 technical articles in refereed journals and proceedings. His current research interests include image processing, computer vision, multimedia analysis, machine learning, and pattern recognition. He was the General Chair or Co-Chair, Program Committee Chair or Co-Chair or PC Member for around 30 major international conferences. He is on the Editorial Boards of several journals, including Signal Processing (Elsevier) and Neurocomputing (Elsevier). He is a fellow of IET, AAIA, CIE, CCF, and CAAI.

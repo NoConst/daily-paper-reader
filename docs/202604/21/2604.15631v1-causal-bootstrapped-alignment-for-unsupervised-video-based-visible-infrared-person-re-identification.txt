@@ -1,0 +1,868 @@
+Title: Causal Bootstrapped Alignment for Unsupervised Video-Based Visible-Infrared Person Re-Identification
+
+URL Source: https://arxiv.org/pdf/2604.15631v1
+
+Published Time: Mon, 20 Apr 2026 00:21:58 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 1
+
+# Causal Bootstrapped Alignment for Unsupervised Video-Based Visible–Infrared Person Re-Identification 
+
+Shuang Li, Jiaxu Leng, Changjiang Kuang, Mingpi Tan, Yu Yuan and Xinbo Gao, Fellow, IEEE 
+
+Abstract —Video-based visible–infrared person re-identification (VVI-ReID) is a critical technique for all-day surveillance, where temporal information provides additional cues beyond static images. However, existing approaches rely heavily on fully supervised learning with expensive cross-modality anno-tations, limiting scalability. To address this issue, we investigate Unsupervised Learning for VVI-ReID (USL-VVI-ReID), which learns identity-discriminative representations directly from un-labeled video tracklets. Directly extending image-based USL-VI-ReID methods to this setting with generic pretrained en-coders leads to suboptimal performance. Such encoders suffer from weak identity discrimination and strong modality bias, resulting in severe intra-modality identity confusion and pro-nounced clustering granularity imbalance between visible and infrared modalities. These issues jointly degrade pseudo-label reliability and hinder effective cross-modality alignment. To address these challenges, we propose a Causal Bootstrapped Alignment (CBA) framework that explicitly exploits inherent video priors. First, we introduce Causal Intervention Warm-up (CIW), which performs sequence-level causal interventions by leveraging temporal identity consistency and cross-modality identity consistency to suppress modality- and motion-induced spurious correlations while preserving identity-relevant seman-tics, yielding cleaner representations for unsupervised clustering. Second, we propose Prototype-Guided Uncertainty Refinement (PGUR), which employs a coarse-to-fine alignment strategy to resolve cross-modality granularity mismatch, reorganizing under-clustered infrared representations under the guidance of reliable visible prototypes with uncertainty-aware supervision. Extensive experiments on the HITSZ-VCM and BUPTCampus benchmarks demonstrate that CBA significantly outperforms existing USL-VI-ReID methods when extended to the USL-VVI-ReID setting. 
+
+Index Terms —USL-VVI-ReID, Causal Intervention, Cross-Modality Alignment, Temporal Consistency, Prototype-Guided Uncertainty Refinement 
+
+I. I NTRODUCTION 
+
+# VIDEO-BASED visible-infrared person re-identification (VVI-ReID) [1]–[5] has emerged as a critical compo-nent of all-day surveillance for retrieving pedestrian identities across visible and infrared modalities. By leveraging temporal motion cues unavailable in static images [6], VVI-ReID offers superior robustness against occlusion and motion blur. Unlike conventional person re-identification paradigms that primarily 
+
+S. Li, J. Leng, C. Kuang, M. Tan, Y. Yuan and X. Gao, are with the School of Computer Science and Technology, Chongqing University of Posts and Telecommunications, Chongqing, China (E-mail: shuangli936@gmail.com, lengjx@cqupt.edu.cn, s230201049@stu.cqupt.edu.cn, tanmingp11@163.com, yuyuan9580@gmail.com, gaoxb@cqupt.edu.cn). (Corresponding author: X. Gao.) Deficiency 1: Indistinguishable Identities Deficiency 2: Imbalanced Granularity 
+
+𝐾 !"# ≫ 𝐾 "$    
+
+> RGB Clusters
+> (𝐾 !"# 𝐿𝑎𝑟𝑔𝑒 )
+> IR Clusters
+> (𝐾 "$ 𝑆𝑚𝑎𝑙𝑙 )
+> Modality Gap ≫
+> Inter -class Distance
+
+RGB Video Tracklets IR Video Tracklets 
+
+Generic Pre -trained Encoder  
+
+> Intra -modality Confusion
+
+Fig. 1. Challenges of USL-VVI-ReID with generic pre-trained encoders. Generic encoders produce two critical deficiencies: (1) indistinguishable identities , with severe intra-modality confusion and a dominant modality gap; and (2) imbalanced granularity , where visible features form fine-grained clusters while infrared features are under-clustered, typically resulting in 
+
+Kvis ≫ Kir and ambiguous cross-modality associations. 
+
+focus on single-modality image-level matching [7]–[9], VVI-ReID introduces cross-modality discrepancies and temporal dynamics, posing additional challenges for representation learning. However, current approaches rely on fully supervised paradigms that demand exhaustive cross-modality annotations. This dependency is a significant bottleneck, as manually as-sociating identities across disparate modalities is prohibitively expensive and error-prone due to the severe modality gap. To break this dependency, we introduce Unsupervised Learning for VVI-ReID (USL-VVI-ReID). Unlike conventional meth-ods, USL-VVI-ReID learns identity-discriminative representa-tions directly from unlabeled video tracklets, paving the way for scalable and automated surveillance deployments. Although image-based unsupervised visible–infrared person re-identification (USL-VI-ReID) [10]–[15] has achieved re-markable progress, directly transferring existing solutions to USL-VVI-ReID remains problematic. Most transfer pipelines rely on a generic pre-trained visual encoder, e.g., CLIP [16]– [19], to extract features, followed by intra-modality cluster-ing to generate pseudo labels and subsequent inter-modality matching for cross-modality alignment. However, when di-rectly applied to the video setting, such generic encoders  
+
+> arXiv:2604.15631v1 [cs.CV] 17 Apr 2026 SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 2
+
+𝑀 
+
+𝑅 
+
+S
+
+𝑋 𝑇 
+
+𝑀 
+
+𝑅 
+
+S
+
+𝑋 𝑇 
+
+𝑑𝑜 𝑇 
+
+𝑑𝑜 𝑀                 
+
+> Fig. 2. Structural causal model (SCM) for representation purification. The observed input Xentangles identity factor Sand non-causal factors, including modality-specific appearance Mand scene-driven temporal cues T. During representation learning, these non-causal factors may be encoded into the retrieval representation R. Causal interventions do (M)and do (T)aim to suppress these influences. Solid arrows denote directed causal relations, while dashed arrows indicate statistical associations.
+
+often fail to provide sufficiently identity-discriminative and modality-invariant representations, which leads to two crit-ical deficiencies in the embedding space, as illustrated in Fig. 1. First, identity representations become poorly separated, where different individuals are severely entangled within each modality, leading to pronounced intra-modality confusion. Meanwhile, cross-modality discrepancy dominates the feature distribution, causing the modality gap to be substantially larger than inter-class distances. Second, intra-modality clus-tering exhibits significant granularity imbalance across modal-ities. Specifically, visible features tend to form fine-grained clusters with a large number of discovered clusters Kvis ,whereas infrared features remain severely under-clustered with a much smaller Kir . This imbalance leads to ambiguous cross-modality associations during inter-modality matching, often manifesting as unstable one-to-many correspondences. The above identity confusion issue stems from the intrinsic behavior of generic pre-trained encoders under unsupervised training. Being task-agnostic by design, such encoders indis-criminately encode all predictable signals in video sequences, resulting in representations that entangle identity-related and non-causal factors. As illustrated in Fig. 2, we formalize this process using a structural causal model (SCM) [20]–[22]. The observed input X jointly contains the intrinsic identity factor S
+
+and two non-causal confounders: modality-specific appearance 
+
+M , capturing modality-dependent spectral statistics (e.g., color in visible videos and thermal textures in infrared videos), and scene-driven temporal cues T , encoding camera- and scene-dependent motion regularities (e.g., walking direction, camera viewpoint bias, and background motion patterns). Without identity supervision, M and T form backdoor paths to the learned representation R, inducing spurious correla-tions that dominate the embedding space. Such representation bias arises before clustering, and directly applying clustering on these confounded features inevitably amplifies spurious correlations through noisy pseudo labels, underscoring the necessity of calibrating generic pre-trained encoders before clustering-based learning. However, eliminating non-causal factors alone is insufficient for reliable identity discovery. Overly aggressive causal interventions may suppress identity-discriminative cues, yielding representations that are invariant yet insufficient. From a causal perspective, an ideal represen-tation should simultaneously satisfy Separation , by blocking spurious backdoor paths, and Causal Sufficiency , by preserving task-relevant identity semantics [22]. In the video setting, causal sufficiency can be naturally supported by inherent iden-tity consistency within video sequences, providing a crucial prior for preserving identity-discriminative information under unsupervised learning. Moreover, causal calibration alone cannot eliminate the in-herent asymmetry in discriminative capacity across modalities. This asymmetry arises from the unequal availability of identity cues in video sequences: visible sequences preserve richer appearance details and more stable spatio-temporal structures that support fine-grained discrimination, whereas infrared se-quences provide fewer discriminative cues and thus exhibit intrinsically coarser structures [23]–[25]. Consequently, even with causally purified representations, the infrared modality tends to form fewer and coarser clusters than the visible modality, making it difficult to establish reliable one-to-one correspondences between visible and infrared clusters [11]. This observation motivates leveraging cross-modality com-plementarity, where the more discriminative visible modality serves as a structural reference to guide refinement of the infrared representation space. Based on the above analysis, we propose Causal Boot-strapped Alignment (CBA), an unsupervised video-based visi-ble–infrared person re-identification (USL-VVI-ReID) frame-work designed to overcome the adaptation limitations of generic pre-trained models through two complementary com-ponents: Causal Intervention Warm-up (CIW) and Prototype-Guided Uncertainty Refinement (PGUR). Specifically, CIW performs sequence-level causal interventions on modality and temporal factors by constructing counterfactual representations to calibrate the encoder. Modality-specific appearance is in-tervened via cross-modality style transfer to disrupt spectral statistics, while scene-driven temporal cues are intervened through random frame swapping within sequences to break spurious motion regularities. By enforcing representation con-sistency between original and intervened sequences, CIW suppresses non-causal shortcuts while preserving sequence-level identity semantics, yielding identity-focused representa-tions with a cleaner feature space for subsequent learning. To further address modality-induced clustering granularity imbalance, PGUR conducts structure refinement during cross-modal matching. It leverages discriminative visible prototypes as reference anchors to guide refinement of the intrinsically coarser infrared representation space. PGUR first establishes prototype-level cross-modal associations via iterative graph matching. Based on the resulting matching structures, one-to-one correspondences are treated as reliable associations and optimized with hard contrastive supervision, while one-to-many correspondences are regarded as ambiguous and handled with soft contrastive supervision to prevent error propagation. Through this uncertainty-aware refinement, PGUR progres-sively transfers clustering granularity from the visible to the infrared modality, enabling robust cross-modal correspondence and modality-invariant representation learning. Our main contributions are summarized as follows:  
+
+> •
+
+We propose CBA, a progressive framework for USL-VVI-ReID, which integrates causal representation cali-bration and cross-modality association refinement, and to the best of our knowledge, constitutes the first exploration of USL-VVI-ReID. SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 3 
+
+> •
+
+We introduce a Causal Intervention Warm-up (CIW) that performs sequence-level causal interventions to calibrate generic pre-trained encoders toward identity-focused rep-resentations, enabling reliable unsupervised clustering.  
+
+> •
+
+We introduce a Prototype-Guided Uncertainty Refinement (PGUR) to address modality-induced clustering granular-ity mismatch by exploiting cross-modality complemen-tarity, where discriminative visible prototypes serve as reference anchors for uncertainty-aware refinement of infrared representations.  
+
+> •
+
+Extensive experiments on HITSZ-VCM and BUPTCam-pus demonstrate that CBA significantly outperforms ex-isting USL-VI-ReID methods when extended to the USL-VVI-ReID setting, establishing state-of-the-art perfor-mance on this task. The rest of this paper is organized as follows. Section II introduces related work; Section III elaborates the proposed method; Section IV analyzes the comparative experimental results; and Section V concludes this paper. II. R ELATED WORK 
+
+A. Video-based Visible-Infrared Person Re-Identification 
+
+Video-based visible–infrared person re-identification (VVI-ReID) extends image-based retrieval [26] by leveraging tempo-ral cues to enhance discrimination and mitigate cross-modality discrepancies. Early studies primarily focused on temporal aggregation to model motion evolution, such as MITML [1], which introduced modal-invariant temporal memory learning. To overcome the limited long-range modeling capability of CNNs, CST [27] adopted a cross-modality spatial–temporal transformer, while IBAN [3] utilized an intermediary modal-ity for bidirectional aggregation. Recent efforts have further emphasized data scale, robustness, and structured representa-tion learning. AuxNet [4] constructed the large-scale BUPT-Campus dataset with curriculum-based auxiliary learning, and SAADG [28] alleviated intra-modal variations via style augmentation and graph-based interaction. Meanwhile, multi-granularity modeling and unified representations have gained attention: HD-GI [29] captured invariant partial cues through hierarchical disturbance, while CLIP-based approaches, such as VLD [2] and X-ReID [30], enhanced cross-modality align-ment via language-driven prompting and prototype collabora-tion. Despite these advances, most existing VVI-ReID methods still depend on costly cross-modality identity annotations, limiting scalability to large-scale video data. This challenge motivates Unsupervised Video-based Visible–Infrared Person Re-Identification (USL-VVI-ReID), which aims to learn robust video representations without identity supervision. 
+
+B. Unsupervised Video Person Re-Identification 
+
+Unsupervised video person re-identification seeks to learn discriminative video representations without identity annota-tions, with early studies largely relying on iterative pseudo-label estimation for unlabeled tracklets. Representative meth-ods, such as Stepwise [31] and RACE [32], refined cross-camera associations via metric promotion and anchor-based graph construction, while DGM [33] and CCM [34] fur-ther improved label reliability through graph co-matching and global camera constraints. In parallel, association-driven frameworks, including TAUDL [35], UTAL [36], and TS-DTW [37], emphasized joint optimization of within- and cross-camera tracklet alignment. To mitigate noise and frame-level variations, later works introduced sampling, anchor associa-tion, and progressive learning strategies [38]–[40]. However, these methods are primarily designed for single-modality scenarios and implicitly assume appearance consistency, mak-ing them inadequate for VVI-ReID, where the severe visi-ble–infrared modality gap induces substantial representation bias. 
+
+C. Unsupervised Image-based Visible-Infrared Person Re-identification 
+
+Unsupervised visible–infrared person re-identification aims to learn modality-invariant representations without identity supervision, typically relying on clustering-based pseudo-label estimation and cross-modality alignment. Early studies mainly focused on alleviating modality discrepancies and mitigating pseudo-label noise. ADCA [10] introduced a dual-contrastive aggregation framework with style augmentation to reduce intra- and inter-modality gaps, while DOTLA [13], N-ULC [14], and RDL [41] refined pseudo-label reliability through neighbor-guided or centroid-aware calibration strate-gies. Beyond clustering, more advanced association mecha-nisms have been explored to improve cross-modality matching. PGM [11] modeled correspondence through progressive graph matching, and M 3 [42] captured diverse intra-class variations via multi-memory matching. To handle hard samples and outliers, CSANet [43] and DLM [44] adopted self-paced and dual-level association strategies with explicit filtering. In addition, SDCL [45] enforced consistency between shal-low texture and deep semantic features, and UP-CLIP [46] leveraged vision–language alignment to guide unsupervised representation learning. Nevertheless, existing methods remain image-centric and fail to exploit temporal continuity, which limits their ability to maintain identity consistency in USL-VVI-ReID under severe modality discrepancies. III. P ROPOSED METHOD 
+
+In this section, we introduce the proposed USL-VVI-ReID framework (Fig. 3), which consists of Causal Intervention Warm-up (CIW) and Prototype-Guided Uncertainty Refine-ment (PGUR). We then present the associated optimization objectives. 
+
+A. Preliminary 
+
+USL-VVI-ReID aims to learn modality-invariant sequence-level representations from unlabeled visible–infrared video tracklets via iterative pseudo-label optimization. Building upon USL-VI-ReID frameworks such as ADCA [10], we extend this paradigm to the video-based cross-modality setting. For stable sequence representation learning, we adopt the supervised VVI-ReID model VLD [2] as the backbone, which explicitly captures inter-frame interactions. SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 4Split 
+
+> Visual
+> Encoder
+> Visual
+> Encoder
+
+I: Causal Intervention Warm -up I I :Intra -modality    
+
+> #1
+> #2
+> #3 #n
+> #1
+> #2
+> #3
+> #m
+> DBSCAN
+> AvgPool
+> DBSCAN
+> AvgPool
+> 𝑀 !"#
+> Visible Memory
+> 𝑀 "$
+> Infrared Memory
+> Updating
+> Updating
+
+I I I : Prototype -Guided Uncertainty Refinement                        
+
+> ……
+> VIS
+> IR
+> …
+> …
+> VIS
+> IR
+> ……
+> VIS
+> IR
+> PGM
+> Reliable Associations
+> Ambiguous Associations
+> Association Refinement
+> Memory Reconstruction
+> one -one
+> many -one
+> 𝑀 !"# 𝑀 "$
+> Uncertainty Learning
+> ……
+> VIS
+> IR
+> VIS
+> IR
+> ……
+> VIS
+> IR
+> VIS
+> IR
+> Uncertainty -Aware Loss
+> Hard Supervision Loss
+> Ambiguous Associations
+> Reliable Associations
+> 𝐿 "%&$'
+> !"#
+> 𝐿 "%&$'
+> "$
+> Sample -
+> center Score
+> 𝑃 𝑆 𝑑𝑜 𝑈 =𝑃 (𝑆 )
+> 𝑉 "(
+> 𝑉 "
+> )𝑉 "
+> MPB 𝑑𝑜 (𝑀 )
+> TTB 𝑑𝑜 (𝑇 )
+> 𝐼 "
+> (
+> 𝐼 "
+> )𝐼 "
+> MPB 𝑑𝑜 (𝑀 )
+> TTB 𝑑𝑜 (𝑇 )
+
+𝑀 
+
+𝑅 
+
+S
+
+𝑋 𝑇 𝑆 ⊥ 𝑀 , 𝑆 ⊥ 𝑇  
+
+> 𝐿 *+,
+> 𝐿 *+,
+> 𝑈
+> step 1
+> step 2
+
+Fig. 3. Overall architecture of the proposed CBA framework for USL-VVI-ReID. The framework comprises three stages: (I) Causal Intervention Warm-up (CIW) , which calibrates the encoder via sequence-level causal intervention to mitigate modality and temporal confounders while preserving identity-related information; (II) Intra-modality Learning , which performs clustering and intra-modality contrastive learning; and (III) Prototype-Guided Uncertainty Refinement (PGUR) , which resolves the granularity mismatch through uncertainty-aware cross-modality refinement guided by reliable visible prototypes. 
+
+As shown in Fig.3, visible and infrared video sequences 
+
+V = {xtvis }Tt=1 and I = {xtir }Tt=1 are encoded by a shared visual encoder Ev (·) [2]. For clarity, we use the visible sequence as an example. The encoder Ev jointly models all frames via STP [2] to capture spatio-temporal dependencies, yielding temporally enhanced frame-level features: 
+
+{f 1
+
+> vis
+
+, f 2
+
+> vis
+
+, . . . , f Tvis } = Ev (V ), (1) where f tvis ∈ Rd denotes the temporally enhanced feature of the t-th frame. Then, temporal average pooling AvgPool is applied across these representations to obtain the sequence-level feature: 
+
+fvis = AvgPool ([ f 1
+
+> vis
+
+, f 2
+
+> vis
+
+, . . . , f Tvis ]) . (2) We denote the set of sequence-level features for all visible tracklets as Fvis = {fvis,i }Nvis  
+
+> i=1
+
+, where Nvis is the number of visible sequences. Pseudo labels are then generated by applying DBSCAN clustering to Fvis :
+
+ˆYvis = DBSCAN (Fvis ), (3) where ˆYvis = {ˆyvis,i }Nvis  
+
+> i=1
+
+represents the pseudo labels for all visible sequences, and ˆyvis,i ∈ { 0, 1, . . . , K vis −1} denotes the pseudo class label assigned to the i-th visible sequence, with 
+
+Kvis being the number of clusters discovered by DBSCAN. Subsequently, a visible memory bank Mvis =
+
+{mcvis }Kvis −1 
+
+> c=0
+
+is then constructed to store cluster prototypes, where each prototype mcvis is initialized as the centroid of visible sequences assigned to cluster c:
+
+mcvis = 1
+
+N cvis Nvis X
+
+> i=1
+
+I( ˆ yvis,i = c) · fvis,i , (4) where N cvis denotes the number of visible sequences in class c,and I(·) is the indicator function that returns 1 if the condition is true and 0 otherwise. To enhance intra-modality discriminability, the anchor se-quence feature fvis,i is pulled toward its corresponding pro-totype m+ 
+
+> vis
+
+within the memory bank. The intra-modality contrastive loss is formulated as follows: 
+
+Lvis intra = − log exp( fvis,i · m+
+
+> vis
+
+/τ )
+
+PKvis  
+
+> c=1
+
+exp( fvis,i · mcvis /τ ) , (5) where τ is the temperature coefficient. An identical intra-modality loss Lir intra is symmetrically applied to the infrared modality using the infrared memory bank Mir . The total intra-modality optimization objective for this stage is formulated as the joint loss of both modalities: 
+
+Lintra = Lvis intra + Lir intra , (6) which establishes a stable and discriminative intra-modality representation space, facilitating subsequent cross-modality alignment. 
+
+B. Causal Intervention Warm-up 
+
+Existing USL-VI-ReID methods typically perform cluster-ing on features extracted directly from pretrained models. However, in the cross-modality video scenario, such features are heavily confounded by modality-specific styles and un-stable motion patterns. Without identity guidance, the initial encoder tends to capture these non-causal shortcuts, leading to unreliable clusters and severe error accumulation during the subsequent iterative optimization. To address this “cold-start” challenge, we propose the Causal Intervention Warm-up SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 5VIS -to -IR Style Intervention IR -to -VIS Style Intervention                       
+
+> 𝑥 !" ,"$%
+> "
+> 𝑥 &!'
+> (
+> 𝑥 "&!'
+> (
+> 𝜇 &!'
+> (
+> 𝜎 &!'
+> (
+> Calc 𝜇 ,𝜎 Calc 𝜇 ,𝜎
+> 𝜇 !"
+> "
+> 𝜎 !"
+> (
+> −
+> ÷
+> ×
+> +
+> 𝑥 &!' ,"$%
+> "𝑥 !"
+> (
+> 𝑥 "!"
+> (
+> Calc 𝜇 ,𝜎 Calc 𝜇 ,𝜎
+> −
+> ÷
+> ×
+> +
+> 𝜎 )*+
+> "
+> 𝜇 &!'
+> "𝜇 !"
+> (𝜎 !"
+> (
+> Fig. 4. Illustration of the Modality-Perturbation Bootstrapping (MPB). MPB applies bidirectional VIS ↔IR style interventions by transferring global appearance statistics (mean μ, std σ) between modalities, producing modality-perturbed samples for representation calibration.
+
+(CIW), a crucial pre-clustering calibration stage that leverages causal interventions to purify representations and emphasize intrinsic identity cues. 
+
+Structural Causal Model and Causal Properties. In-spired by CIRL [22], we formalize the video representation generation process as a Structural Causal Model (SCM). As illustrated in Fig. 2, an observed video tracklet X is modeled as being generated from both causal and non-causal factors: 
+
+X := f (S, U, ϵ ), (7) where f (·) denotes an unknown causal generation mechanism that maps latent factors to the observed video, S denotes the causal factors representing identity-related features that remain invariant to modality and temporal variations, U = {M, T }
+
+represents the non-causal confounders including modality-specific style M and temporal topology T , and ϵ signifies the unexplained noise variables [22]. The primary objective of causal representation learning is to extract these latent causal factors S from the observed X to reconstruct an invariant causal mechanism for person identification. Without explicit identity supervision, generic encoders tend to capture spurious statistical correlations rather than the underlying causal mechanism. This induces spurious backdoor paths (e.g., M → X → R and T → X → R), causing the model to rely on modality-specific spectral noise or unstable motion patterns for identity discrimination. To block these paths and recover the causal factors S, the learned represen-tations are required to satisfy the properties of ideal causal mechanisms. According to the Independent Causal Mecha-nisms (ICM) principle [47], [48], an effective representation should possess:  
+
+> •
+
+Causal Separation: The causal factor S should be independent of non-causal factors U , i.e., S ⊥ U ,such that interventions on U do not alter S, satisfying 
+
+P (S | do (U )) = P (S). 
+
+> •
+
+Causal Sufficiency: The representation should retain all causal information necessary for reliable identity discrim-ination in person re-identification. Since the intrinsic causal factor S is latent and cannot be directly recovered from raw video data, we instead learn causal representations by enforcing the aforementioned properties. Specifically, to satisfy Causal Separation , we simulate the do -operator by intervening on non-causal factors while preserving identity semantics. We introduce complementary interventions 
+
+do (M ) and do (T ) to eliminate modality and temporal con-founders, together with a stabilization mechanism to ensure 
+
+Causal Sufficiency .
+
+Modality-Perturbation Bootstrapping. To implement the modality-level intervention do (M ) and enforce modality in-dependence S ⊥ M , we propose Modality-Perturbation Boot-strapping (MPB). MPB mitigates modality-specific confound-ing by perturbing appearance cues that stem from substantial cross-modality discrepancies, such as illumination and inten-sity statistics. Specifically, given a sequence Vi = {xti}Tt=1 ,MPB randomly perturbs the appearance of a subset of frames rather than the entire tracklet, thereby disrupting modality-dependent signals while preserving identity semantics through temporal context. As illustrated in Fig. 4, for each target frame xti, a reference frame xrref is sampled from the opposite modality as the style source. Inspired by AdaIN [49], we inject the global style statistics of xrref into xti via cross-modality style transfer: 
+
+˜xti = σ(xrref ) · xti − μ(xti)
+
+σ(xti) + μ(xrref ), (8) where μ(·) and σ(·) denote the channel-wise mean and stan-dard deviation. Under this formulation, xti preserves identity-related content, while xrref supplies modality-specific style statistics for the interventional perturbation. To bridge frame-level perturbations with sequence-level representation learning, we construct a counterfactual modality view V mi as a hybrid sequence. Let Tsub ⊂ { 1, . . . , T } denote the indices of frames randomly selected for intervention. The resulting sequence V mi = {ˆxti}Tt=1 is defined as: 
+
+ˆxti =
+
+(
+
+˜xti, if t ∈ T sub 
+
+xti, if t / ∈ T sub 
+
+(9) where ˜xti is the style-perturbed frame. By retaining a portion of original frames while injecting modality noise into others, V mi
+
+preserves the identity-related temporal anchors while explicitly disrupting the global modality bias. Subsequently, we feed both the original and counterfactual sequences into the encoder to obtain sequence-level represen-tations: fi = AvgPool (Ev (Vi)) and f mi = AvgPool (Ev (V mi )) .To satisfy the Separation property, we define the original-to-counterfactual contrastive loss Lmo2c and the counterfactual-to-original contrastive loss Lmc2o as: 
+
+Lmo2c = − 1
+
+B
+
+> B
+
+X
+
+> i=1
+
+log exp( fi · f mi /τ )
+
+PBj=1 exp( fi · f mj /τ ) ,
+
+Lmc2o = − 1
+
+B
+
+> B
+
+X
+
+> i=1
+
+log exp( f mi · fi/τ )
+
+PBj=1 exp( f mi · fj /τ ) ,
+
+(10) SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 6
+
+where B denotes the mini-batch size. The total modality intervention loss Lmpb is calculated as follows: 
+
+Lmpb = 12 (Lmo2c + Lmc2o), (11) which encourages balanced alignment between the original and counterfactual domains, thereby suppressing non-causal modality-specific statistics in the learned representations. 
+
+Temporal-Topology Bootstrapping. To mitigate the influ-ence of spurious temporal shortcuts and intervene on temporal confounders T , we propose Temporal-Topology Bootstrapping (TTB) to approximate the intervention do (T ). TTB targets the tendency of generic pre-trained encoders to exploit sta-ble temporal ordering as motion-based shortcuts, rather than modeling identity-consistent dynamics. Specifically, given a video sequence Vi, we construct a counterfactual temporal view V pi by randomly swapping adjacent frames, thereby perturbing the original temporal topology while preserving the underlying identity content. The perturbed sequence is then encoded to obtain a sequence-level representation f pi =
+
+AvgPool (Ev (V pi )) . Similar to MPB, we employ original-to-counterfactual and counterfactual-to-original temporal con-trastive losses, Lso2c and Lsc2o, to suppress spurious tempo-ral dependencies and encourage temporally invariant identity representations: 
+
+Lpo2c = − 1
+
+B
+
+> B
+
+X
+
+> i=1
+
+log exp( fi · f pi /τ )
+
+PBj=1 exp( fi · f pj /τ ) ,
+
+Lpc2o = − 1
+
+B
+
+> B
+
+X
+
+> i=1
+
+log exp( f pi · fi/τ )
+
+PBj=1 exp( f pi · fj /τ ) .
+
+(12) The total temporal intervention loss Lttb is then formulated as: 
+
+Lttb = 12 (Lpo2c + Lpc2o). (13) By minimizing Lttb , the model is encouraged to learn rep-resentations that are invariant to temporal-topological disrup-tions, thereby suppressing motion-based shortcuts and empha-sizing stable identity-related semantics. 
+
+Identity-Consistency Stabilization. While MPB and TTB effectively promote the Causal Separation property by elim-inating non-causal modality and temporal shortcuts, overly aggressive interventional de-biasing may inadvertently attenu-ate identity-discriminative cues. To ensure Causal Sufficiency ,we introduce Identity-Consistency Stabilization (ICS), which provides a stable identity constraint during representation cal-ibration. ICS leverages a fundamental video prior that frames within the same tracklet share a consistent identity despite pose, and enforces the stability of the latent identity factor S
+
+across the sequence. As the causal factor underlying identity discrimination, S should remain stable throughout a tracklet; accordingly, ICS acts as a functional constraint that preserves task-relevant identity information in the mapping from X
+
+to R, preventing the interventional de-biasing process from discarding discriminative causal signals. Specifically, given a video sequence Vi, the visual en-coder extracts a set of frame-level features Fseq i = {f ti =
+
+Ev (xt
+
+> vis ,i
+
+)}Tt=1 . An anchor feature f ai is randomly sampled from Fseq i . The remaining frames within the same sequence constitute the positive set Pi, while frames from other se-quences form the negative set Ni. Since video sequences are randomly sampled in each mini-batch, the probability that two sequences share the same identity is negligible, ensuring that negative samples reliably correspond to identity changes. Based on this construction, we enforce an identity-consistency constraint using a sequence-consistency loss inspired by the weighted regularized triplet (WRT) [50]: 
+
+Lseq = 1
+
+B
+
+> B
+
+X
+
+> i=1
+
+log 
+
+
+
+1+exp   X   
+
+> fpi∈Pi
+
+wpi,p dpi,p − X  
+
+> fnj∈Ni
+
+wni,j dni,j 
+
+
+
+,
+
+(14) where B is the batch size, the distance between the anchor and a positive sample is computed as dpi,p = ∥f ai − f pi ∥2,and the distance between the anchor and a negative sample is 
+
+dni,j = ∥f ai −f nj ∥2. The associated weights are obtained through softmax normalization, where each positive sample is assigned 
+
+wpi,p = exp( dpi,p ) P    
+
+> fpi∈Pi
+
+exp( dpi,p ), and each negative sam-ple is assigned wni,j = exp( −dni,j ) P    
+
+> fnj∈Ni
+
+exp( −dni,j ).
+
+C. Prototype-Guided Uncertainty Refinement 
+
+Although Causal Intervention Warm-up (CIW) establishes a purified representation basis by satisfying causal separation and causal sufficiency, it does not inherently resolve the cross-modality association problem. After performing intra-modality clustering, the visible and infrared feature spaces still exhibit inconsistent structural patterns. In practice, the visible modality typically forms a significantly larger number of clusters than the infrared modality ( Kvis ≫ Kir ). This gran-ularity mismatch reflects the inherent asymmetry in discrimi-native capacity: visible sequences preserve richer appearance details, whereas infrared sequences provide limited texture cues, leading to an under-clustering effect in the infrared domain. Such imbalance makes cross-modality association in-herently difficult, as bipartite matching often yields ambiguous one-to-many correspondences rather than reliable one-to-one identities [11]. To address this structural inconsistency, we introduce Prototype-Guided Uncertainty Refinement (PGUR). PGUR leverages the more discriminative visible prototypes as structural anchors to guide the refinement of the intrinsically coarser infrared representation space. As illustrated in Fig. 5, the process consists of three key steps: Prototype-Guided As-sociation Refinement , Structural Memory Reconstruction ,and Uncertainty-Aware Contrastive Learning .
+
+Association Refinement. Following [11], we adopt aprogressive bipartite graph matching scheme to establish cross-modality associations between visible cluster prototypes 
+
+Mvis = {mivis }Kvis  
+
+> i=1
+
+and infrared cluster prototypes Mir =
+
+{mjir }Kir 
+
+> j=1
+
+. Each matching step is formulated as: 
+
+min 
+
+> M
+> Kvis
+
+X
+
+> i=1
+> Kir
+
+X
+
+> j=1
+
+C(i, j ) Mij 
+
+s.t. Mij ∈ { 0, 1}, X
+
+> j
+
+Mij ≤ 1, X
+
+> i
+
+Mij = 1 ,
+
+(15) SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 70.3              
+
+> 0.7
+> Splitting
+> Process
+> VIS Prototype IR Prototype
+> Visible Modality Infrared Modality
+> Similarity Feature -to -Prototype Reliable
+> Associations
+> Ambiguous
+> Associations
+> 00
+> 0.7
+> 0.3
+> 0.7
+> 0.3
+> Hard Target (one -hot)
+> Soft Target
+> (uncertainty -score)
+> Imbalanced Clusters & Ambiguous Associations Splitting Coarse IR Cluster by VIS Guidance Hard and Soft Supervision
+> Association Refinement Memory Reconstruction Uncertainty Learning
+> 00
+> 1
+> 0
+> 00
+> 1
+> 0
+
+Fig. 5. Illustration of the PGUR. PGUR addresses cross-modality granularity mismatch by first separating reliable one-to-one and ambiguous one-to-many associations (left), then reconstructing a structurally aligned prototype memory by splitting coarse infrared clusters under visible guidance (middle), and finally applying hard supervision to reliable pairs and uncertainty-aware soft supervision to ambiguous ones for robust cross-modality alignment (right). 
+
+where C(i, j ) = 1 − Sim( mivis , mjir ) denotes the cross-modality dissimilarity based on cosine similarity, and M ∈{0, 1}Kvis ×Kir is the assignment matrix. Due to the intrinsic granularity imbalance ( Kvis > K ir ), progressive matching naturally yields one-to-many correspon-dence patterns, where a single infrared prototype may be associated with multiple visible prototypes. Based on the matching results, for each infrared cluster mjir , we define its associated visible index set as: 
+
+Vj = { i | (i, j ) ∈ M (1) ∪ M (2) }, (16) where M(1) and M(2) denote the sets of visible–infrared matches obtained from the first and second rounds of bipartite matching, respectively. If |V j | = 1 , the infrared cluster mjir 
+
+is regarded as reliable , as it corresponds to a unique visible prototype. Otherwise, it is considered ambiguous , since mul-tiple visible clusters are matched to the same infrared cluster. Accordingly, all one-to-one correspondences are collected into the reliable set: 
+
+R = (mjir , mivis ) |V j | = 1 , i ∈ V j , (17) which enumerates every infrared prototype that is uniquely matched to a single visible prototype. Conversely, all one-to-many relations are grouped into the ambiguous set: 
+
+A = (mjir , {mivis }i∈V j ) |V j | > 1 . (18) 
+
+Memory Reconstruction. Once reliable and ambiguous associations are identified, we reconstruct a structurally aligned cross-modality memory bank. For each reliable pair 
+
+(mjir , mivis ) ∈ R , the prototypes already form a consistent one-to-one correspondence. Thus, the refined memory simply inherits their original representations: 
+
+˜mivis = mivis , ˜miir = mjir . (19) For each ambiguous group (mjir , {mivis }i∈V j ) ∈ A, the infrared cluster must be reorganized to match the finer gran-ularity of its visible counterparts. Let Fir,j = {fir,n }n∈I j
+
+denote all infrared features belonging to cluster j, where Ij
+
+indexes the samples assigned to this cluster. Each infrared feature is reassigned to the most similar visible prototype indexed by i∗:
+
+i∗ = arg max 
+
+> i∈V j
+
+Sim( fir,n , mivis ), (20) Based on these assignments, the coarse infrared cluster is then split into mutually aligned sub-clusters: 
+
+˜Fir,i = fir,n ∈ F ir,j i∗ = i , i ∈ V j . (21) The refined infrared prototypes are then computed by aggre-gating the features within each newly formed sub-cluster: 
+
+˜miir = 1
+
+| ˜Fir,i |
+
+X 
+
+> fir,n ∈˜Fir,i
+
+fir,n . (22) After refinement, every visible prototype mivis is paired with a unique infrared prototype ˜miir , producing a structurally consistent memory bank that satisfies: 
+
+| ˜Mvis | = | ˜Mir | = ˜K. (23) where ˜K denotes the refined number of visible–infrared pro-totype pairs after reconstruction. 
+
+Uncertainty Learning. Hard reassignment in Memory Re-construction enforces clear and deterministic cluster bound-aries for reliable associations. However, when an infrared feature exhibits comparable similarity to multiple visible pro-totypes, ambiguity naturally arises near cluster boundaries. To prevent error amplification caused by hard decisions, PGUR preserves the soft similarity distribution for such ambiguous features. For an ambiguous infrared feature fir,n ∈ ˜Fir,j and its candidate visible prototype set Vj , we compute its soft target distributions over the visible and infrared prototype banks as: 
+
+si2vn,i = exp  fir,n · ˜mivis 
+
+P 
+
+> k∈V j
+
+exp  fir,n · ˜mkvis 
+
+ , i ∈ V j ,si2in,i = exp  fir,n · ˜miir 
+
+P 
+
+> k∈V j
+
+exp  fir,n · ˜mkir 
+
+ , i ∈ V j .
+
+(24) After memory refinement, the two modalities maintain their own aligned prototype sets ˜Mvis = { ˜mivis } ˜Ki=1 and ˜Mir =
+
+{ ˜miir } ˜Ki=1 , which share indices but remain modality-specific. For an infrared feature fir,n , its predicted distributions over the two prototype sets are: 
+
+pi2vn,i = exp  fir,n · ˜mivis /τ P ˜Kk=1 exp  fir,n · ˜mkvis /τ  ,pi2in,i = exp  fir,n · ˜miir /τ P ˜Kk=1 exp  fir,n · ˜mkir /τ  .
+
+(25) To facilitate robust cross-modality alignment while pre-venting error propagation from ambiguous associations, we formulate the optimization objective by distinguishing between reliable and ambiguous samples. The unified objective for the infrared modality is defined as: 
+
+Lir P GU R = Lir rel + λ3Lir amb , (26) SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 8
+
+where the hard supervision term Lir rel for reliable samples is: 
+
+Lir rel = − log pi2vn, ˆyir,n − log pi2in, ˆyir,n , (27) where ˆyir,n represents the unique prototype index assigned to sample fir,n through the one-to-one matching (i, j ) ∈ R .For ambiguous samples, the soft uncertainty-aware supervision term Lamb is formulated as: 
+
+Lir amb = X
+
+> i∈V j
+
+ −si2vn,i log pi2vn,i − si2in,i log pi2in,i 
+
+, (28) where Vj is the set of candidate visible prototype indices associated with the cluster of fir,n , and sn,i are the soft targets defined in Eq. (24). Symmetrically, the refinement process is applied to the visible modality. By treating visible features fvis,n as anchors and the aligned prototype sets as targets, the corresponding loss Lvis P GU R is formulated as: 
+
+Lvis P GU R = Lvis rel + λ4Lvis amb , (29) The final joint objective for Prototype-Guided Uncertainty Refinement (PGUR) is defined as the summation of the losses from both modalities: 
+
+LP GU R = Lir P GU R + Lvis P GU R . (30) 
+
+D. Overall Objective 
+
+The overall objective of the proposed CBA framework integrates intra-modality discriminability, causal representation calibration, and cross-modality structural alignment. The total loss function Ltotal is formulated as a unified objective: 
+
+Ltotal = Lintra + LCIW + LP GU R , (31) where Lintra is the intra-modality contrastive loss, LCIW =
+
+Lmpb + λ1Lttb + λ2Lseq is the causal intervention warm-up loss that purifies the representation space and is sym-metrically applied to both visible and infrared modalities, and LP GU R = Lir P GU R + Lvis P GU R is the prototype-guided uncertainty refinement loss for cross-modal alignment. IV. E XPERIMENTS 
+
+A. Datasets and Evaluation Metrics 
+
+Datasets. HITSZ-VCM [1] is collected using paired visible and infrared cameras, containing 927 identities captured by 6 visible and 6 infrared cameras. It includes 251,452 RGB frames and 211,807 infrared frames, with an average of 24 frames per tracklet. Following the standard protocol, 500 identities are used for training and 427 for testing. BUPT-Campus [4] is a large-scale dataset collected by 6 cameras, comprising 3,080 identities and 16,826 tracklets with 1.87 million frames. It is split into three subsets: 1,074 identities for primary training, 930 for auxiliary supervision, and 1,076 for evaluation. 
+
+Evaluation Metrics. Retrieval performance is evaluated us-ing CMC and mAP. Following prior work [1], [4], results are reported under infrared-to-visible and visible-to-infrared settings. 
+
+B. Implementation Details 
+
+The proposed CBA framework is implemented in PyTorch and evaluated on a single NVIDIA RTX 5090 GPU. The visual encoder follows the VLD framework with spatio-temporal prompting (STP) [2], built on CLIP ViT-B/16. STP explicitly models temporal continuity across frames. Input images are resized to 288 × 144 and augmented with random flipping, padding, cropping, and channel erasure [50]. We adopt the Adam optimizer and train the model in three stages. The first stage runs for 40 epochs with a learning rate of 4 × 10 −5
+
+and cosine decay, activating CIW with a batch size of 16. The second stage performs intra-modality contrastive learning for 30 epochs with the learning rate reduced by 100 ×. The third stage enables PGUR and continues training for 50 epochs with the same reduced learning rate. Unless otherwise specified, the batch size is set to 32, with 16 sequences per modality per mini-batch and 6 frames sampled from each sequence. The hyperparameters λ1, λ2, λ3, and λ4 are set to 2.6, 0.1, 1.9, and 1.5, respectively. 
+
+C. Comparison with State-of-the-Art Methods 
+
+In this section, we compare our method with state-of-the-art approaches on HITSZ-VCM and BUPTCampus. Since most unsupervised cross-modality Re-ID methods are image-based, we evaluate representative methods (e.g., ADCA [10], PGM [11], GUR [12], NG [13], RPNR [15], and N-ULC [14]) on the two video benchmarks using their official imple-mentations. All methods are trained following their official implementations, with only necessary adaptations for video inputs and the corresponding evaluation protocols. To ensure architectural fairness, methods supporting ViT-B/16 are further evaluated with the same backbone. 
+
+Evaluation on the HITSZ-VCM Dataset. We evaluate our method on HITSZ-VCM with Seq Len=6 under both Infrared-to-Visible (I2V) and Visible-to-Infrared (V2I) settings, as shown in Table I. Focusing on USL-VVI-ReID, we mainly compare with representative USL-VI-ReID methods. Our ap-proach achieves the best performance among all unsupervised competitors in both directions. Under the ViT-B/16 setting, it attains 58.6% Rank-1 and 45.9% mAP in I2V, and 63.0% Rank-1 and 45.1% mAP in V2I. Compared with the strongest unsupervised baseline under the same backbone (PGM), our method improves Rank-1/mAP by +20.2%/+15.3% in I2V and +22.6%/+16.1% in V2I, demonstrating substantially enhanced cross-modality matching on video sequences. These gains mainly arise from the proposed CBA framework, where CIW produces more reliable identity representations for cluster-ing, and PGUR further corrects granularity mismatch via prototype-guided refinement with uncertainty-aware supervi-sion. 
+
+Evaluation on the BUPTCampus Dataset. BUPTCampus is a more challenging benchmark with larger scale and higher cross-modality variability. As shown in Table II, our method achieves the best performance in both I2V and V2I settings. Specifically, CBA attains 37.7% Rank-1 and 37.1% mAP in I2V, and 40.2% Rank-1 and 38.8% mAP in V2I. Compared SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 9
+
+TABLE I COMPARISON WITH STATE -OF -THE -ART RE-ID METHODS ON HITSZ-VCM IN TERMS OF M AP AND CMC (%). “R@1”, “R@5”, AND “R@10” DENOTE 
+
+RANK -1, R ANK -5, AND RANK -10 ACCURACY . † INDICATES RESULTS FROM OFFICIAL IMPLEMENTATIONS . B EST AND SECOND -BEST RESULTS ARE HIGHLIGHTED IN BOLD AND UNDERLINED , RESPECTIVELY .
+
+Methods Reference Backbone Seq Len Infrared-to-Visible Visible-to-Infrared 
+
+R@1 R@5 R@10 mAP R@1 R@5 R@10 mAP 
+
+> Supervised
+
+MITML [1] CVPR’22 ResNet-50 6 63.7 76.9 81.7 45.3 64.5 79.0 83.0 47.7 IBAN [3] TCSVT’23 ResNet-50 6 65.0 78.3 83.0 48.8 69.6 81.5 85.4 51.0 SAADG [28] ACM MM’23 ResNet-50 6 69.2 80.6 85.0 53.8 73.1 83.5 86.9 56.1 CST [27] TMM’24 ResNet-50 6 69.4 81.1 85.8 51.2 72.6 83.4 86.7 53.0 AuxNet [4] TIFS’24 ResNet-50 6 51.1 - - 46.0 54.6 - - 48.7 FA-Net [51] TIP’25 ResNet-50 6 68.1 79.7 84.0 51.2 70.0 82.1 86.0 52.5 VLD [2] TIFS’25 ViT-B/16 6 74.3 85.0 88.4 60.2 74.6 86.4 90.0 58.6 
+
+> Unsupervised
+
+ADCA † [10] ACM MM’22 ResNet-50 6 33.1 45.4 53.1 23.2 35.7 52.4 60.0 23.9 PGM † [11] CVPR’23 ResNet-50 6 33.7 47.1 53.6 23.4 36.9 52.7 60.4 23.9 GUR † [12] ICCV’23 ResNet-50 6 9.0 18.6 24.7 5.6 9.9 20.1 26.2 5.9 NG † [13] ACM MM’23 ResNet-50 6 22.8 38.2 47.0 12.0 24.6 40.2 48.5 12.1 ADCA † [10] ACM MM’22 ViT-B/16 6 30.0 43.4 51.7 24.8 34.0 52.3 61.0 24.8 PGM † [11] CVPR’23 ViT-B/16 6 38.4 54.6 62.9 30.6 40.4 59.4 68.6 29.0 RPNR † [15] ACM MM’24 ViT-B/16 6 28.2 42.3 50.2 22.1 33.3 50.9 59.4 22.3 N-ULC † [14] AAAI’25 ViT-B/16 6 28.2 42.3 50.2 22.1 33.3 50.9 59.4 22.3 our - ViT-B/16 6 58.6 74.9 80.7 45.9 63.0 77.8 83.4 45.1 
+
+TABLE II COMPARISON WITH STATE -OF -THE -ART RE-ID METHODS ON BUPTC AMPUS IN TERMS OF M AP AND CMC (%). † INDICATES RESULTS FROM OFFICIAL IMPLEMENTATIONS . B EST AND SECOND -BEST RESULTS ARE HIGHLIGHTED IN BOLD AND UNDERLINED , RESPECTIVELY .
+
+Methods Reference Backbone Seq Len Infrared-to-Visible Visible-to-Infrared 
+
+R@1 R@5 R@10 mAP R@1 R@5 R@10 mAP 
+
+> Supervised
+
+MITML [1] CVPR’22 ResNet-50 6 49.1 67.9 75.4 47.5 50.2 68.3 75.7 46.3 AuxNet [4] TIFS’24 ResNet-50 10 63.6 79.9 85.3 61.1 62.7 81.5 85.7 60.2 TF-CLIP [2] AAAI’25 ViT-B/16 6 57.1 80.4 89.4 56.6 59.6 78.7 87.4 55.3 VLD [2] TIFS’25 ViT-B/16 6 65.3 84.9 89.7 63.5 65.8 83.0 87.9 63.0 X-ReID [2] AAAI’26 ViT-B/16 6 68.2 88.4 94.3 68.5 68.8 84.8 92.7 65.9 
+
+> Unsupervised
+
+ADCA † [10] ACM MM’22 ResNet-50 6 27.6 47.0 55.4 27.8 29.6 49.3 58.2 29.1 PGM † [11] CVPR’23 ResNet-50 6 29.5 48.1 56.7 30.1 32.2 51.1 57.8 30.9 GUR † [12] ICCV’23 ResNet-50 6 12.9 25.2 33.0 14.4 17.0 29.1 36.0 17.7 NG † [13] ACM MM’23 ResNet-50 6 26.1 41.2 46.1 25.4 27.4 41.3 48.7 25.0 ADCA † [10] ACM MM’22 ViT-B/16 6 18.8 38.1 48.1 21.8 25.8 43.4 51.2 26.0 PGM † [11] CVPR’23 ViT-B/16 6 27.0 51.3 60.5 28.9 33.6 55.1 62.3 33.4 RPNR † [15] ACM MM’24 ViT-B/16 6 24.0 42.4 51.4 24.6 20.3 38.5 46.2 22.4 N-ULC † [14] AAAI’25 ViT-B/16 6 22.8 45.2 52.1 25.2 29.1 49.0 59.0 28.8 our - ViT-B/16 6 37.7 58.8 67.6 37.1 40.2 61.5 69.0 38.8 
+
+with the strongest unsupervised baseline under the same ViT-B/16 backbone (PGM), our method improves Rank-1/mAP by +10.7%/+8.2% in I2V and +6.6%/+5.4% in V2I. These results demonstrate that CIW and PGUR remain effective under larger-scale data and stronger modality discrepancies, validating the robustness and scalability of the proposed frame-work. 
+
+D. Ablation Study 
+
+To evaluate individual components of CBA, we conduct ablation studies on HITSZ-VCM. Following ADCA [10], we adopt as the baseline a standard unsupervised pipeline that alternates intra-modality clustering and contrastive learning, without CIW and PGUR. Relying solely on modality-specific pseudo labels, this baseline is prone to learning modality-dependent representations. 
+
+1) Analysis of CIW. We evaluate CIW from both holistic and component-wise perspectives, analyzing its overall effec-tiveness and the complementary roles of MPB, TTB, and ICS (Table III, Table IV and Table V). 
+
+Overall effectiveness of CIW. Table III analyzes the impact of CIW under different configurations. Starting from the pre-trained encoder, enabling CIW alone yields substantial performance gains, improving Rank-1/mAP from 1.1%/1.1% to 18.9%/12.3% in I2V and from 4.1%/2.3% to 18.2%/11.3% in V2I. When integrated into the baseline (B), CIW con-sistently enhances performance, boosting Rank-1/mAP from 26.9%/21.7% to 36.3%/29.0% in I2V and from 27.9%/20.6% to 39.6%/28.8% in V2I. CIW further complements PGUR. SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 10 
+
+TABLE III ABLATION STUDY OF CBA COMPONENTS ON HITSZ-VCM. S TARTING FROM A PRE -TRAINED ENCODER , WE PROGRESSIVELY ADD THE BASELINE PIPELINE (B), CIW, AND PGUR. P ERFORMANCE IS REPORTED FOR INFRARED -TO -V ISIBLE AND VISIBLE -TO -I NFRARED RETRIEVAL . N UMBERS IN PARENTHESES INDICATE GAINS OVER THE PRE -TRAINED BASELINE .
+
+Pre-trained Component Infrared-to-Visible Visible-to-Infrared 
+
+B CIW PGUR R@1 mAP R@1 mAP 
+
+✓ ✗ ✗ ✗ 1.1 1.1 4.1 2.3 
+
+✓ ✗ ✓ ✗ 18.9(+17.8) 12.3(+11.2) 18.2(+14.1) 11.3(+9.0) 
+
+✓ ✓ ✗ ✗ 26.9(+25.8) 21.7(+20.6) 27.9(+23.8) 20.6(+18.3) 
+
+✓ ✓ ✓ ✗ 36.3(+35.2) 29.0(+27.9) 39.6(+35.5) 28.8(+26.5) 
+
+✓ ✓ ✗ ✓ 47.8(+46.7) 35.1(+34.0) 48.8(+44.7) 33.3(+31.0) 
+
+✓ ✓ ✓ ✓ 58.6(+57.5) 45.9(+44.8) 63.0(+58.9) 45.1(+42.8) 
+
+TABLE IV DETAILED ABLATION STUDY ON THE CIW CONSTITUENTS . T HE RESULTS DEMONSTRATE THE PROGRESSIVE IMPROVEMENTS ACHIEVED BY MPB, TTB,  
+
+> AND
+
+ICS ACROSS BOTH INFRARED -TO -VISIBLE AND VISIBLE -TO -INFRARED EVALUATION PROTOCOLS .
+
+B&PGUR CIW Infrared-to-Visible Visible-to-Infrared 
+
+MPB TTB ICS R@1 mAP R@1 mAP 
+
+✓ ✗ ✗ ✗ 47.8 35.1 48.8 33.3 
+
+✓ ✓ ✗ ✗ 52.9(+5.1) 40.2(+5.1) 55.0(+6.2) 37.5(+4.2) 
+
+✓ ✓ ✓ ✗ 55.8(+8.0) 42.2(+7.1) 57.1(+8.3) 38.8(+5.5) 
+
+✓ ✓ ✓ ✓ 58.6(+10.8) 45.9(+10.8) 63.0(+14.2) 45.1(+11.8) 
+
+TABLE V ABLATION OF STYLE INTERVENTION (SI) IN CIW UNDER THE CBA FRAMEWORK . W E PROGRESSIVELY ENABLE SI IN ONE DIRECTION (V →I OR I→V) 
+
+> OR BOTH DIRECTIONS
+
+.
+
+CBA (w/o MPB) MPB Infrared-to-Visible Visible-to-Infrared 
+
+V → I I → V R@1 mAP R@1 mAP 
+
+✓ ✗ ✗ 55.5 43.2 57.1 41.2 
+
+✓ ✓ ✗ 56.5(+1.0) 42.2(-1.0) 59.2(+2.1) 40.9(-0.3) 
+
+✓ ✗ ✓ 55.4(-0.1) 41.9(-1.3) 58.0(+0.9) 40.2(-1.0) 
+
+✓ ✓ ✓ 58.6(+3.1) 45.9(+2.7) 63.0(+5.9) 45.1(+3.9) 
+
+TABLE VI ABLATION OF PGUR SUPERVISION ON RELIABLE AND AMBIGUOUS SAMPLES . W E PROGRESSIVELY ENABLE HARD SUPERVISION FOR RELIABLE PAIRS AND UNCERTAINTY -AWARE SOFT SUPERVISION FOR AMBIGUOUS ONES .
+
+CBA (w/o PGUR) PGUR Infrared-to-Visible Visible-to-Infrared 
+
+Reliable Ambiguous R@1 mAP R@1 mAP 
+
+✓ ✗ ✗ 36.3 29.0 39.6 28.8 
+
+✓ ✓ ✗ 49.2(+12.9) 39.0(+10.0) 53.0(+13.4) 39.3(+10.5) 
+
+✓ ✓ ✓ 58.6(+22.3) 45.9(+16.9) 63.0(+23.4) 45.1(+16.3) 
+
+Adding CIW to “B+PGUR” improves Rank-1/mAP from 47.8%/35.1% to 58.6%/45.9% in I2V and from 48.8%/33.3% to 63.0%/45.1% in V2I. Overall, CIW effectively shifts the representation space from modality-driven to identity-aware, providing a stronger foundation for both intra-modality pseudo-label learning and cross-modality refinement. 
+
+Effect of Individual Causal Interventions in CIW. Ta-ble IV reports the internal ablation of CIW by progressively activating MPB, TTB, and ICS on top of the baseline with PGUR. Without CIW, the model achieves 47.8% Rank-1 / 35.1% mAP (I2V) and 48.8% / 33.3% (V2I), indicating residual modality and temporal bias. Introducing MPB yields clear gains (+5.1% Rank-1, +5.1% mAP in I2V; +6.2% Rank-1, +4.2% mAP in V2I), confirming that modality-specific appearance is a major confounder. Adding TTB further im-proves robustness to temporal shortcuts, raising performance to 55.8% / 42.2% (I2V) and 57.1% / 38.8% (V2I). Finally, incorporating ICS delivers the best results, reaching 58.6% Rank-1 / 45.9% mAP (I2V) and 63.0% / 45.1% (V2I), with total gains of +10.8% mAP (I2V) and +11.8% mAP (V2I) over the CIW-free baseline. These results demonstrate that CIW benefits from the complementary effects of modality perturbation, temporal intervention, and identity-consistency stabilization, jointly suppressing non-causal shortcuts while preserving identity-discriminative information. 
+
+Effectiveness of Bidirectional Intervention in MPB. Ta-SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 11 (a) effect of 𝜆 ! (b) effect of 𝜆 "                      
+
+> (c) effect of 𝜆 #(d) effect of 𝜆 $
+> Fig. 6. Results of Rank-1 and mAP under different values of λ1,λ2,λ3and
+> λ4on the HITSZ-VCM dataset. (a )Pre -trained Encoder (b )Baseline
+> (c )Baseline +CIW (d )CBA
+> Fig. 7. t-SNE visualization of cross-modality embeddings on HITSZ-VCM. Circles and crosses denote visible and infrared modalities, respectively, while colors indicate identities.
+
+ble V evaluates the bidirectional intervention strategy in MPB. When only a single-direction intervention is applied, perfor-mance degrades relative to the baseline (CBA w/o MPB). Specifically, applying only I → V leads to an I2V mAP drop of 1.3% , while applying only V → I results in a V2I mAP drop of 0.3% . This degradation stems from asymmetric distribution shifts, where perturbing a single modality introduces unilateral semantic noise and enlarges cross-modality discrepancy. In contrast, enabling bidirectional intervention yields clear gains, improving mAP by 2.7% in I2V and 3.9% in V2I. These results indicate that MPB must be applied symmetrically: bidi-rectional style perturbation effectively neutralizes modality-specific appearance confounders M , thereby enforcing the separation property ( S ⊥ M ) and allowing the encoder to 𝛿 !              
+
+> 𝛿 "𝛿 #
+> (a )Pre -trained Encoder (b )Baseline
+> (c )Baseline +CIW (d )CBA
+> Fig. 8. Distributions of intra- and inter-class distances on HITSZ-VCM. δ1,
+> δ2, and δ3denote the separation margins between the intra- and inter-class distributions under different settings, where a larger margin indicates better identity discriminability.
+
+focus on intrinsic identity-related causal factors S for robust cross-modality retrieval. 
+
+2) Analysis of PGUR. PGUR is evaluated by analyzing its overall effectiveness across different pipelines and the complementary roles of hard supervision on reliable pairs and soft supervision on ambiguous samples (Table III and Table VI). 
+
+Overall effectiveness of PGUR. We evaluate PGUR by integrating it into different pipelines in Table III. When added to the baseline B, PGUR brings substantial improvements, boosting Rank-1/mAP from 26.9%/21.7% to 47.8%/35.1% in I2V and from 27.9%/20.6% to 48.8%/33.3% in V2I. Notably, PGUR is more effective when applied after CIW. With higher-quality pseudo labels and a more reliable clustering structure, adding PGUR to “B+CIW” further improves Rank-1/mAP to 58.6%/45.9% in I2V and 63.0%/45.1% in V2I. These results show that PGUR provides effective cross-modality refinement by handling ambiguous associations with uncertainty-aware soft supervision, leading to more modality-invariant represen-tations and improved retrieval performance. 
+
+Contributions of Reliable and Ambiguous Samples. We further analyze PGUR by progressively enabling its super-vision on reliable samples and then on ambiguous ones, as reported in Table VI. Without PGUR, CBA achieves 36.3%/29.0% Rank-1/mAP in I2V and 39.6%/28.8% in V2I. Enabling PGUR only on reliable associations substantially im-proves performance to 49.2%/39.0% in I2V and 53.0%/39.3% in V2I. When ambiguous samples are further incorporated with uncertainty-aware supervision, performance increases to 58.6%/45.9% in I2V and 63.0%/45.1% in V2I. These results demonstrate that explicitly modeling ambiguity is crucial: while reliable pairs benefit from hard supervision, ambiguous samples require soft, uncertainty-aware constraints to avoid er-ror propagation and achieve robust cross-modality alignment. 
+
+E. Parameter Analysis 
+
+We analyze the sensitivity of the hyper-parameters λ1, λ2,
+
+λ3, and λ4 under the I2V protocol on HITSZ-VCM. Here, SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 12 Retrieval results of Visible to Infrared from Rank@1 to Rank@6 Retrieval results of Visible to Infrared from Rank@1 to Rank@6 Retrieval results of Visible to Infrared from Rank@1 to Rank@6                
+
+> Retrieval results of Infrared to Visible from Rank@1 to Rank@6 Retrieval results of Infrared to Visible from Rank@1 to Rank@6 Retrieval results of Infrared to Visible from Rank@1 to Rank@6
+> Query 1Query 2Query 3
+> Query 1
+> B/L
+> CBA
+> B/L
+> +
+> CI W
+> Query 2Query 3
+> B/L
+> CBA
+> B/L
+> +
+> CIW
+> B/L
+> CBA
+> B/L
+> +
+> CIW
+> B/L
+> CBA
+> B/L
+> +
+> CIW
+> B/L
+> CBA
+> B/L
+> +
+> CIW
+> B/L
+> CBA
+> B/L
+> +
+> CIW
+
+Fig. 9. Qualitative cross-modality retrieval results on HITSZ-VCM. Top-6 matches (Rank@1–Rank@6) are shown for Infrared-to-Visible (top) and Visible-to-Infrared (bottom) queries. Green and red boxes indicate correct and incorrect matches, respectively. 
+
+λ1 and λ2 control the strength of temporal intervention and identity-consistency stabilization in CIW, while λ3 and λ4
+
+weight the same form of uncertainty-aware soft alignment loss in PGUR, applied to the infrared and visible modalities, respectively. As shown in Fig. 6, all parameters exhibit a similar trend: performance improves as the corresponding con-straint becomes effective, and degrades when over-weighted due to over-regularization or over-alignment. We therefore set λ1 = 2 .6, λ2 = 0 .1, λ3 = 1 .9, and λ4 = 1 .5 in all experiments. 
+
+F. Visualization 
+
+We provide qualitative analysis via t-SNE visualization, distance distribution analysis, and cross-modality retrieval ex-amples under I2V and V2I settings to illustrate representation quality and retrieval performance. 
+
+Feature Embedding Analysis. Fig. 7 (a–d) shows t-SNE visualizations under different training stages. In Fig. 7 (a), features from the pretrained encoder exhibit severe identity entanglement and a pronounced visible–infrared separation, indicating strong modality bias. Fig. 7 (b) shows that base-line intra-modality clustering improves identity separability within each modality, yet a large modality gap persists. With the introduction of CIW in Fig. 7 (c), visible and infrared features become significantly closer, demonstrating improved modality invariance at an early stage. Finally, Fig. 7 (d) shows that PGUR further refines cross-modality alignment, yielding well-separated identity clusters with better interleaving across modalities. 
+
+Distance Distribution Analysis. Fig. 8 (a–d) illustrates intra-class and inter-class distance distributions under different settings. In Fig. 8 (a), the two distributions heavily over-lap, indicating weak identity discriminability. The baseline in Fig. 8 (b) partially enlarges the separation, yet the margin remains limited due to modality discrepancies. With CIW in Fig. 8 (c), the distance gap is substantially increased, reflecting improved identity consistency. The full CBA framework in Fig. 8 (d) achieves the largest margin, demonstrating the most discriminative and well-aligned representations. 
+
+Retrieval Results Analysis. Fig. 9 presents qualitative cross-modality retrieval results under I2V and V2I settings for three representative queries. The baseline (B/L) exhibits severe cross-modality failure, where most top-ranked results (Rank@1–6) correspond to incorrect identities, indicating that modality bias dominates the learned representation. After introducing CIW (B/L+CIW), correct matches (green boxes) consistently appear at higher ranks, demonstrating that causal intervention effectively enhances early identity awareness and suppresses modality-specific shortcuts. With the full CBA framework, correct identities dominate the top-ranked results across all queries, while false positives are largely eliminated, reflecting more reliable and stable cross-modality alignment enabled by PGUR. V. C ONCLUSION 
+
+In this paper, we proposed Causal Bootstrapped Alignment (CBA), a novel framework for USL-VVI-ReID. By analyzing generic pre-trained encoders from a causal and structural perspective, we identify two fundamental bottlenecks: severe intra-modality identity confusion and cross-modality cluster-ing granularity mismatch. To address the former, we intro-duce Causal Intervention Warm-up (CIW), which performs sequence-level causal interventions by exploiting temporal identity consistency and perturbation-induced cross-modality identity invariance, suppressing modality- and motion-related confounders while preserving identity-discriminative seman-tics. To resolve the latter, we propose Prototype-Guided Un-certainty Refinement (PGUR), which alleviates one-to-many cross-modal matching ambiguity via coarse-to-fine structural refinement, leveraging reliable visible prototypes to reorganize infrared clusters with uncertainty-aware supervision. Extensive experiments on the HITSZ-VCM and BUPTCampus bench-marks demonstrate the effectiveness and robustness of the proposed framework. REFERENCES [1] X. Lin, J. Li, Z. Ma, H. Li, S. Li, K. Xu, G. Lu, and D. Zhang, “Learning modal-invariant and temporal-memory for video-based visible-infrared person re-identification,” in CVPR , 2022, pp. 20 973–20 982. SUBMIT TO IEEE TRANSACTIONS ON INFORMATION FORENSICS AND SECURITY 13 
+
+[2] S. Li, J. Leng, C. Kuang, M. Tan, and X. Gao, “Video-level language-driven video-based visible-infrared person re-identification,” 
+
+IEEE Trans. Inf. Forensics Security , 2025. [3] H. Li, M. Liu, Z. Hu, F. Nie, and Z. Yu, “Intermediary-guided bidi-rectional spatial-temporal aggregation network for video-based visible-infrared person re-identification,” IEEE Trans. Circuits Syst. Video Technol. , 2023. [4] Y. Du, C. Lei, Z. Zhao, Y. Dong, and F. Su, “Video-based visible-infrared person re-identification with auxiliary samples,” IEEE Trans. Inf. Forensics Security , vol. 19, pp. 1313–1325, 2023. [5] Y. Yang, S. Li, J. Ye, N. Dong, F. Li, and H. Li, “Dinov2-driven gait representation learning for video-based visible–infrared person re-identification,” in ACM MM , 2025, pp. 8283–8292. [6] J. Leng, C. Kuang, S. Li, J. Gan, H. Chen, and X. Gao, “Dual-space video person re-identification,” Int. J. Comput. Vis. , vol. 133, no. 6, pp. 3667–3688, 2025. [7] S. Li, F. Li, J. Li, H. Li, B. Zhang, D. Tao, and X. Gao, “Logical relation inference and multiview information interaction for domain adaptation person re-identification,” IEEE Trans. Neural Netw. Learn. Syst. , vol. 35, no. 10, pp. 14 770–14 782, 2023. [8] L. Zhou, S. Li, N. Dong, Y. Tai, Y. Zhang, and H. Li, “Hierarchical prompt learning for image- and text-based person re-identification,” in 
+
+AAAI , 2026, accepted. [9] Y. Wang, G. Qi, S. Li, Y. Chai, and H. Li, “Body part-level domain alignment for domain-adaptive person re-identification with transformer framework,” IEEE Trans. Inf. Forensics Security , vol. 17, pp. 3321–3334, 2022. [10] B. Yang, M. Ye, J. Chen, and Z. Wu, “Augmented dual-contrastive aggregation learning for unsupervised visible-infrared person re-identification,” in ACM MM , 2022, pp. 2843–2851. [11] Z. Wu and M. Ye, “Unsupervised visible-infrared person re-identification via progressive graph matching and alternate learning,” in CVPR , 2023, pp. 9548–9558. [12] B. Yang, J. Chen, and M. Ye, “Towards grand unified representation learning for unsupervised visible-infrared person re-identification,” in 
+
+ICCV , 2023, pp. 11 069–11 079. [13] D. Cheng, X. Huang, N. Wang, L. He, Z. Li, and X. Gao, “Unsupervised visible-infrared person reid by collaborative learning with neighbor-guided label refinement,” in ACM MM , 2023, pp. 7085–7093. [14] X. Teng, L. Lan, D. Chen, K. Xu, and N. Yin, “Relieving universal label noise for unsupervised visible-infrared person re-identification by inferring from neighbors,” in AAAI , vol. 39, no. 7, 2025, pp. 7356–7364. [15] X. Yin, J. Shi, Y. Zhang, Y. Lu, Z. Zhang, Y. Xie, and Y. Qu, “Robust pseudo-label learning with neighbor relation for unsupervised visible-infrared person re-identification,” in ACM MM , 2024, pp. 2242–2251. [16] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark et al. , “Learning transferable visual models from natural language supervision,” in ICML . PMLR, 2021, pp. 8748–8763. [17] S. Yan, N. Dong, L. Zhang, and J. Tang, “Clip-driven fine-grained text-image person re-identification,” IEEE Trans. Image Process. , vol. 32, pp. 6032–6046, 2023. [18] X. Yu, N. Dong, L. Zhu, H. Peng, and D. Tao, “Clip-driven semantic discovery network for visible-infrared person re-identification,” IEEE Trans. Multimedia , 2025. [19] N. Dong, S. Yan, L. Zhang, and J. Tang, “Diverse semantics-guided feature alignment and decoupling for visible-infrared person re-identification,” IEEE Trans. Inf. Forensics Security , vol. 20, pp. 12 245– 12 259, 2025. [20] K. Tang, L. He, J. Dang, and X. Gao, “Boosting temporal sentence grounding via causal inference,” in ACM MM , 2025, pp. 8701–8710. [21] Y. Liu, G. Qin, H. Chen, Z. Cheng, and X. Yang, “Causality-inspired invariant representation learning for text-based person retrieval,” in 
+
+AAAI , vol. 38, no. 12, 2024, pp. 14 052–14 060. [22] F. Lv, J. Liang, S. Li, B. Zang, C. H. Liu, Z. Wang, and D. Liu, “Causality inspired representation learning for domain generalization,” in CVPR , 2022, pp. 8046–8056. [23] M. Ye, J. Shen, G. Lin, T. Xiang, L. Shao, and S. C. H. Hoi, “Deep learning for person re-identification: A survey and outlook,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 44, no. 6, pp. 2872–2893, 2021. [24] M. Ye, J. Shen, D. J. Crandall, L. Shao, and J. Luo, “Dynamic dual-attentive aggregation learning for visible-infrared person re-identification,” in ECCV , 2020, pp. 229–247. [25] Q. Wu, P. Dai, J. Chen, C.-W. Lin, Y. Wu, F. Huang, B. Zhong, and R. Ji, “Discover cross-modality nuances for visible-infrared person re-identification,” in CVPR , 2021, pp. 4330–4339. [26] S. Li, J. Leng, J. Gan, M. Mo, and X. Gao, “Shape-centered repre-sentation learning for visible-infrared person re-identification,” Pattern Recognition , p. 111756, 2025. [27] Y. Feng, F. Chen, J. Yu, Y. Ji, F. Wu, T. Liu, S. Liu, X.-Y. Jing, and J. Luo, “Cross-modality spatial-temporal transformer for video-based visible-infrared person re-identification,” IEEE Trans. Multimedia , 2024. [28] C. Zhou, J. Li, H. Li, G. Lu, Y. Xu, and M. Zhang, “Video-based visible-infrared person re-identification via style disturbance defense and dual interaction,” in ACM MM , 2023, pp. 46–55. [29] C. Zhou, Y. Zhou, T. Ren, H. Li, J. Li, and G. Lu, “Hierarchical disturbance and group inference for video-based visible-infrared person re-identification,” Information Fusion , vol. 117, p. 102882, 2025. [30] C. Yu, X. Liu, P. Zhang, and H. Lu, “X-reid: Multi-granularity informa-tion interaction for video-based visible-infrared person re-identification,” in AAAI , 2025. [31] Z. Liu, D. Wang, and H. Lu, “Stepwise metric promotion for unsuper-vised video person re-identification,” in ICCV , 2017, pp. 2429–2438. [32] M. Ye, X. Lan, and P. C. Yuen, “Robust anchor embedding for unsupervised video person re-identification in the wild,” in ECCV , 2018, pp. 170–186. [33] M. Ye, J. Li, A. J. Ma, L. Zheng, and P. C. Yuen, “Dynamic graph co-matching for unsupervised video-based person re-identification,” IEEE Trans. Image Process. , vol. 28, no. 6, pp. 2976–2990, 2019. [34] X. Wang, R. Panda, M. Liu, Y. Wang, and A. K. Roy-Chowdhury, “Exploiting global camera network constraints for unsupervised video person re-identification,” IEEE Trans. Circuits Syst. Video Technol. ,vol. 31, no. 10, pp. 4020–4030, 2020. [35] M. Li, X. Zhu, and S. Gong, “Unsupervised person re-identification by deep learning tracklet association,” in ECCV , 2018, pp. 737–753. [36] M. Li, X. Zhu, and S. Gong, “Unsupervised tracklet person re-identification,” IEEE Trans. Pattern Anal. Mach. Intell. , vol. 42, no. 7, pp. 1770–1782, 2019. [37] X. Ma, X. Zhu, S. Gong, X. Xie, J. Hu, K.-M. Lam, and Y. Zhong, “Person re-identification by unsupervised video matching,” Pattern Recognition , vol. 65, pp. 197–210, 2017. [38] P. Xie, X. Xu, Z. Wang, and T. Yamasaki, “Sampling and re-weighting: Towards diverse frame-aware unsupervised video person re-identification,” IEEE Trans. Multimedia , vol. 24, pp. 4250–4261, 2022. [39] S. Zeng, X. Wang, M. Liu, Q. Liu, and Y. Wang, “Anchor association learning for unsupervised video person re-identification,” IEEE Trans. Neural Netw. Learn. Syst. , vol. 35, no. 1, pp. 1013–1024, 2022. [40] H. Fan, L. Zheng, C. Yan, and Y. Yang, “Unsupervised person re-identification: Clustering and fine-tuning,” ACM Trans. Multimedia Comput. Commun. Appl. , vol. 14, no. 4, pp. 1–18, 2018. [41] Y. Li, Y. Sun, Y. Qin, D. Peng, X. Peng, and P. Hu, “Robust duality learning for unsupervised visible-infrared person re-identification,” IEEE Trans. Inf. Forensics Security , 2025. [42] J. Shi, X. Yin, Y. Chen, Y. Zhang, Z. Zhang, Y. Xie, and Y. Qu, “Multi-memory matching for unsupervised visible-infrared person re-identification,” in ECCV . Springer, 2024, pp. 456–474. [43] R. Xi, Z. Fu, N. Huang, X. Zhao, Q. Zhang, and J. Han, “Csanet: Cross-modality self-paced association network for unsupervised visible-infrared person re-identification,” IEEE Trans. Inf. Forensics Security ,2025. [44] M. Ye, Z. Wu, and B. Du, “Dual-level matching with outlier filtering for unsupervised visible-infrared person re-identification,” IEEE Trans. Pattern Anal. Mach. Intell. , 2025. [45] B. Yang, J. Chen, and M. Ye, “Shallow-deep collaborative learning for unsupervised visible-infrared person re-identification,” in CVPR , 2024, pp. 16 870–16 879. [46] Z. Chen, Z. Zhang, X. Tan, Y. Qu, and Y. Xie, “Unveiling the power of clip in unsupervised visible-infrared person re-identification,” in ACM MM , 2023, pp. 3667–3675. [47] J. Peters, D. Janzing, and B. Sch¨ olkopf, Elements of causal inference: foundations and learning algorithms . The MIT press, 2017. [48] B. Sch¨ olkopf, D. Janzing, J. Peters, E. Sgouritsa, K. Zhang, and J. Mooij, “On causal and anticausal learning,” ICML , 2012. [49] X. Huang and S. Belongie, “Arbitrary style transfer in real-time with adaptive instance normalization,” in ICCV , 2017, pp. 1501–1510. [50] M. Ye, W. Ruan, B. Du, and M. Z. Shou, “Channel augmented joint learning for visible-infrared recognition,” in ICCV , 2021, pp. 13 567– 13 576. [51] X. Yang, W. Dong, X. Wang, D. Cheng, and N. Wang, “Fa-net: A feature alignment network for video-based visible-infrared person re-identification,” IEEE Trans. Image Process. , 2025.

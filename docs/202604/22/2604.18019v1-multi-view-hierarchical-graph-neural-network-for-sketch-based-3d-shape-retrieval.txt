@@ -1,0 +1,639 @@
+Title: Multi-View Hierarchical Graph Neural Network for Sketch-Based 3D Shape Retrieval
+
+URL Source: https://arxiv.org/pdf/2604.18019v1
+
+Published Time: Tue, 21 Apr 2026 02:57:41 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# Multi-View Hierarchical Graph Neural Network for Sketch-Based 3D Shape Retrieval 
+
+# Hang Cheng ∗
+
+Tsinghua Shenzhen International Graduate School, Tsinghua University Shenzhen, Guangdong, China chenghan24@mails.tsinghua.edu.cn 
+
+# Muyan He ∗
+
+Control and Simulation Center, Harbin Institute of Technology Harbin, Heilongjiang 24S104214@stu.hit.edu.cn 
+
+# Mingyu Fan 
+
+Tsinghua Shenzhen International Graduate School, Tsinghua University Shenzhen, Guangdong, China my-fan25@mails.tsinghua.edu.cn 
+
+# Chengfeng Xie 
+
+Tsinghua Shenzhen International Graduate School, Tsinghua University Shenzhen, Guangdong, China xiechenfeng@stu.hit.edu.cn 
+
+# Xi Cheng 
+
+Tsinghua Shenzhen International Graduate School, Tsinghua University Shenzhen, Guangdong, China chengxi23@tsinghua.org.cn 
+
+# Long Zeng †
+
+Tsinghua Shenzhen International Graduate School, Tsinghua University Shenzhen, Guangdong, China zenglong@sz.tsinghua.edu.cn 
+
+## Abstract 
+
+Sketch-based 3D shape retrieval (SBSR) aims to retrieve 3D shapes that are consistent with the category of the input hand-drawn sketch. The core challenge of this task lies in two aspects: exist-ing methods typically employ simplified aggregation strategies for independently encoded 3D multi-view features, which ignore the geometric relationships between views and multi-level details, resulting in weak 3D representation. Simultaneously, traditional SBSR methods are constrained by visible category limitations, lead-ing to poor performance in zero-shot scenarios. To address these challenges, we propose Multi-View Hierarchical Graph Neural Network (MV-HGNN), a novel framework for SBSR. Specifically, we construct a view-level graph and capture adjacent geometric dependencies and cross-view message passing via local graph con-volution and global attention. A view selector is further introduced to perform hierarchical graph coarsening, enabling a progressively larger receptive field for graph convolution and mitigating the in-terference of redundant views, which leads to more discriminate discriminative hierarchical 3D representation. To enable category-agnostic alignment and mitigate overfitting to seen classes, we leverage CLIP text embeddings as semantic prototypes and project both sketch and 3D features into a shared semantic space. We use a two-stage training strategy for category-level retrieval and a one-stage strategy for zero-shot retrieval under the same model architecture. Under both category-level and zero-shot settings, ex-tensive experiments on two public benchmarks demonstrate that MV-HGNN outperforms state-of-the-art methods.  
+
+> ∗Both authors contributed equally to this research.
+> †Corresponding author. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.
+> SIGIR ’26, Melbourne, Australia
+> ©2026 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN XXX-X-XXXX-XXXX-X/2026/06 https://doi.org/XXXXXXX.XXXXXXX
+
+## CCS Concepts 
+
+• Information systems → Retrieval models and ranking .
+
+## Keywords 
+
+Sketch-based 3D shape retrieval, 3D shape feature extraction, Graph Neural Network 
+
+ACM Reference Format: 
+
+Hang Cheng, Muyan He, Mingyu Fan, Chengfeng Xie, Xi Cheng, and Long Zeng. 2026. Multi-View Hierarchical Graph Neural Network for Sketch-Based 3D Shape Retrieval. In Proceedings of Make sure to enter the correct conference title from your rights confirmation email ( SIGIR ’26). ACM, New York, NY, USA, 11 pages. https://doi.org/XXXXXXX.XXXXXXX 
+
+## 1 Introduction 
+
+3D shape retrieval has become increasingly important with the rapid growth of 3D assets in gaming, virtual reality, digital twins, and robotics [ 53 ]. Traditional 3D retrieval methods based on text or images are often limited by ambiguous queries, domain gaps, and reliance on manual annotation, making them less effective for large-scale retrieval. Among cross-modal retrieval paradigms, hand-drawn sketches provide a particularly compelling interface: they are lightweight [ 4 , 5, 61 ], intuitive, and robust to texture interference, while effectively conveying object structure through sparse strokes. These properties make Sketch-Based 3D Shape Retrieval (SBSR) a promising tool for interactive design [ 29 , 62 ], creative modeling, and visual content generation [11, 12, 49]. Existing literature generally attributes the primary difficulty in SBSR to the cross-modal domain gap: sketches are sparse 2D images, whereas 3D shapes possess highly complex geometric and topo-logical structures [ 13 , 28 , 35 ]. This asymmetry in representation renders the sketch-3D embedding spaces intrinsically inconsistent. To solve this problem, prior works have attempted to bridge this gap via Siamese networks [ 49 ], metric learning [ 11 ], adversarial alignment[ 8], and triplet/center losses [ 35 ]. Despite promising re-sults, we observe that even under well-structured alignment strate-gies, the feature representation of 3D shapes remains an importance bottleneck affecting SBSR performance due to their complex geo-metric structures. Specifically, 3D shape data is high-dimensional, typically represented by voxel grids [ 31 ], polygon meshes, or point  
+
+> arXiv:2604.18019v1 [cs.CV] 20 Apr 2026 SIGIR ’26, June 03–05, 2026, Melbourne, Australia Hang Cheng, Muyan He, Mingyu Fan, Chengfeng Xie, Xi Cheng, and Long Zeng
+
+clouds[ 51 , 55 ]. Direct 3D representations are often computation-ally expensive and require substantial memory and processing overhead. In contrast, view-based approaches are generally more efficient and easier to deploy, which has motivated a shift toward this paradigm in recent years. These methods typically employ a shared feature extractor to process multi-view images rendered from 3D shapes, and aggregate the resulting view embeddings into a unified shape representation via pooling operations [ 44 ]. How-ever, simple pooling schemes tend to overlook fine-grained details within individual views and fail to explicitly capture the inherent relationships among different viewpoints [ 1, 3 , 27 , 57 ]. Although a few studies have explored attention-based fusion [ 63 , 66 ], they often suffer from insufficient feature expression capabilities as they fail to explicitly model pose variations and correspondences be-tween different viewpoints. Consequently, effectively capturing spatial and pose relationships among multiple viewpoints to model highly discriminative 3D representations with geometric properties remains a challenging problem. On the other hand, most existing methods fail to address zero-shot scenarios and lack a unified framework adaptable to diverse settings. While prior works have achieved promising performance on seen categories, they heavily rely on embeddings tailored for closed-set classification, which substantially limits their generaliza-tion to unseen categories. A few methods dedicated to zero-shot learning [ 25 , 48 , 54 ] learn features that lack informativeness and generalization, hampering the effective identification of unseen samples. Moreover, existing approaches are almost exclusively lim-ited to independent models designed solely for category-level re-trieval or zero-shot retrieval, lacking the universality to adapt to scenarios with varying data visibility. Therefore, constructing a generalizable cross-modal alignment space that extends to retrieval scenarios with unseen categories remains an under-resolved issue. To address the two aforementioned problems, we propose MV-HGNN, a novel Hierarchical Graph Neural Network for SBSR. Specifically, for 3D shape feature extraction, we apply single-view encoding to different views of the 3D shape and construct a multi-view graph structure where viewpoints serve as nodes. We employ local geometry-aware graph convolutions to capture structural dependencies of adjacent views and global attention to model long-range relationships across views. Building on this observation, we introduce a learnable view selector that adaptively mitigates the interference of redundant views and progressively enlarges the effective receptive field of graph convolution. At each stage, the selected views are used to update the graph nodes and construct a coarser graph for the next level of reasoning(Fig. 1). By repeating this process for multiple scales, we obtain hierarchical features that encode geometric structure and yield a robust multi-level 3D shape representation. For the sketch modality, we naturally incorporate a visual prompt tuning[39] encoder for feature extraction. Furthermore, we design a prototype learning strategy to estab-lish an effective, aligned cross-modal embedding space to bridge the modal gap. Specifically, we leverage the CLIP [ 39 ] text space to construct category semantic prototypes, mapping sketch and 3D features into a unified prototype space, which ensures that the alignment strategy is built upon high-quality 3D representations. Simultaneously, for category-level SBSR, we employ a two-stage training strategy supervised by category labels: pre-training the 3D CNN  Max/Average  
+
+> Pooling
+> Existing
+> Ours
+> 2D Sketch
+> CNN Hierarchical Graph
+> Neural Network
+> 2D Sketch
+> View Selector
+> Alignment
+> Alignment
+> 3D Shape
+> Projection
+> Multi -View
+> 3D Shape
+> Projection
+> Multi -View
+
+Figure 1: Existing method and our method. 
+
+modality followed by the sketch modality. For zero-shot SBSR tasks, we adopt a joint training strategy for both modalities. This strat-egy enables the transition from designing for individual tasks to a more generalized retrieval framework managing various specialized scenarios. The main contributions of this paper are as follows: 
+
+• We propose a novel Multi-View Hierarchical Graph Neu-ral Network (MV-HGNN), addressing the challenges of low discriminative 3D shape representations and the non-universality under the zero-shot setting. 
+
+• We use multiple views to construct graph nodes and de-signing a hierarchical graph coarsening mechanism with a learnable view selector to progressively aggregate multi-view information and construct multi-level discriminative representations with geometric information. 
+
+• We introduce a CLIP-assisted prototype learning strategy that aligns sketches and 3D shapes, mitigating category bias and facilitating zero-shot generalization in SBSR, with a single model supporting both zero-shot and category-level retrieval via one-stage and two-stage training. 
+
+• Extensive experiments on two public benchmarks SHREC2013 and SHREC2014 demonstrate that our method outperforms existing state-of-the-art approaches in both category-level and zero-shot settings. 
+
+## 2 Related Work 
+
+Sketch-based 3D Shape Retrieval. Sketch-based 3D shape re-trieval (SBSR) is a challenging cross-modal task. Early approaches relied on hand-crafted sketch features and shallow models [ 22 –24 , 40 , 58 ]. With the advent of deep learning, subsequent methods [ 8, 11 , 38 , 49 ] achieved superior performance by learning nonlin-ear representations and mapping sketches and 3D shapes into a shared embedding space via metric learning [ 11 , 12 , 21 ]. To miti-gate cross-modal discrepancies, adversarial learning has also been explored. Given the ill-posed nature of aligning sparse 2D sketches with complex 3D shapes, prior work has further investigated view-based modeling, attention mechanisms, and cross-modal feature interaction [ 2 , 56 , 64 , 65 ]. Cross-modal view attention [ 34 ] and teacher–student alignment strategies [ 13 , 27 ] have been proposed to bridge the modality gap. Additionally, uncertainty modeling has been introduced to handle noisy and subjective sketches [ 6, 28 ], while recent work leverages non-differentiable rasterization to model sketch stroke attributes [ 1, 45 , 46 ]. Despite these advances, Multi-View Hierarchical Graph Neural Network for Sketch-Based 3D Shape Retrieval SIGIR ’26, June 03–05, 2026, Melbourne, Australia 
+
+most existing methods emphasize cross-modal alignment under seen-category settings and treat 3D representations as either fixed or weakly structured, limiting their effectiveness in zero-shot SBSR. 
+
+3D Shape Learning for Sketch-based 3D Shape Retrieval. Map-ping 2D sketches to 3D shapes in SBSR is inherently ill-posed, as a single 3D object may correspond to multiple sketches from differ-ent viewpoints. Early model-based approaches represent 3D shapes using voxel grids [ 31 ], point clouds [ 20 , 35 ], or dedicated 3D en-coders such as 3D CNNs [ 17 , 50 ] and PointNet variants [ 36 , 37 ], and further address pose correspondence via BPnP-based 2D–3D alignment [ 7, 10 ]. However, their high computational cost limits scalability [ 9]. View-based methods alleviate this issue by repre-senting 3D shapes through projected 2D views. Early works learn intra- and cross-domain similarities from paired views [ 49 , 59 ] or compute global descriptors using LD-SHIFT [ 14 ] and 3D-SHIFT with LLC [ 12 ]. Most recent methods employ a shared CNN fol-lowed by global or max pooling [ 6, 13 , 27 , 44 ], which is efficient but coarse and fails to explicitly capture inter-view relationships. More recent efforts adopt Transformer-based aggregation [63, 66] or viewpoint selection strategies [ 60 ], yet they still largely rely on global aggregation that can obscure local geometric structures and fine-grained cross-view variations. We therefore contend that the quality of 3D representation learning remains a primary bottleneck in SBSR, motivating our structured, hierarchical representation that explicitly models inter-view relationships to better support cross-modal alignment. 
+
+Zero-shot Retrieval. Zero-shot retrieval aims to generalize to unseen categories at test time, posing substantial challenges for cross-modal generalization. Most existing zero-shot SBSR methods rely on semantic embeddings, attribute supervision, or pretrained vision–language models. In contrast, zero-shot sketch-based image retrieval has been more extensively studied, with approaches based on conditional generation [ 52 ], cross-modal reconstruction [ 15 ], knowledge distillation [ 47 ], and test-time adaptation [ 42 ], which is further improved when combined with CLIP [ 26 , 30 , 41 , 43 ]. By comparison, zero-shot SBSR remains underexplored. [ 54 ] first extended SBSR to the zero-shot setting via adversarial learning with disentangled representations; [ 48 ] incorporated prototype learning and stroke-level sketch representations; [ 10 ] leveraged images as an intermediate modality to learn 3D viewpoint knowledge; and [ 32 ] further enhanced semantic prototype learning. Prior work is task-specific to either category-level or zero-shot retrieval, limiting generalization across settings. We instead unify both within a single framework by modeling their distinct supervision characteristics. 
+
+## 3 Method 3.1 Problem Definition. 
+
+Let S and X denote the sketch and 3D shape domains. Given a sketch encoder 𝐹 ske (·) and a 3D shape encoder 𝐹 3D (·) , each sketch 𝑠 ∈ S and 3D shape 𝑥 ∈ X are mapped to features 𝐹 ske (𝑠 )
+
+and 𝐹 3D (𝑥 ) in a shared embedding space. At inference, given a query sketch 𝑠 , the system retrieves 3D shapes from a database 
+
+D = {𝑥 𝑖 }𝑁 𝑖 =1 by ranking them according to a similarity measure between 𝐹 ske (𝑠 ) and 𝐹 3D (𝑥 𝑖 )𝑁 𝑖 =1. A retrieval is deemed correct if the top-ranked shape shares the same semantic category as the query sketch 𝑠 .
+
+## 3.2 Framework Overview. 
+
+This work proposes a hierarchical graph neural network for view-based learning in sketch-based 3D shape retrieval. The framework comprises a 3D view feature extraction branch, a sketch feature extraction branch, a dual-branch discriminative classifier, and multi-ple cross-modal alignment losses. Its objective is to embed sketches and 3D shapes into a unified discriminative semantic space for cross-modal retrieval. An overview of the 3D shape representation framework is presented in Fig. 2. During inference, the dual-branch classifier and semantic projection layers are discarded. Retrieval is performed by independently extracting features from 3D shapes and sketches using their respective encoders. 
+
+## 3.3 3D Shape Encoder 
+
+3.3.1 Initial View Feature Extraction. Given a 3D shape, we ren-der a fixed number of views from predefined camera positions. Let {𝐼 𝑖 }𝑉 𝑖 =1 denote the rendered views, where 𝑉 is the number of viewpoints (typically 𝑉 = 12 ). Each view is processed by a shared CNN backbone (ResNet-18 pretrained on ImageNet), producing view-level feature vectors: 
+
+F(0) = {f (0) 
+
+> 𝑖
+
+}𝑉 𝑖 =1, f (0) 
+
+> 𝑖
+
+∈ R𝑑 , (1) where 𝑑 = 512 . The backbone parameters are frozen during training. We associate each view with its 3D camera position v𝑖 ∈ R3,forming an initial node set V (0) = {v𝑖 }𝑉 𝑖 =1. We construct a directed view graph 𝐺 = (V , E) , where 
+
+V = {1, 2, . . . , 𝑉 }, (2) and the edge set E is defined as 
+
+E = {( 𝑖, 𝑗 ) | v𝑗 ∈ kNN (v𝑖 )} . (3) where kNN (v𝑖 ) denotes the set of 𝑘 nearest camera positions to v𝑖 
+
+measured by Euclidean distance. 
+
+3.3.2 Local Graph Convolution. Given the view graph 𝐺 (𝑙 ) at layer 
+
+𝑙 , which consists of 𝑁 𝑙 nodes (views) with node features stored as rows of F(𝑙 ) , we define a local graph convolution layer to update node features by modeling relationships among neighboring views determined by 𝑘 -nearest neighbors in the camera coordinate space. Local graph convolution enforces geometric consistency among neighboring views. For each node 𝑖 , we identify its 𝑘 nearest neigh-bors N ( 𝑖 ) based on Euclidean distance between camera positions. Attention weights are computed using scaled dot-product simi-larity: 
+
+sim 𝑖 𝑗 = f⊤ 
+
+> 𝑖
+
+f𝑗 
+
+√𝑑 , 𝛼 𝑖 𝑗 = exp (sim 𝑖 𝑗 )
+
+Í𝑗 ′ ∈ N ( 𝑖 ) exp (sim 𝑖 𝑗 ′ ) . (4) Given the node feature matrix F(𝑙 ) ∈ R𝑁 𝑙 ×𝑑 at layer 𝑙 , the local graph convolution is defined as 
+
+F(𝑙 +1) = Ψ
+
+
+
+A(𝑙 ) F(𝑙 ) W(𝑙 ) 
+
+, (5) where A(𝑙 ) is a row-normalized attention-weighted adjacency ma-trix with self-loops, W(𝑙 ) ∈ R𝑑 ×𝑑 is a learnable weight matrix, and 
+
+Ψ(·) denotes Batch Normalization followed by LeakyReLU. This formulation integrates geometric neighborhood priors with feature-adaptive aggregation. SIGIR ’26, June 03–05, 2026, Melbourne, Australia Hang Cheng, Muyan He, Mingyu Fan, Chengfeng Xie, Xi Cheng, and Long Zeng Sketch Feature 
+
+3D Feature 
+
+a photo of a [ class ]a photo of a [ class ]a photo of a [ CLASS ]
+
+> Sketch
+> Vision Prompt
+
+3D Shape 
+
+𝑤 1 𝑤 2 … 𝑤 𝑖 
+
+Prototype  Bank  Local Graph 
+
+Convolution 
+
+Global 
+
+Attention 
+
+View Selector 
+
+> 2nd  HGN  3rd  HGN 1st  HGN
+
+M
+
+HGNN 
+
+Frozen parameters 
+
+Learnable parameters quad 
+
+> CNN
+
+MaxPooling 
+
+M
+
+M
+
+M
+
+Concat 3D 
+
+> cls
+
+# ske 
+
+> cls
+
+# 
+
+> CNN
+> CNN 3D
+> sem
+
+# ske 
+
+> sem
+
+# 
+
+ViT 
+
+2D Sketch 
+
+> Projection
+
+Multi -View 
+
+C 3D Classifier 
+
+C Sketch  Classifier 
+
+> Projection Head
+
+HGNN 
+
+C
+
+C
+
+CLIP 
+
+Figure 2: Overview of the proposed MV-HGNN framework. Left: Cross-modal alignment for 3D shape retrieval based on sketches. Sketch features and the overall representation of 3D shapes are aligned in a shared semantic space guided by prototype and assisted by CLIP text to support category-level and zero-shot retrieval. Right: Architecture of the HGNN 3D shape encoder. Each 3D shape is rendered into multiple views and encoded by a shared CNN. View features are organized into a geometrically-aware graph according to viewpoints, capturing neighborhood consistency and long-distance viewpoint dependence simultaneously through local graph convolution and global attention message passing. New viewpoints are updated through a view selector and the local graph convolution and global message passing are repeated, ultimately obtaining a multi-level 3D shape representation. 
+
+3.3.3 Global Attention Message Passing. To complement local graph convolution, we introduce a non-local attention module to capture long-range dependencies across all views. Given node fea-tures F(𝑙 ) ∈ R𝑁 𝑙 ×𝑑 , we first project them into query, key, and value spaces via Q = F(𝑙 ) W𝑞 , K = F(𝑙 ) W𝑘 , and V = F(𝑙 ) W𝑣 , where 
+
+W𝑞 , W𝑘 ∈ R𝑑 ×𝑑 /2 and W𝑣 ∈ R𝑑 ×𝑑 . Non-local attention weights are computed as A = softmax  QK ⊤/√︁ 𝑑 /2 over all view pairs, followed by aggregation ˜F(𝑙 ) = AV .
+
+F(𝑙 ) 
+
+> nl
+
+= F(𝑙 ) + ˜F(𝑙 ) , (6) where a residual connection stabilizes training. 
+
+3.3.4 View Prototype Selector. To reduce redundancy and build hierarchical representations, we introduce a learnable view proto-type selector. Given a feature matrix F ∈ R𝑉 ×𝑑 , attention weights are computed as A = softmax (MLP (F𝑇 )) ∈ R𝐾 ×𝑉 along the view dimension, where 𝐾 is the number of prototypes. Prototype features are then obtained by weighted aggregation, P = AF , and camera positions by v𝑝 = Av , enabling geometry-aware kNN construc-tion. The soft View Selector is fully differentiable and end-to-end trainable. Unlike standard attention pooling, it generates multi-ple prototypes via independent soft assignments, each capturing distinct view-level patterns, preserving complementary geometric cues, and effectively enlarging the receptive field for local graph convolution. 
+
+3.3.5 Hierarchical View-GCN Pipeline. The complete View-GCN is constructed by stacking multiple stages, each consisting of: LocalGCN → Global Attention → ViewSelector . (7) Starting from the initial view graph, the number of nodes is progressively reduced (e.g., 12 → 6 → 3), forming a hierarchical graph structure. At each level, max pooling is applied over node features to obtain a level-specific representation. Finally, pooled features from all levels are concatenated and passed through an MLP to produce the final 3D shape representation. 
+
+## 3.4 Sketch Encoder 
+
+Due to substantial style variations and noise in sketches, achieving reliable alignment between sketch and 3D modalities is non-trivial. To address this issue, we adopt a CLIP [ 39 ] image encoder with vision prompt tuning [ 19 ] to extract initial sketch representations. Specifically, visual prompts are injected into the input to guide CLIP toward modeling the sketch distribution, formulated as 
+
+V = (V𝑠 , V𝑝 ), V ∈ R𝑁 𝐶 ×𝑑 . (8) Multi-View Hierarchical Graph Neural Network for Sketch-Based 3D Shape Retrieval SIGIR ’26, June 03–05, 2026, Melbourne, Australia Stage I  Stage II               
+
+> (a) Category -SBSR (b) ZeroShot -SBSR
+> One Stage Only
+> 3DFeature of different class
+> Sketch Feature of different class
+> Text Feature of different class
+> Pulling
+> Pushing
+> Mapping
+> Class cluster
+> Mapping
+
+Figure 3: Illustration of the training strategies under category-level and zero-shot settings. Different shapes repre-sent different object categories. 
+
+During training, the knowledge learned by CLIP is distilled into the prompt parameters via backpropagation. Only the layer normaliza-tion parameters and the prompt embeddings within the transformer encoder are updated, while all other CLIP weights remain frozen. This design preserves the generalization capability of the pretrained model while allowing limited adaptation to the sketch modality. By restricting parameter updates to a small set of normalization and prompt parameters, the proposed strategy maintains training stability, mitigates catastrophic forgetting, and reduces the risk of overfitting during cross-modal semantic alignment. 
+
+## 3.5 Category-Level Training Strategy 
+
+The geometric structure of 3D shapes is inherently complex, and the quality of their representations is fundamental to achieving high-performance SBSR. Introducing sketches for joint optimization too early may distract the model from effectively modeling 3D geomet-ric information. Moreover, to mitigate the adverse impact of sketch noise on 3D shape representations, we adopt a two-stage strategy. Specifically, we first learn a robust 3D shape representation that fully captures its structural characteristics, and then perform cross-modal alignment to enable more effective sketch–shape matching and enhance overall model robustness (Fig. 3). 
+
+3.5.1 Stage I: Pre-learned 3D. In the first stage, the 3D shape en-coder 𝐹 3𝐷 is trained independently to construct a pretrained 3D shape prototype space enriched with semantic information. Cat-egory imbalance is a common issue in practical scenarios, which hinders the model from effectively learning the distributions of under-represented categories. To address this problem, we intro-duce semantic prototypes into the 3D shape learning process to provide a stable and category-agnostic metric that is particularly suitable for cross-modal alignment. Specifically, we construct a prototype bank defined as: 
+
+W = {w𝑖 }𝐶 𝑖 =1, (9) where 𝑤 𝑖 denotes the text embedding of the 𝑖 -th category. These embeddings are generated using prompt templates, where the class label replaces the [CLASS] token. We employ a projection head 𝐺 (·) to map 3D shape features 
+
+𝑓 3𝐷 into the semantic prototype space, yielding 𝑝 3𝐷 , which is then aligned with the CLIP text embedding 𝑤 𝑦 . The semantic alignment loss is formulated as: 
+
+L3D  
+
+> 𝑠𝑒𝑚
+
+= − log exp  cos  ℓ2 (𝑝 3D ), 𝑤 𝑦 
+
+ /𝜏 Í 
+
+> 𝑤 𝑖 ∈𝑊
+
+exp (cos (ℓ2 (𝑝 3D ), 𝑤 𝑖 ) / 𝜏 ) , (10) where ℓ2 (·) denotes ℓ2 normalization, 𝑦 is the ground-truth category label, and 𝜏 is a temperature parameter. Semantic prototypes 𝑤 𝑐 are constructed using the CLIP text encoder with prompt templates. Classification is optimized using AM-Softmax. The loss function of the teacher classification network is defined as: 
+
+L3D  
+
+> 𝑐𝑙𝑠
+
+= − 1
+
+𝑀 
+
+> 𝑀
+
+∑︁ 
+
+> 𝑖 =1
+
+log exp 
+
+n
+
+𝑡 
+
+
+
+¯w𝑣 𝑦 𝑖 · ¯𝑓 𝑣 𝑖 − 𝑚 
+
+o 
+
+exp 
+
+n
+
+𝑡   ¯w𝑣 𝑦 𝑖 · ¯𝑓 𝑣 𝑖 − 𝑚  o
+
++ 𝑁 Í
+
+> 𝑗 =1, 𝑗 ≠𝑦 𝑖
+
+exp 
+
+n
+
+𝑡 
+
+
+
+¯w𝑣 𝑗 · ¯𝑓 𝑣 𝑖 
+
+ o 
+
+(11) where 𝑀 is the mini-batch size and 𝑦 𝑖 denotes the ground-truth label of the 𝑖 -th sample. The feature vector 𝑓 𝑣 𝑖 represents the output of the 3D shape feature extractor for the 𝑖 -th sample. The normalized feature vector ¯𝑓 𝑣 𝑖 and the normalized classifier weight ¯w𝑣 𝑦 𝑖 are defined as: 
+
+¯𝑓 𝑣 𝑖 = 𝑓 𝑣 𝑖 
+
+∥𝑓 𝑣 𝑖 ∥2
+
+, ¯w𝑣 𝑦 𝑖 = w𝑣 𝑦 𝑖 
+
+∥w𝑣 𝑦 𝑖 ∥2
+
+. (12) The scalar 𝑡 is a scale factor that controls the convergence be-havior of the softmax function, while 𝑚 denotes the additive cosine margin that enforces a stricter decision boundary. This stage yields a discriminative and semantically structured 3D embedding space. The learning objective for the stage I can be denoted as: 
+
+LSBSR 3D = L3D  
+
+> 𝑐𝑙𝑠
+
++ L 3D  
+
+> 𝑠𝑒𝑚
+
+(13) 
+
+3.5.2 Stage II: Cross-Modal Alignment. The pretrained 3D encoder is frozen. The sketch encoder is trained to align with the learned 3D semantic space using a combination of losses, including classifica-tion loss on sketches, quadruplet loss for instance-level alignment, and semantic alignment loss to CLIP-based prototypes. Due to the substantial modality gap, directly matching sketches to 3D shapes remains a challenging problem. To address this issue, we align the sketch distribution with a pretrained 3D shape feature space. To facilitate the mapping from sketches to the pretrained 3D feature space, sketches are classified using a frozen 3D shape classifier. Furthermore, to ensure that sketches and 3D shapes from the same category are closer in the shared embedding space, we employ a quadruplet loss, defined as: 
+
+L𝑞𝑢𝑎𝑑 = max 
+
+
+
+0, 𝜇 + 𝛿 (𝑓 ske  
+
+> 𝑎
+
+, 𝑓 3D  
+
+> 𝑝
+
+) − 𝛿 (𝑓 ske  
+
+> 𝑎
+
+, 𝑓 3𝐷 𝑛 )
+
+
+
++
+
+max 
+
+
+
+0, 𝜇 + 𝛿 (𝑓 ske  
+
+> 𝑎
+
+, 𝑓 3D  
+
+> 𝑝
+
+) − 𝛿 (𝑓 ske  
+
+> 𝑎
+
+, 𝑓 ske  
+
+> 𝑛
+
+)
+
+ (14) where 𝜇 denotes the margin parameter and 𝛿 (· , ·) represents the distance metric. Given a quadruplet (𝑓 ske  
+
+> 𝑎
+
+, 𝑓 3D  
+
+> 𝑝
+
+, 𝑓 3𝐷 𝑛 , 𝑓 ske  
+
+> 𝑛
+
+), 𝑓 ske  
+
+> 𝑎
+
+is the sketch anchor, 𝑓 3D  
+
+> 𝑝
+
+is the corresponding 3D feature from the same category, and 𝑓 3D  
+
+> 𝑛
+
+and 𝑓 ske  
+
+> 𝑛
+
+denote 3D and sketch features from different categories, respectively. The overall objective is 
+
+LSBSR  
+
+> 𝑡𝑜𝑡𝑎𝑙
+
+= L𝑞𝑢𝑎𝑑 + L ske  
+
+> 𝑐𝑙𝑠
+
++ L ske  
+
+> 𝑠𝑒𝑚
+
+(15) SIGIR ’26, June 03–05, 2026, Melbourne, Australia Hang Cheng, Muyan He, Mingyu Fan, Chengfeng Xie, Xi Cheng, and Long Zeng 
+
+## 3.6 Zero-Shot Training Strategy 
+
+Unlike category-level SBSR, where two-stage training can first op-timize a stable 3D representation and then align sketches to it, such strategy in the zero-shot setting risks overfitting the 3D encoder to seen categories. In contrast, zero-shot SBSR requires representa-tions that generalize to unseen categories, where overly category-specific optimization can hinder semantic generalization. To this end, we adopt a unified one-stage joint training strategy in which sketch and 3D encoders are optimized simultaneously and projected into a shared semantic space defined by CLIP text prototypes. By enforcing prototype-based cross-modal alignment together with quadruplet constraints, the learned embedding space becomes more category-agnostic and naturally generalizes to unseen categories without relying on explicit class supervision. These observations highlight an inherent trade-off between discriminability on seen categories and generalization to unseen semantics (Fig. 3). The overall objective function for zero-shot SBSR is defined as: 
+
+LZS −SBSR  
+
+> 𝑡𝑜𝑡𝑎𝑙
+
+= L𝑞𝑢𝑎𝑑 + L 3D  
+
+> 𝑠𝑒𝑚
+
++ L ske  
+
+> 𝑠𝑒𝑚
+
+(16) 
+
+## 4 Experiments 4.1 Experiment Setup 
+
+4.1.1 Datasets. We evaluate our method on two standard bench-marks, SHREC’13 [ 23 ] and SHREC’14 [ 24 ]. SHREC’13 comprises 90 categories with 80 sketches and 1,258 3D shapes from PSB and hand-drawn sketches, while SHREC’14 contains 171 categories with 13,680 sketches and 8,987 3D shapes. Both datasets follow the stan-dard 50–30 sketch split. For zero-shot evaluation, 23 (SHREC’13) and 38 (SHREC’14) categories with ≤5 3D shapes are treated as un-seen, with the remaining 67 and 133 categories as seen, respectively. For category-level SBSR, seen classes are further split: sketches re-tain the 50–30 split, and 3D shapes are partitioned into 80% training and 20% testing sets [48]. 
+
+4.1.2 Evaluation Metrics. Following the evaluation protocol in [ 48 ], we adopt a comprehensive set of retrieval metrics to assess the performance of our method. Specifically, we report Nearest Neigh-bor (NN), First-Tier (FT), Second-Tier (ST), Normalized Discounted Cumulative Gain (nDCG), E-measure (E), Mean Reciprocal Rank (MRR), and Mean Average Precision (mAP). Among these metrics, E-measure (E) is a distance-based evaluation criterion, where a lower value indicates better performance. For all other metrics, higher values correspond to superior retrieval accuracy. 
+
+4.1.3 Implementation Details. All experiments are conducted on a single NVIDIA RTX 4090 GPU. Our method is implemented in PyTorch, with multi-view 3D renderings generated via Blender. Sketches and 2D views of 3D shapes are resized to 224 ×224 . We employ a CLIP text encoder (ViT-B/16) and ResNet-18 and ViT-B/16 visual encoders, all initialized with pretrained weights from Ima-geNet or large-scale image–text datasets. Each mini-batch contains 512 quadruplets (anchor sketch, positive 3D shape, negative 3D shape, negative sketch) with batch size 32, trained for 100 epochs. Optimization uses Adam with an initial learning rate of 1×10 −4,decayed to 1×10 −6 via a cosine scheduler. Hyperparameters are set as follows: temperature 𝜏 = 0.07 , quadruplet margin 1.0, and classification loss parameters 𝑡 = 15 , 𝑚 = 0.3.
+
+## 4.2 Comparison to State-of-the-Art Methods 
+
+We compare our method with several state-of-the-art 2D view-based method, including Siamese [ 49 ], DCHML [ 11 ], TCL [ 18 ], CGN [13], PCL [48], CFTTSL [27], and MEHA [63]. Following the original papers, the Siamese method adopts a three-layer CNN backbone, AlexNet is used for DCHML, ResNet-50 is used for TCL and CGN, CFTTSL and MEHA employ the same pretrained ViT-B/16 backbone [ 16 ]. CFTTSL and MEHA are specifically designed for the category-level SBSR task. We further compare with several model-based(3D Enc) approaches, including SDFSketch [ 33 ], FGPointNet [37 ], FGSpherical [ 17 ]. Since no official implementation is available for MEHA [ 63 ], we re-implement it following Section 4.2 of the original paper. We use the same backbone, optimizer, and training schedule as reported. The experimental results on the SHREC’13 and SHREC’14 datasets are reported in Tab. 1 and Tab. 2. 
+
+For category-level SBSR , MV-HGNN achieves substantial im-provements over existing view-based approaches (e.g., PCL and MEHA), particularly on NN, nDCG, and mAP. Compared with MEHA, which also leverages multi-view representations, MV-HGNN yields notable gains (+11.6 in NN and +7.0 in mAP), sug-gesting that explicitly modeling inter-view geometric dependencies via a hierarchical graph leads to more discriminative 3D repre-sentations than simple view aggregation. Moreover, MV-HGNN achieves the lowest E-measure, indicating more reliable ranking quality across different recall levels. 
+
+For zero-shot SBSR , MV-HGNN also shows clear advantages over previous methods, achieving the best performance on most metrics (e.g., NN, ST, nDCG, MRR, and mAP). Notably, while some meth-ods (e.g., CFTTSL) obtain competitive results on specific metrics, they suffer from performance degradation when generalizing to un-seen categories. In contrast, MV-HGNN maintains stable retrieval performance, which validates the benefit of our one-stage joint training strategy and prototype-based alignment in learning more category-agnostic representations. Taken together, these results demonstrate that MV-HGNN not only enhances discriminability on seen categories but also improves generalization to unseen cate-gories, highlighting a favorable trade-off between category-level accuracy and zero-shot transferability. 
+
+## 4.3 Ablation Study 
+
+4.3.1 The Influence of Components of 3D Shape Encoder. We con-duct a comprehensive ablation study on SHREC2013 to quantify the contribution of encoder components (Table 3). Removing the local GCN or global attention reduces mAP from 82.2% to 74.6% and 73.3%, respectively, highlighting their roles in preserving local geometry and modeling long-range cross-view dependencies. Disrupting view structure—via random order or random selector—lowers mAP to 72.5% and 71.7%, while replacing FPS with content-based selec-tion also degrades performance, confirming that attention-guided, geometry-aware view selection is critical. For pooling, average pooling performs worst (mAP 73.7%), attention pooling provides moderate gains (76.2%), and ViT pooling improves further (79.8%), yet hierarchical multi-level pooling combined with view selection achieves the best results (mAP 82.2%, NN 90.6%, nDCG 80.3%), demonstrating that explicit view modeling and hierarchical com-pression outweigh pooling choice alone. Integrating first-, second-, Multi-View Hierarchical Graph Neural Network for Sketch-Based 3D Shape Retrieval SIGIR ’26, June 03–05, 2026, Melbourne, Australia 
+
+Table 1: Comparison with state-of-the-art methods on Category-level SBSR and Zero-shot SBSR for benchmark SHREC’2013. 
+
+Type Method Publication Category SBSR Zero-Shot SBSR NN ↑ FT ↑ ST ↑ nDCG ↑ E↓ MRR ↑ mAP ↑ NN ↑ FT ↑ ST ↑ nDCG ↑ E↓ MRR ↑ mAP ↑
+
+3D Enc SDFSketch [33] CVPR2019 23.5 16.7 15.5 23.0 77.2 37.9 23.6 15.7 13.8 11.7 18.6 75.2 25.3 22.3 FGPointNet [37] NIPS2017 46.7 48.7 35.7 59.1 52.6 53.2 57.3 32.0 27.9 25.5 36.2 64.0 46.0 36.1 FGSpherical [17] ECCV2018 45.3 46.9 34.3 56.9 54.6 51.7 56.9 29.2 19.7 23.1 33.4 66.1 43.9 33.5 View Enc Siamese [49] CVPR2015 19.0 14.2 12.5 20.8 76.1 33.2 20.8 13.7 12.4 11.7 18.6 76.2 25.9 20.1 DCHML [11] TIP2018 41.7 43.3 29.5 51.0 54.7 48.9 52.5 18.3 21.1 13.6 23.8 63.2 27.8 33.9 TCL [18] CVPR2018 43.3 47.7 33.7 57.2 51.5 51.9 56.6 25.0 17.8 20.3 31.4 65.0 39.0 31.7 CGN [13] ICME2020 65.0 52.0 30.8 60.8 53.4 77.5 58.8 33.3 29.4 22.5 39.8 63.4 48.4 38.6 PCL [48] AAAI2023 55.0 54.7 41.7 71.9 45.4 68.7 65.9 38.3 38.9 26.1 47.0 54.9 52.4 48.0 CFTTSL [27] CVIU2024 75.3 70.2 39.7 71.7 39.5 80.8 74.8 34.9 26.1 19.1 28.1 70.4 46.6 32.5 MEHA [63] SIGIR2025 79.0 68.6 40.6 68.9 45.4 83.3 75.2 33.9 27.7 22.3 46.9 70.5 47.8 34.9 
+
+MV-HGNN(Ours) 90.6 76.5 43.2 80.3 35.6 94.3 82.2 42.2 34.3 28.2 52.9 62.5 56.3 48.5 Table 2: Comparison with state-of-the-art methods on Category-level SBSR and Zero-shot SBSR for benchmark SHREC’2014. 
+
+Type Method Publication Category SBSR Zero-Shot SBSR NN ↑ FT ↑ ST ↑ nDCG ↑ E↓ MRR ↑ mAP ↑ NN ↑ FT ↑ ST ↑ nDCG ↑ E↓ MRR ↑ mAP ↑
+
+3D Enc SDFSketch [33] CVPR2019 21.3 14.9 20.6 26.7 72.1 35.4 22.3 14.1 12.5 10.8 15.9 76.8 24.5 20.4 FGPointNet [37] NIPS2017 39.5 41.6 23.4 39.1 62.3 46.1 42.3 25.4 23.2 19.0 33.8 62.1 44.3 34.9 FGSpherical [17] ECCV2018 36.7 35.6 21.7 38.6 64.6 43.5 36.9 22.9 22.5 18.3 32.8 65.7 42.3 32.7 View Enc Siamese [49] CVPR2015 18.7 12.9 12.0 20.0 76.1 31.2 20.7 10.0 8.6 8.7 13.6 78.4 21.4 17.0 DCHML [11] TIP2018 30.7 32.5 24.6 41.4 61.2 39.7 41.9 16.7 17.7 17.9 27.3 67.3 27.8 30.0 TCL [18] CVPR2018 33.3 31.7 20.9 38.0 63.6 40.7 40.4 21.3 21.6 19.1 30.6 66.5 31.4 32.8 CGN [13] ICME2020 42.0 35.0 22.2 41.7 61.6 46.8 44.2 26.3 25.0 21.4 35.1 65.0 36.8 35.6 PCL [48] AAAI2023 43.0 40.3 24.3 45.5 58.1 48.2 49.1 33.3 32.8 22.8 39.9 57.8 45.5 43.4 CFTTSL [27] CVIU2024 61.3 56.3 32.4 62.8 53.1 69.3 58.1 16.7 14.4 11.3 35.8 76.7 26.6 21.6 MEHA [63] SIGIR2025 32.8 24.2 34.5 44.4 75.5 42.8 26.7 10.8 10.4 15.8 30.7 89.4 20.1 15.3 
+
+MV-HGNN(Ours) 82.3 63.5 35.9 69.6 46.8 87.2 66.0 36.7 31.4 23.8 41.7 55.3 49.2 43.8 
+
+and third-level features progressively improves metrics—first-level alone underperforms (mAP 70.1%), first+second gains (76.7%), and full hierarchy reaches the peak—validating our hierarchical rep-resentation design. Overall, metrics across NN, nDCG, and mAP consistently reflect the importance of structured view modeling, multi-level feature aggregation, and cross-view attention. 
+
+4.3.2 The Analysis of View Selector for Hierarchical Graph Neural Network. To analyze the behavior of the view selector in multi-view encoding, we visualize its scoring distributions and selection patterns. As shown in Fig. 4, Selector-1 assigns attention scores 
+
+Fscore1 to all candidate views, exhibiting clear spatial discriminabil-ity. Views capturing salient geometric regions, prominent silhou-ettes, or informative poses receive higher scores, while redundant or heavily occluded views are suppressed. The resulting ranking deter-mines the top-selected views ( sel , marked in red), reflecting a coarse preference for discriminative viewpoints. Based on this reduced set, 
+
+Selector-2 performs a second-stage selection. Its scores Fscore2 are more concentrated, indicating a shift from individual view quality to inter-view complementarity. Selector-2 favors combinations that 
+
+Table 3: Ablation study of 3D shape encoder SHREC2013 Performance Comparison. 
+
+Method NN FT ST nDCG E MRR mAP random order 80.2 66.6 38.4 67.9 51.7 84.8 72.5 w/o local GCN 80.6 67.7 39.8 68.9 53.4 85.4 74.6 w/o global att 80.2 66.6 38.7 68.2 51.9 84.2 73.3 w/o view selector 78.1 64.4 36.4 66.2 49.0 83.4 69.1 random selector 83.4 66.0 37.9 67.5 51.0 84.4 71.7 average pooling 75.8 71.9 38.8 71.2 44.9 81.3 73.7 attention pooling 83.0 73.2 41.5 73.3 42.9 83.7 76.2 ViT pooling [63] 84.2 76.5 43.2 75.6 37.8 87.3 79.8 1st 79.6 64.9 36.8 66.6 49.6 83.7 70.1 1st + 2nd 79.2 71.2 40.7 68.7 39.8 85.3 76.7 1st + 2nd + 3rd 90.6 76.5 43.2 80.3 35.6 94.3 82.2 
+
+are complementary in pose, silhouette, and local structures, im-proving geometric coverage while mitigating redundancy-induced SIGIR ’26, June 03–05, 2026, Melbourne, Australia Hang Cheng, Muyan He, Mingyu Fan, Chengfeng Xie, Xi Cheng, and Long Zeng View Selector Example 2 View Selector Example 3View Selector Example 1             
+
+> 2nd level 2nd level 1st level 1st level 1st level 3rd level 3rd level 3rd level 2nd level
+
+Figure 4: Examples of view selection results on 3D shapes from the SHREC’2014 dataset. Views selected at the first level are highlighted with dark blue boxes, while those selected at the second level are marked with light blue boxes. 
+
+overfitting. Together, the two-stage selection produces a more uni-form and information-diverse node set for the subsequent GCN, enhancing the expressiveness of camera-space graph convolution. 
+
+4.3.3 The Influence of different Learning Objective for Alignment. 
+
+Table 4 presents a systematic ablation of our loss design for both category-level and zero-shot SBSR. The results reveal that the two settings rely on distinct objective combinations, validating our task-adaptive formulation. In the category-level setting, all three ob-jectives—classification loss ( L𝑠𝑘𝑒 𝑐𝑙𝑠 ), semantic alignment loss ( L𝑠𝑘𝑒 𝑠𝑒𝑚 ), and quadruplet loss ( L𝑞𝑢𝑎𝑑 )—are indispensable. Removing either explicit class supervision from L𝑠𝑘𝑒 𝑐𝑙𝑠 or cross-modal guidance from 
+
+L𝑠𝑘𝑒 𝑠𝑒𝑚 leads to clear performance degradation (mAP drops to 76.8% and 74.2%, respectively), indicating that jointly enforcing classifi-cation and semantic alignment is necessary to properly structure the embedding space. Adding L𝑞𝑢𝑎𝑑 yields a further gain (mAP increases from 77.5% to 82.2%), highlighting its role in refining intra-/inter-class boundaries. For zero-shot retrieval, semantic alignment losses for both modalities ( L3𝐷 𝑠𝑒𝑚 and L𝑠𝑘𝑒 𝑠𝑒𝑚 ) remain fundamental; removing them severely impairs performance, confirming that a shared semantic space is critical for generalization. More impor-tantly, L𝑞𝑢𝑎𝑑 is the key driver of performance: without it, mAP collapses from 48.5% to 26.3%, demonstrating that in the absence of explicit category labels, the fine-grained metric constraints im-posed by L𝑞𝑢𝑎𝑑 are essential for organizing the embedding space and enabling effective retrieval of unseen classes. 
+
+4.3.4 The Influence of the Fine-tuning Strategies for Sketch Encoder. 
+
+Tab. 5 compares fine-tuning strategies for the sketch encoder on SHREC2013. Freezing the ViT-CLIP encoder [ 39 ] yields substan-tially inferior performance, indicating that task-specific adaptation is necessary for effective sketch representation learning. While full-parameter fine-tuning improves accuracy, it is not the optimal trade-off between adaptation and generalization. In contrast, light-weight adaptation strategies perform better, with Vision Prompt Tuning (VPT) [ 19 ] consistently achieving the best results across all metrics. This demonstrates that our use of VPT effectively adapts 
+
+Table 4: Performance on SHREC2013 with different learning objective . 
+
+Objective Category 
+
+L𝑠𝑘𝑒 𝑐𝑙𝑠 L𝑠𝑘𝑒 𝑠𝑒𝑚 L𝑞𝑢𝑎𝑑 NN FT ST nDCG E MRR mAP 
+
+× ✓ ✓ 76.4 70.1 41.3 69.3 60.0 83.7 76.8 
+
+✓ × ✓ 74.2 67.1 40.2 67.6 62.1 82.3 74.2 
+
+✓ ✓ × 78.0 71.2 41.5 69.8 61.7 82.6 77.5 
+
+✓ ✓ ✓ 90.6 76.5 43.2 80.3 35.6 94.3 82.2 
+
+Objective Zero-Shot 
+
+L3𝐷 𝑠𝑒𝑚 L𝑠𝑘𝑒 𝑠𝑒𝑚 L𝑞𝑢𝑎𝑑 NN FT ST nDCG E MRR mAP 
+
+× ✓ ✓ 28.6 23.5 22.4 23.1 65.5 48.2 32.5 
+
+✓ × ✓ 31.3 25.9 24.6 45.8 61.7 51.6 35.6 
+
+✓ ✓ × 21.7 14.2 20.3 32.5 72.1 35.4 26.3 
+
+✓ ✓ ✓ 42.2 34.3 28.2 52.9 62.5 56.3 48.5 Table 5: Performance on SHREC2013 with Different Fine-tuning Strategies. 
+
+Training Strategies NN FT ST nDCG E MRR mAP ViT-CLIP frozen 74.5 57.6 33.1 63.5 44.3 75.7 67.6 ViT-CLIP all 85.3 70.4 38.2 70.5 51.3 93.8 74.7 ViT-CLIP LayerNorm 87.3 73.6 42.1 73.1 53.3 94.7 79.3 ViT-CLIP VPT 90.6 76.5 43.2 80.3 35.6 94.3 82.2 Table 6: :Effect of view numbers on SHREC2013. 
+
+View number NN FT ST nDCG E MRR mAP 1 view 74.5 54.1 32.2 61.6 56,7 80.7 60.4 3 views 91.4 71.0 39.8 71.1 46.4 93.8 76.4 6 views 92.6 73.6 42.1 73.1 43.5 94.7 80.3 12 views 90.6 76.5 43.2 80.3 35.6 94.3 82.2 
+
+CLIP to the sketch domain while mitigating catastrophic forget-ting, enabling robust alignment with the distinct distribution of hand-drawn sketches. 
+
+4.3.5 The Influence of View Number. Tab. 6 shows that perfor-mance improves consistently as the number of views increases. With sparse views, limited angular coverage results in an uneven camera distribution and missing critical geometric cues that cannot be fully recovered by subsequent graph convolutions; these deficien-cies propagate through the sparse graph and degrade the overall 3D representation. In contrast, denser and more uniformly distributed views establish a more stable spatial topology, strengthen adjacency structure, and enable richer complementary feature aggregation. Redundant multi-view coverage further mitigates single-view bias and reduces uncertainty, yielding more complete and discriminative 3D shape representations. 
+
+4.3.6 The Influence of Different Training Strategy. As shown in Tab. 7, the relative effectiveness of one-stage and two-stage training Multi-View Hierarchical Graph Neural Network for Sketch-Based 3D Shape Retrieval SIGIR ’26, June 03–05, 2026, Melbourne, Australia 
+
+Table 7: Performance with different training strategies. 3D to sketch is using the pre-trained sketch encoder and mapping 3D shape into sketch space. 
+
+Category Method NN FT ST nDCG E MRR mAP 3D to Sketch 80.7 63.4 75.9 67.4 51.2 84.6 71.8 One Stage 79.8 64.6 74.5 66.7 49.3 83.2 70.3 Sketch to 3D 93.8 75.5 85.9 74.1 57.7 96.0 82.0 
+
+Zero-Shot Method NN FT ST nDCG E MRR mAP 3D to Sketch 23.3 21.7 19.4 30.9 66.7 31.3 33.8 Sketch to 3D 27.5 25.2 21.7 35.6 64.0 36.7 35.7 One Stage 42.1 34.3 56.3 52.9 37.5 56.3 48.5 
+
+is strongly task-dependent. Two-stage training consistently bene-fits category-level SBSR, particularly for sketch-to-3D retrieval, by decoupling representation stabilization from semantic alignment under closed-set supervision. In contrast, zero-shot SBSR favors one-stage end-to-end optimization, which better maintains seman-tic consistency across unseen categories and avoids overfitting to seen-class semantics. This observation highlights an inherent trade-off between discriminability and generalization, motivating our task-specific training design. 
+
+## 4.4 Visualization 
+
+4.4.1 Visualization of Distance Distribution. To gain insight into the structure of the learned embedding space, we visualize feature distributions using pairwise distance matrices and t-SNE embed-dings (Fig. 6 and Fig. 5). As shown in Fig. 6, our method produces a markedly larger margin between intra-class (blue) and inter-class (orange) distance distributions than the pooling baseline, with sub-stantially reduced overlap. This suggests that our representations form more compact and well-separated semantic clusters. Fig. 5 fur-ther supports this finding through a direct t-SNE comparison. Our embeddings exhibit clearly cohesive and distinct clusters, whereas the baseline yields dispersed and overlapping patterns, indicat-ing weaker semantic organization. Together, these visualizations highlight a key advantage of our hierarchical aggregation: by ex-plicitly preserving cross-view geometric structure that is discarded by naive pooling, our approach learns representations with signifi-cantly stronger discriminative power. 
+
+4.4.2 Visualization of Retrieval Examples. Fig. 7 shows represen-tative retrieval results on the SHREC’2013 dataset. For each query sketch (left), we report the top-8 retrieved 3D shapes. Our method effectively captures semantic correspondences, enabling accurate retrieval of relevant shapes in most cases. The top rows illustrate correct matches even under substantial shape variations and local geometric discrepancies. Occasional errors arise due to the limited number of correct matches, such as fish being confused with dol-phins, reflecting their visual similarity; these cases are rare and do not significantly impact overall performance.  
+
+> (a) Average Pooling(Baseline) (b) Aggregation by MV-HGNN
+
+Figure 5: The frequency of intra-class and inter-class dis-tances of SHREC’2013.  
+
+> (a) Average Pooling(Baseline) (b) Aggregation by MV-HGNN
+
+Figure 6: t-SNE Visualization of test samples on the SHREC’13. Top -8 Retrieved 3D Shapes 
+
+> Query
+> Sketch
+
+Figure 7: Retrieval examples for sketch-based 3D shape re-trieval on SHREC’2014. Correctly retrieved shapes are high-lighted in green, whereas incorrect candidates are in red. 
+
+## 5 Conclusion 
+
+In this work, we address sketch-based 3D shape retrieval by iden-tifying weak multi-view feature aggregation as a key bottleneck SIGIR ’26, June 03–05, 2026, Melbourne, Australia Hang Cheng, Muyan He, Mingyu Fan, Chengfeng Xie, Xi Cheng, and Long Zeng 
+
+for both retrieval performance and generalization. To tackle this, we propose a Multi-View Hierarchical Graph Neural Network (MV-HGNN) that constructs a view-level graph and progressively aggre-gates multi-view features via local graph convolution and global attention, with a learnable view selector to reduce redundant views. This hierarchical representation preserves local geometric consis-tency and global structural information, enabling more effective cross-modal alignment. We further introduce a prototype-based alignment strategy supported by CLIP text embeddings, projecting sketches and 3D shapes into a shared semantic space. This allows the same model to handle both category-level and zero-shot re-trieval, adapting to more general scenarios. Extensive experiments on public benchmarks show that MV-HGNN consistently outper-forms state-of-the-art methods. In future work, we plan to explore fine-grained SBSR and develop more general paradigms applicable to broader cross-modal and 3D retrieval scenarios. 
+
+## Acknowledgments 
+
+This research was supported by external funding. 
+
+## References 
+
+[1] Shaojin Bai and Jing Bai. 2023. HDA2L: Hierarchical domain-augmented adaptive learning for sketch-based 3D shape retrieval. Knowledge-Based Systems 264 (2023), 110302. [2] Shaojin Bai, Jing Bai, Hao Xu, Jiwen Tuo, and Min Liu. 2023. PAGML: Precise alignment guided metric learning for sketch-based 3D shape retrieval. Image and Vision Computing 136 (2023), 104756. [3] Shaojin Bai, Yalu Li, Rihao Chang, Qi Liang, and Weizhi Nie. 2025. SCDL: Sketch Causal Disentangled Learning for Sketch-based 3D Shape Retrieval. IEEE Trans-actions on Circuits and Systems for Video Technology (2025). [4] Hmrishav Bandyopadhyay, Pinaki Nath Chowdhury, Ayan Kumar Bhunia, Anee-shan Sain, Tao Xiang, Timothy M. Hospedales, and Yi-Zhe Song. 2024. SketchINR: A first look into sketches as implicit neural representations. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 12565–12574. [5] Hmrishav Bandyopadhyay, Pinaki Nath Chowdhury, Ayan Kumar Bhunia, Anee-shan Sain, Tao Xiang, and Yi-Zhe Song. 2024. What Sketch Explainability Really Means for Downstream Tasks?. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 10997–11008. [6] Yiyang Cai, Jiaming Lu, Jiewen Wang, and Shuang Liang. 2023. Uncertainty-aware cross-modal transfer network for sketch-based 3D shape retrieval. In IEEE International Conference on Multimedia and Expo . 132–137. [7] Bo Chen, Alvaro Parra, Jiewei Cao, Nan Li, and Tat-Jun Chin. 2020. End-to-end learnable geometric vision by backpropagating pnp optimization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 8100– 8109. [8] Jie Chen and Yi Fang. 2018. Deep Cross-Modality Adaptation via Semantics Pre-serving Adversarial Learning for Sketch-Based 3D Shape Retrieval. In Proceedings of the European Conference on Computer Vision . 605–620. [9] Yan Chen, Di Huang, Zhichao Liao, Xi Cheng, Xinghui Li, and Long Zeng. 2025. Training-free point cloud recognition based on geometric and semantic infor-mation fusion. In ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) . IEEE, 1–5. [10] Pinaki Nath Chowdhury et al . 2023. Democratising 2D Sketch to 3D Shape Re-trieval through Pivoting. In Proceedings of the IEEE/CVF International Conference on Computer Vision .[11] Guoxian Dai, Jin Xie, and Yi Fang. 2018. Deep correlated holistic metric learning for sketch-based 3D shape retrieval. IEEE Transactions on Image Processing 27, 7 (2018), 3374–3386. [12] Guoxian Dai, Jin Xie, Fan Zhu, and Yi Fang. 2017. Deep correlated metric learning for sketch-based 3D shape retrieval. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 31. [13] Weidong Dai and Shuang Liang. 2020. Cross-modal guidance network for sketch-based 3D shape retrieval. In IEEE International Conference on Multimedia and Expo . 1–6. [14] Tal Darom and Yosi Keller. 2012. Scale-invariant features for 3-D mesh models. 
+
+IEEE Transactions on Image Processing 21, 5 (2012), 2758–2769. [15] Cheng Deng, Xinxun Xu, Hao Wang, Muli Yang, and Dacheng Tao. 2020. Progres-sive cross-modal semantic network for zero-shot sketch-based image retrieval. 
+
+IEEE Transactions on Image Processing 29 (2020), 8892–8902. [16] Alexey Dosovitskiy. 2020. An image is worth 16x16 words: Transformers for image recognition at scale. arXiv preprint arXiv:2010.11929 (2020). [17] Carlos Esteves, Christine Allen-Blanchette, Ameesh Makadia, and Kostas Dani-ilidis. 2018. Learning so (3) equivariant representations with spherical cnns. In 
+
+Proceedings of the european conference on computer vision (ECCV) . 52–68. [18] Xinwei He, Yang Zhou, Zhichao Zhou, Song Bai, and Xiang Bai. 2018. Triplet-center loss for multi-view 3d object retrieval. In Proceedings of the IEEE conference on computer vision and pattern recognition . 1945–1954. [19] Menglin Jia, Luming Tang, Bor-Chun Chen, Claire Cardie, Serge Belongie, Bharath Hariharan, and Ser-Nam Lim. 2022. Visual prompt tuning. In Euro-pean conference on computer vision . Springer, 709–727. [20] Roman Klokov and Victor Lempitsky. 2017. Escape from cells: Deep kd-networks for the recognition of 3d point cloud models. In Proceedings of the IEEE interna-tional conference on computer vision . 863–872. [21] Y. Lei, Z. Zhou, P. Zhang, P. Guo, Z. Ma, and L. Liu. 2019. Deep Point-to-Subspace Metric Learning for Sketch-Based 3D Shape Retrieval. Pattern Recognition 96 (2019), 106–116. [22] Bo Li, Yijuan Lu, Afzal Godil, Thomas Schreck, et al . 2014. A Comparison of Methods for Sketch-Based 3D Shape Retrieval. Computer Vision and Image Understanding 119, 6 (2014), 57–80. [23] Bo Li, Yijuan Lu, Afzal Godil, Thomas Schreck, Makoto Aono, H. Johan, J. Saave-dra, and S. Tashiro. 2013. SHREC’13 Track: Large Scale Sketch-Based 3D Shape Retrieval. In Eurographics Workshop on 3D Object Retrieval . 89–96. [24] Bo Li, Yijuan Lu, Chen Li, Afzal Godil, et al . 2014. SHREC’14 Track: Extended Large Scale Sketch-Based 3D Shape Retrieval. In Eurographics Workshop on 3D Object Retrieval . 121–130. [25] Chang-Xing Li, Donglin Zhang, Zhikai Hu, and Xiao-Jun Wu. 2025. Modality Fused Class-Proxy with Knowledge Distillation for Zero-Shot Sketch-based Image Retrieval. IEEE Transactions on Circuits and Systems for Video Technology (2025). [26] Xue Li, Jiong Yu, Ziyang Li, Hongchun Lu, and Ruifeng Yuan. 2024. Dr. clip: Clip-driven universal framework for zero-shot sketch image retrieval. In Proceedings of the 32nd ACM international conference on multimedia . 9554–9562. [27] Shuang Liang, Weidong Dai, Yiyang Cai, and Chi Xie. 2024. Sketch-based 3D shape retrieval via teacher–student learning. Computer Vision and Image Under-standing 239 (2024), 103903. [28] Shuang Liang, Weidong Dai, and Yichen Wei. 2021. Uncertainty learning for noise resistant sketch-based 3D shape retrieval. IEEE Transactions on Image Processing 30 (2021), 8632–8643. [29] Zhichao Liao, Fengyuan Piao, Di Huang, Xinghui Li, Yue Ma, Pingfa Feng, Heming Fang, and Long Zeng. 2024. Freehand sketch generation from mechanical com-ponents. In Proceedings of the 32nd ACM international conference on multimedia .6755–6764. [30] Fengyin Lin, Mingkang Li, Da Li, Timothy Hospedales, Yi-Zhe Song, and Yong-gang Qi. 2023. Zero-shot everything sketch-based image retrieval, and in ex-plainable style. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 23349–23358. [31] Daniel Maturana and Sebastian Scherer. 2015. Voxnet: A 3d convolutional neural network for real-time object recognition. In 2015 IEEE/RSJ international conference on intelligent robots and systems (IROS) . Ieee, 922–928. [32] Min Meng, Wenhang Chen, Jigang Liu, Jun Yu, and Jigang Wu. 2024. CoDi: Contrastive Disentanglement Generative Adversarial Networks for Zero-Shot Sketch-Based 3D Shape Retrieval. IEEE Transactions on Circuits and Systems for Video Technology (2024). [33] Jeong Joon Park, Peter Florence, Julian Straub, Richard Newcombe, and Steven Lovegrove. 2019. Deepsdf: Learning continuous signed distance functions for shape representation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition . 165–174. [34] Anran Qi, Yulia Gryaditskaya, Jeifei Song, Yongxin Yang, Yonggang Qi, Timo-thy M. Hospedales, Tao Xiang, and Yi-Zhe Song. 2021. Toward Fine-Grained Sketch-Based 3D Shape Retrieval. IEEE Transactions on Image Processing (2021). [35] Anran Qi, Yi-Zhe Song, and Tao Xiang. 2018. Semantic Embedding for Sketch-Based 3D Shape Retrieval. In British Machine Vision Conference , Vol. 3. 11–12. [36] Charles R Qi, Hao Su, Kaichun Mo, and Leonidas J Guibas. 2017. Pointnet: Deep learning on point sets for 3d classification and segmentation. In Proceedings of the IEEE conference on computer vision and pattern recognition . 652–660. [37] Charles Ruizhongtai Qi, Li Yi, Hao Su, and Leonidas J Guibas. 2017. Pointnet++: Deep hierarchical feature learning on point sets in a metric space. Advances in neural information processing systems 30 (2017). [38] Jie Qin, Shuaihang Yuan, Jiaxin Chen, Boulbaba Ben Amor, Yi Fang, Nhat Hoang-Xuan, Chi-Bien Chu, Khoi-Nguyen Nguyen-Ngoc, Thien-Tri Cao, Nhat-Khang Ngo, et al . 2022. SHREC’22 track: Sketch-based 3D shape retrieval in the wild. 
+
+Computers & Graphics 107 (2022), 104–115. [39] Alec Radford, Jong Wook Kim, Chris Hallacy, et al . 2021. Learning Transferable Visual Models from Natural Language Supervision. In International Conference on Machine Learning . 8748–8763. [40] J. M. Saavedra, B. Bustos, T. Schreck, S. M. Yoon, and M. Scherer. 2012. Sketch-Based 3D Model Retrieval Using Keyshapes for Global and Local Representation. In 3D Object Retrieval Workshop at Eurographics . 47–50. Multi-View Hierarchical Graph Neural Network for Sketch-Based 3D Shape Retrieval SIGIR ’26, June 03–05, 2026, Melbourne, Australia 
+
+[41] Aneeshan Sain, Ayan Kumar Bhunia, Pinaki Nath Chowdhury, Subhadeep Koley, Tao Xiang, and Yi-Zhe Song. 2023. Clip for all things zero-shot sketch-based image retrieval, fine-grained or not. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition . 2765–2775. [42] Aneeshan Sain, Ayan Kumar Bhunia, Vaishnav Potlapalli, Pinaki Nath Chowd-hury, Tao Xiang, and Yi-Zhe Song. 2022. Sketch3t: Test-time training for zero-shot sbir. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 7462–7471. [43] Mainak Singha, Ankit Jha, Divyam Gupta, Pranav Singla, and Biplab Banerjee. 2024. Elevating all zero-shot sketch-based image retrieval through multimodal prompt learning. In European Conference on Computer Vision . Springer, 1–19. [44] Hang Su, Subhransu Maji, Evangelos Kalogerakis, and Erik Learned-Miller. 2015. Multi-view convolutional neural networks for 3d shape recognition. In Proceed-ings of the IEEE international conference on computer vision . 945–953. [45] Yawen Su, Jing Bai, and Gan Lin. 2025. DKD 2 L: Dual Knowledge Distillation Dynamic Learning for sketch-based 3D shape retrieval. In ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) . IEEE, 1–5. [46] Yawen Su, Wenjing Li, Jing Bai, and Gan Lin. 2025. SKD-SBSR: Structural Knowl-edge Distillation for Sketch-Based 3D Shape Retrieval. Knowledge-Based Systems 
+
+310 (2025), 112891. [47] Jialin Tian, Xing Xu, Zheng Wang, Fumin Shen, and Xin Liu. 2021. Relationship-preserving knowledge distillation for zero-shot sketch based image retrieval. In 
+
+Proceedings of the 29th ACM international conference on multimedia . 5473–5481. [48] Bingrui Wang and Yuan Zhou. 2023. Doodle to Object: Practical Zero-Shot Sketch-Based 3D Shape Retrieval. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 37. 2474–2482. [49] Fang Wang, Le Kang, and Yi Li. 2015. Sketch-based 3D shape retrieval using convolutional neural networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition . 1875–1883. [50] Peng-Shuai Wang, Yang Liu, Yu-Xiao Guo, Chun-Yu Sun, and Xin Tong. 2017. O-cnn: Octree-based convolutional neural networks for 3d shape analysis. ACM Transactions On Graphics (TOG) 36, 4 (2017), 1–11. [51] Yue Wang, Yongbin Sun, Ziwei Liu, Sanjay E. Sarma, Michael M. Bronstein, and Justin M. Solomon. 2019. Dynamic graph CNN for learning on point clouds. ACM Transactions on Graphics 38, 5 (2019), 1–12. [52] Sanghyun Woo, Jongchan Park, Joon-Young Lee, and In So Kweon. 2018. Pro-ceedings of the European conference on computer vision (ECCV). In Proceedings of the European conference on computer vision (ECCV) , Vol. 3. 8. [53] Jin Xie, Guoxian Dai, Fan Zhu, Edward K. Wong, and Yi Fang. 2016. Deepshape: Deep-learned shape descriptor for 3D shape retrieval. IEEE Transactions on Pattern Analysis and Machine Intelligence 39, 7 (2016). [54] R. Xu, Z. Han, L. Hui, J. Qian, and J. Xie. 2022. Domain Disentangled Gener-ative Adversarial Network for Zero-Shot Sketch-Based 3D Shape Retrieval. In 
+
+Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 36. 2902–2910. [55] Yifan Xu, Tianqi Fan, Mingye Xu, Long Zeng, and Yu Qiao. 2018. Spidercnn: Deep learning on point sets with parameterized convolutional filters. In Proceedings of the European conference on computer vision (ECCV) . 87–102. [56] Yongzhe Xu, Jiangchuan Hu, Kanoksak Wattanachote, Kun Zeng, and YongYi Gong. 2020. Sketch-based shape retrieval via best view selection and a cross-domain similarity measure. IEEE Transactions on Multimedia 22, 11 (2020), 2950– 2962. [57] Hairui Yang, Yu Tian, Caifei Yang, Zhihui Wang, Lei Wang, and Haojie Li. 2022. Sequential learning for sketch-based 3D model retrieval. Multimedia Systems 
+
+(2022), 1–18. [58] Sang Min Yoon, Maximilian Scherer, Tobias Schreck, and Arjan Kuijper. 2010. Sketch-based 3D model retrieval using diffusion tensor fields of suggestive con-tours. In Proceedings of the 18th ACM international conference on Multimedia .193–200. [59] Qian Yu, Feng Liu, Yi-Zhe Song, Tao Xiang, Timothy M Hospedales, and Chen-Change Loy. 2016. Sketch me that shoe. In Proceedings of the IEEE conference on computer vision and pattern recognition . 799–807. [60] Shuaihang Yuan, Congcong Wen, Yu-Shen Liu, and Yi Fang. 2023. Retrieval-specific view learning for sketch-to-shape retrieval. IEEE Transactions on Multi-media 27 (2023), 768–779. [61] Long Zeng, Zhi-kai Dong, Jia-yi Yu, Jun Hong, and Hong-yu Wang. 2019. Sketch-based retrieval and instantiation of parametric parts. Computer-Aided Design 113 (2019), 82–95. [62] Long Zeng, Yong-jin Liu, Jin Wang, Dong-liang Zhang, and Matthew Ming-Fai Yuen. 2014. Sketch2Jewelry: Semantic feature modeling for sketch-based jewelry design. Computers & graphics 38 (2014), 69–77. [63] Donglin Zhang, Changxing Li, and Xiao-Jun Wu. 2025. Multi-level Encoding with Hierarchical Alignment for Sketch-Based 3D Shape Retrieval. In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval . 1033–1043. [64] Y. Zhao, Q. Liang, R. Ma, W. Nie, and Y. Su. 2022. JFLN: Joint Feature Learning Net-work for 2D Sketch Based 3D Shape Retrieval. Journal of Visual Communication and Image Representation 89 (2022), 103668. [65] Wen Zhou, Jinyuan Jia, Wenying Jiang, and Chenxi Huang. 2020. Sketch augmentation-driven shape retrieval learning framework based on convolutional neural networks. IEEE transactions on visualization and computer graphics 27, 8 (2020), 3558–3570. [66] Cunjuan Zhu, Dongdong Cui, Qi Jia, Weimin Wang, Yu Liu, and Michael S Lew. 2024. Sketch-based 3d shape retrieval with multi-view fusion transformer. In 
+
+ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) . IEEE, 3005–3009.

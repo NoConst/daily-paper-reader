@@ -1,0 +1,219 @@
+Title: CMTM: Cross-Modal Token Modulation for Unsupervised Video Object Segmentation
+
+URL Source: https://arxiv.org/pdf/2604.14630v1
+
+Published Time: Fri, 17 Apr 2026 00:30:57 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+## CMTM: CROSS-MODAL TOKEN MODULATION FOR UNSUPERVISED VIDEO OBJECT SEGMENTATION 
+
+## Inseok Jeon Suhwan Cho Minhyeok Lee Seunghoon Lee Minseok Kang Jungho Lee Chaewon Park Donghyeong Kim Sangyoun Lee 
+
+## Yonsei University, Republic of Korea 
+
+ABSTRACT 
+
+Recent advances in unsupervised video object segmenta-tion have highlighted the potential of two-stream architec-tures that integrate appearance and motion cues. However, fully leveraging these complementary sources of informa-tion requires effectively modeling their interdependencies. In this paper, we introduce cross-modality token modula-tion, a novel approach designed to strengthen the interaction between appearance and motion cues. Our method estab-lishes dense connections between tokens from each modal-ity, enabling efficient intra-modal and inter-modal informa-tion propagation through relation transformer blocks. To improve learning efficiency, we incorporate a token mask-ing strategy that addresses the limitations of relying solely on increased model complexity. Our approach achieves state-of-the-art performance across all public benchmarks, outperforming existing methods. The code is released on 
+
+https://github.com/InSeokJeon/CMTM 
+
+Index Terms — Unsupervised video object segmentation, Feature modulation, Cross-modality fusion 
+
+1. INTRODUCTION 
+
+Video object segmentation is a critical task in computer vi-sion that aims to accurately segment objects at the pixel level in video sequences. Methods for video object segmentation can generally be classified based on the availability of guid-ance for target identification. In semi-supervised video ob-ject segmentation, a segmentation mask of the target object is provided in the first frame, which serves as a reference for tracking and segmenting the object throughout the video. In contrast, unsupervised video object segmentation (UVOS) re-quires models to automatically detect and segment salient ob-jects across the video without any external guidance. Recent progress in UVOS has demonstrated the potential of two-stream architectures that combine appearance and mo-tion cues. Appearance cues provide valuable visual informa-tion, such as color and texture, while motion cues capture ob-ject movement across frames. These complementary sources of information, when effectively integrated, can significantly enhance segmentation performance. However, fully exploit-ing the potential of both appearance and motion cues requires effective modeling of their interdependencies. Existing UVOS methods, while advancing the field, often face challenges in fully leveraging these cues. One limitation is that many methods rely on complex encoder architectures but fail to explicitly guide the model in learning meaningful intra-modal representations within each modality. This leads to noisy or incomplete features, limiting the integration of ap-pearance and motion information and ultimately constraining the model’s ability to perform effectively. Another key lim-itation is the lack of robust mechanisms for inter-modal re-lation reasoning, which prevents the model from understand-ing how the appearance and motion modalities complement each other. Directly combining features from both modali-ties without properly modeling their relationships can result in an imbalanced integration, where irrelevant or redundant information from one modality may obscure important con-tributions from the other. To address these limitations, we argue that effective UVOS requires two key components: 1) enhanced intra-modal representations and 2) robust inter-modal relation rea-soning. To achieve this, we introduce cross-modality token modulation (CMTM), a novel framework designed to im-prove the interaction between appearance and motion cues. CMTM utilizes dense transformer blocks to enhance intra-modal representations and capture meaningful inter-modal interactions. Furthermore, we introduce a token masking strategy to facilitate the effective learning of these dense transformer blocks. By employing this masking strategy dur-ing training, the model learns to optimize both spatial and inter-modal interaction modeling, ensuring the effective in-tegration of appearance and motion features. We evaluate our approach on public benchmark datasets, outperforming existing approaches by a significant margin. Our main contributions can be summarized as follows: • We introduce cross-modality token modulation, a novel framework that enhances both intra- and inter-modal representations through dense transformer blocks. • We propose a token masking that promotes the efficient learning of dense transformer blocks. • Our method achieves state-of-the-art performance on standard UVOS benchmarks, showcasing its effective-ness across diverse scenarios. 
+
+> arXiv:2604.14630v1 [cs.CV] 16 Apr 2026
+
+2. RELATED WORK Unsupervised video object segmentation. A central ap-proach in UVOS is the integration of appearance and mo-tion cues to accurately generate segmentation masks. Two-stream architectures that combine these cues are widely ex-plored. MATNet [1] introduces a two-stream encoder that merges RGB images with optical flow maps to enhance spatio-temporal representations. FSNet [2] proposes a full-duplex strategy with a bi-directional interaction module to ensure mutual refinement between appearance and motion cues. Similarly, AMCNet [3] employs a co-attention gating mechanism for effective fusion of appearance and motion information. TransportNet [4] leverages optimal structural matching using a Sinkhorn layer, while RTNet [5] introduces a reciprocal transformation network. HFAN [6] presents a hierarchical feature alignment network that aligns features at multiple scales. GSANet [7] employs a guided slot attention mechanism to reinforce spatial structural information. Despite these advancements, many existing methods rely on basic fusion techniques and fail to fully leverage intra-and inter-modal dependencies. In contrast, our framework emphasizes a deeper understanding of both intra- and inter-modal interactions through dense transformer blocks and a masked learning protocol. As shown in Fig. 1, we provide a visual comparison between the conventional two-stream ar-chitecture and our proposed architecture. 
+
+3. APPROACH 3.1. Task Formulation 
+
+In UVOS, the objective is to generate binary segmentation masks M from each input video sequence. To this end, optical flow maps F are first extracted from RGB images I, where 2-channel motion vectors are converted to 3-channel RGB val-ues. Our method processes each frame independently, lever-aging the corresponding image Ii and flow map Fi to predict the mask Mi, where i indicates each video frame. 
+
+3.2. Overall Architecture 
+
+Our framework consists of three main components: two-stream encoders, a CMTM module, and a decoder. The two-stream encoders independently process the RGB im-age I and the flow map F , allowing each encoder to extract modality-specific features, denoted as Fapp and Fmo , respec-tively. Positioned between the encoders and the decoder, the CMTM module employs dense transformer blocks to enhance intra-modal representations and enable robust inter-modal re-lation reasoning. Finally, the decoder refines these enhanced features to generate the binary segmentation masks. 
+
+3.3. Cross-Modality Token Modulation 
+
+Existing two-stream VOS methods often struggle with subop-timal intra-modal representations and inadequate inter-modal relation reasoning, which ultimately undermines the quality and reliability of predictions. To address these challenges, we Flow Map    
+
+> (a) Conventional two -stream architecture
+> RGB Image
+> Flow Map
+> Prediction Mask
+> (b) Our proposed architecture
+> RGB Image
+> Prediction Mask
+
+Fig. 1 . A visual comparison between the conventional two-stream architecture and our proposed architecture. propose CMTM, a method that enhances intra-modal embed-dings and facilitates robust inter-modal interactions through dense transformer blocks and a token masking strategy. Avisual illustration of the CMTM is provided in Fig. 2. 
+
+Dense transformer block. To effectively combine comple-mentary information from appearance and motion cues, we utilize dense relation modeling through a self-attention mech-anism. This approach simultaneously refines intra-modal rep-resentations and captures inter-modal interactions, ensuring robust feature integration. The module takes feature maps Fapp ∈ RH×W ×C from the appearance encoder and Fmo ∈ RH×W ×C from the motion encoder as input. These feature maps are tokenized into Tapp ∈ RN ×C and Tmo ∈ RN ×C , where N denotes the total number of tokens obtained by flattening the spa-tial dimensions of the feature maps. The appearance and motion tokens are then concatenated along the token di-mension as [Tmapp ; Tmmo ], where Tmapp and Tmmo represent the masked tokens. This concatenation allows the model to jointly process appearance and motion modalities, exploiting their complementary characteristics for robust feature inte-gration. The self-attention mechanism then processes these concatenated tokens to capture both intra-modal refinements and inter-modal interactions. The self-attention operation in our approach is formulated as: Query         
+
+> Value
+> Multi -Head Attention
+> …
+> Cross -Modality Token Modulation
+> Norm
+> Feed -Forward  Network
+> Motion
+> Branch
+> Appearance
+> Branch
+> ×D
+> Modulated Token
+> M
+> M
+> C
+> M: Masking P: Positional Embedding
+> : Addition C: Concatenation
+> Input Token Masked Token
+> Modulated Token Input Token Masked Token
+> Norm Key
+> P
+> P
+
+Fig. 2 . Illustration of the CMTM module, where D representing the number of dense transformer blocks involved in the process. 
+
+A = Softmax 
+
+ QK ⊤
+
+√C
+
+
+
+V (1) 
+
+= Softmax [Qm
+
+> app
+
+; Qm
+
+> mo
+
+][ Km
+
+> app
+
+; Km
+
+> mo
+
+]⊤
+
+√C
+
+!
+
+[Vm
+
+> app
+
+; Vm
+
+> mo
+
+] ,
+
+where Q, K, and V are the query, key, and value matrices derived from the concatenated tokens. This process can also be written as: 
+
+A =
+
+Wapp,app Vapp + Wapp,mo Vmo 
+
+Wmo,app Vapp + Wmo,mo Vmo 
+
+
+
+. (2) This formulation enables dense relation modeling by leverag-ing pixel-level tokens to integrate both spatial and semantic information from appearance and motion features. Specifi-cally, Wapp,app Vapp facilitates intra-modal feature extraction within the appearance domain, while Wapp,mo Vmo enriches the appearance features with motion information. Similarly, motion tokens undergo the same token modulation process. Through the use of dense transformer blocks, we achieve both intra-modal representation enhancement and inter-modal rep-resentation modulation. 
+
+Token masking. Simply increasing model complexity with dense transformer blocks does not inherently guarantee im-proved performance. Instead, it often results in models prone to overfitting or unable to generalize effectively across diverse scenarios. Without explicit mechanisms to guide the learning process, increased complexity may amplify irrelevant or noisy features, hindering the extraction of meaningful semantic pat-terns. To address these challenges, our framework employs a masking strategy that enhances the model’s focus on critical semantic cues, fostering a more comprehensive understand-ing of the input. In this approach, random masking is applied to the input tokens of the CMTM module. A binary mask M ∈ { 0, 1}N
+
+is used for token filtering, selecting a pre-defined number of tokens from T based on the masking ratio Ψ. Elements with a value of 1 in M denote the retained tokens. The masking process is formally expressed as: 
+
+Tm = T ⊙ M , (3) where ⊙ represents the Hadamard product. This process is independently applied to both appearance and motion tokens. The binary mask M is randomly generated at each training iteration, ensuring diverse masking patterns and preventing overfitting to specific token positions. Masked tokens are re-placed with learnable mask tokens initialized as trainable pa-rameters, encouraging the model to infer missing information by leveraging contextual relationships from unmasked tokens, thus promoting robust feature learning. By integrating this masking strategy, the model avoids over-reliance on specific features and develops a deeper un-derstanding of semantic dependencies. This facilitates effec-tive training of the dense transformer blocks, enabling them to capture complex patterns and significantly enhance the frame-work’s overall performance. Note that the masking process is exclusively applied during the training stage of the network. 
+
+3.4. Decoding 
+
+The decoding process is based on the structure of our baseline model, FakeFlow [8]. However, unlike FakeFlow, the third encoder’s features are modulated using the CMTM module. Consequently, the decoder utilizes the modulated tokens from the CMTM module instead of directly using the features from the encoders. Apart from this modification, all other settings remain identical. The decoder takes multi-resolution features as input and progressively decodes them to produce the final binary segmentation mask. 
+
+3.5. Implementation Details CMTM architecture. The proposed CMTM module is in-tegrated into the third encoding layer of the appearance and motion streams. This design choice strikes a balance between Table 1 . Quantitative evaluation on the DAVIS 2016 validation set, FBMS test set and YouTube-Objects dataset. OF and PP indicate the use of optical flows and post-processing techniques, respectively. ∗ denotes speed calculated on our hardware.                                                                                                                                                
+
+> DAVIS 2016 FBMS YTO LVD Method Publication Backbone OF PP fps GMJMFMJMJMJM
+> RTNet [5] CVPR’21 ResNet-101 ✓✓-85.2 85.6 84.7 -71.0 FSNet [2] ICCV’21 ResNet-50 [9] ✓✓12.5 83.3 83.4 83.1 ---TransportNet [4] ICCV’21 ResNet-101 [9] ✓12.5 84.8 84.5 85.0 78.7 --AMC-Net [3] ICCV’21 ResNet-101 [9] ✓✓17.5 84.6 84.5 84.6 76.5 71.1 -D2Conv3D [10] WACV’22 ir-CSN-152 [11] -86.0 85.5 86.5 ---IMP [12] AAAI’22 ResNet-50 [9] 1.79 85.6 84.5 86.7 77.5 --HFAN [6] ECCV’22 MiT-b2 [13] ✓12.8 ∗87.5 86.8 88.2 -73.4 80.2 OAST [14] ICCV’23 MobileViT3D [15] ✓-87.0 86.6 87.4 83.0 --SimulFlow [16] ACMMM’23 MiT-b2 [13] ✓25.2 ∗88.3 87.1 89.5 84.1 --GFA [17] AAAI’24 -✓-88.2 87.4 88.9 82.4 74.7 -GSA-Net [7] CVPR’24 MiT-b2 [13] ✓38.2 88.2 87.4 89.0 82.3 --FakeFlow [8] arXiv’24 MiT-b2 [13] ✓29.5 ∗88.5 88.0 89.0 84.6 75.0 80.6
+> CMTM MiT-b2 [13] ✓19.8 ∗89.2 88.5 89.8 84.7 74.7 80.8
+
+spatial granularity and semantic richness, making it suitable for precise object delineation while maintaining computa-tional efficiency. We utilized a fixed positional embedding and additionally introduced a Modality Embedding to differ-entiate appearance and motion tokens. 
+
+Training strategy. To ensure a fair comparison with the baseline FakeFlow, we adhere to the same two-stage train-ing protocol. In the first stage, the model is pre-trained on the YouTube-VOS 2018 [18] training set, where all objects in each video sequence are merged into a single salient ob-ject. In the second stage, the network is fine-tuned using a combination of the DAVIS 2016 [19] training set and the DUTSv2 [20, 8] dataset, with a mixing ratio of 1:3. 
+
+Training details. For implementation, we adopt the MiT-b2 backbone [13] with an input resolution of 512 ×512 as the de-fault configuration. Network optimization is performed using the cross-entropy loss function and the Adam optimizer [21], with a learning rate of 1e−5. All experiments are conducted using two GeForce RTX TITAN GPUs. 
+
+4. EXPERIMENT 
+
+We conduct extensive experiments to validate the effective-ness of our method. The evaluation datasets include the DAVIS 2016 [19] validation set (D), the FBMS [22] test set (F), the YouTube-Objects [23] (Y), and Long-Videos [24] dataset (L). Speed evaluations are performed using a single GeForce RTX 2080 Ti GPU. 
+
+4.1. Evaluation Metrics 
+
+To evaluate the performance of our method, we use three met-rics: region similarity J , boundary accuracy F, and their average G. These metrics offer a comprehensive assessment by considering both the overlap and boundary alignment be-tween the predicted and ground truth masks. 
+
+Table 2 . Direct comparison with FakeFlow.                              
+
+> Method Backbone DFYLFakeFlow [8] MiT-b0 86.7 81.2 70.4 75.7 MiT-b1 87.3 81.8 73.4 77.4 MiT-b2 88.5 84.6 75.0 80.6 CMTM MiT-b0 87.8 83.4 70.8 76.8 MiT-b1 88.7 83.4 73.2 77.1 MiT-b2 89.2 84.7 74.7 80.8
+
+4.2. State-of-the-Art Comparison Quantitative results. Table 1 provides a comparative anal-ysis of our method against existing approaches across four benchmark datasets. Our method consistently achieves state-of-the-art performance, demonstrating its robustness and adaptability to diverse segmentation scenarios while main-taining an optimal balance between accuracy and inference speed. Table 2 presents a direct comparison between our method and FakeFlow [8] across different backbone versions, further highlighting the superiority of our approach. 
+
+Qualitative results. Fig. 3 presents qualitative comparisons between our method and current approaches. The visualiza-tions underscore the superiority of our method in accurately segmenting object boundaries and preserving fine-grained de-tails, even in challenging scenarios. 
+
+4.3. Analysis 
+
+To validate the effectiveness and efficiency of the proposed CMTM, we conduct a thorough analysis. All ablation studies are performed using the MiT-b0 backbone and are restricted to stage 2 training. 
+
+Effectiveness of CMTM. As shown in Table 3, a compre-hensive evaluation of the dense transformer block and token masking is presented. The results indicate that applying dense Ours  GSA -Net FakeFlo wFig. 3 . Qualitative comparison of our method with state-of-the-art approaches. 
+
+Table 3 . Ablation study on the CMTM. 
+
+Version App. Mo. Mask D F YI ✓ 85.9 81.4 69.4 II ✓ ✓ 86.2 80.7 69.7 III ✓ 85.7 81.2 70.6 IV ✓ ✓ 85.7 77.9 69.6 V ✓ ✓ 86.9 79.3 68.2 VI ✓ ✓ ✓ 87.5 79.9 69.1 
+
+Table 4 . Ablation study on the Masking Ratio. 
+
+Version Ψ D F YI 0.0 86.9 79.3 68.2 II 0.2 87.0 80.6 69.2 III 0.4 87.5 79.9 69.1 IV 0.6 86.2 80.9 68.9 V 0.8 85.6 80.1 68.7 
+
+transformer blocks alone does not yield significant perfor-mance improvements, as increasing model complexity with-out an explicit learning protocol is ineffective. The dense transformer blocks show their efficacy when combined with token masking. Additionally, the two-stream application of CMTM outperforms the single-stream application, highlight-ing the effectiveness of intra-modal information propagation. 
+
+Masking ratio. Table 4 presents the performance across different masking ratios. A ratio value of 0.0 represents the application of CMTM without token masking (i.e., using only dense transformer blocks). The highest performance is achieved with a masking ratio of 0.4. 
+
+Learned feature visualization. CMTM is designed to en-hance the extraction of meaningful feature representations for primary object detection. To verify its effectiveness, we com-pare the visualized feature maps of our baseline, FakeFlow, and the proposed CMTM in Fig. 4. By capturing both intra-and inter-modal relationships, CMTM effectively modulates encoder features, enriching feature representations. Its fusion of appearance and motion cues enables a clearer distinction of the primary object. FakeFlow Original Data  Ours   
+
+> RGB Ground Truth Prediction Mask
+
+Fig. 4 . Comparison of the feature maps generated by Fake-Flow and our proposed method CMTM. RGB  Ground Truth  Prediction Mask 
+
+Fig. 5 . Qualitative evaluation of CMTM. 
+
+Qualitative analysis. Due to the annotation burden, some ground truth masks in UVOS datasets lack fine-grained de-tails, as shown in Fig. 5. Our proposed CMTM produces high-fidelity mask predictions for primary objects, even in severe occlusion scenarios, often surpassing the quality of the pro-vided ground truth. 
+
+5. CONCLUSION 
+
+We introduce the cross-modality token modulation (CMTM) framework, which enhances unsupervised video object seg-mentation by integrating intra- and inter-modal relationships. CMTM outperforms state-of-the-art methods, demonstrating significant improvements in segmentation accuracy.   
+
+> Acknowledgements. This work was supported by the Korea Institute of Sci-ence and Technology (KIST) Institutional Program (Project No.2E33612-25-016), National Research Foundation of Korea (NRF) grant funded by the Korea government (MSIT)(No. RS-2024-00423362) and Yonsei Signature Research Cluster Program of 2025 (2025-22-0013).
+
+6. REFERENCES 
+
+[1] Tianfei Zhou, Jianwu Li, Shunzhou Wang, Ran Tao, and Jianbing Shen, “Matnet: Motion-attentive transition net-work for zero-shot video object segmentation,” IEEE Transactions on Image Processing , vol. 29, pp. 8326– 8338, 2020. [2] Ge-Peng Ji, Keren Fu, Zhe Wu, Deng-Ping Fan, Jianbing Shen, and Ling Shao, “Full-duplex strategy for video object segmentation,” in Proceedings of the IEEE/CVF international conference on computer vision , 2021, pp. 4922–4933. [3] Shu Yang, Lu Zhang, Jinqing Qi, Huchuan Lu, Shuo Wang, and Xiaoxing Zhang, “Learning motion-appearance co-attention for zero-shot video object seg-mentation,” in Proceedings of the IEEE/CVF interna-tional conference on computer vision , 2021, pp. 1564– 1573. [4] Kaihua Zhang, Zicheng Zhao, Dong Liu, Qingshan Liu, and Bo Liu, “Deep transport network for unsuper-vised video object segmentation,” in Proceedings of the IEEE/CVF international conference on computer vision ,2021, pp. 8781–8790. [5] Sucheng Ren, Wenxi Liu, Yongtuo Liu, Haoxin Chen, Guoqiang Han, and Shengfeng He, “Reciprocal trans-formations for unsupervised video object segmentation,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2021, pp. 15455–15464. [6] Gensheng Pei, Fumin Shen, Yazhou Yao, Guo-Sen Xie, Zhenmin Tang, and Jinhui Tang, “Hierarchical feature alignment network for unsupervised video object seg-mentation,” in European Conference on Computer Vi-sion . Springer, 2022, pp. 596–613. [7] Minhyeok Lee, Suhwan Cho, Dogyoon Lee, Chaewon Park, Jungho Lee, and Sangyoun Lee, “Guided slot at-tention for unsupervised video object segmentation,” in 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 3807–3816. [8] Suhwan Cho, Minhyeok Lee, Jungho Lee, Donghyeong Kim, Seunghoon Lee, Sungmin Woo, and Sangyoun Lee, “Improving unsupervised video object segmentation via fake flow generation,” arXiv preprint arXiv:2407.11714 ,2024. [9] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, “Deep residual learning for image recognition,” in 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , 2016, pp. 770–778. [10] Christian Schmidt, Ali Athar, Sabarinath Mahadevan, and Bastian Leibe, “D2conv3d: Dynamic dilated convolu-tions for object segmentation in videos,” in Proceedings of the IEEE/CVF winter conference on applications of computer vision , 2022, pp. 1200–1209. [11] Du Tran, Heng Wang, Lorenzo Torresani, and Matt Feis-zli, “Video classification with channel-separated con-volutional networks,” in Proceedings of the IEEE/CVF international conference on computer vision , 2019, pp. 5552–5561. [12] Youngjo Lee, Hongje Seong, and Euntai Kim, “Itera-tively selecting an easy reference frame makes unsuper-vised video object segmentation easier,” in Proceedings of the AAAI Conference on Artificial Intelligence , 2022, vol. 36, pp. 1245–1253. [13] Enze Xie, Wenhai Wang, Zhiding Yu, Anima Anandku-mar, Jose M Alvarez, and Ping Luo, “Segformer: Sim-ple and efficient design for semantic segmentation with transformers,” Advances in neural information process-ing systems , vol. 34, pp. 12077–12090, 2021. [14] Tiankang Su, Huihui Song, Dong Liu, Bo Liu, and Qing-shan Liu, “Unsupervised video object segmentation with online adversarial self-tuning,” in Proceedings of the IEEE/CVF International Conference on Computer Vi-sion , 2023, pp. 688–698. [15] Sachin Mehta and Mohammad Rastegari, “Mobilevit: light-weight, general-purpose, and mobile-friendly vision transformer,” arXiv preprint arXiv:2110.02178 , 2021. [16] Lingyi Hong, Wei Zhang, Shuyong Gao, Hong Lu, and WenQiang Zhang, “Simulflow: Simultaneously extract-ing feature and identifying target for unsupervised video object segmentation,” in Proceedings of the 31st ACM In-ternational Conference on Multimedia , 2023, pp. 7481– 7490. [17] Huihui Song, Tiankang Su, Yuhui Zheng, Kaihua Zhang, Bo Liu, and Dong Liu, “Generalizable fourier augmen-tation for unsupervised video object segmentation,” in 
+
+Proceedings of the AAAI conference on artificial intelli-gence , 2024, vol. 38, pp. 4918–4924. [18] Ning Xu, Linjie Yang, Yuchen Fan, Dingcheng Yue, Yuchen Liang, Jianchao Yang, and Thomas Huang, “Youtube-vos: A large-scale video object segmentation benchmark,” arXiv preprint arXiv:1809.03327 , 2018. [19] Jordi Pont-Tuset, Federico Perazzi, Sergi Caelles, Pablo Arbel´ aez, Alex Sorkine-Hornung, and Luc Van Gool, “The 2017 davis challenge on video object segmenta-tion,” arXiv preprint arXiv:1704.00675 , 2017. [20] Lijun Wang, Huchuan Lu, Yifan Wang, Mengyang Feng, Dong Wang, Baocai Yin, and Xiang Ruan, “Learning to detect salient objects with image-level supervision,” in 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , 2017, pp. 136–145. [21] Diederik P Kingma, “Adam: A method for stochastic optimization,” arXiv preprint arXiv:1412.6980 , 2014. [22] Peter Ochs, Jitendra Malik, and Thomas Brox, “Segmen-tation of moving objects by long term video analysis,” 
+
+IEEE transactions on pattern analysis and machine intel-ligence , vol. 36, no. 6, pp. 1187–1200, 2013. [23] Alessandro Prest, Christian Leistner, Javier Civera, Cordelia Schmid, and Vittorio Ferrari, “Learning object class detectors from weakly annotated video,” in 2012 IEEE Conference on computer vision and pattern recog-nition . IEEE, 2012, pp. 3282–3289. [24] Yongqing Liang, Xin Li, Navid Jafari, and Jim Chen, “Video object segmentation with adaptive feature bank and uncertain-region refinement,” Advances in Neural Information Processing Systems , vol. 33, pp. 3430–3441, 2020.

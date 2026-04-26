@@ -1,0 +1,3629 @@
+Title: UniCon: Unified Framework for Efficient Contrastive Alignment via Kernels
+
+URL Source: https://arxiv.org/pdf/2604.16678v1
+
+Published Time: Tue, 21 Apr 2026 00:21:54 GMT
+
+Number of Pages: 33
+
+Markdown Content:
+Published as a conference paper at ICLR 2026 
+
+# UNI CON : U NIFIED FRAMEWORK FOR EFFICIENT CON -
+
+# TRASTIVE ALIGNMENT VIA KERNELS 
+
+Hangke Sui 1,3∗, Yuqing Wang 2,3∗, Minh N. Do 1,2,3,4 
+
+> ∗
+
+Equal Contribution.  
+
+> 1
+
+Department of Electrical & Computer Engineering, The Grainger College of Engineering, UIUC  
+
+> 2
+
+Siebel School of Computing and Data Science, The Grainger College of Engineering, UIUC  
+
+> 3
+
+Coordinated Science Laboratory, University of Illinois Urbana-Champaign (UIUC)  
+
+> 4
+
+VinUni-Illinois Smart Health Center 
+
+{hangkes2, yuqing14, minhdo}@illinois.edu 
+
+## ABSTRACT 
+
+Contrastive objectives power state-of-the-art multimodal models, but their training remains slow, relying on long stochastic optimization. We propose a Unified Framework for Efficient Contrastive Alignment via Kernels (UniCon), which spans linear and nonlinear encoders as well as one-to-one and many-to-many alignments. At its core, UniCon introduces the contrastive similarity weight matrix S(γ),which enables closed-form global solutions that provably replace minibatch back-propagation with exact updates. Through the lens of reproducing kernel Hilbert spaces (RKHS), UniCon provides a kernelized perspective that unifies contrastive alignment and reveals its connection to spectral methods. To validate the theory, we conduct experiments on synthetic, unimodal, multimodal, and zero-shot tasks, demonstrating that UniCon achieves substantial efficiency gains while preserving generality and strong empirical performance. 
+
+## 1 INTRODUCTION 
+
+Learning semantically aligned representations across different modalities, such as vision and language, has long been a central goal in machine learning (Ngiam et al., 2011; Srivastava & Salakhutdinov, 2012). In particular, Multimodal Contrastive Learning (MMCL)(Huang et al., 2024) has recently achieved remarkable success in zero-shot classification (Radford et al., 2021; Jia et al., 2021), cross-modal retrieval (Mu et al., 2022; Goel et al., 2022), and general visual understanding (Surís et al., 2023; Lin et al., 2023). These models typically train modality-specific encoders, e.g., a vision encoder and a language encoder, such that paired inputs are mapped to nearby representations in a shared space, while unpaired inputs are mapped far apart. At the heart of MMCL lies contrastive representation learning (Chopra et al., 2005; Gutmann & Hyvärinen, 2010; Sohn, 2016; Oord et al., 2018; Chen et al., 2020; Radford et al., 2021). Its versatility has made it a core component across diverse domains, including NLP (Gao et al., 2022; Izacard et al., 2021), bioimaging (Sanchez-Fernandez et al., 2023; Taleb et al., 2022; Han et al., 2022), recommendation (Xie et al., 2022; Yu et al., 2023; Jing et al., 2023; Yang et al., 2023), and graph learning (Kipf et al., 2019; You et al., 2020). The typical pipeline involves feature extraction via deep encoders and the optimization of contrastive loss. Despite the impressive empirical performance of contrastive learning across vision, language, and multimodal domains, the theoretical foundations underlying its success remain only partially under-stood. There are works on the analysis of loss and training dynamics(Wang & Liu, 2021; Tian, 2022; HaoChen & Ma, 2022), provably guarantee of the model generalization (HaoChen et al., 2021; 2022; Tosh et al., 2021; Parulekar et al., 2023), duality between contrastive and non-contrastive method(Tian et al., 2021; Balestriero & LeCun, 2022). A growing body of theoretical work has sought to formalize contrastive learning (Saunshi et al., 2019; Tian et al., 2021; Jing et al., 2021; Wen & Li, 2021), often by simplifying the problem to single-modality settings. Recent advancements in contrastive learning have introduced novel loss functions and analytical frameworks to enhance representation quality and training efficiency.(Xu et al., 2023; Wang et al., 2024; Schuhmann et al., 2022). Analytical studies have examined contrastive learning from different perspectives. For example, Shi et al. 1
+
+> arXiv:2604.16678v1 [cs.LG] 17 Apr 2026
+
+Published as a conference paper at ICLR 2026 (2024) interpret the CLIP loss through the lens of optimal transport; while Tian (2022); Nakada et al. (2023) analyze multimodal contrastive learning using SVD- and PCA-based formulations, showing that, under linear encoders , contrastive loss minimization reduces to calculating a weighted covariance matrix. Yet, this insight has not been translated into nonlinear encoder settings and practical implementations. We introduce UniCon , a Unified Framework for Efficient Contrastive Alignment via Kernels , which leverages a structured contrastive similarity weight matrix S(γ) to directly solve contrastive objectives. As illustrated in Figure 1, UniCon departs from gradient-based training and instead: (i) in the linear setting(Nakada et al., 2023), solves a single spectral decomposition yielding optimal encoder matrices in closed form (ii) in a general nonlinear setting, provides a unified kernelized framework that enables fast alignment via implicit representation inference. Our key contributions are as follows: • Theoretically, we provide a kernel-based perspective that unifies linear and nonlinear en-coders, showing that minimizing contrastive loss is equivalent to a spectral update. This leads to a provably optimal solution in closed form and connects contrastive learning to spectral methods. • Beyond one-to-one matching, our framework generalizes to many-to-many alignment, broadening the applicability of contrastive alignment. • Empirically, we demonstrate that UniCon converges fast and achieves competitive or superior performance across synthetic , unimodal (CIFAR-10), and multimodal 
+
+(Flickr30k,MSCOCO) and zero-shot transfer (image-text retrieval), offering up to 461× speed-up over minimizing CLIP loss by stochastic gradient descent. 
+
+Figure 1: Unified Framework for Efficient Contrastive Alignment via Kernels (UniCon) . Starting from paired inputs, UniCon builds a contrastive similarity weight matrix S(γ) using hyper-spherical similarities, then computes either (i) a closed-form spectral update in the linear case (orange) or (ii) a kernelized solution in the nonlinear case (blue). 
+
+## 2 BACKGROUND 
+
+Contrastive Representation. Contrastive learning (Chopra et al., 2005; Gutmann & Hyvärinen, 2010; Sohn, 2016; Oord et al., 2018; Chen et al., 2020; Radford et al., 2021) leverages paired inputs as a form of supervision. The central goal is to learn a representation space where positive 
+
+(matching) pairs are mapped to nearby embeddings, while negative (non-matching) pairs are pushed apart. Learning representations on the hypersphere leads to better performance than in Euclidean space(Wang et al., 2017), as it avoids conflicting forces between attractive and repulsive gradients. (Wang & Isola, 2020) further shows that the distribution of representations on the unit hypersphere is encouraged to be uniform. 2Published as a conference paper at ICLR 2026 
+
+Contrastive Loss Contrastive loss (Hadsell et al., 2006) was first proposed in Siamese networks to pull together positive pairs and push apart negatives. The formulation was later unified under the InfoNCE loss (Oord et al., 2018), which serves as the basis for many self-supervised methods, including SimCLR (Chen et al., 2020). Supervised Contrastive (SupCon) loss (Khosla et al., 2020) extended contrastive learning to the supervised setting, where each anchor can have multiple positive samples from the same class. Building on the general family of contrastive losses introduced by (Tian, 2022), (Nakada et al., 2023) showed that these multimodal contrastive objectives can be connected to singular value decomposition (SVD) under linear setting. 
+
+Kernel Method Given a positive finite measure μ over a parameter space Θ, we define a kernel 
+
+k : X × X → R by k(x, ˜x) = ⟨ϕ(x; θ), ϕ (˜ x; θ)⟩μ := R 
+
+> Θ
+
+ϕ(x; θ)ϕ(˜ x; θ) dμ (θ), which induces a Reproducing Kernel Hilbert Space (RKHS). Any function f in this space admits the representation 
+
+f (x) = Pmj=1 wj k(x, x j ), w j ∈ R. Kernels are commonly used to learn representations (Kornblith et al., 2019; Klabunde et al., 2025), as they capture the relative structure among samples, critical for many learning algorithms (Aronszajn, 1950; Hofmann et al., 2008; Müller et al., 2018; Gong et al., 2025). 
+
+## 3 METHODOLOGY 
+
+We observe N paired samples {(xi, yi)}Ni=1 , where xi ∈ Rd1 and yi ∈ Rd2 . The objective of contrastive learning is to learn encoders fθ1 : Rd1 → Rr and fθ2 : Rd2 → Rr with modality-specific parameters θ1 and θ2, such that paired inputs are mapped to similar representations in a shared r-dimensional embedding space, while non-paired inputs remain dissimilar. In the sections that follow, we first formalize the general contrastive learning framework, then analyze it under a linear representation setting, and finally unify our analysis spanning nonlinear encoders in RKHS. The proof can be found in the Appendix B. 
+
+Definition 1 (Hyper-spherical similarity) . Define the similarity between xi and yi as the inner product on the hyper-sphere: 
+
+sij = ⟨fθ1 (xi), fθ2 (yj )⟩Sr−1⊂Rr =
+
+ fθ1 (xi)
+
+∥fθ1 (xi)∥2
+
+, fθ2 (yj )
+
+∥fθ2 (yj )∥2
+
+
+
+> Rr
+
+= f ⊤ 
+
+> θ1
+
+(xi)fθ2 (yj )
+
+∥fθ1 (xi)∥2 ∥fθ2 (yj )∥2
+
+. (1) 
+
+Definition 2 (Generalized contrastive loss) . Given N paired samples {(xi, yi)}Ni=1 , we write the 
+
+similarity matrix [sij ]. With ϕ, ψ : R → R+ monotonically increasing, scaling factor ν ≥ 1, and weights ϵij ∈ [0 , 1] , the bidirectional general contrastive loss is 
+
+L(θ1, θ 2) = 12n
+
+> n
+
+X
+
+> i=1
+
+1
+
+|P x(i)|
+
+X
+
+> k∈P x(i)
+
+ϕ( X
+
+> j / ∈P x(i)
+
+ϵij ψ(sij − νs ik ) + ϵik ψ(sik − νs ik )) (2) 
+
++ 12n
+
+> n
+
+X
+
+> i=1
+
+1
+
+|P y (i)|
+
+X 
+
+> k∈P y(i)
+
+ϕ( X 
+
+> j / ∈P y(i)
+
+ϵij ψ(sji − νs ki ) + ϵik ψ(ski − νs ki )) + R(θ1, θ 2)
+
+where Px(i) denotes the index set of all samples in {yi} paired with xi while Py (j) denotes the index set of all samples in {xi} paired with yj . |P x(i)| is the cardinality of the set Px(i); and R is an optional regularizer. 
+
+This formulation naturally extends from one-to-one alignment (Tian, 2022) to many-to-many align-ment: for example, a single image may correspond to multiple valid captions, and data augmentation can be viewed as creating diverse positive pairs. The scaling factor ν ≥ 1 adjusts the relative influence of positive pairs, while ϵij ≥ 0 controls which pairs contribute to the loss (often ϵij = 1 
+
+for all negatives). The functions ϕ and ψ are typically convex and monotonic, shaping the loss for optimization. By choosing specific forms for ψ and ϕ, we can recover familiar losses. More detailed examples can be found in Appendix A. 
+
+Definition 3 (Contrastive similarity weight matrix) . Consider the general contrastive loss L(θ1, θ 2),and a batch of paired samples {(xi, yi)}ni=1 . Denote {ei}ni=1 as the elementary basis vectors of Rn.The contrastive similarity weight is then defined as: 
+
+S(γ) = − 1
+
+n
+
+X
+
+> i,j
+
+12
+
+ γij 
+
+|P x(i)| + ¯γji 
+
+|P y (j)|
+
+
+
+eie⊤ 
+
+> j
+
+, (3) 3Published as a conference paper at ICLR 2026 
+
+with weight coefficients 
+
+γij =
+
+(
+
+ϕ′ 
+
+> ij
+
+·
+
+
+
+ϵij (1 − ν)ψ′((1 − ν)sij ) − ν P 
+
+> m / ∈Px(i)
+
+ϵim ψ′(sim − νs ij )
+
+
+
+, if j ∈ Px(i)
+
+P 
+
+> k∈Px(i)
+
+ϕ′ 
+
+> ik
+
+· (ϵij ψ′(sij − νs ik )) , if j / ∈ Px(i) (4) 
+
+¯γij =
+
+( ¯ϕ′ 
+
+> ij
+
+·
+
+
+
+ϵji (1 − ν)ψ′((1 − ν)sji ) − ν P  
+
+> m / ∈Py(i)
+
+ϵmi ψ′(smi − νs ji )
+
+
+
+, if j ∈ Py (i)
+
+P  
+
+> k∈Py(i)
+
+¯ϕ′ 
+
+> ik
+
+· (ϵji ψ′(sji − νs ki )) , if j / ∈ Py (i) (5) 
+
+where 
+
+ϕ′ 
+
+> ij
+
+=ϕ′(ϵij ψ((1 − ν)sij ) + X
+
+> m / ∈Px(i)
+
+ϵim ψ(sim − νs ij )) , (6) 
+
+¯ϕ′ 
+
+> ij
+
+=ϕ′(ϵji ψ(1 − ν)sji + X 
+
+> m / ∈Py(i)
+
+ϵmi ψ(smi − νs ji )) 
+
+The contrastive similarity weight matrix S(γ) weighs pairwise interactions. We now show that minimizing the contrastive loss is equivalent to maximizing a new objective function with the constructed S(γ).
+
+Lemma 4 (Gradient equivalence) . Consider minimizing the general contrastive loss (see Equation 2), the gradient of the contrastive loss with respect to encoder parameters satisfies: 
+
+∂L
+
+∂θ k
+
+= − ∂ tr  Fθ1 (X)S(γ)F⊤ 
+
+> θ2
+
+(Y)
+
+∂θ k γ=γ(θ1,θ 2)
+
++ ∂R (θ1, θ 2)
+
+∂θ k
+
+, k ∈ { 1, 2} (7) 
+
+where 
+
+X = [ x1, · · · , xn] ∈ Rd1×n, Y = [ y1, · · · , yn] ∈ Rd2×n
+
+Fθ1 (X) = [ fθ1 (x1) · · · fθ1 (xn)] ∈ Rr×n, Fθ2 (Y) = [ fθ2 (y1) · · · fθ2 (yn)] ∈ Rr×n.
+
+This result reveals that the gradient of the contrastive loss in Equation 2 is the negative of the gradient of the proposed objective function in Equation 8. Hence, minimizing the contrastive loss is equivalent to maximizing the objective with contrastive similarity weight matrix S(γ):
+
+tr  Fθ1 (X)S(γ)F⊤ 
+
+> θ2
+
+(Y) − R (θ1, θ 2) . (8) 3.1 LINEAR REPRESENTATION SETTING 
+
+We first specialize the general framework to the linear representation case. Here the encoders are parameterized as matrix multiplications: fθ1 (x) = F1x, fθ2 (y) = F2y, where F1 ∈ Rr×d1 ,
+
+F2 ∈ Rr×d2 are learnable projection matrices. 
+
+Definition 5 (Weighted contrastive covariance) . Define the weighted contrastive covariance as: 
+
+C(γ) = XS(γ)Y⊤ = − 1
+
+n
+
+X
+
+> i,j
+
+12
+
+ γij 
+
+|P x(i)| + ¯γji 
+
+|P y (j)|
+
+
+
+xiy⊤ 
+
+> j
+
+(9) 
+
+with coefficients γij share the same definition with Definition 3. 
+
+Remark 6. Note that the definition of C(γ) exactly matches the definition of S(β) in Nakada et al. (2023) under one-to-one alignment setting, which is proved in details in Appendix B.1. The structure of C(γ) captures positive and negative pairs relationships, weighted appropriately. Our expression keeps the diagonal correction (αii + ¯ αii )/2 that prior work reduced to 1 by assuming that ϕ and ψ are identity functions. This modification improves both theoretical generality and empirical performance. 
+
+Proposition 7. Under the linear setting, the Lemma 4 is specialized as 
+
+∂L
+
+∂F k
+
+= − ∂ tr  F1C(γ)F ⊤
+
+> 2
+
+
+
+∂F k γ=γ(F1,F 2)
+
++ ∂R (F1, F 2)
+
+∂F k
+
+, k ∈ { 1, 2} (10) To solve the optimization problem induced by our reformulated objective, we characterize its maxi-mizer in the linear setting. We arrive at the following theorem, which establishes that the convergence of the contrastive loss can be replaced by a closed-form spectral update. 4Published as a conference paper at ICLR 2026 
+
+Theorem 8 (Spectral characterization (Nakada et al., 2023)) . Consider minimizing the contrastive loss function L (F1, F 2), with R(F1, F 2) = ρ 
+
+> 2
+
+|| F T 
+
+> 1
+
+F2|| 2 
+
+> F
+
+. Then, 
+
+arg min 
+
+> F1,F 2
+
+L (F1, F 2) = arg max  
+
+> F1∈Rr×d1,F 2∈Rr×d2
+
+tr  F1C(γ)F ⊤
+
+> 2
+
+ − ρ
+
+2 F ⊤ 
+
+> 1
+
+F2 
+
+> 2
+> F
+
+(11) 
+
+= {(F1, F 2) ∈ Rr×d1 × Rr×d2 : F ⊤ 
+
+> 1
+
+F2 = 1
+
+ρ
+
+> r
+
+X
+
+> i=1
+
+σiuiv⊤ 
+
+> i
+
+} (12) 
+
+where {σi, u i, v i}ri=1 are the top-r singular values and vectors of C(γ) according to the Eckart–Young–Mirsky theorem. 
+
+Consequently, in linear case, the global minimum is achieved by projecting the contrastive covariance 
+
+C(γ) onto its top-r singular components. Thus, gradient descent on any loss in the contrastive family 
+
+(ϕ, ψ ) merely tracks the dominant singular subspace of C(γ). Our algorithm UniCon performs this update in closed form, replacing thousands of SGD steps by one spectral factorization. 3.2 KERNELIZED REPRESENTATION SETTING 
+
+Why leave the linear world? The linear setting reveals a clean spectral structure for contrastive alignment, but cross–modal relations (e.g., vision ↔ language) are typically nonlinear. Moreover, with frozen or partially frozen pretrained encoders, the residual alignment is rarely captured by mere linear heads. We therefore lift the analysis to nonlinear encoders while keeping the output space Rr
+
+shared across modalities . Kernelization provides a tractable route with explicit spectral solutions that 
+
+reduce to the linear case .
+
+RKHS representation. Let (HX , k X ) and (HY , k Y ) be RKHSs with canonical feature maps 
+
+ϕX (x) = kX (·, x) ∈ H X , ϕY (y) = kY (·, y) ∈ H Y , (13) satisfying the reproducing property f (x) = ⟨f, ϕ X (x)⟩HX for all f ∈ H X (and analogously for 
+
+HY ). For r-dimensional outputs, the a-th coordinate (a = 1 , . . . , r ) admits the representer form 
+
+f (a) 
+
+> θ1
+
+(·) = 
+
+> n
+
+X
+
+> i=1
+
+Aia kX (xi, ·), f (a) 
+
+> θ2
+
+(·) = 
+
+> n
+
+X
+
+> j=1
+
+Bja kY (yj , ·), (14) with A, B ∈ Rn×r . Let KX = [ kX (xi, xj )] and KY = [ kY (yi, yj )] . The batch embeddings are 
+
+Fθ1 (X) = A⊤KX ∈ Rr×n, Fθ2 (Y) = B⊤KY ∈ Rr×n. (15) The contrastive trace term becomes 
+
+tr  Fθ1 (X) S(γ) Fθ2 (Y)⊤ = tr  A⊤KX S(γ) KY B. (16) With the RKHS parameterization above and the kernelized trace form in equation 16, the entire objective can be written purely in terms of the Gram matrices. Under this notation, the optimizer is governed by the principal singular structure of M := K1/2 
+
+> X
+
+S(γ)K1/2 
+
+> Y
+
+, as formalized below. 
+
+Theorem 9 (Kernelized spectral characterization (unified form)) . Let ρ > 0 and define the regularizer 
+
+R(A, B ) = (K1/2 
+
+> X
+
+A)⊤(K1/2 
+
+> Y
+
+B) 2 
+
+> F
+
+. Then minimizing the contrastive loss is equivalent to the kernelized maximization 
+
+max  
+
+> A,B ∈Rn×r
+
+tr  A⊤KX S(γ) KY B − ρ
+
+2 (K1/2 
+
+> X
+
+A)⊤(K1/2 
+
+> Y
+
+B) 2 
+
+> F
+
+. (17) 
+
+Let A′ := A⊤K1/2 
+
+> X
+
+, B ′ := B⊤K1/2 
+
+> Y
+
+, M := K1/2 
+
+> X
+
+S(γ) K1/2 
+
+> Y
+
+. Then equation 17 rewrites 
+
+max  
+
+> A′,B ′
+
+tr( A′M B ′⊤ ) − ρ
+
+2 ∥A′⊤ B′∥2 
+
+> F
+
+. (18) 
+
+If M = U ΣV ⊤ is an SVD and Mr = Pri=1 σiuiv⊤ 
+
+> i
+
+its best rank-r approximation by Eckart–Young–Mirsky theorem, then all maximizers satisfy the relation 
+
+(A′)⊤B′ = 1
+
+ρ Mr ⇐⇒ A B ⊤ = 1
+
+ρ K−1/2 
+
+> X
+
+Mr K−1/2 
+
+> Y
+
+. (19) 
+
+If KX or KY is singular, replace inverse square roots by Moore–Penrose pseudo–inverse square roots. 
+
+5Published as a conference paper at ICLR 2026 One explicit optimal choice is A⋆ = K−1/2 
+
+> X
+
+Ur and B⋆ = K−1/2 
+
+> Y
+
+Vr Σr /ρ, where Ur = [ u1, . . . , u r ],
+
+Vr = [ v1, . . . , v r ], Σr = diag( σ1, . . . , σ r ) are SVD of M .
+
+Corollary 10 (Kernel inference (out-of-sample)) . Let D = {(xi, yi)}ni=1 be the reference batch used to build contrastive similarity weight S(γ) and let k be a positive definite ker-nel. For a new pair (x∗, y∗), set κX (x∗) = [ kX (x1, x∗), . . . , k X (xn, x∗)] ⊤ and κY (y∗) = [kY (y1, y∗), . . . , k Y (yn, y∗)] ⊤. With an optimal (A⋆, B ⋆) from Theorem 9, 
+
+fθ1 (x∗) = ( A⋆)⊤κX (x∗), fθ2 (y∗) = ( B⋆)⊤κY (y∗), (20) 
+
+and the similarity 
+
+s(x∗, y∗) = κX (x∗)⊤A⋆B⋆⊤κY (y∗)
+
+∥A⋆⊤κX (x∗)∥2∥B⋆⊤κY (y∗)∥2
+
+. (21) In practice we observe that a simple angular kernel k(u, v ) = 1 
+
+> π
+
+∥u∥∥ v∥ (sin θ + ( π − θ) cos θ) , θ =arccos 
+
+ u⊤v
+
+> ∥u∥∥ v∥
+
+
+
+yields the best trade-off between speed and accuracy. 3.3 UNIFIED SPECTRAL VIEW (L INEAR AS A SPECIAL CASE OF KERNEL )Our kernel formulation strictly generalizes the linear setting. For linear kernels kX (x, x ′) = ⟨x, x ′⟩,
+
+kY (y, y ′) = ⟨y, y ′⟩, the Gram matrices reduce to KX = X⊤X and KY = Y⊤Y. Setting F1 =
+
+A⊤X⊤ and F2 = B⊤Y ⊤ yields R×(A, B ) = ∥F ⊤ 
+
+> 1
+
+F2∥2 
+
+> F
+
+= tr( F1F ⊤ 
+
+> 1
+
+F2F ⊤ 
+
+> 2
+
+), exactly matching the penalty used in the linear section. In the linear analysis we considered the weighted contrastive covariance matrix C(γ) = X S (γ) Y ⊤, while in the RKHS analysis the central operator is M =
+
+K1/2 
+
+> X
+
+S(γ) K1/2 
+
+> Y
+
+. When the kernels are linear, M = ( X⊤X)1/2S(γ)( Y ⊤Y )1/2.Let reduced SVDs be X = UX ΣX V ⊤ 
+
+> X
+
+and Y = UY ΣY V ⊤ 
+
+> Y
+
+, and define T = Σ X V ⊤ 
+
+> X
+
+S(γ)VY ΣY
+
+with SVD T = UT ΣT V ⊤ 
+
+> T
+
+. Then we obtain 
+
+C(γ) = UX T U ⊤ 
+
+> Y
+
+= ( UX UT )Σ T (UY VT )⊤, M = VX T V ⊤ 
+
+> Y
+
+= ( VX UT )Σ T (VY VT )⊤. (22) Hence left/right multiplication by orthonormal matrices maps C(γ) and M to the same nonzero singular values ΣT . In particular, their best rank– r approximations select the same spectrum (Eckart–Young–Mirsky). When X or Y is rank-deficient (or for general kernels where KX , K Y may be singular), all statements hold on the effective subspace using Moore–Penrose square roots. Thus the kernel SVD of M is the exact RKHS analogue of the linear SVD of C(γ), and the linear setting is recovered as the special case of the linear kernel. 
+
+Unified consequence. Theorem9 provides a unified spectral view for understanding contrastive alignment: contrastive loss minimization ⇐⇒ best rank– r approximation with RKHS. with S(γ) encoding the particular contrastive objective (e.g., InfoNCE, CLIP, triplet) and the kernel selecting the nonlinear feature space in which the alignment is performed. 3.4 SCALABLE TRAINING 
+
+Batch aggregation. In practical scenarios, particularly in large-scale vision-language or multimodal applications, N can be substantial, leading to prohibitive computational and memory demands. We therefore aggregate mini-batch contrastive similarity weight matrix S(b)(γ) by our closed-form solution. The final S(γ) by taking quality weighted sum. 
+
+Numerical stability. If KX or KY is ill-conditioned or singular, form square roots with a Tikhonov regularization when needed, replacing K by K + λI with λ > 0 in K±1/2. This enhances robustness to near-singular Gram matrices and stabilizes the closed-form update. For low rank approximation step, one can use randomized SVD (Halko et al., 2011) on M or Nyström approximations of KX , K Y
+
+to reduce both memory and time. 6Published as a conference paper at ICLR 2026 
+
+## 4 EXPERIMENTS 
+
+During implementation, UniCon directly leverages the contrastive similarity weight S(γ) for con-trastive alignment. The full computation of S(γ) is provided in Appendix C.1. We start with synthetic data and then extend to evaluate the practical utility of UniCon on unimodal and multimodal datasets. In the unimodal setting, we test on CIFAR-100, where the goal is image-to-image alignment. In the multimodal setting, we test on F LICKR 30 K and MS-COCO for image–text retrieval. Across both settings, we compare UniCon against standard CLIP-style contrastive learning trained with stochastic gradient descent (SGD–CLIP). All experiments are run on a single NVIDIA L40S GPU, and wall-clock times are reported for reference. 4.1 SYNTHETIC DATA 
+
+To verify our theoretical results in a fully controlled environment, we conduct synthetic experiments in both linear and nonlinear regimes. Details of setup could be found in AppendixC.2. 
+
+Linear Latent-Factor Model. We generate synthetic data from latent vectors z ∈ Rr that are sampled around K = 3 cluster centers in latent space. We compare our method UniCon, which performs a spectral update using the closed-form SVD of the weighted covariance C(γ), against a standard baseline trained via stochastic gradient descent (SGD) on the CLIP loss with AdamW optimizer ( lr = 2 × 10 −3). As shown in Figure 2, UniCon achieves 100% matching accuracy after just 0.02 seconds. CLIP-SGD requires 400 epochs (0.32 seconds) to reach the same accuracy. This demonstrates that UniCon not only preserves structure in the latent space but also converges faster than gradient-based methods. 
+
+Figure 2: Visualization of cross-modal alignment using t-SNE embeddings of the shared represen-tation space. Modality 1 (cross) and modality 2 (circle) are projected from different spaces into a shared representation space Rr . Colors indicate ground-truth clusters, and lines connect matched image–text pairs. Both SGD-CLIP (left) and UniCon (right) successfully align paired samples while preserving cluster structure. The visual similarity between the two plots is expected: UniCon achieves a comparable aligned representation to SGD-CLIP with substantially less training time. 
+
+Nonlinear Latent-Factor Model. We further evaluate the method under a nonlinear transformation of the latent space. The baseline model trains nonlinear MLP encoder via SGD on CLIP loss and AdamW optimizer. Our method UniCon calculates a sequence of ⟨F θ1 (x)Fθ2 (y)⟩ each for one training batch. Then we apply batch aggregation on validation data to calculate the weight for each training batch. The performance is evaluated by the correctly matched pairs of test data using the kernel-weighted generalization. UniCon converges in 2 epochs (0.04 seconds), achieving 86% matching accuracy, while CLIP-SGD reaches 84% after 500 epochs (0.65 seconds). 
+
+Summary. In both linear and nonlinear settings, UniCon demonstrates rapid convergence and strong alignment performance, validating the theoretical claims that contrastive learning objectives can be solved via a single spectral step. Figure 3 confirm that UniCon achieves consistent cross-modal alignment. 7Published as a conference paper at ICLR 2026    
+
+> (a) Initial S(γ)(b) After epoch 1 (c) After epoch 2 (converged)
+
+Figure 3: Evolution of the contrastive similarity weight matrix S(γ) in the nonlinear latent-factor model across training. 4.2 IMAGE -I MAGE ALIGNMENT ON CIFAR-10 ( UNIMODAL )
+
+Setup. We evaluate UniCon on a unimodal image alignment task using CIFAR-10, a benchmark dataset containing 10 object categories. Following the convention of SimCLR (Chen et al., 2020), we treat two augmentations derived from the same image as a positive pair, while augmentation pairs from different images are treated as negative. Feature embeddings are extracted using a frozen ResNet-18 encoder. The objective is to align these embeddings such that images from the same class are pulled closer together in the shared feature space, thereby facilitating unimodal classification. We conduct this experiment under a nonlinear setting. For baseline, we train a lightweight projection encoder g(·) on frozen ResNet - 18 features with bidirectional InfoNCE optimized by SGD. The encoder is a two-layer MLP encoder. We optimize with SGD for 300 epochs. The trained encoder is then frozen for linear probing with a small classifier on the 128 - dimensional embeddings. UniCon learns a kernelized projection from frozen ResNet - 18 features by a spectral closed-form solution. Given two augmented views (z1, z 2) , we compute an angular kernel between features and iteratively estimate a batch - wise feature map A. After learning an average of A, we freeze it and train a small linear classifier on the 128 -dimensional embeddings for linear probing, mirroring the SGD setup for fair comparison.   
+
+> (a) Contrastive classification (b) UniCon (c) SGD-CLIP
+
+Figure 4: Visualizations of unimodal alignment on CIFAR-10. (a) Self-supervised contrastive learning clusters semantically similar images and uniformly distributes clusters on the hypersphere. (b–c) Unimodal confusion matrices for UniCon and SGD-CLIP, showing predicted vs. true class accuracy. The near-identity structure and visual similarity of both matrices indicate that UniCon and SGD-CLIP achieve comparable discriminative performance in unimodal contrastive alignment. 
+
+Results. To evaluate classification performance, we report the confusion matrix in Figure 4(b-c), which summarizes the number of correct and incorrect predictions for each class. Each row of the matrix corresponds to the predicted class, while each column represents the ground truth. Specifically, the diagonal entries indicate the number of correctly classified samples, and the off-diagonal entries capture misclassifications between classes. This allows a detailed analysis of model behavior beyond 8Published as a conference paper at ICLR 2026 overall accuracy. Numerically, UniCon can achieve the average accuracy of 61.82% with 23.38s while SGD can achieve the average accuracy of 62.21% with 41.98s. Empirically, UniCon can converge within 2 epochs while SGD requires various iterations to converge to a comparable optimal point. 4.3 IMAGE –TEXT RETRIEVAL AND ZERO -SHOT TRANSFER (MULTIMODAL )
+
+Setup. To evaluate UniCon in a multimodal setting, we benchmark on the standard image–text retrieval tasks from F LICKR 30 K and MSCOCO. We consider three backbone choices for image x and text y: (a) ResNet-18 (He et al., 2016) for images with Sentence-BERT (all-mpnet-base-v2 )(Reimers & Gurevych, 2019) for text; (b) ResNet-50 + Sentence-BERT; (c) the pretrained CLIP ViT-B/32 model as a frozen visual–textual feature extractor. UniCon is compared against an SGD-optimized CLIP baseline (SGD–CLIP) under matched training/evaluation settings; both are trained to convergence. 
+
+Results. Table 1 summarizes top-1/10 recall in both directions. Across all backbones, UniCon attains competitive or superior accuracy while reducing training time by 25–50 ×. With CLIP ViT-B/32 features, UniCon further improves accuracy despite requiring only a single spectral update. Notably, UniCon on Resnet50+SBERT backbone achieves comparable averaged top-10 retrieval accuracy with CLIP ViT-B/32 backbone aligned SGD-CLIP. These findings are consistent with our theory: the spectral step efficiently recovers the dominant cross-modal structure that iterative SGD approximates over many epochs. Table 1: Image-text retrieval on F LICKR 30 K. We report Recall@1 and Recall@10 for both image →text and text →image directions.                                                        
+
+> Backbone Method Train time Image →Text Text →Image Average R@1 R@10 R@1 R@10 R@1 R@10 RN-18 + SBERT SGD–CLIP 45.6 s .043 .221 .041 .217 .042 .219
+> UniCon 1.7 s .020 .145 .087 .361 .054 .253
+> RN-50 + SBERT SGD–CLIP 45.0 s .043 .221 .041 .217 .042 .219
+> UniCon 0.81 s .134 .464 .188 .567 .161 .515
+> CLIP ViT-B/32 SGD–CLIP 45.3 s .231 .595 .241 .600 .236 .597
+> UniCon 0.76 s .284 .636 .421 .777 .353 .701
+
+Table 2: Retrieval on MSCOCO and zero-shot transfer to F LICKR 30 K. All models are trained on MSCOCO. We report image to text (I →T) and text to image (T →I) on MSCOCO and zero-shot on F LICKR 30 K (no fine-tuning).                                              
+
+> Backbone Method Train (s) Dir. MSCOCO FLICKR 30 K(zero-shot) R@1 R@10 R@5 R@10 RN-50 + SBERT SGD–CLIP 5121.72 I→T.053 .253 ——T→I.060 .286
+> UniCon 11.11 I→T.105 .388 .171 .261 T→I.129 .439 .249 .353 CLIP ViT-B/32 SGD–CLIP 1066.60 I→T.128 .415 ——T→I.123 .427
+> UniCon 11.15 I→T.329 .685 .808 .879
+> T→I.292 .644 .766 .848
+
+Table 2 augments our results with MSCOCO retrieval and zero-shot transfer to F LICKR 30 K. Our training follows the standard retrieval protocol on MSCOCO with each image paired with 5 captions, and report test retrieval accuracy on 5,000 held-out pairs. UniCon achieves higher accuracy than SGD–CLIP on MSCOCO while being 96–461 × faster. Beyond scalability, the learned alignment transfers robustly: models trained on MSCOCO maintain strong performance on F LICKR 30 K
+
+9Published as a conference paper at ICLR 2026 without any adaptation. Despite distribution shifts in both image and text domains, UniCon maintains strong retrieval accuracy. These results underscore UniCon’s scalability, generality, and cross-dataset transfer, reavealing its potential in real world tasks. 
+
+## 5 DISCUSSION 
+
+Computation Efficiency. UniCon achieves rapid stabilization of the alignment subspace through derived spectral updates, which bypass many small gradient steps, demonstrating computational efficiency. Details can be found in Appendix C.1. Empirically, we observe an interesting phenomenon that M (or C(γ) in the linear case) converges in 2 or a few steps. We provide an intuitive explanation: Unlike gradient-based methods that take small local steps, each spectral update directly jumps to the global maximizer of the surrogate objective, making the update much more informative. 
+
+Data Efficiency. Additionally, on MSCOCO, using only 200 images (0.24% of the dataset), with each image paired with 5 captions, already yields meaningful retrieval alignment (66.45% avg R@10), demonstrating both subspace convergence and data efficiency. As we discussed in Section 3, alignment is a r-rank discovery problem, which gives an intuition that we don’t need massive datasets to find the principal axes. 
+
+Static vs. Evolving Input Spaces. The theoretical optimality results with r-rank aproximation is derived under the assumption that the input space of UniCon is static. It includes two cases: (a) Input space is data space (raw modalities), where UniCon itself performs end-to-end alignment. (b) Input space is embedding space from frozen encoders. In both cases, UniCon provides a globally optimal spectral solution to contrastive loss minimization from the perspective of r-rank approximation. When encoders are trainable (non-static input space), UniCon is applied during jointly optimizing encoders, the spectral update becomes a conditionally optimal subproblem, i.e., optimal for the current encoder outputs. 
+
+## 6 CONCLUSION 
+
+We propose UniCon , a theoretically grounded and computationally efficient framework for contrastive alignment that unifies linear and nonlinear encoders through kernels. We show that minimizing contrastive loss is equivalent to maximizing a kernelized trace objective, which in turn reduces to a best rank-r spectral approximation in an RKHS. The closed form update is driven by explicitly constructing a contrastive similarity weight matrix S(γ). In the linear reduction, UniCon recovers a projection onto the top-r singular directions of the weighted contrastive cross-covariance. This yields a clear spectral lens on contrastive learning, interpreting alignment as r-rank structure discovery in high-dimensional feature spaces. We see three concrete future directions: (i) structure-exploiting kernels, for example random features, to reduce K’s rank and cost; (ii) hybrid spectral–SGD strategy or warm-start strategy when the input space is non-static (e.g. finetuning for domain adaptation); (iii) mini-batch aggregation and streaming variants that balance analytical fidelity with scalability, including distribution-shift-aware weighting, online updates of the aggregated operator, and robust selection of batches to maintain stable global estimates. With the theoretical grounding and competitive empirical results, UniCon advances understanding of contrastive learning for unimodal representation learning, multimodal alignment and beyond. 
+
+## ACKNOWLEDGMENT 
+
+This work was supported in part by the Advanced Research Projects Agency for Health (ARPA-H) and the IBM–Illinois Discovery Accelerator Institute. 10 Published as a conference paper at ICLR 2026 
+
+## ETHICS STATEMENT 
+
+We affirm that this work complies with the ICLR Code of Ethics. Our study does not involve human subjects, sensitive personal data, or potentially harmful applications. All datasets used are publicly available (e.g., CIFAR-10) and contain no personally identifiable information. We acknowledge the importance of fairness and responsible AI development and have taken care to ensure that our methods do not propagate bias or cause unintended harm. 
+
+## REPRODUCIBILITY STATEMENT 
+
+We are committed to ensuring the reproducibility of our work. All implementation details, including model architectures, hyperparameters, and training procedures, are described in the Appendix C. We provide pseudocode for our algorithm in Appendix C and include complete proofs of theoretical results in Appendix B. All datasets used in this study are publicly available, and we will release source code and experiment scripts as supplementary materials later to facilitate replication of our results. 
+
+## REFERENCES 
+
+Nachman Aronszajn. Theory of reproducing kernels. Transactions of the American mathematical society , 68(3): 337–404, 1950. Randall Balestriero and Yann LeCun. Contrastive and non-contrastive self-supervised learning recover global and local spectral embedding methods. Advances in Neural Information Processing Systems , 35:26671–26685, 2022. Ting Chen, Simon Kornblith, Mohammad Norouzi, and Geoffrey Hinton. A simple framework for contrastive learning of visual representations. In International conference on machine learning , pp. 1597–1607. PmLR, 2020. Sumit Chopra, Raia Hadsell, and Yann LeCun. Learning a similarity metric discriminatively, with application to face verification. In 2005 IEEE computer society conference on computer vision and pattern recognition (CVPR’05) , volume 1, pp. 539–546. IEEE, 2005. Konstantinos Drossos, Samuel Lipping, and Tuomas Virtanen. Clotho: An audio captioning dataset, 2019. URL 
+
+https://arxiv.org/abs/1910.09387 .Tianyu Gao, Xingcheng Yao, and Danqi Chen. Simcse: Simple contrastive learning of sentence embeddings, 2022. URL https://arxiv.org/abs/2104.08821 .Shashank Goel, Hritik Bansal, Sumit Bhatia, Ryan Rossi, Vishwa Vinay, and Aditya Grover. Cyclip: Cyclic contrastive language-image pretraining. Advances in Neural Information Processing Systems , 35:6704–6719, 2022. Shizhan Gong, Yankai Jiang, Qi Dou, and Farzan Farnia. Kernel-based unsupervised embedding alignment for enhanced visual representation in vision-language models. arXiv preprint arXiv:2506.02557 , 2025. Michael Gutmann and Aapo Hyvärinen. Noise-contrastive estimation: A new estimation principle for unnormal-ized statistical models. In Proceedings of the thirteenth international conference on artificial intelligence and statistics , pp. 297–304. JMLR Workshop and Conference Proceedings, 2010. R. Hadsell, S. Chopra, and Y. LeCun. Dimensionality reduction by learning an invariant mapping. In 2006 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR’06) , volume 2, pp. 1735–1742, 2006. doi: 10.1109/CVPR.2006.100. Nathan Halko, Per-Gunnar Martinsson, and Joel A Tropp. Finding structure with randomness: Probabilistic algorithms for constructing approximate matrix decompositions. SIAM review , 53(2):217–288, 2011. Wenkai Han, Yuqi Cheng, Jiayang Chen, Huawen Zhong, Zhihang Hu, Siyuan Chen, Licheng Zong, Liang Hong, Ting-Fung Chan, Irwin King, et al. Self-supervised contrastive learning for integrative single cell rna-seq data analysis. Briefings in Bioinformatics , 23(5):bbac377, 2022. Jeff Z HaoChen and Tengyu Ma. A theoretical study of inductive biases in contrastive learning. arXiv preprint arXiv:2211.14699 , 2022. 
+
+11 Published as a conference paper at ICLR 2026 
+
+Jeff Z HaoChen, Colin Wei, Adrien Gaidon, and Tengyu Ma. Provable guarantees for self-supervised deep learning with spectral contrastive loss. Advances in neural information processing systems , 34:5000–5011, 2021. Jeff Z HaoChen, Colin Wei, Ananya Kumar, and Tengyu Ma. Beyond separability: Analyzing the linear transferability of contrastive representations to related subpopulations. Advances in neural information processing systems , 35:26889–26902, 2022. Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , pp. 770–778, 2016. Thomas Hofmann, Bernhard Schölkopf, and Alexander J Smola. Kernel methods in machine learning. 2008. Wei Huang, Andi Han, Yongqiang Chen, Yuan Cao, Zhiqiang Xu, and Taiji Suzuki. On the comparison between multi-modal and single-modal contrastive learning. Advances in Neural Information Processing Systems , 37: 81549–81605, 2024. Gautier Izacard, Mathilde Caron, Lucas Hosseini, Sebastian Riedel, Piotr Bojanowski, Armand Joulin, and Edouard Grave. Unsupervised dense information retrieval with contrastive learning. arXiv preprint arXiv:2112.09118 , 2021. Chao Jia, Yinfei Yang, Ye Xia, Yi-Ting Chen, Zarana Parekh, Hieu Pham, Quoc Le, Yun-Hsuan Sung, Zhen Li, and Tom Duerig. Scaling up visual and vision-language representation learning with noisy text supervision. In International conference on machine learning , pp. 4904–4916. PMLR, 2021. Li Jing, Pascal Vincent, Yann LeCun, and Yuandong Tian. Understanding dimensional collapse in contrastive self-supervised learning. arXiv preprint arXiv:2110.09348 , 2021. Mengyuan Jing, Yanmin Zhu, Tianzi Zang, and Ke Wang. Contrastive self-supervised learning in recommender systems: A survey. ACM Transactions on Information Systems , 42(2):1–39, 2023. Prannay Khosla, Piotr Teterwak, Chen Wang, Aaron Sarna, Yonglong Tian, Phillip Isola, Aaron Maschinot, Ce Liu, and Dilip Krishnan. Supervised contrastive learning. Advances in neural information processing systems , 33:18661–18673, 2020. Thomas Kipf, Elise Van der Pol, and Max Welling. Contrastive learning of structured world models. arXiv preprint arXiv:1911.12247 , 2019. Max Klabunde, Tobias Schumacher, Markus Strohmaier, and Florian Lemmerich. Similarity of neural network models: A survey of functional and representational measures. ACM Computing Surveys , 57(9):1–52, 2025. Simon Kornblith, Mohammad Norouzi, Honglak Lee, and Geoffrey Hinton. Similarity of neural network representations revisited. In International conference on machine learning , pp. 3519–3529. PMLR, 2019. Bin Lin, Yang Ye, Bin Zhu, Jiaxi Cui, Munan Ning, Peng Jin, and Li Yuan. Video-llava: Learning united visual representation by alignment before projection. arXiv preprint arXiv:2311.10122 , 2023. Norman Mu, Alexander Kirillov, David Wagner, and Saining Xie. Slip: Self-supervision meets language-image pre-training. In European conference on computer vision , pp. 529–544. Springer, 2022. Klaus-Robert Müller, Sebastian Mika, Koji Tsuda, and Koji Schölkopf. An introduction to kernel-based learning algorithms. In Handbook of neural network signal processing , pp. 4–1. CRC Press, 2018. Ryumei Nakada, Halil Ibrahim Gulluk, Zhun Deng, Wenlong Ji, James Zou, and Linjun Zhang. Understanding multimodal contrastive learning and incorporating unpaired data. In International Conference on Artificial Intelligence and Statistics , pp. 4348–4380. PMLR, 2023. Jiquan Ngiam, Aditya Khosla, Mingyu Kim, Juhan Nam, Honglak Lee, Andrew Y Ng, et al. Multimodal deep learning. In ICML , volume 11, pp. 689–696, 2011. Aaron van den Oord, Yazhe Li, and Oriol Vinyals. Representation learning with contrastive predictive coding. 
+
+arXiv preprint arXiv:1807.03748 , 2018. Advait Parulekar, Liam Collins, Karthikeyan Shanmugam, Aryan Mokhtari, and Sanjay Shakkottai. Infonce loss provably learns cluster-preserving representations. In Gergely Neu and Lorenzo Rosasco (eds.), Pro-ceedings of Thirty Sixth Conference on Learning Theory , volume 195 of Proceedings of Machine Learning Research , pp. 1914–1961. PMLR, 12–15 Jul 2023. URL https://proceedings.mlr.press/v195/ parulekar23a.html .
+
+12 Published as a conference paper at ICLR 2026 
+
+Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International conference on machine learning , pp. 8748–8763. PmLR, 2021. Nils Reimers and Iryna Gurevych. Sentence-bert: Sentence embeddings using siamese bert-networks. arXiv preprint arXiv:1908.10084 , 2019. Ana Sanchez-Fernandez, Elisabeth Rumetshofer, Sepp Hochreiter, and Günter Klambauer. Cloome: contrastive learning unlocks bioimaging databases for queries with chemical structures. Nature Communications , 14(1): 7339, 2023. Nikunj Saunshi, Orestis Plevrakis, Sanjeev Arora, Mikhail Khodak, and Hrishikesh Khandeparkar. A theoretical analysis of contrastive unsupervised representation learning. In International Conference on Machine Learning , pp. 5628–5637. PMLR, 2019. Florian Schroff, Dmitry Kalenichenko, and James Philbin. Facenet: A unified embedding for face recognition and clustering. In Proceedings of the IEEE conference on computer vision and pattern recognition , pp. 815–823, 2015. Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, et al. Laion-5b: An open large-scale dataset for training next generation image-text models. Advances in neural information processing systems , 35: 25278–25294, 2022. Liangliang Shi, Jack Fan, and Junchi Yan. Ot-clip: Understanding and generalizing clip via optimal transport. In 
+
+Forty-first International Conference on Machine Learning , 2024. Kihyuk Sohn. Improved deep metric learning with multi-class n-pair loss objective. Advances in neural information processing systems , 29, 2016. Nitish Srivastava and Russ R Salakhutdinov. Multimodal learning with deep boltzmann machines. Advances in neural information processing systems , 25, 2012. Dídac Surís, Sachit Menon, and Carl Vondrick. Vipergpt: Visual inference via python execution for reasoning. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 11888–11898, 2023. Aiham Taleb, Matthias Kirchler, Remo Monti, and Christoph Lippert. Contig: Self-supervised multimodal contrastive learning for medical imaging with genetics. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pp. 20908–20921, 2022. Yuandong Tian. Understanding deep contrastive learning via coordinate-wise optimization. Advances in Neural Information Processing Systems , 35:19511–19522, 2022. Yuandong Tian, Xinlei Chen, and Surya Ganguli. Understanding self-supervised learning dynamics without contrastive pairs. In International Conference on Machine Learning , pp. 10268–10278. PMLR, 2021. Christopher Tosh, Akshay Krishnamurthy, and Daniel Hsu. Contrastive learning, multi-view redundancy, and linear models. In Vitaly Feldman, Katrina Ligett, and Sivan Sabato (eds.), Proceedings of the 32nd International Conference on Algorithmic Learning Theory , volume 132 of Proceedings of Machine Learning Research , pp. 1179–1206. PMLR, 16–19 Mar 2021. URL https://proceedings.mlr.press/ v132/tosh21a.html .Feng Wang and Huaping Liu. Understanding the behaviour of contrastive loss. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pp. 2495–2504, 2021. Feng Wang, Xiang Xiang, Jian Cheng, and Alan Loddon Yuille. Normface: L2 hypersphere embedding for face verification. In Proceedings of the 25th ACM international conference on Multimedia , pp. 1041–1049, 2017. Tongzhou Wang and Phillip Isola. Understanding contrastive representation learning through alignment and uniformity on the hypersphere. In International conference on machine learning , pp. 9929–9939. PMLR, 2020. Yiping Wang, Yifang Chen, Wendan Yan, Alex Fang, Wenjing Zhou, Kevin G Jamieson, and Simon S Du. Cliploss and norm-based data selection methods for multimodal contrastive learning. Advances in Neural Information Processing Systems , 37:15028–15069, 2024. Zixin Wen and Yuanzhi Li. Toward understanding the feature learning process of self-supervised contrastive learning. In International Conference on Machine Learning , pp. 11112–11122. PMLR, 2021. 
+
+13 Published as a conference paper at ICLR 2026 
+
+Ho-Hsiang Wu, Prem Seetharaman, Kundan Kumar, and Juan Pablo Bello. Wav2clip: Learning robust audio representations from clip, 2022. URL https://arxiv.org/abs/2110.11499 .Xu Xie, Fei Sun, Zhaoyang Liu, Shiwen Wu, Jinyang Gao, Jiandong Zhang, Bolin Ding, and Bin Cui. Contrastive learning for sequential recommendation. In 2022 IEEE 38th international conference on data engineering (ICDE) , pp. 1259–1273. IEEE, 2022. Jie Xu, Shuo Chen, Yazhou Ren, Xiaoshuang Shi, Hengtao Shen, Gang Niu, and Xiaofeng Zhu. Self-weighted contrastive learning among multiple views for mitigating representation degeneration. Advances in neural information processing systems , 36:1119–1131, 2023. Haoran Yang, Xiangyu Zhao, Yicong Li, Hongxu Chen, and Guandong Xu. An empirical study towards prompt-tuning for graph contrastive pre-training in recommendations. Advances in neural information processing systems , 36:62853–62868, 2023. Yuning You, Tianlong Chen, Yongduo Sui, Ting Chen, Zhangyang Wang, and Yang Shen. Graph contrastive learning with augmentations. Advances in neural information processing systems , 33:5812–5823, 2020. Junliang Yu, Xin Xia, Tong Chen, Lizhen Cui, Nguyen Quoc Viet Hung, and Hongzhi Yin. Xsimgcl: Towards extremely simple graph contrastive learning for recommendation. IEEE Transactions on Knowledge and Data Engineering , 36(2):913–926, 2023. Xiaohua Zhai, Basil Mustafa, Alexander Kolesnikov, and Lucas Beyer. Sigmoid loss for language image pre-training. In Proceedings of the IEEE/CVF international conference on computer vision , pp. 11975–11986, 2023. 
+
+14 Published as a conference paper at ICLR 2026 
+
+LLM Usage We used a large language model (LLM) solely as a writing aid to polish wording, and improve grammar/clarity. All technical content (definitions, theorems, proofs, experiments, figures, and tables) was authored and verified by the paper’s authors. The complete code for all experiments will be made publicly available on GitHub https://github.com/suihangke/UniCon.git. 
+
+## CONTENTS 
+
+A Contrastive Loss 15 B Theoretical Proofs 17 
+
+B.1 Linear Representation Setting . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 B.2 Kernelized contrastive alignment . . . . . . . . . . . . . . . . . . . . . . . . . . . 22 
+
+C Implementation 25 
+
+C.1 Computation of S(γ) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25 C.2 Experiment details and Convergence visualizations . . . . . . . . . . . . . . . . . 27 C.3 Sensitivity Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30 C.4 Numerical stabilization for spectral updates in U NI CON . . . . . . . . . . . . . . . 31 C.5 Experiments with other modalities . . . . . . . . . . . . . . . . . . . . . . . . . . 32 C.6 Kernel . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32 C.7 Loss Variations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33 
+
+## A CONTRASTIVE LOSS 
+
+Under the assumption of one-to-one alignment, let Eθ1 : X → Rr and Eθ2 : Y → Rr denote two modality-specific encoders with trainable parameters θ1, θ 2. Given N paired samples {(xi, yi)}Ni=1 
+
+we form the similarity matrix S = [ sij ]. All contrastive objectives used in practice can be written in the bidirectional general form (Tian, 2022; Nakada et al., 2023) 
+
+L(θ1, θ 2) = 12N
+
+> N
+
+X
+
+> i=1
+
+h
+
+ϕ
+
+PNj=1 ϵij ψ sij −ν s ii 
+
+
+
++ϕ
+
+PNj=1 ϵij ψ sji −ν s ii 
+
+i 
+
++ R(θ1, θ 2), (23) with • ψ, ϕ : R → R increasing (shape of the loss), • ν : relative weight on the positive pair, • ϵij ∈ [0 , 1] : which pairs are used, • R : optional regulariser (e.g. weight decay). 
+
+Remark Because the embeddings are length-normalised, sij ∈ [−1, 1] and all geometry lives on the unit hypersphere. 
+
+By choosing specific forms for ψ and ϕ, we can recover familiar losses. For example, choosing 
+
+ϕ(x) = τ log( x), ψ(x) = exp( x/τ ) and including positive pairs in the normalization ( ϵij = 1 for positive pair (i, j )), recovers the CLIP(Radford et al., 2021) loss, and the InfoNCE(Oord et al., 2018) loss is the same instantiation appears as a simplified variant focusing only on one direction. And choosing ϕ(x) = x, ψ(x) = [ −x + ϵ]+ gives triplet loss(Schroff et al., 2015). Equation 2 thus unifies a wide spectrum of contrastive objectives via variant choices of (ϕ, ψ, ν, ϵ ), providing a common lens for analysing and extending multimodal representation learning. This formulation allows for distinct temperature scaling of positive and negative similarities. 15 Published as a conference paper at ICLR 2026 
+
+Derivation for CLIP (Radford et al., 2021) / InfoNCE (Oord et al., 2018) Loss. Set ψ(x) = 
+
+ex/τ , ϕ (x) = τ log x, ν = 1 , ϵ ij = 1 − δij in equation 23, and omit R. We define 
+
+δij =
+
+
+
+1, if i = j
+
+0, if i̸ = j
+
+(24) This gives the loss 
+
+L ≜ 12n
+
+X
+
+> i
+
+ϕ
+
+ X
+
+> j∈[n]
+
+ϵij ψ (sij − νs ii )
+
+ + 12n
+
+X
+
+> i
+
+ϕ
+
+ X
+
+> j∈[n]
+
+ϵij ψ (sji − νs ii )
+
+ + R (θ1, θ 2)
+
+(25) 
+
+= τ
+
+2n
+
+X
+
+> i
+
+log 
+
+ X
+
+> j∈[n]
+
+exp 
+
+ sij − sii 
+
+τ
+
+ + τ
+
+2n
+
+X
+
+> i
+
+log 
+
+ X
+
+> j∈[n]
+
+exp 
+
+ sji − sii 
+
+τ
+
+ (26) 
+
+= τ
+
+2n
+
+X
+
+> i
+
+log 
+
+P 
+
+> j∈[n]
+
+exp   sij 
+
+> τ
+
+
+
+exp   sii 
+
+> τ
+
+!
+
++ τ
+
+2n
+
+X
+
+> i
+
+log 
+
+P 
+
+> j∈[n]
+
+exp   sji 
+
+> τ
+
+
+
+exp   sii 
+
+> τ
+
+!
+
+(27) 
+
+= τ
+
+2n
+
+X
+
+> i
+
+"
+
+− log exp   sii 
+
+> τ
+
+P 
+
+> j∈[n]
+
+exp   sij 
+
+> τ
+
+!
+
+− log exp   sii 
+
+> τ
+
+P 
+
+> j∈[n]
+
+exp   sji 
+
+> τ
+
+!# 
+
+(28) 
+
+= LCLIP (29) For InfoNCE loss, we keep the first term (i.e. only one-directional loss), then 
+
+LInf oN CE = τn
+
+X
+
+> i
+
+"
+
+− log exp sii 
+
+P 
+
+> j
+
+exp sij 
+
+#
+
+Derivation for triplet loss (Schroff et al., 2015). With a margin ϵ > 0, choose ψ(x) = [ ϵ −
+
+x]+, ϕ (x) = x, ν = 1 , ϵ ij = 1 − δij ,
+
+L ≜ 12n
+
+X
+
+> i
+
+ϕ
+
+ X
+
+> j∈[n]
+
+ϵij ψ (sij − νs ii )
+
+ + 12n
+
+X
+
+> i
+
+ϕ
+
+ X
+
+> j∈[n]
+
+ϵij ψ (sji − νs ii )
+
+ + R (θ1, θ 2)
+
+(30) 
+
+= 12n
+
+> n
+
+X
+
+> i=1
+
+h nX 
+
+> j=1
+> j̸=i
+
+ϵ −  sij − sii 
+
+  
+
+> +
+
++ X j=1  
+
+> j̸=in
+
+ϵ −  sji − sii 
+
+ 
+
+> +
+
+i
+
+(31) We can also only keep one direction: 
+
+L = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+h nX 
+
+> j=1
+> j̸=i
+
+ϵ −  sij − sii 
+
+ 
+
+> +
+
+i
+
+= 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+h nX 
+
+> j=1
+> j̸=i
+
+max {0, s ii − sij + ϵ}
+
+i
+
+(32) where sij captures distance between negative pairs, and sii captures distance between positive pairs. Equation equation 23 thus provides a general form that captures various contrastive loss, making it possible to analyze them collectively and design new variants with principled control over positive / negative balance, temperature, and weighting. 
+
+Many-to-many aligment contrastive loss(Khosla et al., 2020) Note that the loss in Equation equa-tion 23 is defined with (xi, y i) being the positive pairs for all i. However, in many cases, a single xi
+
+may have multiple positive pairs. Khosla et al. (2020) extended contrastive learning to the supervised setting with the Supervised Contrastive (SupCon) loss, which is not restricted to one-to-one pairs. 16 Published as a conference paper at ICLR 2026 This loss encourages embeddings from the same class to be pulled together while pushing apart embeddings from different classes. Formally, given a minibatch of normalized embeddings zi with labels yi, the SupCon loss is defined as 
+
+Lsup out = X
+
+> i∈I
+
+Lsup out,i = X
+
+> i∈I
+
+−1
+
+|P (i)|
+
+X 
+
+> p∈P(i)
+
+log exp( zi · zp/τ )
+
+P 
+
+> a∈A(i)
+
+exp( zi · za/τ ) . (33) where P (i) ≡ { p ∈ A(i) : ˜ yp = ˜ yi} is the set of indices of all positives in the multiviewed batch distinct from i and |P (i)| is its cardinality. Therefore, we extend the general form of the contrastive loss in equation 23 to handle many-to-many alignment scenarios. We define the unified form as 
+
+L(θ1, θ 2) = 12n
+
+> n
+
+X
+
+> i=1
+
+1
+
+|P x(i)|
+
+X
+
+> k∈P x(i)
+
+ϕ( X
+
+> j / ∈P x(i)
+
+ϵij ψ(sij − νs ik ) + ϵik ψ(sik − νs ik )) + 12n
+
+> n
+
+X
+
+> i=1
+
+1
+
+|P y (i)|
+
+X 
+
+> k∈P y(i)
+
+ϕ( X 
+
+> j / ∈P y(i)
+
+ϵij ψ(sji − νs ki ) + ϵik ψ(ski − νs ki )) + R(θ1, θ 2)
+
+(34) where Px(i) and Py (j) denote the index sets of all samples in {yk}, {xk} paired with xi and yj ,respectively. The term |P x(i)| denotes the cardinality of Px(i), and R is an optional regularization term. We incorporate this loss function in the following sections. 
+
+## B THEORETICAL PROOFS 
+
+Definition 3 
+
+Contrastive Similarity Weight Matrix 
+
+## S(γ)
+
+Lemma 4 
+
+Gradient bridge 
+
+Prop. 7 
+
+(linear specialization) 
+
+Theorem 8 
+
+Spectral Characterization 
+
+Nakada et al. (2023) 
+
+Theorem 9 
+
+Kernelized Spectral characterization (unified form) 
+
+Cor. 10 
+
+Kernel inference (out-of-sample) 
+
+Theory Road-map  
+
+> Linear case Non-linear case
+
+Definition 3 (Contrastive similarity weight matrix) Consider the general contrastive loss L(θ1, θ 2)
+
+in Equation equation 34 with choice of (ϕ, ψ, ϵ, ν ), and a batch of samples {(xi, yi)}ni=1 . Denote 
+
+{ei}ni=1 as the elementary basis vectors of Rn. The contrastive similarity weight matrix is then defined as: 
+
+S(γ) = − 1
+
+n
+
+X
+
+> i,j
+
+12
+
+ γij 
+
+|P x(i)| + ¯γji 
+
+|P y (j)|
+
+
+
+eie⊤ 
+
+> j
+
+, (35) 
+
+with weight coefficients 
+
+γij =
+
+
+
+ϕ′ 
+
+> ij
+
+·
+
+
+
+ϵij (1 − ν)ψ′((1 − ν)sij ) − ν P 
+
+> m / ∈Px(i)
+
+ϵim ψ′(sim − νs ij )
+
+
+
+, if j ∈ Px(i)
+
+P 
+
+> k∈Px(i)
+
+ϕ′ 
+
+> ik
+
+· (ϵij ψ′(sij − νs ik )) , if j / ∈ Px(i)
+
+(36) 17 Published as a conference paper at ICLR 2026 
+
+¯γij =
+
+
+
+¯ϕ′
+
+ij ·
+
+
+
+ϵji (1 − ν)ψ′((1 − ν)sji ) − ν P
+
+m / ∈Py (i) ϵmi ψ′(smi − νs ji )
+
+
+
+, if j ∈ Py (i)
+
+P
+
+k∈Py (i) ¯ϕ′
+
+ik · (ϵji ψ′(sji − νs ki )) , if j / ∈ Py (i)
+
+(37) 
+
+where we define 
+
+ϕ′
+
+ij =ϕ′
+
+ϵij ψ((1 − ν)sij ) + X
+
+m / ∈Px(i)
+
+ϵim ψ(sim − νs ij )
+
+ , (38) 
+
+¯ϕ′
+
+ij =ϕ′
+
+ϵji ψ(1 − ν)sji + X
+
+m / ∈Py (i)
+
+ϵmi ψ(smi − νs ji )
+
+ (39) 
+
+Lemma 4 (Gradient Equivalence) Consider minimizing the general contrastive loss (see Equa-tion equation 2), the gradient of the contrastive loss with respect to encoder parameters satisfies: 
+
+∂L
+
+∂θ k
+
+= − ∂ tr  Fθ1 (X)S(γ)F⊤
+
+θ2 (Y)
+
+∂θ k γ=γ(θ1,θ 2)
+
++ ∂R (θ1, θ 2)
+
+∂θ k
+
+, k ∈ { 1, 2} (40) where 
+
+X = [ xi, · · · , xn] ∈ Rd1×n, Y = [ yi, · · · , yn] ∈ Rd2×n
+
+Fθ1 (X) = [ fθ1 (x1) fθ1 (x2) · · · fθ1 (xn)] ∈ Rr×n
+
+Fθ2 (Y) = [ fθ2 (y1) fθ2 (y2) · · · fθ2 (yn)] ∈ Rr×n.
+
+Proof. Let θk,ℓ be the ℓ-th component of θk . We have 
+
+∂θk,ℓ L =∂θk,ℓ 
+
+h 12n
+
+X
+
+> i
+
+1
+
+|Px(i)|
+
+X
+
+> k∈Px(i)
+
+ϕ
+
+ϵik ψ((1 − ν)sik ) + X
+
+> m / ∈Px(i)
+
+ϵim ψ (sim − νs ik )
+
+
+
++ 12n
+
+X
+
+> i
+
+1
+
+|Py (i)|
+
+X 
+
+> k∈Py(i)
+
+ϕ
+
+ϵki ψ((1 − ν)ski ) + X 
+
+> m / ∈Py(i)
+
+ϵmi ψ (smi − νs ki )
+
+ + R (θ1, θ 2)
+
+i
+
+(41) 
+
+= 12n
+
+> n
+
+X
+
+> i=1
+
+1
+
+|Px(i)|
+
+X
+
+> k∈Px(i)
+
+ϕ′
+
+ϵik ψ((1 − ν)sik ) + X
+
+> m / ∈Px(i)
+
+ϵim ψ (sim − νs ik )
+
+
+
+·
+
+h
+
+ϵik ψ′((1 − ν)sik )(1 − ν)∂θk,ℓ sik + X
+
+> m / ∈Px(i)
+
+ϵim ψ′ (sim − νs ik )  ∂θk,ℓ sim − ν∂ θk,ℓ sik 
+
+i
+
++ 12n
+
+> n
+
+X
+
+> i=1
+
+1
+
+|Py (i)|
+
+X 
+
+> k∈Py(i)
+
+ϕ′
+
+ϵki ψ((1 − ν)ski ) + X 
+
+> m / ∈Py(i)
+
+ϵmi ψ (smi − νs ki )
+
+
+
+·
+
+h
+
+ϵki ψ′((1 − ν)ski )(1 − ν)∂θk,ℓ ski + X 
+
+> m / ∈Py(i)
+
+ϵmi ψ′ (smi − νs ki )  ∂θk,ℓ smi − ν∂ θk,ℓ ski 
+
+i
+
++ ∂θk,ℓ R
+
+(42) 
+
+= 12n
+
+> n
+
+X
+
+> i=1
+
+1
+
+|Px(i)|
+
+ X
+
+> k∈Px(i)
+
+γik ∂θk,ℓ sik + X
+
+> m / ∈Px(i)
+
+γim ∂θk,ℓ sim 
+
+
+
++ 12n
+
+> n
+
+X
+
+> i=1
+
+1
+
+|Py (i)|
+
+ X 
+
+> k∈Py(i)
+
+¯γik ∂θk,ℓ ski + X 
+
+> m / ∈Py(i)
+
+¯γim ∂θk,ℓ smi 
+
+ + ∂θk,ℓ R (43) 
+
+= 12n
+
+> n
+
+X
+
+> i=1
+> n
+
+X
+
+> j=1
+
+ γij 
+
+|Px(i)| + ¯γji 
+
+|Py (j)|
+
+
+
+∂θk,ℓ sij (44) 
+
+18 Published as a conference paper at ICLR 2026 
+
+Define 
+
+γij =
+
+
+
+ϕ′ 
+
+> ij
+
+·
+
+
+
+ϵij (1 − ν)ψ′((1 − ν)sij ) − ν P 
+
+> m / ∈Px(i)
+
+ϵim ψ′(sim − νs ij )
+
+
+
+, if j ∈ Px(i)
+
+P 
+
+> k∈Px(i)
+
+ϕ′ 
+
+> ik
+
+· (ϵij ψ′(sij − νs ik )) , if j / ∈ Px(i)
+
+(45) 
+
+¯γij =
+
+
+
+¯ϕ′ 
+
+> ij
+
+·
+
+
+
+ϵji (1 − ν)ψ′((1 − ν)sji ) − ν P  
+
+> m / ∈Py(i)
+
+ϵmi ψ′(smi − νs ji )
+
+
+
+, if j ∈ Py (i)
+
+P  
+
+> k∈Py(i)
+
+¯ϕ′ 
+
+> ik
+
+· (ϵji ψ′(sji − νs ki )) , if j / ∈ Py (i)
+
+(46) where we define 
+
+ϕ′ 
+
+> ij
+
+=ϕ′
+
+ϵij ψ((1 − ν)sij ) + X
+
+> m / ∈Px(i)
+
+ϵim ψ(sim − νs ij )
+
+ , (47) 
+
+¯ϕ′ 
+
+> ij
+
+=ϕ′
+
+ϵji ψ(1 − ν)sji + X 
+
+> m / ∈Py(i)
+
+ϵmi ψ(smi − νs ji )
+
+ (48) To simplify the notation, we assume that the encoded representations fθ1 (xi) and fθ2 (yj ) are already ℓ2-normalized. Then the gradient follows that 
+
+∂θk,ℓ L = 12n
+
+> n
+
+X
+
+> i=1
+> n
+
+X
+
+> j=1
+
+ γij 
+
+|Px(i)| + ¯γji 
+
+|Py (j)|
+
+
+
+∂θk ,ℓ (f ⊤ 
+
+> θ1
+
+(xi)fθ2 (yj )) + ∂θk ,ℓ R (49) 
+
+=∂θk,ℓ 
+
+X
+
+> i,j
+
+−S(γ)ij (F⊤ 
+
+> θ1
+
+(X)Fθ2 (Y)) ij 
+
+!
+
++ ∂θk,ℓ R (50) where (F⊤ 
+
+> θ1
+
+(X )Fθ2 (Y)) ij = f ⊤ 
+
+> θ1
+
+(xi)fθ2 (yj ) denotes the similarity between sample xi and yj , and S(γ)ij 
+
+denotes the entry in the i-th row and j-th column of the matrix S(γ), which is defined in Equation equation 35. Note that 
+
+tr( A⊤B) = X
+
+> i=j
+
+X
+
+> k
+
+(A⊤)ik · Bkj = X
+
+> ik
+
+Aki Bki (51) Therefore we have 
+
+− ∂L
+
+∂θ k
+
+= ∂ tr( S(γ)⊤F⊤ 
+
+> θ1
+
+(X)Fθ2 (Y)) 
+
+∂θ k
+
+− ∂R (θ1, θ 2)
+
+∂θ k
+
+(52) 
+
+= ∂ tr( Fθ1 (X)S(γ)F⊤ 
+
+> θ2
+
+(Y)) 
+
+∂θ k
+
+− ∂R (θ1, θ 2)
+
+∂θ k
+
+(53) where S(γ) is defined as Equation equation 35. 
+
+B.1 LINEAR REPRESENTATION SETTING 
+
+In this setting, the hyper-spherical similarity between a pair (xi, yj ) is computed as the inner product of their ℓ2-normalized embeddings: 
+
+sij = ⟨F1xi, F 2yj ⟩Sr−1⊂Rr =
+
+ F1xi
+
+∥F1xi∥2
+
+, F2yj
+
+∥F2yj ∥2
+
+
+
+> Rr
+
+= x⊤ 
+
+> i
+
+F ⊤ 
+
+> 1
+
+F2yj
+
+∥F1xi∥2 ∥F2yj ∥2
+
+. (54) 
+
+Proposition 7 Under the linear setting, the Lemma 4 is specialized as 
+
+∂L
+
+∂F k
+
+= − ∂ tr  F1XS(γ)Y⊤F ⊤
+
+> 2
+
+
+
+∂F k β=β(F1,F 2)
+
++ ∂R (F1, F 2)
+
+∂F k
+
+, k ∈ { 1, 2} (55) 
+
+= − ∂ tr  F1C(γ)F ⊤
+
+> 2
+
+
+
+∂F k β=β(F1,F 2)
+
++ ∂R (F1, F 2)
+
+∂F k
+
+, k ∈ { 1, 2} (56) 19 Published as a conference paper at ICLR 2026 where C(γ) = XS(γ)Y⊤.To solve the optimization problem induced by our reformulated objective, we characterize its maxi-mizer in the linear setting. We arrive at the following theorem, which establishes that the convergence of the contrastive loss can be replaced by a closed-form update. 
+
+Theorem 8 (Spectral Characterization (Nakada et al., 2023)) Consider minimizing the contrastive loss function L (F1, F 2), with R(F1, F 2) = ρ 
+
+> 2
+
+|| F T 
+
+> 1
+
+F2|| 2 
+
+> F
+
+. Then, 
+
+arg min  
+
+> F1∈Rr×d1,F 2∈Rr×d2
+
+L (F1, F 2) (57) 
+
+= arg max  
+
+> F1∈Rr×d1,F 2∈Rr×d2
+
+tr  F1C(γ)F ⊤
+
+> 2
+
+ − (ρ/ 2) F ⊤ 
+
+> 1
+
+F2 
+
+> 2
+> F
+
+(58) 
+
+=
+
+(
+
+(F1, F 2) ∈ Rr×d1 × Rr×d2 : F ⊤ 
+
+> 1
+
+F2 = 1
+
+ρ
+
+> r
+
+X
+
+> i=1
+
+σiuiv⊤
+
+> i
+
+)
+
+(59) 
+
+where {σi, u i, v i}ri=1 are the top-r singular values and vectors of C(γ) according to the Eckart–Young–Mirsky theorem. Proof. Observe that 
+
+tr  F1C(γ)F ⊤
+
+> 2
+
+ − (ρ/ 2) F ⊤ 
+
+> 1
+
+F2 
+
+> 2
+> F
+
+(60) 
+
+= tr  F1C(γ)F ⊤
+
+> 2
+
+ − ρ
+
+2 tr  F ⊤ 
+
+> 2
+
+F1F ⊤ 
+
+> 1
+
+F2
+
+ (61) 
+
+= tr  F1C(γ)F ⊤
+
+> 2
+
+ − ρ
+
+2 tr  F ⊤ 
+
+> 2
+
+F1F ⊤ 
+
+> 1
+
+F2
+
+ − 12ρ tr  C(γ)⊤C(γ) + 12ρ tr  C(γ)⊤C(γ) (62) 
+
+= 12ρ tr  C(γ)T C(γ) − ρ
+
+2 tr 
+
+"
+
+F ⊤ 
+
+> 1
+
+F2 − 1
+
+ρ C(γ)
+
+⊤ 
+
+F ⊤ 
+
+> 1
+
+F2 − 1
+
+ρ C(γ)
+
+#
+
+(63) 
+
+= 12ρ ∥C(γ)∥2 
+
+> F
+
+− ρ
+
+2 F ⊤ 
+
+> 1
+
+F2 − 1
+
+ρ (C(γ)) 
+
+> 2
+> F
+
+(64) The first term is constant for fixed C(γ), and the second term is minimized at F ⊤ 
+
+> 1
+
+F2 = 1 
+
+> ρ
+
+C(γ). Since 
+
+F1 ∈ Rr×d1 , F 2 ∈ Rr×d2 , F ⊤ 
+
+> 1
+
+F2 has rank at most r. Thus, the minimization can be achieved at 
+
+F ⊤ 
+
+> 1
+
+F2 = Pri=1 σiuiv⊤ 
+
+> i
+
+by Eckart–Young–Mirsky theorem for low rank matrix approximation. Here 
+
+{σi, u i, v i} are the top-r singular values and vectors of S.In summary, in linear case, the global minimum is attained by projecting the contrastive covariance 
+
+C(γ) onto its top-r singular components. Thus, gradient descent on any loss in the contrastive family 
+
+(ϕ, ψ ) merely tracks the dominant singular subspace of C(γ). UniCon performs this update in closed form, replacing thousands of SGD steps with one spectral factorization. 
+
+Relationship with (Nakada et al., 2023) Furthermore, the formulation of (Nakada et al., 2023) can be seen as a special case of our contrastive similarity weight matrix S(γ), which arises under the specific assumptions of one-to-one alignment in a linear representation setting and with further restrictions on the functions ψ and ϕ. Similar to the paper (Nakada et al., 2023), we define 
+
+αij ≜ ϵij ϕ′
+
+ X
+
+> m∈[n]
+
+ϵim ψ (sim − νs ii )
+
+ ψ′ (sij − νs ii ) , (65) 
+
+¯αij ≜ ϵij ϕ′
+
+ X
+
+> m∈[n]
+
+ϵim ψ (smi − νs ii )
+
+ ψ′ (sji − νs ii ) (66) 20 Published as a conference paper at ICLR 2026 Then we can derive that when |Px(i)| = |Py (j)| = 1 , for positive pairs (xi, y j ) with i = j,
+
+(γii + ¯ γii ) = ϕ′
+
+ϵii ψ((1 − ν)sii ) + X
+
+> m̸=i
+
+ϵim ψ(sim − νs ii )
+
+
+
+×
+
+ϵii (1 − ν)ψ′((1 − ν)sii ) − ν X
+
+> m̸=i
+
+ϵim ψ′(sim − νs ii )
+
+
+
++ ϕ′
+
+ϵii ψ((1 − ν)sii ) + X
+
+> m̸=i
+
+ϵmi ψ(smi − νs ii )
+
+
+
+×
+
+ϵii (1 − ν)ψ′((1 − ν)sii ) − ν X
+
+> m̸=i
+
+ϵmi ψ′(smi − νs ii )
+
+ (67) 
+
+=ϕ′
+
+> n
+
+X
+
+> m=1
+
+ϵim ψ(sim − νs ii )
+
+!
+
+ϵii ψ′(sii − νs ii ) − ν
+
+> n
+
+X
+
+> m=1
+
+ϵim ψ′(sim − νs ii )
+
+!
+
++ ϕ′
+
+> n
+
+X
+
+> m=1
+
+ϵmi ψ(smi − νs ii )
+
+!
+
+ϵii ψ′(sii − νs ii ) − ν
+
+> n
+
+X
+
+> m=1
+
+ϵmi ψ′(smi − νs ii )
+
+!
+
+(68) 
+
+=αii + ¯ αii − ν
+
+> n
+
+X
+
+> m=1
+
+(αim + ¯ αim ) (69) For negative pairs (xi, y j ) with i̸ = j,
+
+γij + ¯ γji =ϕ′
+
+ϵii ψ(1 − ν)sii + X
+
+> m̸=i
+
+ϵim ψ(sim − νs ii )
+
+ (ϵij ψ′(sij − νs ii )) + ϕ′
+
+ϵjj ψ(1 − ν)sjj + X
+
+> m̸=j
+
+ϵmj ψ(smj − νs jj )
+
+ (ϵij ψ′(sij − νs jj )) (70) 
+
+=ϵij ϕ′
+
+> n
+
+X
+
+> m=1
+
+ϵim ψ(sim − νs ii )
+
+!
+
+ψ′(sij − νs ii )+ ϵij ϕ′
+
+> n
+
+X
+
+> m=1
+
+ϵmj ψ(smj − νs jj )
+
+!
+
+ψ′(sij − νs jj ) (71) 
+
+=αij + ¯ αji (72) Then we can define 
+
+βij = αij + ¯ αji 
+
+2 , βi = ν
+
+> n
+
+X
+
+> j=1
+
+αij + ¯ αij 
+
+2 − αii + ¯ αii 
+
+2 . (73) Thus we have 
+
+C(γ) = XS (γ)Y ⊤ = − 12n
+
+> n
+
+X
+
+> i=1
+> n
+
+X
+
+> j=1
+
+(γij + ¯ γji )xiy⊤ 
+
+> j
+
+= 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+βixiy⊤ 
+
+> i
+
+− 1
+
+n
+
+X
+
+> i̸=j
+
+βij xiy⊤ 
+
+> j
+
+(74) In Nakada et al. (2023), they define the contrastive cross-covariance S(β) as: 
+
+S(β) = 1
+
+CnnX
+
+> i=1
+
+βixiy⊤ 
+
+> i
+
+− 1
+
+Cn
+
+X
+
+> i̸=j
+
+βij xiy⊤ 
+
+> j
+
+, (75) 21 Published as a conference paper at ICLR 2026 
+
+βij = αij + ¯ αji 
+
+2 , βi = ν X
+
+> j∈[n]
+
+αij + ¯ αij 
+
+2 − 1. (76) Therefore, with Cn = n, our C(γ) is equivalent to S(β) in Nakada et al. (2023), where their βi
+
+corresponds to the special case of our definition with identity functions for ϕ and ψ.
+
+Understanding C(γ): Consider the trace objective function 
+
+tr  F1 C(γ) F ⊤
+
+> 2
+
+ = 1
+
+n
+
+> n
+
+X
+
+> i,j =1
+
+− γij + ¯ γji 
+
+2
+
+D
+
+F1(xi), F 2(yj )
+
+E
+
+. (77) Every similarity inside a batch is multiplied by a scalar − γij +¯ γji  
+
+> 2
+
+:• − γii +¯ γii  
+
+> 2
+
+on the diagonal strengthens the attractive force for the positive pair (xi, yi);• − γij +¯ γji  
+
+> 2
+
+(i̸ = j) on the off-diagonals weights the repulsive force for negative pairs. where: 
+
+− γij + ¯ γji 
+
+2 = − αij + ¯ αji 
+
+2 , − γii + ¯ γii 
+
+2 = ν
+
+> n
+
+X
+
+> j=1
+
+αij + ¯ αij 
+
+2 − αii + ¯ αii 
+
+2 . (78) • αij and ¯αij encode the bidirectional importance of the pair (i, j ).• ν adjusts the influence of positive pairs relative to negatives. The plus/minus pattern makes the “pull” vs. “push” behaviour of contrastive learning transparent. B.2 KERNELIZED CONTRASTIVE ALIGNMENT 
+
+RKHS parameterization. Let (HX , k X ) and (HY , k Y ) be RKHSs with kernels kX , k Y and canon-ical feature maps 
+
+ϕX : X → H X , ϕX (x) := kX (·, x), ϕY : Y → H Y , ϕY (y) := kY (·, y). (79) They satisfy the reproducing property: 
+
+∀f ∈ H X , ∀x ∈ X : f (x) = ⟨f, ϕ X (x)⟩HX ,
+
+∀g ∈ H Y , ∀y ∈ Y : g(y) = ⟨g, ϕ Y (y)⟩HY . (80) In particular, 
+
+⟨ϕX (xi), ϕ X (x)⟩HX = kX (xi, x), ⟨ϕY (yj ), ϕ Y (y)⟩HY = kY (yj , y). (81) By the representer theorem, for each output coordinate a = 1 , . . . , r ,
+
+f (a) 
+
+> θ1
+
+(·) = 
+
+> n
+
+X
+
+> i=1
+
+Aia kX (xi, ·), f (a) 
+
+> θ2
+
+(·) = 
+
+> n
+
+X
+
+> j=1
+
+Bja kY (yj , ·), (82) and we stack coefficients into matrices A, B ∈ Rn×r (column a stores the coefficients of coordinate 
+
+a). Define 
+
+κX (x) := kX (x1, x), . . . , k X (xn, x)⊤ ∈ Rn, κY (y) := kY (y1, y), . . . , k Y (yn, y)⊤ ∈ Rn.
+
+(83) Then the r-dimensional encoder outputs at a point are 
+
+fθ1 (x) :=  f (1)  
+
+> θ1
+
+(x), . . . , f (r) 
+
+> θ1
+
+(x)⊤ = A⊤κX (x) ∈ Rr , fθ2 (y) = B⊤κY (y) ∈ Rr . (84) 22 Published as a conference paper at ICLR 2026 • Theoretically, in infinite-dimensional RKHS, 
+
+f (a) 
+
+> θ1
+
+(x) = 
+
+D nX
+
+> i=1
+
+Aia kX (xi, ·), ϕ X (x)
+
+E
+
+> HX
+
+. (85) • Computationally, in finite n-dimensional representation, 
+
+f (a) 
+
+> θ1
+
+(x) = A⊤·a κX (x). (86) Let the Gram matrices be 
+
+KX = [ kX (xi, x j )] ni,j =1 ∈ Rn×n, KY = [ kY (yi, y j )] ni,j =1 ∈ Rn×n. (87) Stacking the n samples as columns, the r × n batch embeddings are 
+
+Fθ1 (X) = A⊤KX ∈ Rr×n, Fθ2 (Y ) = B⊤KY ∈ Rr×n. (88) 
+
+Inner products and induced norms. For any c, d ∈ Rn,
+
+D X 
+
+> i
+
+ci ϕX (xi), X
+
+> j
+
+dj ϕX (xj )
+
+E
+
+> HX
+
+= c⊤KX d, X
+
+> i
+
+ci ϕX (xi) 2
+
+> HX
+
+= c⊤KX c, (89) and similarly with KY .Therefore, the total RKHS norm of the r output coordinates is 
+
+> r
+
+X
+
+> a=1
+
+∥f (a) 
+
+> θ1
+
+∥2 
+
+> HX
+
+=
+
+> r
+
+X
+
+> a=1
+
+A⊤·aKX A·a = tr( A⊤KX A), (90) and analogously for B with KY .
+
+Similarity. For two samples (xi, yj ) the predicted similarity is 
+
+⟨fθ1 (xi), fθ2 (yj )⟩Rr = κX (xi)⊤AB ⊤κY (yj ), (91) which is exactly the (i, j ) entry of 
+
+Spred := Fθ1 (X)⊤Fθ2 (Y ) = KX A B ⊤KY ∈ Rn×n. (92) with entry [Spred ]ij = ⟨F θ1 (xi), Fθ2 (yj )⟩Rr .
+
+Definition 11 (Kernel cross–covariance regularizer) . Define 
+
+R×(A, B ) := tr  A⊤KX A B ⊤KY B = K1/2 
+
+> X
+
+AB ⊤K1/2 
+
+> Y
+> 2
+> F
+
+. (93) The second equality in equation 93 follows from the identity ∥A′⊤ B′∥2 
+
+> F
+
+= tr( A′⊤ A′B′⊤ B′) with 
+
+A′ = AK 1/2 
+
+> X
+
+and B′ = BK 1/2 
+
+> Y
+
+.In the linear case, fθ1 (X) = F1X. Let w(a)⊤ be the a-th row vector of F1, then f (a) 
+
+> θ1
+
+(x) = w(a)⊤x,thus rX
+
+> a=1
+
+f (a)
+
+> θ1
+> 2
+> HX
+
+=
+
+> r
+
+X
+
+> a=1
+
+⟨f (a) 
+
+> θ1
+
+, f (a) 
+
+> θ1
+
+⟩HX
+
+=
+
+> r
+
+X
+
+> a=1
+
+⟨w(a), w (a)⟩
+
+=
+
+> r
+
+X
+
+> a=1
+
+∥w(a)∥22
+
+= ∥F1∥2
+
+> F
+
+(94) 23 Published as a conference paper at ICLR 2026 
+
+Proposition 12 (Linear-kernel reduction) . Suppose kX (x, x ′) = ⟨x, x ′⟩ and kY (y, y ′) = ⟨y, y ′⟩,and let the sample matrices be X = [ x1, . . . , x n] ∈ Rd1×n, Y = [ y1, . . . , y n] ∈ Rd2×n. Then 
+
+KX = X⊤X and KY = Y ⊤Y , and with 
+
+F1 := A⊤X⊤ ∈ Rr×d1 , F2 := B⊤Y ⊤ ∈ Rr×d2 , (95) 
+
+we have 
+
+R×(A, B ) = tr  A⊤KX A B ⊤KY B = tr( F1F ⊤ 
+
+> 1
+
+F2F ⊤ 
+
+> 2
+
+) = ∥F ⊤ 
+
+> 1
+
+F2∥2 
+
+> F
+
+. (96) 
+
+Proof. With KX = X⊤X and KY = Y ⊤Y we compute 
+
+F1F ⊤ 
+
+> 1
+
+= ( A⊤X⊤)( XA ) = A⊤(X⊤X)A = A⊤KX A, F2F ⊤ 
+
+> 2
+
+= ( B⊤Y ⊤)( Y B ) = B⊤(Y ⊤Y )B = B⊤KY B. 
+
+Therefore, 
+
+tr( F1F ⊤ 
+
+> 1
+
+F2F ⊤ 
+
+> 2
+
+) = tr  A⊤KX A B ⊤KY B = R×(A, B ).
+
+Theorem 13 (Kernelized spetral charaterization (unified form)) . Let ρ > 0 and define the regularizer 
+
+R(A, B ) = (K1/2 
+
+> X
+
+A)⊤(K1/2 
+
+> Y
+
+B) 2 
+
+> F
+
+. Then minimizing the contrastive loss is equivalent to the kernelized maximization 
+
+max 
+
+> A,B ∈Rn×r
+
+tr  A⊤KX S(γ) KY B − ρ
+
+2 (K1/2 
+
+> X
+
+A)⊤(K1/2 
+
+> Y
+
+B) 2 
+
+> F
+
+. (97) 
+
+Let 
+
+A′ := A⊤K1/2 
+
+> X
+
+∈ Rr×n, B′ := B⊤K1/2 
+
+> Y
+
+∈ Rr×n, M := K1/2 
+
+> X
+
+S(γ) K1/2 
+
+> Y
+
+∈ Rn×n. (98) 
+
+Then equation 97 rewrites 
+
+max  
+
+> A′,B ′
+
+tr( A′M B ′⊤ ) − ρ
+
+2 ∥A′⊤ B′∥2 
+
+> F
+
+. (99) 
+
+If M = U ΣV ⊤ is an SVD and Mr = Pri=1 σiuiv⊤ 
+
+> i
+
+its best rank-r approximation by Eckart–Young–Mirsky theorem, then all maximizers satisfy the relation 
+
+(A′)⊤B′ = 1
+
+ρ Mr ⇐⇒ A B ⊤ = 1
+
+ρ K−1/2 
+
+> X
+
+Mr K−1/2 
+
+> Y
+
+. (100) 
+
+(If KX or KY is singular, replace inverse square roots by Moore–Penrose pseudo–inverse square roots.) Proof. Insert K1/2 
+
+> X
+
+K1/2 
+
+> X
+
+= KX and K1/2 
+
+> Y
+
+K1/2 
+
+> Y
+
+= KY into the trace term and set A′ = A⊤K1/2 
+
+> X
+
+,
+
+B′ = B⊤K1/2 
+
+> Y
+
+, M = K1/2 
+
+> X
+
+S(γ)K1/2 
+
+> Y
+
+, to obtain 
+
+tr  A⊤KX S(γ)KY B − (ρ/ 2) (K1/2 
+
+> X
+
+A)⊤(K1/2 
+
+> Y
+
+B) 2 
+
+> F
+
+(101) 
+
+= tr 
+
+
+
+A⊤K 12 
+
+> X
+
+K 12 
+
+> X
+
+S(γ)K 12 
+
+> Y
+
+K 12 
+
+> Y
+
+B
+
+
+
+− (ρ/ 2) (A⊤K1/2 
+
+> X
+
+)⊤(B⊤K1/2 
+
+> Y
+
+) 2 
+
+> F
+
+(102) 
+
+= tr  A′M B ′⊤  − (ρ/ 2) A′⊤ B′ 2 
+
+> F
+
+(103) Now same as steps in proof of Theorem8, complete the square in A′⊤ B′ to see that the maximizer aligns the column spaces of A′, B ′ with the top singular vectors of M , yielding A′⊤ B′ = ρ−1Mr .Undo the change of variables to get equation 19. By Theorem 8, the optimal solution satisfies 
+
+
+
+(A, B ) : A′⊤ B′ = 1
+
+ρ Mr (γ)
+
+
+
+(104) 
+
+
+
+(A, B ) : ( A⊤K 12 
+
+> X
+
+)⊤(B⊤K 12 
+
+> Y
+
+) = 1
+
+ρ K 12 
+
+> X
+
+S(γ)K 12
+
+> Y
+
+
+
+(105) 
+
+
+
+(A, B ) : K 12 
+
+> X
+
+AB ⊤K 12 
+
+> Y
+
+= 1
+
+ρ K 12 
+
+> X
+
+S(γ)K 12
+
+> Y
+
+
+
+(106) 
+
+
+
+(A, B ) : AB ⊤ = 1
+
+ρ K− 12 
+
+> X
+
+K 12 
+
+> X
+
+S(γ)K 12 
+
+> Y
+
+K− 12
+
+> Y
+
+
+
+(107) If KX or KY is singular, use Moore–Penrose pseudoinverses K+1 /2 
+
+> X
+
+, K+1 /2 
+
+> Y
+
+.24 Published as a conference paper at ICLR 2026 One explicit optimal choice is A⋆ = K−1/2 
+
+> X
+
+Ur and B⋆ = K−1/2 
+
+> Y
+
+Vr Σr /ρ, where Ur = [ u1, . . . , u r ],
+
+Vr = [ v1, . . . , v r ], Σr = diag( σ1, . . . , σ r ) are SVD of M .
+
+Corollary 14 (Kernel inference (out-of-sample)) . Let D = {(xi, yi)}ni=1 be the reference batch used to build contrastive similarity S(γ) and let k be an positive-definite kernel. For a new pair (x∗, y ∗),set κX (x∗) = [ kX (x1, x ∗), . . . , k X (xn, x ∗)] ⊤ and κY (y∗) = [ kY (y1, y ∗), . . . , k Y (yn, y ∗)] ⊤. With an optimal (A⋆, B ⋆) from Theorem 9, 
+
+fθ1 (x∗) = ( A⋆)⊤κX (x∗), fθ2 (y∗) = ( B⋆)⊤κY (y∗), (108) 
+
+and the similarity 
+
+s(x∗, y∗) = κX (x∗)⊤A⋆B⋆⊤κY (y∗)
+
+∥A⋆⊤κX (x∗)∥2∥B⋆⊤κY (y∗)∥2
+
+(109) 
+
+## C IMPLEMENTATION 
+
+The complete code for all experiments will be made publicly available on GitHub https://github.com/suihangke/UniCon.git. C.1 COMPUTATION OF S(γ)
+
+In this section, we provide the PyTorch implementation of the contrastive similarity weight matrix 
+
+S(γ) computation used in UniCon. The function below computes the matrix S(γ) in one-to-one paired settings, and a generalized many-to-many settings, where similarity values sij are used to form the weighting terms γij . We have also provided a complete pseudocode outlining the training pipeline of UniCon in Algorithm 1 2, which offers a step-by-step description of our method’s implementation to facilitate reproducibility and deeper understanding. 
+
+Algorithm Discussion. In UniCon, our efficiency claim refers to the rapid stabilization of the mapping ( (A, B )) parameters toward the desired alignment subspace through derived-form spectral updates, which bypass many small gradient steps. Specifically, we reformulate the minimization of the contrastive loss as an equivalent maximization problem, using the proposed contrastive similarity matrix S(γ). We will state in the unified nonlinear form, as the notations can be reduced to linear case as analysis in Section 3.3. The general objective is max tr (AT KX S(γ)KY B) − 
+
+> ρ
+> 2
+
+|| (K1/2 
+
+> X
+
+A)T (K1/2 
+
+> Y
+
+B)|| 2 
+
+> F
+
+. The optimal solutions satisfy AB T = 1 
+
+> ρ
+
+K−1/2 
+
+> X
+
+[K1/2 
+
+> X
+
+S(γ)K1/2 
+
+> Y
+
+]r K−1/2
+
+> Y
+
+where [·]r denotes the best rank-r approximation. Note that S(γ) is itself a function of (A, B ).Therefore, the overall optimization becomes a fixed-point problem. We solve it via an iterative procedure, such as, 
+
+A(t+1) , B (t+1) ← 1 
+
+> ρ
+
+K−1/2 
+
+> X
+
+[K1/2 
+
+> X
+
+S(γ; A(t), B (t))K1/2 
+
+> Y
+
+]r K−1/2 
+
+> Y
+
+.
+
+In this process, we observe rapid convergence of (A, B ) to a stable solution. This rapid stabilization, subspace convergence, is what we refer to as efficiency.  
+
+> 1
+
+def compute_S_gamma(  
+
+> 2
+
+s, data1_batch, data2_batch,  
+
+> 3
+
+tau=1.0, nu=0.1,  
+
+> 4
+
+psi=torch.exp, phi=torch.log1p,  
+
+> 5
+
+epsilon_ij=1, epsilon_ii=1,  
+
+> 6
+
+diff_psi=torch.exp,  
+
+> 7
+
+diff_phi= lambda x, eps=1e-8: 1.0 / (1.0 + x + eps)  
+
+> 8
+
+):  
+
+> 9
+
+n = data1_batch.size(0)  
+
+> 10 11
+
+# Build epsilon mask for weighting  
+
+> 12
+
+epsilon = epsilon_ii * torch.eye(n, device=s.device)  
+
+> 13
+
+epsilon += epsilon_ij * (1 - torch.eye(n, device=s.device))  
+
+> 14 15
+
+# Row-wise similarity terms: s_ij - nu * s_ii  
+
+> 16
+
+s_diag_row = torch.diag(s).unsqueeze(1).expand(-1, n)  
+
+> 17
+
+s_nu_row = s - nu * s_diag_row 
+
+25 Published as a conference paper at ICLR 2026  
+
+> 18
+
+psi_terms = psi(s_nu_row)  
+
+> 19
+
+sum_psi_terms = torch. sum (epsilon * psi_terms, dim=1, keepdim=True)  
+
+> 20
+
+diff_phi_terms = diff_phi(sum_psi_terms)  
+
+> 21
+
+diff_psi_terms = diff_psi(s_nu_row)  
+
+> 22
+
+alpha = epsilon * diff_phi_terms * diff_psi_terms  
+
+> 23 24
+
+# Column-wise similarity terms: s_ji - nu * s_ii  
+
+> 25
+
+s_diag_col = torch.diag(s).expand(n, n)  
+
+> 26
+
+s_nu_col = s - nu * s_diag_col  
+
+> 27
+
+psi_terms_bar = psi(s_nu_col)  
+
+> 28
+
+sum_psi_terms_bar = torch. sum (epsilon * psi_terms_bar.T, dim=1, keepdim=True)  
+
+> 29
+
+diff_phi_terms_bar = diff_phi(sum_psi_terms_bar)  
+
+> 30
+
+diff_psi_terms_bar = diff_psi(s_nu_col.T)  
+
+> 31
+
+alpha_bar = epsilon * diff_phi_terms_bar * diff_psi_terms_bar  
+
+> 32 33
+
+# Compute S_gamma weights  
+
+> 34
+
+S_ij = (alpha + alpha_bar.t()) / 2 
+
+> 35
+
+S_i = nu * torch. sum ((alpha + alpha_bar) / 2, dim=1) - torch.diag( alpha + alpha_bar) / 2 
+
+> 36 37 38
+
+S_gamma = -S_ij / n 
+
+> 39
+
+S_gamma[ range (n), range (n)] = S_i / n 
+
+> 40 41
+
+return S_gamma 
+
+Listing 1: Contrastive Smilarity Weight Matrix Computation (one-to-one case)  
+
+> 1
+
+def compute_S_gamma_generalized(s, pos_mask, normalized_data1_batch, normalized_data2_batch, nu=1.5, tau=1.0,psi=torch.exp, phi=torch. log1p, epsilon_ij=1, epsilon_ii=1, diff_psi=torch.exp, diff_phi= 
+
+lambda x, eps=1e-8: 1.0 / (1.0 + x + eps)):  
+
+> 2
+
+n = s.shape[0]  
+
+> 3
+
+device = s.device  
+
+> 45
+
+# Create epsilon matrix  
+
+> 6
+
+epsilon = torch.ones(n, n, device=device) * epsilon_ij  
+
+> 7
+
+epsilon.fill_diagonal_(epsilon_ii)  
+
+> 89
+
+# Create masks  
+
+> 10
+
+neg_mask_base = ~pos_mask  
+
+> 11 12
+
+# Expand tensors for broadcasting: (n, n, n) where dim 0 is i, dim 1is j, dim 2 is m 
+
+> 13
+
+s_i_m = s.unsqueeze(1).expand(n, n, n) # s[i,m]  
+
+> 14
+
+s_i_j = s.unsqueeze(2).expand(n, n, n) # s[i,j]  
+
+> 15
+
+epsilon_i_m = epsilon.unsqueeze(1).expand(n, n, n) # epsilon[i,m]  
+
+> 16
+
+mask_not_i = neg_mask_base.unsqueeze(1).expand(n, n, n) # mask for mnot in [i]  
+
+> 17
+
+# Compute psi terms: epsilon[i,m] * psi(s[i,m] - nu * s[i,j])  
+
+> 18
+
+psi_terms = epsilon_i_m * psi(s_i_m - nu * s_i_j) * mask_not_i  
+
+> 19
+
+sum_psi = psi_terms. sum (dim=2) # (n, n), sum over m 
+
+> 20
+
+# Compute diff_psi terms  
+
+> 21
+
+diff_psi_terms = epsilon_i_m * diff_psi(s_i_m - nu * s_i_j) *mask_not_i  
+
+> 22
+
+sum_diff_psi = diff_psi_terms. sum (dim=2) # (n, n)  
+
+> 23
+
+# Phi arguments  
+
+> 24
+
+phi_args = epsilon * psi((1 - nu) * s) + sum_psi # (n, n)  
+
+> 25
+
+# Gamma for positive samples  
+
+> 26
+
+gamma_pos = diff_phi(phi_args) * ( 
+
+> 27
+
+epsilon * diff_psi((1 - nu) * s) * (1 - nu) - nu * sum_diff_psi  
+
+> 28
+
+) 
+
+> 29 30
+
+diff_phi_i_k = diff_phi(phi_args).unsqueeze(1).expand(n, n, n) 
+
+26 Published as a conference paper at ICLR 2026  
+
+> 31
+
+gamma_neg_k = diff_phi_i_k * (epsilon * diff_psi(s_i_j - nu * s_i_m))  
+
+> 32
+
+pos_mask_k = pos_mask.unsqueeze(1).expand(n, n, n)  
+
+> 33
+
+gamma_neg = (gamma_neg_k * pos_mask_k). sum (dim=2)  
+
+> 34 35
+
+# For gamma_bar positive samples  
+
+> 36
+
+s_m_i = s.T.unsqueeze(1).expand(n, n, n) # s[m,i]  
+
+> 37
+
+s_j_i = s.T.unsqueeze(2).expand(n, n, n) # s[j,i]  
+
+> 38
+
+epsilon_m_i = epsilon.T.unsqueeze(1).expand(n, n, n) # epsilon[m,i]  
+
+> 39
+
+# Compute psi terms for gamma_bar  
+
+> 40
+
+psi_terms_bar = epsilon_m_i * psi(s_m_i - nu * s_j_i) * mask_not_i  
+
+> 41
+
+sum_psi_bar = psi_terms_bar. sum (dim=2) # (n, n), sum over m 
+
+> 42
+
+# Compute diff_psi terms for gamma_bar (no epsilon in second sum)  
+
+> 43
+
+diff_psi_terms_bar = diff_psi(s_m_i - nu * s_j_i) * mask_not_i  
+
+> 44
+
+sum_diff_psi_bar = diff_psi_terms_bar. sum (dim=2) # (n, n)  
+
+> 45
+
+# Phi arguments for gamma_bar  
+
+> 46
+
+phi_args_bar = epsilon.T * psi((1 - nu) * s.T) + sum_psi_bar # (n, n) 
+
+> 47
+
+# gamma_bar for positive samples  
+
+> 48
+
+gamma_bar_pos = diff_phi(phi_args_bar) * ( 
+
+> 49
+
+epsilon.T * diff_psi((1 - nu) * s.T) * (1 - nu) - nu *sum_diff_psi_bar  
+
+> 50
+
+) 
+
+> 51 52
+
+diff_phi_i_k = diff_phi(phi_args_bar).unsqueeze(1).expand(n, n, n)  
+
+> 53
+
+gamma_bar_neg_k = diff_phi_i_k * (epsilon.T * diff_psi(s_j_i - nu *s_m_i))  
+
+> 54
+
+pos_mask_k = pos_mask.unsqueeze(1).expand(n, n, n)  
+
+> 55
+
+gamma_bar_neg = (gamma_bar_neg_k * pos_mask_k). sum (dim=2)  
+
+> 56 57
+
+# ========== Combine positive and negative samples ==========  
+
+> 58
+
+gamma = torch.where(pos_mask, gamma_pos, gamma_neg)  
+
+> 59
+
+gamma_bar = torch.where(pos_mask, gamma_bar_pos, gamma_bar_neg)  
+
+> 60 61
+
+pos_mask_row_sum = pos_mask. sum (dim=1)  
+
+> 62
+
+pos_mask_col_sum = pos_mask. sum (dim=0)  
+
+> 63
+
+pos_mask_row_sum_expanded = pos_mask_row_sum.unsqueeze(1).expand(n, n) 
+
+> 64
+
+pos_mask_col_sum_expanded = pos_mask_col_sum.unsqueeze(0).expand(n, n) 
+
+> 65 66
+
+S_gamma = -(gamma / pos_mask_row_sum_expanded + gamma_bar.T /pos_mask_col_sum_expanded) / 2 
+
+> 67 68
+
+C_n = n # Normalization constant  
+
+> 69
+
+S_gamma = S_gamma / C_n  
+
+> 70 71
+
+return S_gamma 
+
+Listing 2: Contrastive Similarity Weight Matrix Computation (generalized, support many-to-many matching) C.2 EXPERIMENT DETAILS AND CONVERGENCE VISUALIZATIONS 
+
+We present additional plots to illustrate the convergence behavior of the SGD-CLIP baseline across three experimental settings: synthetic latent factor models, unimodal image clustering, and multimodal image–text retrieval. These visualizations confirm that our reported SGD-CLIP performance is after sufficient training, providing a fair comparison against our proposed Unicon method. While SGD-CLIP ultimately achieves high accuracy, it requires many iterations to converge—underscoring the computational inefficiency of iterative optimization when compared to the efficient closed form update of Unicon. 27 Published as a conference paper at ICLR 2026 
+
+Algorithm 1 Training Pipeline for Linear Case 
+
+Require: Initial F 01 , F 02 , dataset {(Xi, Y i)}Ni=1 
+
+Ensure: Trained F1 and F2
+
+1: Initialize F1 ← F 01 , F2 ← F 02
+
+2: while Not Converge do 
+
+3: (F ⊤ 
+
+> 1
+
+F2)_sum ← 0 {accumulator for batch-wise F ⊤ 
+
+> 1
+
+F2}
+
+4: for each batch (Xi, Y i) do 
+
+5: similarity ← (F1Xi)⊤(F2Yi)
+
+6: S(γ) ← compute_S_gamma (similarity , X i, Y i)
+
+7: (F ⊤ 
+
+> 1
+
+F2)i ← 1 
+
+> ρ
+
+XiS(γ)Y ⊤
+
+> i
+
+8: weight i ← validation (( F ⊤ 
+
+> 1
+
+F2)i)
+
+9: (F ⊤ 
+
+> 1
+
+F2)_sum ← (F ⊤ 
+
+> 1
+
+F2)_sum + ( F ⊤ 
+
+> 1
+
+F2)⊤ 
+
+> i
+
+· weight i
+
+10: end for 
+
+11: Update F1, F 2 based on aggregated (F ⊤ 
+
+> 1
+
+F2)_sum 
+
+12: decompose F1 and F2
+
+13: end while Algorithm 2 Training Pipeline for Nonlinear Case 
+
+Require: Initial A0, B 0, dataset {(Xi, Y i)}Ni=1 
+
+Ensure: Trained A and B
+
+1: Initialize A ← A0, B ← B0
+
+2: while not converged do 
+
+3: AB _sum ← 0 {accumulator for batch-wise AB ⊤}
+
+4: for each batch (Xi, Y i) do 
+
+5: KXi , K Yi ← kernel matrices of Xi, Y i
+
+6: similarity ← (A⊤KXi )⊤(B⊤KYi )
+
+7: S(γ) ← compute_S_gamma (similarity , X i, Y i)
+
+8: (AB ⊤)i ← 1 
+
+> ρ
+
+K−1/2
+
+> Xi
+
+h
+
+K1/2 
+
+> Xi
+
+S(γ; A(t), B (t))K1/2
+
+> Yi
+
+i
+
+> r
+
+K−1/2
+
+> Yi
+
+9: weight i ← validation (( AB ⊤)i)
+
+10: AB _sum ← AB _sum + ( AB ⊤)i · weight i
+
+11: end for 
+
+12: Update A, B based on aggregated AB _sum 
+
+13: decompose A and B
+
+14: end while 
+
+28 Published as a conference paper at ICLR 2026 
+
+Synthetic Setting: Linear Latent-Factor Model. We generate synthetic data from latent vectors 
+
+z ∈ Rr that are sampled around K = 3 cluster centers in latent space. The observed pairs (x, y) are linearly projected from z using orthogonal matrices, followed by additive Gaussian noise: 
+
+x = U1z + ξ1, y = U2z + ξ2. (110) Here, U1 ∈ Rd1×r and U2 ∈ Rd2×r are orthogonal projections sampled from the Haar measure on 
+
+Od1 and Od2 respectively, with d1 = 40 , d 2 = 30 , r = 10 . Noise vectors ξ1, ξ 2 are sampled from 
+
+N (0 , SN R 2), with SN R = 0 .3. Each of the N = 600 training samples is drawn from one of K = 3 
+
+clusters in latent space. Figure C1 shows the accuracy score of SGD-CLIP method converges across training epochs. 
+
+Synthetic Setting: Nonlinear Latent-Factor Model. We further evaluate the method under a nonlinear transformation of the latent space: 
+
+x = tanh( U1z + ξ1), y = tanh( U2z + ξ2), (111) where U1, U 2 are again uniformly sampled from orthogonal groups Od1 and Od2 , taking the first r
+
+columns. The additive Gaussian noise is drawn from N (0 , SNR 2) with SNR = 0 .3. 
+
+> (a) Linear latent factor model (b) Nonlinear latent factor model
+
+Figure C1: Convergence of SGD-CLIP. Training accuracy over epochs for linear and nonlinear synthetic settings. 
+
+Unimodal Classification (CIFAR-10). Figure C2 reports the training loss of SGD-CLIP in the CIFAR-10 image clustering task. 
+
+Figure C2: Training loss of SGD-CLIP on CIFAR-10. Unimodal image clustering task with frozen ResNet-18 features. 
+
+Multimodal Retrieval. On Flickr30K, we shuffle the dataset into to 25426 (80%), 3178 (10%), and 3179(10%), for train/validation/test. Every image x and text y is embedded once with a) ResNet-18 
+
+(He et al., 2016) for images + Sentence-BERT (all-mpnet-base-v2 ) (Reimers & Gurevych, 2019); b) ResNet -50 + Sentence - BERT; c) the CLIP ViT - B/32 model for visual-textual feature extraction as frozen backbone. Matching is performed in a shared embedding space of dimension 
+
+r = 128 with τ = 1 . SGD-CLIP runs for 50 epochs, and run - time is measured wall - clock. Figure C3 shows loss curves for SGD-CLIP trained on Flickr30K across three backbones: ResNet-18, ResNet-50, and CLIP ViT-B/32. Despite faster convergence with stronger backbones, all variants require many epochs to reach stable loss values, whereas UniCon completes alignment more efficiently. 29 Published as a conference paper at ICLR 2026   
+
+> (a) ResNet-18 + SBERT (b) ResNet-50 + SBERT (c) CLIP ViT-B/32
+
+Figure C3: Training loss of SGD-CLIP on Flickr30K. Loss curves for three backbone architectures in multimodal alignment. On MSCOCO , we follow the standard retrieval protocol on MSCOCO. The training set contains 
+
+82,783 images, each paired with 5 human captions. We validate on 40,504 image–text pairs and report test results on 5,000 held-out pairs. We report Recall@1 and Recall@10 for both directions. To further ensure sufficiency of training, we re-evaluated validation accuracies on MSCOCO with backbone Resnet 50 + SBERT in FigureC4: it even begin to decline after the peak, suggesting potential overfitting with additional training. Specifically, on MSCOCO, we trained SGD for 1000 epochs and observed that the best validation performance is already reached around epoch 300. Beyond this point, the model does not improve further. For comparison, we extended UniCon to 20 iterations across all batches. We observed that model norms stabilize after just 2 iterations, with only minimal fluctuations thereafter. Table 3: Image-text retrieval on MSCOCO . We report Recall@1 and Recall@10 for both image →text and text →image directions. UniCon achieves superior accuracy to SGD–CLIP with 
+
+∼96–461 × faster training.                                         
+
+> Backbone Method Train time Image →Text Text →Image Average R@1 R@10 R@1 R@10 R@1 R@10 RN-50 + SBERT SGD–CLIP 5121.72 s .053 .253 .060 .286 .057 .270
+> UniCon 11.11 s .105 .388 .129 .439 .117 .414
+> CLIP ViT-B/32 SGD–CLIP 1066.60 s .128 .415 .123 .427 .126 .421
+> UniCon 11.15 s .329 .685 .292 .644 .311 .665
+
+Table 4: Zero-shot image–text retrieval on F LICKR 30 K (trained on MSCOCO, no fine-tuning). We report Recall@5 and Recall@10 for both directions; higher is better.                    
+
+> Backbone R@5 R@10 I→TT→IAvg I→TT→IAvg RN-50 + SBERT .171 .249 .210 .261 .353 .307
+> CLIP ViT-B/32 .808 .766 .787 .879 .848 .863
+
+C.3 SENSITIVITY ANALYSIS 
+
+Robustness to batch size. We discuss that the batch size n does not significantly affect the total model performance. We extensively evaluated the effect of batch sizes on all the experiment settings, showing robustness of UniCon to batch size variations. For multimodal alignment, we experimented retrieval task using Flickr30k and MSCOCO varying the batch size across [100, 500, 1000, 10000, 20000]. For unimodal alignment, we experimented clustering using CIFAR-10 with batch size [200,300,400]. We observed that performance metrics remained nearly identical across 30 Published as a conference paper at ICLR 2026  
+
+> (a) Loss (b) Validation Accuracy
+
+Figure C4: Training loss and validation accuracy of SGD-CLIP on MSCOCO trained for 1000 epochs to check convergence. these ranges. Importantly, the retrieval performance was robust to batch size variations, which implies data efficiency. 
+
+Batch aggregation strategy To reduce memory and computation overhead, we adopt a batch-wise training strategy. We evaluate several strategies to aggregate multiple batch-level models into a global predictor, including: • Accuracy-weighted fusion: Normalize validation accuracies ai to weights wi = aiP  
+
+> iai
+
+and linearly combine predictions. • Softmax-accuracy weighted fusion: Apply a softmax over {ai} to smooth weights. • Majority voting: Select the most frequent prediction across batch models. From our experiments on both unimodal and multimodal settings, we observe that different aggrega-tion strategies yield similar performance, with variations within a 1–2% gap. Its performance under extremely biased or imbalanced data distributions remains an open question. We also evaluate the impact of statistical differences between training batches on CIFAR-10. For each batch, we form paired inputs data1 and data2 under two settings: (1) Random : For each sample pair, we independently sample classes for data1 and data2, then select an image from each chosen class. This independent sampling creates varying class distributions across batches and introduces inter-batch differences. (2) Balanced : We iterate through all 10 classes within per batch, sampling two images per class for data1 and data2, ensuring balanced and identical class distributions within and across batches. From our experiments on unimodal settings on CIFAR10, we find that the random and balanced sampling strategies yield similar performance, with differences within 1–2%. C.4 NUMERICAL STABILIZATION FOR SPECTRAL UPDATES IN UNI CON 
+
+Stabilized SVD. We analyze the numerical profile of C(γ) ∈ Rd1×d2 . On large, high–dimensional tasks, the raw C(γ) often exhibits rapid spectral decay, small singular–value gaps, and large effective condition numbers. To stabilize the closed–form spectral step, we tested the following techniques: • Tikhonov regularization. Add λI d1 to C(γ) to improve conditioning and stabilize SVD. • Randomized SVD with power iterations (Halko et al., 2011). Use randomized SVD with power iterations to efficiently extract the top-r components. • Unit–hypersphere normalization. Before forming similarities/covariances, project embed-dings onto the unit sphere, matching the contrastive geometry. • Symmetric case (unimodal). When a unimodal subproblem reduces to estimating a sym-metric target (e.g. solving F ⊤F in a single modality), use the symmetrized and ridge–shifted matrixand then apply eigendecomposition. On the large–scale MSCOCO retrieval benchmark, we compare a baseline that uses a plain truncated SVD on C(γ) against our stabilized pipeline above. The latter yields higher recall with negligible overhead. 31 Published as a conference paper at ICLR 2026 Table 5: Effect of stabilization on MSCOCO (image–text retrieval). Stabilized SVD = regulariza-tion + randomized SVD (with power iterations) + unit-sphere normalization.             
+
+> SVD method Train time (s) R@1 R@5 R@10
+> Standard truncated SVD 32.47 0.2235 0.4486 0.5649
+> Stabilized SVD (UniCon) 33.28 0.2601 0.4990 0.6149
+
+C.5 EXPERIMENTS WITH OTHER MODALITIES 
+
+To further substantiate the general applicability of our approach with other complex modalities, we additionally evaluate UniCon on an audio text alignment task using the Clotho dataset(Drossos et al., 2019). In this experiment, we use pre-trained CLIP and Wav2CLIP(Wu et al., 2022) encoders to extract features from text and audio inputs respectively, followed by a linear projection layer for cross-modal alignment. The results show that without explicit alignment, the original feature structures exhibit a significant modality gap, while both UniCon and SGD achieve comparable and effective alignment performance after training. This additional experiment provides further evidence of our method’s effectiveness in diverse modality alignment scenarios. We believe this experiment with different modalities provide further support for UniCon’s scalability and robustness. Table 6: Audio-Text Alignment Results on the Clotho Dataset.                             
+
+> Method R@1 a2t R@1 t2a R@5 a2t R@5 t2a R@10 a2t R@10 t2a Time
+> No alignment 0.0010 0.0000 0.0048 0.0029 0.0096 0.0096 –UniCon 0.0335 0.0249 0.1311 0.1110 0.1943 0.1789 13.45s
+> SGD-CLIP 0.0373 0.0278 0.1244 0.1139 0.1923 0.2077 347.48s
+
+C.6 KERNEL 
+
+Why kernel? The kernel-based formulation is essential in nonlinear contrastive alignment, as it enables an implicit mapping of feature representations into (potentially infinite-dimensional) Reproducing Kernel Hilbert Spaces (RKHS). This implicit lifting significantly enhances expressivity, allowing UniCon to capture complex cross-modal relationships that cannot be represented by linear projections alone, without explicitly constructing high-dimensional coordinates. Moreover, the kernel mapping effectively unfolds nonlinear manifolds (e.g., spherical or curved distributions) into a linearized feature space, where the spectral alignment mechanism can operate directly via rank-r
+
+approximation. 
+
+Why Angular Kernel? We adopt angular kernels because features are normalized on the unit hypersphere, which is an effective practice in contrastive learning. Prior work(Wang et al., 2017) has shown that learning representations on the hypersphere leads to better performance than in Euclidean space, as it avoids the conflicting forces between attractive and repulsive gradients. Angular kernels are particularly well-suited for this geometry: they are theoretically sound, and simple to implement. In our view, this simplicity is not a limitation but an advantage. For comparison, we also experimented with the RBF kernel. The results confirmed our hypothesis: angular kernels consistently outperform RBF when embeddings lie on the hypersphere. It still worth to explore kernel approximation methods for memory efficient computation. 
+
+Kernel Selection Study. To further demonstrate the impact of kernel choice on alignment perfor-mance, we have included an empirical study in Table 7. The results below show the performance variance across different kernel types: 32 Published as a conference paper at ICLR 2026 Table 7: Ablation study on kernel selection. Results demonstrate that kernels with stronger geometric expressivity (e.g., Angular and Arc-Cosine) yield superior alignment performance. 
+
+Kernel Type Synthetic Accuracy CIFAR-10 Accuracy 
+
+RBF .56 .11 Matérn .73 .44 Cosine .81 .63 Exponential Cosine .73 .63 Arc-Cosine .85 .63 Angular .86 .63 
+
+C.7 LOSS VARIATIONS 
+
+Support for Non-Smooth Losses (e.g., Triplet Loss). Our generalized contrastive loss formulation accommodates both smooth and non-smooth cases. For losses such as the hinge-based triplet loss, classical gradients are not defined everywhere, yet their optimization is well-defined using 
+
+Clarke subgradients . The rank-r spectral characterization of UniCon still applies in this generalized subdifferential setting. To support this, we performed a synthetic nonlinear experiment (same setup as Sec. 4.1, replacing CLIP loss with triplet loss), where UniCon achieved 90% alignment accuracy ,confirming its compatibility with margin-based losses. 
+
+Sigmoid-based Contrastive Losses. We further evaluate UniCon under the Sigmoid contrastive loss used in SigLIP(Zhai et al., 2023). The results show that UniCon achieves performance comparable to SGD–SigLIP, demonstrating that UniCon is not limited to softmax-based contrastive objectives. 
+
+Method I2T R@1 T2I R@1 I2T R@5 T2I R@5 I2T R@10 T2I R@10 UniCon (SigLIP) 0.3340 0.2862 0.5816 0.5334 0.6852 0.6394 
+
+SGD–SigLIP 0.2852 0.2816 0.5610 0.5538 0.6924 0.6704 
+
+Table 8: Comparison of UniCon and SGD–SigLIP under Sigmoid contrastive loss. 33

@@ -1,0 +1,1015 @@
+Title: HABIT: Chrono-Synergia Robust Progressive Learning Framework for Composed Image Retrieval
+
+URL Source: https://arxiv.org/pdf/2604.18037v1
+
+Published Time: Tue, 21 Apr 2026 02:57:55 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# HABIT: Chrono-Synergia Robust Progressive Learning Framework for Composed Image Retrieval 
+
+## Zixu Li 1, Yupeng Hu 1* , Zhiwei Chen 1, Shiqi Zhang 1, Qinlei Huang 1, Zhiheng Fu 1, Yinwei Wei 1
+
+> 1
+
+School of Software, Shandong University 
+
+{lizixu.cs, zivczw, fuzhiheng8 }@gmail.com, {zhangshiqi, hql }@mail.sdu.edu.cn, huyupeng@sdu.edu.cn, weiyinwei@hotmail.com 
+
+Abstract 
+
+Composed Image Retrieval (CIR) is a flexible image retrieval paradigm that enables users to accurately locate the target image through a multimodal query composed of a reference image and modification text. Although this task has demon-strated promising applications in personalized search and rec-ommendation systems, it encounters a severe challenge in practical scenarios known as the Noise Triplet Correspon-dence (NTC) problem. This issue primarily arises from the high cost and subjectivity involved in annotating triplet data. To address this problem, we identify two central challenges: the precise estimation of composed semantic discrepancy 
+
+and the insufficient progressive adaptation to modifica-tion discrepancy . To tackle these challenges, we propose a c Hrono-synergi A ro Bust progress Ive learning framework for composed image re Trieval ( HABIT ), which consists of two core modules. First, the Mutual Knowledge Estimation 
+
+Module quantifies sample cleanliness by calculating the Tran-sition Rate of mutual information between the composed feature and the target image, thereby effectively identifying clean samples that align with the intended modification se-mantics. Second, the Dual-consistency Progressive Learn-ing Module introduces a collaborative mechanism between the historical and current models, simulating human habit formation to retain good habits and calibrate bad habits, ultimately enabling robust learning under the presence of NTC. Extensive experiments conducted on two standard CIR datasets demonstrate that HABIT significantly outperforms most methods under various noise ratios, exhibiting superior robustness and retrieval performance. Codes are available at https://github.com/Lee-zixu/HABIT 
+
+## 1 Introduction 
+
+With the rapid growth of image data, Composed Image Re-trieval (CIR) [1–5] has emerged as a key research focus in information retrieval [6–14] and multimodal learning [15– 20]. As shown in Figure 1(a), CIR differs from unimodal retrieval by supporting multimodal queries consisting of a reference image and modification text, which enables the re-trieval of a semantically consistent target image. Although significant progress has been made in the CIR task, real-world applications [21–36] still face substantial challenges. 
+
+> *
+
+Corresponding author. Copyright © 2026, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. (a) CIR Retrieval Paradigm        
+
+> Modification Text
+> “Two dogs pull a
+> sled with a person
+> in a red beanie
+> behind them.”
+> Reference Image
+> Multimodal Query
+> Retrieve
+> Target Image
+> (b) Reference Irrelevant Background
+> Reference Image Target Image
+> “Two dogs pull a sled
+> with a person in a red
+> beanie behind them.”
+> Ignore Ignore
+> (c) Chrono -Synergia Mechanism
+> Iter -(I) Iter -(I -1)
+> New Iteration
+> Calibrate bad habits
+> Keep Good Habits
+> I-1III-1
+> or
+> or
+> Calibrate Keep
+
+Figure 1: (a) presents an example of the CIR paradigm. (b) illustrates the commonly observed “unmentioned visual dis-crepancies” in CIR task, which increase the difficulty of identifying Noise Triplet Correspondence. (c) depicts our proposed Chrono-Synergia Mechanism. Due to the high cost and inherent subjectivity of triplet anno-tation, practical datasets are often affected by annotation er-rors and inaccurate semantic alignment [37–46]. Moreover, this issue is further exacerbated in large-scale datasets in-volving large models, owing to the hallucination problem commonly observed in such models. To mitigate this prob-lem, Li et al. [47] introduced the Noise Triplet Correspon-dence (NTC) to enhance the robustness of CIR models. Unlike traditional cross-modal retrieval tasks such as video-text matching [48–53], CIR [54–57] is inherently a semantic modification task where the reference image and modification text often contain inconsistent semantics, in-creasing the complexity of the NTC problem. As a result, existing robust methods for cross-modal matching [58, 59] fail to generalize to CIR. Moreover, during the CIR anno-tation process [60, 61], annotators receive a reference and 
+
+> arXiv:2604.18037v1 [cs.CV] 20 Apr 2026
+
+target image pair and are asked to describe their differences as modification text. Due to annotation cost constraints, other candidate images are not shown, leading to modifica-tion texts that are often brief and omit subtle differences. As shown in Figure 1(b), visual details such as “sky” and “mountains” in the reference image as well as “tree” and “house” in the target image are frequently excluded, result-ing in unmentioned visual discrepancies. These discrepan-cies create persistent semantic gaps between the composed feature and the target image, which vary across samples. However, current robust CIR methods such as TME [47] rely heavily on feature similarity to identify noisy corre-spondences, which may misclassify samples with diverse semantic gaps and ultimately limit model performance and generalization. However, addressing the above limitations remains chal-lenging due to two key factors. (1) Precise estimation of composed semantic discrepancy. To identify unmen-tioned visual discrepancies and circumvent the limitations of similarity-based noise assessment methods, it is essen-tial to develop an approach capable of accurately quantify-ing the fine-grained semantic consistency between the com-posed feature and the target image. Moreover, the seman-tic fusion of the reference image and modification text in CIR is inherently complex, making it difficult to directly apply conventional robust learning methods. Thus, devel-oping an effective estimation mechanism for composed se-mantic discrepancy constitutes the first major challenge. (2) Insufficient progressive adaptation to modification dis-crepancy. Due to the intrinsic semantic gap between the ref-erence image and modification text, CIR models often mis-interpret this discrepancy during early training stages, lead-ing to clean positive samples being wrongly treated as noisy correspondences. Therefore, the second challenge lies in de-signing a learning strategy that progressively enhances the model’s ability to adapt to diverse triplet compositions and continuously reduces the risk of misdetermination. To address the aforementioned challenges, we propose a c Hrono-synergi A ro Bust progress Ive learning framework for composed image re Trieval ( HABIT ). HABIT tackles the NTC problem in CIR by modeling mutual knowledge and leveraging progressive learning via dual knowledge collabo-ration. It comprises two key modules: (1) Mutual Knowledge Estimation Module quantifies sample cleanliness by com-puting the Transition Rate of mutual knowledge between the composed feature and the target image. This facilitates the reliable identification of clean samples that align with the intended modification semantics, improving noise recog-nition accuracy. (2) Dual-consistency Progressive Learning 
+
+addresses insufficient adaptation to modification discrep-ancy. As shown in Figure 1(c), we introduce the Chrono-Synergia Mechanism, which simulates human habit forma-tion by integrating predictions from both historical and cur-rent models. Historically consistent decisions are retained as good habits, while inconsistent ones are calibrated as bad habits, enabling robust learning in the presence of NTC. In summary, the contributions of this paper are threefold: • We conduct an in-depth analysis of the NTC problem in CIR, and for the first time, we identify two key chal-lenges faced by existing methods: the precise estimation of composed semantic discrepancy and the insufficient progressive adaptation to modification discrepancy. • We propose a novel robust learning framework for CIR, named HABIT, which employs the Transition Rate of mutual knowledge for accurate noise-aware label assign-ment. In addition, HABIT simulates human habit forma-tion and achieves robust learning under noisy triplet con-ditions through Dual-consistency Progressive Learning. • Extensive experiments on two standard CIR benchmarks demonstrate that HABIT outperforms most methods across varying noise levels, significantly improving re-trieval performance in noisy settings. 
+
+## 2 Related Work 
+
+2.1 Conventional Composed Image Retrieval 
+
+Composed Image Retrieval (CIR) plays a crucial role in computer vision [62–83] and multimodal learning [84–99], aiming to retrieve the target image based on a reference im-age and modification text. Existing approaches can generally be categorized into two types. The first category consists of models that use traditional architectures (e.g., ResNet, LSTM) to extract image and text features, followed by the multimodal composition. In contrast, the second group leverages Vision-Language Pretrained (VLP) models such as CLIP [100], BLIP-2 [101], to extract multimodal query features, then apply relatively simple strategies for feature alignment and composition to achieve remarkable perfor-mance [2, 8, 102, 103]. Although some methods have inves-tigated false positive samples [104], their primary objective is to improve the performance of traditional CIR, making them less effective from the perspective of NTC. 
+
+2.2 Noisy Correspondence Learning 
+
+While robust learning [105–113] has been widely explored in multimodal tasks [47, 114–117], recent work increas-ingly focuses on the more complex issue of noisy correspon-dence across modalities. This type of noise, which surpasses simple label errors, often induces overfitting and perfor-mance degradation. Existing approaches in visual-language pretraining and cross-modal learning [47, 118] mainly con-sider two-modality noise, overlooking the challenges in real-world Composed Image Retrieval. To address this, Li et al. [47] introduced the Noise Triplet Correspondence (NTC) problem, underscoring semantic ambiguity and annotation errors in large-scale datasets. While prior alignment-based strategies [47] have enhanced robustness, our HABIT fur-ther advances this by leveraging fine-grained mutual knowl-edge modeling and Dual-consistency Progressive Learning, yielding substantial gains in robustness to NTC. 
+
+## 3 HABIT 
+
+As a primary innovation, the proposed HABIT is designed to quantify sample cleanliness via the mutual knowledge transition rate and to achieve robust learning in the NTC 
+
+environment by simulating human habit formation through a dual-consistency progressive learning strategy. As shown Current 
+
+(b) Dual -consistency Progressive Learning (DPL)  
+
+> Noisy Mask
+
+(a) Mutual Knowledge Estimation (MKE)         
+
+> Q-Former
+> Visual
+> Encoder
+> Q-Former
+> Visual
+> Encoder
+> Tokenizer
+> 𝐅 !
+> 𝐅 "
+> Target Image
+> Reference Image
+> Modification Text
+> “Have the dog
+> sitting in the snow
+> and add trees in
+> the background.”
+> Modification Text
+> “Have the dog
+> sitting in the snow
+> and add trees in
+> the background.”
+> Modification Text
+> “Have the dog
+> sitting in the snow
+> and add trees in
+> the background.”
+> Reference Image Reference Image
+> Target Image Candidate Image
+> Training Batch
+> Mutual
+> Knowledge
+> How can I identify the
+> noisy correspondence?
+> Iteration
+
+Chrono -Synergia 
+
+Noise Purification       
+
+> 0.8 0.6 0.2
+> 0.8 0.2 0.5
+> Historical Estimation
+> MKE
+> Cluster
+> Current Estimation
+> MKE
+> Cluster
+> Progressive Learning
+> Iter -(I -1) Iter -(I)
+> I don't need to consider
+> the definite noise.
+> 0.9 0.3 0.8
+> 0.9 0.3 0.8
+
+Time -Flux Knowledge Learning             
+
+> Current
+> 0.8 0.3 0.6
+> Historical
+> Noisy Mask
+> Keep Good Habit
+> ℒ!"
+> ℒ#$%& Soften hard negative
+> Knowledge Consistency
+> 0.9 0.3 0.8
+> Current
+> Knowledge Learning
+> ℒ'()!
+> Decreasing negative
+> sample similarity
+> Soft Label
+> Mask
+> Current
+> Similarity
+> MKE
+> 𝐅 !
+> 𝐅 "
+> Standard Sample  𝐅 "
+> #𝐅 !
+> #
+> Standard Knowledge
+> 𝑀𝐾 (𝐅 !
+> ",𝐅 #
+> ")
+> Current Knowledge
+> 𝑀𝐾 (𝐅 !,𝐅 #)
+> Standard -Current Knowledge
+> 𝑀𝐾 (𝐅 !
+> ",𝐅 #)𝑀𝐾 (𝐅 !,𝐅 #
+> ")
+
+𝐅 ! 
+
+> "
+
+𝐅 #
+
+> "
+
+MK 
+
+𝐅 ! 𝐅 #MK         
+
+> Transition Rate
+> DPL
+> Historical Estimation:
+> 0.7
+> 0.9 0.2
+> Cluster  0.7
+> 0.9
+> 0.2
+> Current Estimation:
+> 0.8
+> 0.2
+> 0.4
+> Cluster  0.8
+> 0.2
+> 0.4
+> Intersection
+> 0.9, 0.7, 0.2
+> 0.8, 0.4, 0.2
+> 0.8, 0.4, 0.2
+> Soft Label
+> 1, 1, 0
+> Noisy Mask
+> 0.9, 0.7, 0.2
+> Soft Label
+> 1, 1, 0
+> Noisy Mask
+> Historical
+> 𝐅 !𝐅 "
+> Similarity
+> Historical Current
+> ℒ!"
+> Noisy Mask
+> 0.8, 0.4, 0.2
+> Soft Label
+> ℒ#$%&
+> 𝐅 !
+> 𝐅 !
+> Hard
+> Negative
+> Noisy
+> Sample
+> Hard
+> Hard
+> Hard
+> 𝐅 !
+> 𝐅 !
+> Negative
+> Push
+> ℒ'()!
+
+1 2
+
+1 2Figure 2: HABIT consists of two modules: (a) Mutual Knowledge Estimation and (b) Dual-consistency Progressive Learning. in Figure 2, HABIT comprises two core modules: (a) Mu-tual Knowledge Estimation (MKE) and (b) Dual-consistency Progressive Learning (DPL) . In this section, we first formu-late CIR task with NTC and then elaborate on each module. 
+
+3.1 Problem Formulation 
+
+The CIR task seeks to retrieve the target image that matches a given multimodal query from an image database. In prac-tice, CIR datasets frequently suffer from annotation errors within their triplets, termed NTC, with such erroneous sam-ples referred to as noisy triplets. Noisy triplets typically fall into two types: (1) partial match: the modification text 
+
+xm partially describes the transformation from the refer-ence image xr to the target image xt; (2) full mismatch: 
+
+xm completely misrepresents the modification. Following TME [47], we simulate noisy scenarios by randomly select-ing a subset of training triplets according to a noise ratio 
+
+σ. Given a triplet set with NTC, T = ⟨xr , x m, x t⟩n
+
+Nn=1 ,
+
+where xr , xm, and xt may not be properly aligned, the ob-jective is to learn an embedding function G that maps the multimodal query (xr , x m) close to its corresponding target image xt in a shared metric space, as G(xr , x m) → G (xt),
+
+where G is the embedding function to be learned, mapping multimodal queries and target images into one metric space. 
+
+3.2 Mutual Knowledge Estimation (MKE) 
+
+This module quantifies sample cleanliness by measuring the mutual knowledge transition rate between the composed fea-ture and the target image, enabling effective identification of samples whose semantics align with the modification text and improving noisy correspondence detection. First, the module extracts the composed feature and modality fea-tures from the target image. Next, we compute the seman-tic matching degree between the composed feature and the target feature based on mutual knowledge across modalities, and the mutual knowledge transition rate is defined to cap-ture semantic discrepancies. This metric serves as the crite-rion for evaluating the semantic noise margin. Specifically, we employ Q-Former, which is proven effec-tive in various CIR models [2, 119], to extract cross-modal features from both visual and textual modalities, extracting precise composed and target features, as formulated below, 
+
+Fc=Q-Former( ΦI(xr ), Φ T(xm)) , Ft=Q-Former( ΦI(xt)) ,
+
+(1) where Fc, Ft ∈ RQ×D denote the composed feature and the target feature, respectively, Q is the number of learnable queries, D is the embedding dimension, and ΦI and ΦT de-note the visual encoder and the text tokenizer, respectively. Subsequently, we define the mutual knowledge between the composed feature Fc and the target feature Ft for any sample in the batch, which is used to measure the semantic matching degree between the two features, as formulated as, 
+
+MK( Fc, Ft) = X
+
+fc∈Fc
+
+X
+
+ft∈Ft
+
+p(fc, ft) log p(fc, ft)
+
+p(fc)p(ft) , (2) where p(fc, ft) denotes the joint probability distribution be-tween fc and ft, and p(fc) and p(ft) denote the marginal probability distributions of fc and ft, respectively. However, the mutual knowledge value alone does not pro-vide a clear margin between noisy and correctly matched samples. To address this, inspired by [120], in each batch, we select the triplet with the lowest loss as the Standard Sam-ple (Fsc, Fst ), assumed to be the cleanest correspondence. We then calculate the mutual knowledge discrepancy of all other samples relative to this standard sample to define the mutual knowledge transition rate, which quantifies each sample’s discrepancy from the standard and serves as the estimation of noisy correspondence, formulated as, 
+
+TR( Fc, Ft) = | MK( Fsc, Fst ) − MK( Fc, Ft)|
+
+MK( Fsc, Fst ) . (3) Furthermore, since noisy correspondence can originate from either the composed feature (i.e., reference image/-modification text side) or the target feature, we also con-sider the transition rates between each composed/target fea-ture and the corresponding standard sample, denoted as 
+
+TR( Fc, Fst ) and TR( Ft, Fsc). Using these transition rates, we estimate the cleanliness of each triplet sample as follows, 
+
+E = (1 + TR( Fc, Ft)+ | TR( Fc, Fst )−TR( Ft, Fsc)|)−1.
+
+(4) To be specific, when the transition rate between a sam-ple’s composed feature and its target feature is small, and when both TR( Fc, Fst ) and TR( Ft, Fsc) are close to that of the standard sample, it indicates that the matching relation-ship between the multimodal query composed feature and the target image is more reliable, i.e. the sample is more likely a clean correspondence. 
+
+3.3 Dual-consistency Progressive Learning (DPL) 
+
+The Dual-consistency Progressive Learning (DPL) module is designed to address the limited progressive adaptivity caused by modification discrepancies, allowing the model to incrementally adapt to the challenges of noisy correspon-dence detection and enhance robustness. Building on sam-ple cleanliness estimations from the MKE module, DPL in-corporates the Chrono-Synergia Noise Discrimination and 
+
+Time-Flux Knowledge Updating . These enable HABIT to simulate human habit formation by integrating predictions from both the historical and current models, preserving good habits and calibrating bad habits for robust learning in NTC scenarios. We now explain this module in detail. 
+
+Chrono-Synergia Noise Discriminantion Intuitively, the cleanliness estimations of standard samples remain rela-tively stable during training, whereas those of noisy corre-spondence samples tend to fluctuate and deviate from clean samples. Based on this, we introduce the Chrono-Synergia Noise Discrimination , which aims to chrono-synergize the dynamic changes of cleanliness estimations to identify noisy triplets that fall outside the normal matching range. Specifically, we denote e(I) = [ E(I)1 , . . . , E(I) 
+
+> B
+
+] as the es-timation sequence for all samples in the batch at the I-th iteration, where B is the batch size. For each iteration’s es-timation sequence, we apply the DBSCAN [123] to obtain the set of outlier samples O(I) for that iteration. Similarly, by applying the same procedure to the historical estimation sequence from the previous iteration (I−1) , we obtain the corresponding outlier set O(I−1) .Subsequently, we merge the outlier sets from both the historical and current iterations to compute the noisy mask 
+
+m(I) = [ m1, . . . , m b, . . . , m B ] for the current batch at iter-ation I, where the noisy mask mb for the b-th triplet sample in the batch, formalized as follows, 
+
+mb =
+
+0, if {b} ∈ O (I) ∩ O (I−1) 
+
+1, otherwise . (5) The resulting noisy mask can accurately identify samples that are outliers at both time points, synergizing the discrim-ination capabilities of the historical and current models for noisy triplets, and thereby continuously filtering out those noisy triplets that are stably recognized. 
+
+Time-Flux Knowledge Updating Since the noise discrim-ination mechanism applies strict criteria, some mismatched samples may still be misclassified, leading to model’s “bad habits”. To further improve robustness against residual noisy correspondence and calibrate these bad habits while keeping good ones, we introduce Time-Flux Knowledge Updating ,which utilizes the temporal evolution of cleanliness estima-tions to maintain semantic consistency and clear time-flux margins, thus enhancing training robustness. 
+
+Knowledge Consistency. Before calibrating model’s bad habits, it is essential to preserve its learned good habits. Thus, to ensure semantic consistency and maintain accu-rate matching capabilities throughout training, we introduce 
+
+Knowledge Consistency . It constrains the evolution of the model’s triplet semantic matching degree across iterations. By comparing the similarity distributions produced at the current iteration I and the previous iteration (I − 1) , this mechanism prevents the model from losing its “good habits” (the correctly learned determination capabilities). Specifically, let I denote the current iteration. Define 
+
+s(I) ∈ RB×B as the similarity matrix between all multi-modal query features Fc and all target image features Ft
+
+in the current batch, and let s(I−1) denote the correspond-ing similarity matrix from the previous iteration on the same batch. Correspondingly, m(I) and m(I−1) represent the cur-rent and previous noisy masks, respectively. We enforce a consistency constraint on “good habits” by minimizing the Kullback-Leibler (KL) divergence between the similarity distributions of consecutive iterations, as follows, 
+
+LKL = 1
+
+B
+
+> B
+
+X
+
+> b=1
+
+DKL 
+
+ 
+
+s(I) 
+
+> b
+
+· m(I)
+
+> b
+
+
+
+∥
+
+
+
+s(I−1)  
+
+> b
+
+· m(I−1) 
+
+> b
+
+ 
+
+,
+
+(6) where s(I) 
+
+> b
+
+, s(I−1)  
+
+> b
+
+denote the similarity vectors of the b-th multimodal query within the batch at iterations I and I − 1.
+
+Knowledge Learning. While preserving good habits, we also need to calibrate bad habits formed during previous training to mitigate the harm caused by noisy correspon-dence misdetermination. To this end, we introduce the soft estimation margin loss Lsof t and the robust contrastive loss 
+
+Lrank , performing robust optimization on negative exam-ples with higher similarity to the current sample, thereby jointly enhancing the model’s discriminative capability and robustness to noise interference. To address model misdetermination, we adopt a margin softening strategy based on cleanliness estimations. Let I
+
+denote the current iteration, and s(I) ∈ RB×B represent the similarity matrix between all composed features Fc and tar-get images Ft in the batch. The noise mask for iteration I
+
+is denoted as m(I). We apply this mask to identify noisy correspondences and employ a margin-based hard negative sampling strategy [124]. The soft estimation margin loss is Noise Methods Dress Shirt Toptee Average R@10 R@50 R@10 R@50 R@10 R@50 R@10 R@50 AVG. 0% SSN [7] (AAAI’24) 34.36 60.78 38.13 61.83 44.26 69.05 38.92 63.89 51.40 CALA [8] (SIGIR’24) 42.38 66.08 46.76 68.16 50.93 73.42 46.69 69.22 57.96 SPRC [2] (ICLR’24) 49.18 72.43 55.64 73.89 59.35 78.58 54.92 74.97 64.85 RCL [121] (TPAMI’23) 48.79 72.68 55.89 73.90 56.91 77.41 53.86 74.66 64.26 RDE [122] (CVPR’24) 47.84 71.89 54.37 73.55 56.91 77.21 53.04 74.22 63.63 TME [47] (CVPR’25) 49.73 71.69 56.43 74.44 59.31 78.94 55.15 75.02 65.09 
+
+HABIT (Ours) 49.99 72.38 56.62 74.68 59.51 78.53 55.38 75.20 65.29 
+
+20% SSN [7](AAAI’24) 22.61 45.56 27.87 48.58 31.82 55.28 27.43 49.81 38.62 CALA [8](SIGIR’24) 29.05 51.36 35.28 56.23 36.05 58.24 33.46 55.28 44.37 SPRC [2](ICLR’24) 39.81 62.22 48.58 66.29 50.48 70.58 46.29 66.36 56.33 RCL [121](TPAMI’23) 47.05 70.65 53.14 71.74 55.28 75.62 51.82 72.67 62.25 RDE [122](CVPR’24) 44.62 68.91 50.74 69.09 52.12 73.38 49.16 70.64 59.81 TME [47](CVPR’25) 49.03 70.35 55.84 73.16 57.22 78.23 54.03 73.91 63.97 
+
+HABIT (Ours) 49.63 71.34 55.67 73.19 58.14 78.32 54.48 74.28 64.38 
+
+50% SSN [7] (AAAI’24) 15.27 33.71 23.36 41.61 22.79 42.94 20.47 39.42 29.95 CALA [8] (SIGIR’24) 20.77 40.95 29.69 46.57 27.03 46.81 24.83 44.78 34.80 SPRC [2] (ICLR’24) 35.94 57.16 42.25 61.63 44.98 64.76 41.06 61.19 51.12 RCL [121] (TPAMI’23) 43.68 66.44 50.74 69.19 52.63 73.84 49.01 69.82 59.42 RDE [122] (CVPR’24) 41.30 64.75 47.06 66.34 50.13 70.63 46.16 67.24 56.70 TME [47] (CVPR’25) 46.26 68.27 53.09 71.88 55.07 76.59 51.47 72.25 61.86 
+
+HABIT (Ours) 47.33 69.71 53.72 72.55 56.51 77.00 52.52 73.09 62.80 
+
+80% SSN [7] (AAAI’24) 11.16 25.24 16.98 30.72 17.03 32.64 15.05 29.53 22.29 CALA [8] (SIGIR’24) 14.28 30.59 19.73 35.82 19.48 36.10 17.83 34.41 26.00 SPRC [2] (ICLR’24) 28.41 50.77 36.21 54.37 35.90 59.06 33.51 54.03 43.77 RCL [121] (TPAMI’23) 38.82 60.54 45.44 64.38 47.42 68.38 43.89 64.43 54.16 RDE [122] (CVPR’24) 37.63 59.64 43.62 62.12 46.10 66.50 42.45 62.75 52.60 TME [47] (CVPR’25) 41.45 64.35 47.30 68.20 51.25 73.23 46.67 68.60 57.63 
+
+HABIT (Ours) 42.04 65.20 50.12 69.77 52.92 73.61 48.36 69.53 58.94 
+
+Table 1: Performance comparison on FashionIQ in terms of R@K (%). The best result under each noise ratio is highlighted in 
+
+bold , while the second-best result is underlined. then defined as follows: 
+
+Lsof t = 1
+
+B
+
+> B
+
+X
+
+> b=1
+
+
+
+max  
+
+> j̸=b
+
+h
+
+margin( e(I) 
+
+> b
+
+)+ s(I) 
+
+> bj
+
+−s(I)
+
+> bb
+
+i
+
+> +
+
+·m(I)
+
+> b
+
+
+
+,
+
+(7) where [·]+ = max(0 , ·) denotes the ReLU operation, and sbb represents the similarity of the diagonal samples. 
+
+margin( e(I) 
+
+> b
+
+) is a dynamic margin that depends on the esti-mation value e(I) 
+
+> b
+
+of the b-th sample in the batch. Subsequently, following [47, 121], we utilize the robust contrastive loss, which actively increases the distance be-tween the multi-modal query and negative samples by re-ducing their similarity, and prevents interference from noisy correspondence, formulated as, 
+
+Lrank = 1
+
+B
+
+> B
+
+X
+
+> b=1
+
+−log 
+
+ 
+
+1 − Softmax( s(I) 
+
+> b
+
+/τ )
+
+
+
+· m(I)
+
+> b
+
+
+
+,
+
+(8) where B is the batch size, τ is the temperature coefficient, 
+
+m(I) refers to the noisy mask of the I-th iteration batch, and 
+
+s(I) ∈RB×B is the similarity matrix between all composed features Fc and target images Ft in the I-th iteration batch. Finally, we obtain the final loss function of HABIT as, 
+
+Θ∗ = arg min 
+
+> Θ
+
+(Lrank + κLKL + γLsof t ) , (9) where Θ∗ is the to-be-optimized parameter for HABIT and 
+
+κ, γ are the trade-off hyper-parameters. 
+
+## 4 Experiments 
+
+This section provides an in-depth examination, with σ = 0 .2
+
+for ablation and sensitivity experiments, following TME. 
+
+4.1 Experimental Settings 
+
+Datasets. Following previous works [2, 47], we selected two widely adopted datasets for the CIR task, the fashion-domain dataset FashionIQ [60], and the open-domain dataset CIRR [125]. 
+
+Implementation Details. Our HABIT is trained with the learning rate of 5e−5 with the AdamW optimizer on a V100 GPU. Following previous works [2, 47], we utilize the pre-trained BLIP-2 [101] as the backbone of HABIT. The learnable query number Q = 32 . Regarding hyperpa-rameter settings, we utilize the grid search to obtain the final value: κ = 10 .0, γ = 0 .5. The temperature coefficient 
+
+τ = 0 .1. Following TME [47], we introduce noise ratio Noise Methods R@K Rsub @K Avg(R@5, R sub @1) K=1 K=5 K=10 K=50 K=1 K=2 K=3 0% SSN [7] (AAAI’24) 43.91 77.25 86.48 97.45 71.76 88.63 95.54 74.51 CALA [8] (SIGIR’24) 49.11 81.21 89.59 98.00 76.27 91.04 96.46 78.74 SPRC [2] (ICLR’24) 51.96 82.12 89.74 97.69 80.65 92.31 96.60 81.39 RCL [121] (TPAMI’23) 53.16 82.41 90.12 98.34 79.57 92.02 96.87 80.99 RDE [122] (CVPR’24) 51.81 82.02 90.60 97.93 78.17 91.90 96.70 80.10 TME [47] (CVPR’25) 53.42 82.99 90.24 98.15 81.04 92.58 96.94 82.01 HABIT (Ours) 52.71 82.64 90.63 98.19 80.99 92.77 97.00 81.82 20% SSN [7] (AAAI’24) 34.02 65.90 75.78 91.33 66.92 85.90 93.45 66.41 CALA [8] (SIGIR’24) 41.33 72.70 82.84 94.34 71.66 88.15 94.94 72.18 SPRC [2] (ICLR’24) 45.90 75.86 83.52 93.37 78.10 91.40 96.05 76.98 RCL [121] (TPAMI’23) 50.43 81.11 88.82 96.68 77.52 90.80 95.71 79.31 RDE [122] (CVPR’24) 49.23 78.63 86.80 95.78 76.58 90.31 96.07 77.60 TME [47] (CVPR’25) 51.35 81.01 88.53 97.81 78.46 91.25 96.39 79.74 HABIT (Ours) 51.68 81.02 89.24 97.81 78.20 91.66 96.75 79.61 50% SSN [7] (AAAI’24) 25.93 53.71 63.40 82.10 62.10 82.27 91.57 57.90 CALA [8] (SIGIR’24) 36.10 66.12 77.76 92.10 68.12 85.66 93.59 67.12 SPRC [2] (ICLR’24) 39.93 66.00 73.59 86.48 75.81 89.21 95.37 70.90 RCL [121] (TPAMI’23) 48.58 77.45 85.93 94.70 75.60 89.28 94.80 76.52 RDE [122] (CVPR’24) 45.98 75.30 83.73 94.48 73.98 88.99 95.13 74.64 TME [47] (CVPR’25) 48.48 78.94 87.28 96.99 76.48 90.07 95.83 77.71 
+
+HABIT (Ours) 50.32 79.63 88.34 97.06 76.84 90.60 96.27 78.87 
+
+80% SSN [7] (AAAI’24) 20.48 43.98 54.27 74.80 56.48 77.20 89.54 50.23 CALA [8] (SIGIR’24) 31.52 61.49 72.60 89.86 64.34 83.52 92.60 62.92 SPRC [2] (ICLR’24) 29.95 51.25 58.51 73.86 70.22 86.05 93.21 60.74 RCL [121] (TPAMI’23) 44.94 74.43 82.99 92.31 71.93 86.84 92.96 73.18 RDE [122] (CVPR’24) 42.92 71.30 80.51 92.96 69.64 85.86 93.54 70.47 TME [47] (CVPR’25) 46.31 75.78 84.89 95.83 73.37 88.02 94.89 74.58 
+
+HABIT (Ours) 47.93 76.84 85.95 95.90 74.87 89.08 95.21 75.86 
+
+Table 2: Performance comparison on the CIRR test set in terms of R@K (%) and R sub @K (%). The best and second-best results are highlighted in bold and underlined, respectively. 
+
+σ={0.0, 0.2, 0.5, 0.8} during training to simulate NTC en-vironment. 
+
+Evaluation. We adopt Recall@ K (R@ K) as the pri-mary metric. For CIRR, we report the performance of R@ {1, 5, 10 , 50 } and further provide Recall sub @{1, 2, 3}
+
+metrics on its subset. For FashionIQ, we report the R@ {10 , 50 } for each category ( Dresses , Shirts , Tops&Tees ). 
+
+4.2 Performance Comparison 
+
+To assess the robustness and generalization of HABIT under the NTC scenario, we compare it with selected baselines: or-dinary baselines (SSN, CALA, and SPRC) and robust base-lines (RCL, RDE, and TME), on the CIRR and FashionIQ datasets across different noise ratios. As shown in Table 1,2, our analysis reveals the following: 1) HABIT outperforms existing robust methods in addressing NTC, demonstrat-ing clear advantages in complex noise environments. On CIRR, HABIT achieves average improvements over TME of 1.16 %, and 1.28 % for σ = 0 .5, and 0.8, respectively. On FashionIQ, gains are 0.94 %, and 1.31 %. Notably, the perfor-mance gap with TME widens as noise increases. These gains result from HABIT’s effective mining of mutual knowledge between multimodal queries and targets, precise noise esti-mation, and the integration of dual-consistency progressive learning. 2) Robust methods consistently surpass ordinary methods, with the performance gap widening as the noise ra-tio increases. For example, on the CIRR dataset at σ = 0 .2,the SOTA ordinary method SPRC even outperforms some robust models on certain metrics, and its Avg score is only 
+
+2.63 % below HABIT. However, at σ = 0 .8, SPRC’s Avg score drops to 15 .12 % lower than HABIT, reflecting severe performance decline. This highlights the high sensitivity of traditional methods to noise and their instability in noisy cor-respondence scenarios, while robust models demonstrate su-perior noise resistance, emphasizing their necessity. 
+
+4.3 Ablation Study 
+
+To evaluate the efficacy of each HABIT module, we conduct comprehensive comparisons with variants in two groups: 
+
+G1: Ablation on Mutual Knowledge Estimation. This group examines the MKE module: D#(1): w/o Sample ran-domly selects samples instead of using standard samples Eq.(3) for mutual knowledge calculation. D#(2): w/o TR 
+
+replaces the Transition Rate Eq.(4) with the difference in mutual knowledge estimations. D#(3): w/o MKE re-moves the entire MKE process, setting all estimation val-ues to 1. G2: Dual-consistency Progressive Learning. This group assesses DPL components: D#(4): w/o CS uses only current iteration estimations, omitting historical values in Eq.(5). D#(5): w/o KL removes the consistency constraint. 
+
+D#(6): w/o History excludes both the consistency con-straint and historical estimations. D#(7): w/o mask by-passes noisy mask computation, using only MKE estima-tions. D#(8): w/o M Rank , D#(9): w/o M Soft , D#(10): w/o M KL remove the noisy mask in Eq.(8), Eq.(7), and Eq.(6). D#(11): w/o Lrank omits the robust contrastive loss. 
+
+D#(12): w/o Lsof t omits the soft estimation margin loss. 
+
+D#(13): w/o LKL &Lsof t removes both consistency con-straint and soft estimation margin loss. 
+
+D# Deriv. FashionIQ-Avg. CIRR-Avg. R@10 R@50 R@K Rsub @K 
+
+(a) Mutual Knowledge Estimation (MKE) 
+
+1 w/o Sample 53.77 73.01 79.42 88.12 2 w/o TR 53.40 73.03 79.58 87.71 3 w/o MKE 53.08 73.12 79.32 87.94 
+
+(b) Dual-consistency Progressive Learning (DPL) 
+
+4 w/o CS 53.30 73.22 79.48 88.00 5 w/o KL 53.44 73.92 79.27 87.28 6 w/o History 53.66 73.87 78.32 87.24 7 w/o mask 53.59 73.67 79.46 87.72 8 w/o M Rank 53.48 73.58 79.67 87.98 9 w/o M Soft 53.51 73.65 79.46 88.00 10 w/o M KL 53.73 73.47 79.71 88.03 11 w/o Lrank 51.03 71.82 77.92 87.15 12 w/o Lsof t 53.14 73.34 79.38 88.21 13 w/o LKL &Lsof t 53.27 73.69 79.51 88.20 
+
+HABIT (Ours) 54.48 74.28 79.94 88.87 
+
+Table 3: Ablation study on FashionIQ and CIRR datasets. Key findings from Table 3 include: 1) Removing Lrank 
+
+(D#(11)) yields the worst performance, underscoring the essential role of robust contrastive loss in noise suppres-sion and retrieval accuracy. 2) Omitting any component of the MKE module leads to performance degradation. No-tably, eliminating standard samples for mutual knowledge 
+
+(D#(1)) degrades performance, though less so than remov-ing all MKE estimations (D#(3)) . Replacing the transition rate with mutual knowledge discrepancy (D#(2)) results in the largest drop, highlighting the transition rate’s importance for capturing intrinsic NTC relationships. 3) Removing ei-ther the historical estimation sequence (D#(4)) or the “cal-ibrate bad habits” constraint (D#(5)) reduces performance; removing both (D#(6)) causes even greater decline. These help retain good habits and noise discrimination, prevent-ing semantic inconsistency over time-flux training. 4) Ex-cluding the noisy mask (D#(7)) decreases performance, val-idating its role in filtering noisy triplets. Further, removing the noisy mask from any loss function (D#(8)-D#(10)) re-sults in performance drops, reflecting its broad optimiza-tion effect via knowledge aggregation. 5) Excluding Lsof t 
+
+(D#(11), D#(12)) impairs performance, indicating that the soft estimation margin loss reduces overfitting from partial matches and misclassified noisy samples. 
+
+4.4 Case Study 
+
+Figure 3 presents the top-5 results from HABIT and the SOTA robust CIR model TME on two CIR datasets. In the CIRR example (Figure 3(a)), HABIT correctly retrieves the top-ranked image featuring both a diver and a sea turtle, fully satisfying the compositional semantics. By contrast, TME fails to interpret the cross-entity relationship, retrieving only manta ray images and missing the “human+different species” requirement, revealing its limited grasp of fine-grained semantic composition. In Figure 3(b), HABIT’s top-
+
+1 image matches all target attributes (e.g., reddish-brown long dress, warm autumn tones) at top-1, with subsequent results also aligning well with key attributes. In comparison, TME’s top-1 result, although color-similar, lacks thin straps. Overall, HABIT reveals clear advantages in handling multi-level semantic compositions, which stem from its meticu-lous understanding of triplet semantic relationships. Retrieval Results R@1  
+
+> HABIT
+> TME
+> R@ 5
+> CIRR
+> Multimodal Query
+> “Human and one animal
+> from a different species
+> from the last two .”
+> Retrieve
+> Retrieval Results R@1
+> HABIT
+> TME
+> R@ 5
+> FashionIQ
+> Multimodal Query
+> “has thin straps and
+> different pattern
+> more autumn colored
+> and longer”
+> Retrieve
+
+Figure 3: Case Study on CIRR and FashionIQ. 
+
+## 5 Conclusion 
+
+In this study, we investigated the NTC problem in the CIR task. To address the challenges of the precise estimation of composed semantic discrepancy and the insufficient pro-gressive adaptation to modification discrepancy, we pro-posed HABIT, which comprised two key modules. The MKE module, employed the transition rate of variational mutual information to achieve accurate noise-aware label as-signment. Furthermore, the DPL module introduced a col-laborative mechanism between the historical and current models, progressively enhancing the model’s understanding of the complex semantic relations within triplets and con-tinuously reduced the probability of misdetermination. Ex-tensive experiments showed that HABIT outperformed most methods under various noise levels, demonstrating its supe-riority and robustness. 
+
+## Acknowledgments 
+
+This work was supported in part by the National Natural Sci-ence Foundation of China, No.:62276155, No.:62576195, and No.:62572282; in part by the China National University Student Innovation & Entrepreneurship Development Pro-gram, No.:2025282 and No.:2025283. This is the supplementary material of the submitted paper 
+
+“HABIT: Chrono-Synergia Robust Progressive Learning Framework for Composed Image Retrieval” . The content catalog is as follows: • Appendix A : Datasets • Appendix B : Comprehensive Performance Comparison on CIRR and FashionIQ • Appendix C : Efficiency Evaluation • Appendix D : HABIT Training Procedure and Dynamic Margin Calculation 
+
+– Appendix D.1 : Algorithm of HABIT’s Training Pro-cedure 
+
+– Appendix D.2 : The Calculation of Dynamic Margin • Appendix E : More Qualitative Results 
+
+– Appendix E.1 : Failure Cases Analysis 
+
+– Appendix E.2 : NTC Recognition Situation 
+
+– Appendix E.3 : Similarity Matrix 
+
+## A Datasets 
+
+To thoroughly assess the performance of our proposed model, HABIT, we utilized two widely recognized bench-mark datasets: FashionIQ, which focuses on the fashion do-main, and CIRR, which targets open-domain scenarios. A detailed description of each dataset is presented below. • FashionIQ [60] serves as a benchmark dataset tai-lored for fashion-focused composed image retrieval. It comprises 77 , 684 web-crawled fashion photos, orga-nized into 30 , 134 annotated triplets spanning three key clothing categories: dresses , shirts , and tops&tees . This dataset is primarily used to assess the retrieval capability of models based on the alignment between visual con-tent and descriptive textual modifications in the fashion context. • CIRR [125] is developed using real-world images sourced from the NLVR2 dataset [126], which focuses on natural language visual reasoning. It includes 36 , 554 
+
+annotated triplets and a total of 21 , 552 unique images. In contrast to FashionIQ, CIRR places greater emphasis on complex multi-object interactions within diverse natural environments, reducing the risk of overfitting to a nar-row domain. Furthermore, it addresses the issue of anno-tation sparsity, which is commonly seen in datasets like FashionIQ that may produce many false negatives, by in-corporating a dedicated subset designed for fine-grained contrastive testing. CIRR is ideal for assessing a model’s ability to process intricate scenes that require nuanced multi-modal understanding. 
+
+## B Comprehensive Performance Comparison on CIRR and FashionIQ 
+
+Figure 4 presents a comparative analysis of different mod-els under varying noise ratios ( σ). In this figure, CIRR Avg denotes the average value of R@K on the CIRR dataset, CIRR Rs.Avg refers to the average of R sub @K on the CIRR dataset, and FIQ(Avg) represents the mean R@K across Algorithm 1: The HABIT’s Training Procedure 
+
+Input : Noisy triplet set T = {⟨ xr , x m, x t⟩} 
+
+Parameter : Max epochs N , batch size B, temperature τ
+
+Output :Trained model parameters  
+
+> 1:
+
+for iteration I = 1 to N do  
+
+> 2:
+
+Sample a batch {xr , x m, x t}Bb=1 ⊂ T  
+
+> 3:
+
+// Feature Extraction via Q-Former  
+
+> 4:
+
+Fc ← Q-Former (ΦI(xr ), Φ T(xm))  
+
+> 5:
+
+Ft ← Q-Former (ΦI(xt))  
+
+> 6:
+
+// Mutual Knowledge Estimation (MKE)  
+
+> 7:
+
+MK ← MutualInfo( Fc, Ft) 
+
+> 8:
+
+MK s ← min( MK ) {Standard sample } 
+
+> 9:
+
+Compute transition rates: TR c,t , TR c,t s , TR t,c s 
+
+> 10:
+
+Eb ← (1 + TR c,t + |TR c,t s − TR t,c s |)−1 
+
+> 11:
+
+// Chrono-Synergia Noise Discrimination  
+
+> 12:
+
+e(I) ← [E1, ..., EB ] 
+
+> 13:
+
+O(I) ← DBSCAN (e(I)) 
+
+> 14:
+
+O(I−1) ← DBSCAN (e(I−1) ) 
+
+> 15:
+
+for b = 1 to B do  
+
+> 16:
+
+if b ∈ O (I) ∩ O (I−1) then  
+
+> 17:
+
+mb ← 0 {Noisy sample } 
+
+> 18:
+
+else  
+
+> 19:
+
+mb ← 1 {Clean sample } 
+
+> 20:
+
+end if  
+
+> 21:
+
+end for  
+
+> 22:
+
+// Similarity Computation  
+
+> 23:
+
+s(I) ← SimilarityMatrix( Fc, Ft) 
+
+> 24:
+
+// Time-Flux Knowledge Updating  
+
+> 25:
+
+LKL ← 1
+
+> BB
+
+P
+
+> b=1
+
+DKL 
+
+
+
+s(I) 
+
+> b
+
+· mb ∥ s(I−1)  
+
+> b
+
+· mb
+
+                
+
+> 26: Lsoft ←1
+> BBP
+> b=1
+> 
+> max j̸=b
+> h
+> margin (Eb) + s(I)
+> bj −s(I)
+> bb
+> i
+> +
+> ·mb
+> 
+> 27: Lrank ←1
+> BBP
+> b=1
+> −log
+> 
+> 1−Softmax( s(I)
+> b/τ )
+> 
+> ·mb
+> 
+> 28:
+
+LHABIT ← L KL + Lsoft + Lrank  
+
+> 29:
+
+Update model using LHABIT  
+
+> 30:
+
+end for  
+
+> 31:
+
+return Trained model parameters the three subsets of the FashionIQ dataset. Each row cor-responds to model performance under a specific noise ratio (σ = 0 .2, 0.5, 0.8), where colors indicate different models and the lines illustrate the variation in performance across noise levels. This figure clearly reveals the relative perfor-mance of each model under different levels of noise. The re-sults demonstrate that HABIT consistently achieves the best performance across all datasets and noise conditions. This robustness can be attributed to the accurate noise-aware es-timation based on the Transition Rate of mutual information and the integration of Dual-consistency Progressive Learn-ing. These components enable HABIT to effectively adapt to noise interference and exhibit strong generalization ca-pabilities in Composed Image Retrieval tasks. In contrast, other models such as RDE and SPRC exhibit considerable fluctuations in performance across different noise ratios and datasets, indicating limited stability in the presence of noise HABIT(Ours) 
+
+> TME(CVPR'25)
+> RCL(TPAMI'23)
+> RDE(CVPR'24)
+> SPRC(ICLR'24)
+> CALA(SIGIR'24)
+> SSN(AAAI'24)
+
+## Rank of Comprehensive Performance Comparison on CIR Task                                                     
+
+> =0.2 =0.2 =0.2 =0.5 =0.5 =0.5 =0.8 =0.8 =0.8
+> FIQ(Avg) CIRR(Avg) CIRR(Rs.Avg) FIQ(Avg) CIRR(Avg) CIRR(Rs.Avg) FIQ(Avg) CIRR(Avg) CIRR(Rs.Avg)
+> 111111111
+> 222222222
+> 33
+> 4
+> 33
+> 4
+> 333
+> 44
+> 5
+> 44
+> 5
+> 44
+> 555
+> 3
+> 5
+> 6
+> 3
+> 5
+> 6
+> 4
+> 6666
+> 5
+> 66
+> 5
+> 6
+> 777777777
+
+Figure 4: Comprehensive Performance Comparison Rank on CIRR and FashionIQ. Type Method FLOPs Parameters GPU Memory Test time Train Time FIQ-Avg CIRR-Avg Ordinary SPRC 413.38G 915.69 M 24.48GiB 0.011s/sample 2.62s/iteration 56.33 76.98 Robust Methods TME 405.2G 915.68M 12.41GiB 0.124s/sample 7.86s/iteration 63.97 79.74 w/o History 393.08G 915.69M 11.37GiB 0.0089s/sample 2.85s/iteration 63.76 78.67 HABIT (Ours) 393.08G 915.69M 11.37GiB 0.0089s/sample 2.94s/iteration 64.38 79.61 Table 4: Comparison of computational complexity and efficiency among SPRC, TME, and HABIT with its ablation variants. and complex scenarios. Although the TME model main-tains relatively stable performance under varying noise and dataset conditions, it consistently ranks second and demon-strates lower recall rates than HABIT. This suggests that TME possesses limited robustness against noise interference and lacks the adaptability of HABIT in challenging environ-ments. 
+
+## C Efficiency Evaluation 
+
+To evaluate system efficiency and resource consumption, we compare the ordinary baseline (SPRC), the robust baseline (TME), and HABIT, along with its variant without historical consistency, under identical hardware conditions and a batch size of 128. The following findings are derived from Table 4: (1) In terms of computational cost and memory usage ,HABIT achieves 393.08G FLOPs, representing a reduction of approximately 2.99% compared to TME (405.2G) and 4.91% relative to SPRC (413.38G). Its memory consump-tion decreases from 12.41GiB (TME) to 11.37GiB (a re-duction of about 8.38%) and is further reduced by approxi-mately 53.55% compared to SPRC’s 24.48GiB. All models have the same parameter count of 915.69M, indicating that HABIT’s performance improvements are not attributed to additional parameters. (2) Regarding speed , HABIT achieves a testing time of 0.0089 seconds per sample, offering approximately 13.93 times acceleration compared to TME (0.124 seconds/sam-ple), and around 1.24 times speedup over SPRC (0.011 seconds/sample). Its training time significantly drops from 7.86 seconds per iteration (TME) to 2.94 seconds per it-eration (a reduction of approximately 62.60%). Although slightly slower than SPRC (2.62 seconds per iteration, ap-proximately 12.21% difference), SPRC requires substan-tially more memory (24.48GiB), which limits its practical deployment and scalability. (3) In terms of overall performance considering both speed and accuracy , HABIT achieves higher retrieval pre-cision, with FIQ-Avg = 64.38 and CIRR-Avg = 79.61. This performance improvement strikes an excellent balance with the efficiency overhead. (4) From the ablation perspective , the w/o History vari-ant exhibits identical FLOPs, memory consumption, and testing time as HABIT, indicating that the Dual-consistency 1 3 5 7 10 12 15 20 
+
+# (a) κ on CIR task     
+
+> 62 .563 .063 .564 .0
+> FIQ Avg.
+> FIQ Avg. CIRR Avg.
+> 0.1 0.3 0.5 0.7 1.0
+
+# (b) γ on CIR task 
+
+> 62 .563 .063 .564 .0
+> FIQ Avg.
+> FIQ Avg. CIRR Avg.
+> 78 .078 .579 .079 .580 .0
+> CIRR Avg.
+> 78 .078 .579 .079 .580 .0
+> CIRR Avg.
+
+Figure 5: Sensitivity to the hyperparameters (a) κ and (b) γ.Progressive Learning (DPL) module operates solely during training and introduces negligible inference overhead. Ad-ditionally, HABIT increases training time by only approx-imately 3.16% compared to w/o History (2.94s vs. 2.85s), while yielding notable performance gains on CIRR and FIQ. (5) From the architectural perspective , HABIT incor-porates Mutual Knowledge Estimation (MKE) and DPL to perform intra-batch mutual knowledge estimation and Dual-consistency Progressive Learning. These modules in-troduce only lightweight computation during training, with-out adding inference branches or re-ranking steps. As a re-sult, HABIT maintains the same parameter size while simul-taneously reducing computational cost, memory usage, and latency compared to TME and SPRC. The minor training overhead is effectively translated into stable performance gains and enhanced employability. 
+
+C.1 Sensitivity Analysis 
+
+To assess HABIT’s sensitivity to hyperparameters κ and γ,we analyze performance on CIRR and FashionIQ, as shown in Figure 5. In subfigure (a), increasing κ (which weights 
+
+LKL ) from 1 to 20 initially improves performance, then leads to a decline. This suggests that moderate collabora-tion between current and historical model knowledge helps preserve learned “good habits” and matching consistency, while excessive weighting makes the model overly depen-dent on historical similarities, hindering adaptation and lim-iting knowledge acquisition. In subfigure (b), γ, which con-trols Lsof t , shows a similar trend: as γ rises from 0.1 to 
+
+1.0, performance first improves, then slightly drops. This re-flects the dual role of soft estimation margin loss, dynam-ically penalizing hard negatives to calibrate bad habits and gains noise robustness, but an excessively large γ can cause optimization bias and interfere with semantic alignment. 
+
+## D HABIT Training Procedure and Dynamic Margin Calculation 
+
+D.1 Algorithm of HABIT’s Training Procedure 
+
+To support the main methodology, we present the complete training workflow of HABIT as pseudocode in Algorithm 1. This representation clearly and reproducibly outlines how the MKE and DPL components are collaboratively opti-mized throughout the training process. 
+
+D.2 The Calculation of Dynamic Margin 
+
+In this section, we detail the calculation of the margin( ·)
+
+used in the soft estimation margin loss. Specifically, follow-ing [124], the calculation process is a dynamic margin that depends on the estimation value e(I) 
+
+> b
+
+of the b-th sample in the batch, formulated as, 
+
+margin( e(I) 
+
+> b
+
+) = m × (10 e(I) 
+
+> b
+
+− 1) /9 (10) where m denotes the margin parameter, which is empirically set to 0.2, following [124]. 
+
+## E More Qualitative Results 
+
+E.1 Failure Cases Analysis 
+
+In real-world CIR tasks, even models equipped with robust learning strategies, such as HABIT, inevitably encounter challenging failure cases. Figure 6 presents representative examples from both the CIRR and FashionIQ datasets, al-lowing for a closer examination of how the model responds to complex semantic transformations. In the CIRR failure case, the multimodal query is “is solid red and has longer sleeves and is more solid of a red color,” with a reference image depicting a glass sliding door. This represents a complex scene modification requir-ing the model to reason over both composition semantics and visual changes. HABIT retrieves a top-1 result that, al-though not annotated as the ground-truth, closely matches the query in terms of color and structure. Most of its top candidates also satisfy the required details in the query, re-flecting HABIT’s strong ability to model multi-level seman-tic changes and capture subtle visual cues. In contrast, the ablated variant w/o LKL & Lsof t shows a noticeable drop in accuracy, with retrieval results exhibiting scene drift and partial mismatches, demonstrating the importance of these two components in preserving beneficial learning habits dur-ing training. TME, meanwhile, is more prone to semantic Retrieval Results Top -1
+
+HABIT 
+
+TME 
+
+Top -5
+
+> FashionIQ
+> Multimodal Query
+> Retrieve
+
+w/o 
+
+𝓛 𝑲𝑳 & 𝓛 𝒔𝒐𝒇𝒕 
+
+> “Open up the sliding
+> door the other
+> outside.”
+
+Retrieval Results Top -1
+
+HABIT 
+
+TME 
+
+Top -5
+
+> CIRR
+> Multimodal Query
+> Retrieve
+
+w/o 
+
+𝓛 𝑲𝑳 & 𝓛 𝒔𝒐𝒇𝒕 
+
+> “is solid red and has
+> longer sleeves and
+> is more solid of a
+> red color”
+
+Figure 6: Failure Cases on CIRR and FashionIQ datasets. ambiguity and tends to return candidates with greater diver-gence from the true target in terms of fine-grained seman-tics. This comparison illustrates that HABIT, with its dual-consistency progressive learning mechanism, can better cap-ture and adapt to complex changes. Even when the annotated ground-truth is not retrieved, the outputs remain highly rele-vant to the user intent, highlighting the practical value of the model’s semantic understanding. For the FashionIQ failure case, the query is “Open up the sliding door the other outside,” with a reference image of a red long-sleeved dress. While HABIT does not rank the ground-truth target first, all of its top-5 retrievals are highly similar in style, color, and type, and some candidates may even better fit the user’s real-world intent than the la-beled ground-truth. The ablation model w/o LKL & Lsof t 
+
+shows degraded performance, with a clear drop in relevance among retrieved samples. TME, meanwhile, retrieves even more candidates that deviate from the intended query se-mantics. Upon further analysis, we find that some of these failure cases actually reflect the presence of false negatives in the dataset: retrieved results are visually and semantically correct according to the query, yet not marked as targets due to annotation limitations. Overall, HABIT’s consistently high Top-k relevance in these failure cases is attributed to its accurate triplet corre-spondence modeling and advanced semantic reasoning ca-pabilities. Especially under complex transformation, fine-grained attribute matching, and implicit query scenarios, HABIT effectively fuses reference image and modifica-tion text to better align composed features with the true user need. This not only validates the contribution of mu-tual knowledge estimation and dual-consistency progressive learning to model robustness, but also reveals new chal-lenges for annotation and evaluation in current CIR bench-marks. 
+
+E.2 NTC Recognition Situation 
+
+As shown in Figure 7, we present the model’s clean/noise discrimination on CIR triplets under NTC scenarios, along with the estimated cleanliness scores calculated by the MKE module. The results demonstrate that the model is able to ac-curately distinguish between clean and noisy matches, out-putting reasonable cleanliness estimates and thereby exhibit-ing strong discriminative capability under Noise Triplet Cor-”there was a red electric locomotive -                           
+
+> now silver”
+> Cleanliness Estimation: 0.96
+> “the same dog sitting on a brown
+> couch and lookin to the camera”
+> Cleanliness Estimation: 0.57
+> “make out with one gijantic figured
+> animal rather than choosing randomly ”
+> Cleanliness Estimation: 0.49
+> “birds flying up or sitting in a clearing instead
+> of a crowd of monkeys at a watering”
+> Cleanliness Estimation: 0.96
+> “show a man drinking a beer alone and
+> with a lot of empty bottles next to him”
+> Cleanliness Estimation: 0.56
+> “has a longer length and a print and is
+> longer in length and a variety of colors”
+> Cleanliness Estimation: 0.36
+> “is fitted and brown with a design and
+> is brown with longer sleeves”
+> Cleanliness Estimation: 0.94
+> “is red with rainbows and is red with a
+> pony graphic”
+> Cleanliness Estimation: 0.91
+> “make the dogwalk sideways, do not
+> alter background”
+> Cleanliness Estimation: 0.58
+> “is solid cream with sheer sleeves and
+> is white and has a belt”
+> Cleanliness Estimation: 0.46
+> “the shirt has a color with long sleeves and
+> white in color and has long sleeves and is white”
+> Cleanliness Estimation: 0.49
+> “is a wrapper tied at the waistline
+> with a knot and is purple and shorter”
+> Cleanliness Estimation: 0.31
+
+Figure 7: Visualization of the cleanliness estimation. respondence (NTC) conditions. Specifically, the green area on the left highlights triplets identified as clean by the model, which are generally as-signed high confidence scores. For example, in the top-left of the first row, the reference and target images are a red electric locomotive and a silver locomotive, with the query text “there was a red electric locomotive – now silver.” The model assigns a cleanliness estimation of 0.96 , accurately reflecting a single, significant attribute change between the images. Similarly, in the second row, the triplet “birds flying up or sitting in a clearing instead of a crowd of monkeys at a watering” also receives a high confidence score of 0.96 , indi-cating the model’s ability to capture subtle semantic changes in complex multi-object scenes. In contrast, the red area on the right displays noisy cor-respondence, which are given noticeably lower confidence. For instance, the top-right example in the first row has the text “make out with one gigantic figured animal rather than choosing randomly,” while the target image is a pizza and an animal, a clear case of cross-category (semantically irrele-vant) mismatch. The model correctly classifies this as noise, assigning a cleanliness estimation of only 0.49 . Similarly, in the third row, for the description “the shirt has a color with long sleeves and is white in color and has long sleeves and is white,” the blue and white dresses are mismatched, and the model outputs a low cleanliness score of 0.49 , showing its sensitivity to detailed discrepancies between images and textual descriptions. Additionally, some boundary cases that are difficult to distinguish receive appropriately intermediate confidence scores. For example, on the right of the second row, the com-position of a dog and a pack of wolves with the description “make the dogwalk sideways, do not alter background” is visually ambiguous, yet the model assigns a moderate con-fidence of 0.58 , demonstrating its reasonable handling of challenging scenarios. Overall, this visualization strongly supports the model’s capability for accurate cleanliness estimation of triplets in NTC settings. The model not only precisely identifies clean semantic correspondences but also reliably assigns low cleanliness scores to noisy matches, facilitating ro-bust downstream training and dynamic label correction. Such fine-grained, confidence-based discrimination effec-tively mitigates the impact of noisy samples in CIR tasks, significantly enhancing the model’s practical robustness and generalization performance. 
+
+E.3 Similarity Matrix 
+
+As shown in Figure 8, we compare the similarity matrices of TME (CVPR’25) [47] and HABIT (Ours) on the CIRR dataset, where the horizontal axis represents target images and the vertical axis denotes multimodal queries. A higher similarity score indicates a stronger model belief that the tar-get matches the given query. Target Images 
+
+> Queries
+> TME (CVPR'25)
+> Target Images
+> HABIT (Ours)
+> 0.1259
+> 0.1086
+> 0.3432
+> 0.5777
+> 0.8122
+> Similarity Score
+
+Figure 8: Similarity Matrix of TME and HABIT on CIRR dataset. From the figure, we observe the following phenomena and their causes: 1) Brighter and sharper diagonal. The diagonal entries of HABIT are notably higher than those of TME, indicating that the similarity of positive pairs (the query and its target image) is further increased; the positive peaks are more concentrated, making top-ranked hits easier to obtain. 2) Darker off-diagonal. In HABIT, regions far from the diagonal are visibly darker, showing that similari-ties for negatives are systematically suppressed and spurious high-similarity negatives are effectively reduced. 3) Larger positive–negative gap. The contrast between the diagonal and off-diagonal is higher with HABIT, reflecting a larger margin between positives and negatives, which is consistent with the improvements on CIRR in R@1/5/10 and Rsub @K.These differences stem from two aspects: first, Mu-tual Knowledge Estimation (MKE) anchors on a Standard Sample and uses the Transition Rate of mutual knowl-edge as a relative metric, producing more reliable cleanli-ness estimation and down-weighting noisy correspondence and hard negatives; second, Dual-consistency Progressive Learning (DPL) combines Chrono-Synergia noise discrim-ination, KL-based consistency, and the soft estimation mar-gin loss to calibrate the model along the Time-Flux, push negatives away, and preserve correct determination, which manifests as a brighter diagonal and a darker off-diagonal in the similarity matrix. 
+
+## References 
+
+[1] Wen, H.; Song, X.; Yin, J.; Wu, J.; Guan, W.; and Nie, L. 2023. Self-Training Boosted Multi-Factor Matching Net-work for Composed Image Retrieval. IEEE TPAMI .[2] Xu, X.; Liu, Y.; Khan, S.; Khan, F.; Zuo, W.; Goh, R. S. M.; Feng, C.-M.; et al. 2024. Sentence-level Prompts Benefit Composed Image Retrieval. In ICLR .[3] Chen, Z.; Hu, Y.; Fu, Z.; Li, Z.; Huang, J.; Huang, Q.; and Wei, Y. 2026. INTENT: Invariance and Discrimination-aware Noise Mitigation for Robust Composed Image Re-trieval. In AAAI , volume 40, 20463–20471. [4] Hu, Y.; Li, Z.; Chen, Z.; Huang, Q.; Fu, Z.; Xu, M.; and Nie, L. 2026. REFINE: Composed Video Retrieval via Shared and Differential Semantics Enhancement. ACM ToMM .[5] Li, Z.; Hu, Y.; Chen, Z.; Huang, Q.; Qiu, G.; Fu, Z.; and Liu, M. 2026. ReTrack: Evidence-Driven Dual-Stream Di-rectional Anchor Calibration Network for Composed Video Retrieval. In AAAI , volume 40, 23373–23381. [6] Liu, F.; Cheng, Z.; Zhu, L.; Gao, Z.; and Nie, L. 2021. Interest-aware message-passing GCN for recommendation. In ACM WWW , 1296–1305. [7] Yang, X.; Liu, D.; Zhang, H.; Luo, Y.; Wang, C.; and Zhang, J. 2024. Decomposing Semantic Shifts for Composed Image Retrieval. In AAAI , volume 38, 6576–6584. [8] Jiang, X.; Wang, Y.; Li, M.; Wu, Y.; Hu, B.; and Qian, X. 2024. Cala: Complementary association learning for aug-menting comoposed image retrieval. In ACM SIGIR , 2177– 2187. [9] Cheng, Z.; Lai, L.; Liu, Y.; Cheng, K.; and Qi, X. 2026. En-hancing Financial Report Question-Answering: A Retrieval-Augmented Generation System with Reranking Analysis. 
+
+arXiv preprint arXiv:2603.16877 .[10] Pu, R.; Qin, Y.; Song, X.; Peng, D.; Ren, Z.; and Sun, Y. 2025. SHE: Streaming-media Hashing Retrieval. In ICML .[11] Xie, Z. 2026. CONQUER: Context-Aware Representation with Query Enhancement for Text-Based Person Search. 
+
+arXiv preprint arXiv:2601.18625 .[12] Xie, Z.; Liu, X.; Zhang, B.; Lin, Y.; Cai, S.; and Jin, T. 2026. HVD: Human Vision-Driven Video Represen-tation Learning for Text-Video Retrieval. arXiv preprint arXiv:2601.16155 .[13] Chen, K.; Fang, P.; and Xue, H. 2025. DePro: Domain Ensemble using Decoupled Prompts for Universal Cross-Domain Retrieval. In SIGIR , SIGIR ’25, 958–967. [14] Chen, K.; Fang, P.; and Xue, H. 2025. Multi-Modal Inter-active Agent Layer for Few-Shot Universal Cross-Domain Retrieval and Beyond. In NeurIPS .[15] Wang, Y.; Fu, T.; Xu, Y.; Ma, Z.; Xu, H.; Du, B.; Lu, Y.; Gao, H.; Wu, J.; and Chen, J. 2024. TWIN-GPT: digital twins for clinical trials via large language model. ACM ToMM .[16] Chen, W.; Wu, L.; Hu, Y.; Li, Z.; Cheng, Z.; Qian, Y.; Zhu, L.; Hu, Z.; Liang, L.; Tang, Q.; et al. 2025. AutoNeural: Co-Designing Vision-Language Models for NPU Inference. 
+
+arXiv preprint arXiv:2512.02924 .[17] Jia, S.; Zhu, N.; Zhong, J.; Zhou, J.; Zhang, H.; Hwang, J.-N.; and Li, L. 2026. RAM: Recover Any 3D Human Motion in-the-Wild. arXiv:2603.19929. [18] Li, L.; Jia, S.; Wang, J.; Jiang, Z.; Zhou, F.; Dai, J.; Zhang, T.; Wu, Z.; and Hwang, J.-N. 2025. Human Motion Instruc-tion Tuning. In CVPR .[19] Li, L.; Jia, S.; and Hwang, J.-N. 2026. Multiple Human Motion Understanding. In AAAI , volume 40, 6297–6305. [20] Ni, C.; Wang, X.; Zhu, Z.; Wang, W.; Li, H.; Zhao, G.; Li, J.; Qin, W.; Huang, G.; and Mei, W. 2025. Wonderturbo: Gen-erating interactive 3d world in 0.72 seconds. arXiv preprint arXiv:2504.02261 .[21] Qiu, X.; Wu, X.; Lin, Y.; Guo, C.; Hu, J.; and Yang, B. 2025. DUET: Dual Clustering Enhanced Multivariate Time Series Forecasting. In SIGKDD , 1185–1196. [22] Zhao, Z. 2024. Balf: Simple and efficient blur aware local feature detector. In WACV , 3362–3372. [23] Zhang, F.; Gu, Z.; and Wang, H. 2026. Decoding with struc-tured awareness: integrating directional, frequency-spatial, and structural attention for medical image segmentation. In 
+
+AAAI , volume 40, 12421–12429. [24] Liu, J.; Zhuo, D.; Feng, Z.; Zhu, S.; Peng, C.; Liu, Z.; and Wang, H. 2024. Dvlo: Deep visual-lidar odometry with local-to-global feature fusion and bi-directional structure alignment. In ECCV , 475–493. Springer. [25] Jiang, G.; Zhang, T.; Li, D.; Zhao, Z.; Li, H.; Li, M.; and Wang, H. 2025. STG-Avatar: Animatable Human Avatars via Spacetime Gaussian. arXiv preprint arXiv:2510.22140 .[26] Yuan, H.; Li, X.; Dai, J.; You, X.; Sun, Y.; and Ren, Z. 2025. Deep Streaming View Clustering. In ICML .[27] Lu, S.; Liu, Y.; and Kong, A. W.-K. 2023. Tf-icon: Diffusion-based training-free cross-domain image compo-sition. In ICCV , 2294–2305. [28] Zhou, S.; Cao, Y.; Nie, J.; Fu, Y.; Zhao, Z.; Lu, X.; and Wang, S. 2026. Comptrack: Information bottleneck-guided low-rank dynamic token compression for point cloud track-ing. In AAAI , volume 40, 13773–13781. [29] Zhou, Z.; Lu, S.; Leng, S.; Zhang, S.; Lian, Z.; Yu, X.; and Kong, A. W.-K. 2025. DragFlow: Unleashing DiT Priors with Region Based Supervision for Drag Editing. arXiv preprint arXiv:2510.02253 .[30] Lan, Y.; Xu, S.; Su, C.; Ye, R.; Peng, D.; and Sun, Y. 2025. Multi-view Hashing Classification. In ACM MM , 2122– 2130. [31] Yu, Z.; IDRIS, M. Y. I.; Wang, P.; and Qureshi, R. 2025. CoTextor: Training-Free Modular Multilingual Text Editing via Layered Disentanglement and Depth-Aware Fusion. In 
+
+NeurIPS .[32] Liao, B.; Zhao, Z.; Li, H.; Zhou, Y.; Zeng, Y.; Li, H.; and Liu, P. 2025. Convex Relaxation for Robust Vanishing Point Estimation in Manhattan World. In CVPR , 15823–15832. [33] Qiu, X.; Hu, J.; Zhou, L.; Wu, X.; Du, J.; Zhang, B.; Guo, C.; Zhou, A.; Jensen, C. S.; Sheng, Z.; and Yang, B. 2024. TFB: Towards Comprehensive and Fair Benchmarking of Time Series Forecasting Methods. In VLDB , 2363–2377. [34] Li, L.; Lu, S.; Ren, Y.; and Kong, A. W.-K. 2025. Set you straight: Auto-steering denoising trajectories to sidestep un-wanted concepts. arXiv preprint arXiv:2504.12782 .[35] Duan, S.; Wu, W.; Hu, P.; Ren, Z.; Peng, D.; and Sun, Y. 2025. CoPINN: Cognitive physics-informed neural net-works. In ICML .[36] Zhou, S.; Nie, J.; Zhao, Z.; Cao, Y.; and Lu, X. 2025. Focus-track: One-stage focus-and-suppress framework for 3d point cloud object tracking. In ACM MM , 7366–7375. [37] Xie, Z.; Wang, C.; Wang, Y.; Cai, S.; Wang, S.; and Jin, T. 2025. Chat-driven text generation and interaction for person retrieval. In EMNLP , 5259–5270. [38] Liu, P. 2024. Unsupervised corrupt data detection for text training. ESWA , 248: 123335. [39] Xie, Z.; Zhang, B.; Lin, Y.; and Jin, T. 2026. Delving deeper: Hierarchical visual perception for robust video-text retrieval. arXiv preprint arXiv:2601.12768 .[40] Gu, R.; Jia, S.; Ma, Y.; Zhong, J.; Hwang, J.-N.; and Li, L. 2025. MoCount: Motion-Based Repetitive Action Counting. In ACM MM , 9026–9034. [41] Li, L.; Jia, S.; Wang, J.; An, Z.; Li, J.; Hwang, J.-N.; and Be-longie, S. 2025. Chatmotion: A multimodal multi-agent for human motion analysis. arXiv preprint arXiv:2502.18180 .[42] Jia, S.; and Li, L. 2024. Adaptive masking enhances visual grounding. arXiv preprint arXiv:2410.03161 .[43] Liu, L.; Chen, S.; Jia, S.; Shi, J.; Jiang, Z.; Jin, C.; Zongkai, W.; Hwang, J.-N.; and Li, L. 2024. Graph canvas for control-lable 3d scene generation. arXiv preprint arXiv:2412.00091 .[44] Liu, P.; Yang, J.; Wang, L.; Wang, S.; Hao, Y.; and Bai, H. 2023. Retrieval-Based Unsupervised Noisy Label Detection on Text Data. In CIKM , 4099–4104. [45] Yang, Q.; Chen, Z.; Hu, Y.; Li, Z.; Fu, Z.; and Nie, L. 2026. STABLE: Efficient Hybrid Nearest Neighbor Search via Magnitude-Uniformity and Cardinality-Robustness. arXiv preprint arXiv:2604.01617 .[46] Yang, Q.; Lv, P.; Li, Y.; Zhang, S.; Chen, Y.; Chen, Z.; Li, Z.; and Hu, Y. 2026. ERASE: Bypassing Collaborative Detec-tion of AI Counterfeit Via Comprehensive Artifacts Elimi-nation. IEEE TDSC , 1–18. [47] Li, S.; He, C.; Liu, X.; Zhou, J. T.; Peng, X.; and Hu, P. 2025. Learning with Noisy Triplet Correspondence for Composed Image Retrieval. In CVPR , 19628–19637. [48] Liu, M.; Wang, X.; Nie, L.; He, X.; Chen, B.; and Chua, T.-S. 2018. Attentive moment retrieval in videos. In ACM SIGIR , 15–24. [49] Hu, Y.; Liu, M.; Su, X.; Gao, Z.; and Nie, L. 2021. Video moment localization via deep cross-modal hashing. IEEE TIP , 30: 4667–4677. [50] Liu, M.; Wang, X.; Nie, L.; Tian, Q.; Chen, B.; and Chua, T.-S. 2018. Cross-modal moment localization in videos. In 
+
+ACM MM , 843–851. [51] Hu, Y.; Wang, K.; Liu, M.; Tang, H.; and Nie, L. 2023. Se-mantic collaborative learning for cross-modal moment lo-calization. ACM TOIS , 42(2): 1–26. [52] Liu, F.; Liu, Y.; Chen, H.; Cheng, Z.; Nie, L.; and Kankan-halli, M. 2025. Understanding Before Recommendation: Se-mantic Aspect-Aware Review Exploitation via Large Lan-guage Models. ACM TOIS , 43(2). [53] Liu, P.; Wang, X.; Cui, Z.; and Ye, W. 2025. Queries Are Not Alone: Clustering Text Embeddings for Video Search. In SIGIR , 874–883. [54] Wen, H.; Zhang, X.; Song, X.; Wei, Y.; and Nie, L. 2023. Target-guided composed image retrieval. In ACM MM , 915– 923. [55] Li, Z.; Chen, Z.; Wen, H.; Fu, Z.; Hu, Y.; and Guan, W. 2025. ENCODER: Entity Mining and Modification Relation Binding for Composed Image Retrieval. In AAAI .[56] Chen, Z.; Hu, Y.; Li, Z.; Fu, Z.; Wen, H.; and Guan, W. 2025. HUD: Hierarchical Uncertainty-Aware Disambigua-tion Network for Composed Video Retrieval. In ACM MM ,6143–6152. ACM. [57] Chen, Z.; Hu, Y.; Li, Z.; Fu, Z.; Song, X.; and Nie, L. 2025. OFFSET: Segmentation-based Focus Shift Revision for Composed Image Retrieval. In ACM MM , 6113–6122. ACM. [58] Mu, C.; Yang, E.; and Deng, C. 2025. Meta-Guided Adap-tive Weight Learner for Noisy Correspondence. In ACM SIGIR , 968–978. [59] Zha, Q.; Liu, X.; Cheung, Y.-m.; Peng, S.-J.; Xu, X.; and Wang, N. 2025. UCPM: Uncertainty-Guided Cross-Modal Retrieval with Partially Mismatched Pairs. IEEE TIP .[60] Wu, H.; Gao, Y.; Guo, X.; Al-Halah, Z.; Rennie, S.; Grau-man, K.; and Feris, R. 2021. Fashion iq: A new dataset to-wards retrieving images by natural language feedback. In 
+
+CVPR , 11307–11317. [61] Guo, X.; Wu, H.; Cheng, Y.; Rennie, S.; Tesauro, G.; and Feris, R. S. 2018. Dialog-based Interactive Image Retrieval. In NeurIPS , 676–686. MIT Press. [62] Song, Z.; Luo, R.; Ma, L.; Tang, Y.; Chen, Y.-P. P.; Yu, J.; and Yang, W. 2025. Temporal Coherent Object Flow for Multi-Object Tracking. In AAAI , volume 39, 6978–6986. [63] Zhou, S.; Yuan, Z.; Yang, D.; Hu, X.; Qian, J.; and Zhao, Z. 2025. Pillarhist: A quantization-aware pillar feature encoder based on height-aware histogram. In CVPR , 27336–27345. [64] Liu, J.; Wang, G.; Ye, W.; Jiang, C.; Han, J.; Liu, Z.; Zhang, G.; Du, D.; and Wang, H. 2024. DifFlow3D: Toward Ro-bust Uncertainty-Aware Scene Flow Estimation with Itera-tive Diffusion-Based Refinement. In CVPR , 15109–15119. [65] Liu, J.; Ye, W.; Wang, G.; Jiang, C.; Pan, L.; Han, J.; Liu, Z.; Zhang, G.; and Wang, H. 2025. DifFlow3D: Hierarchi-cal Diffusion Models for Uncertainty-Aware 3D Scene Flow Estimation. IEEE TPAMI .[66] Jiang, K.; Dong, H.; Kang, Z.; Zhu, Z.; and Song, G. 2026. FoE: Forest of Errors Makes the First Solution the Best in Large Reasoning Models. arXiv:2604.02967. [67] Gao, D.; Lu, S.; Walters, S.; Zhou, W.; Chu, J.; Zhang, J.; Zhang, B.; Jia, M.; Zhao, J.; Fan, Z.; et al. 2024. EraseAny-thing: Enabling Concept Erasure in Rectified Flow Trans-formers. arXiv preprint arXiv:2412.20413 .[68] Song, Z.; Luo, R.; Yu, J.; Chen, Y.-P. P.; and Yang, W. 2023. Compact transformer tracker with correlative masked mod-eling. In AAAI , volume 37, 2321–2329. [69] Yu, Z.; Idris, M. Y. I.; and Wang, P. 2025. Visualizing Our Changing Earth: A Creative AI Framework for Democratiz-ing Environmental Storytelling Through Satellite Imagery. In NeurIPS .[70] Liao, B.; Zhao, Z.; Chen, L.; Li, H.; Cremers, D.; and Liu, P. 2024. GlobalPointer: Large-Scale Plane Adjustment with Bi-Convex Relaxation. In ECCV , 360–376. Springer. [71] Zhang, F.; Chen, G.; Wang, H.; Li, J.; and Zhang, C. 2023. Multi-scale video super-resolution transformer with polyno-mial approximation. IEEE TCSVT , 33(9): 4496–4506. [72] Bi, J.; Wang, Y.; Chen, H.; Xiao, X.; Hecker, A.; Tresp, V.; and Ma, Y. 2025. LLaVA steering: Visual instruction tuning with 500x fewer parameters through modality linear representation-steering. In ACL , 15230–15250. [73] Li, H.; Zhao, J.; Bazin, J.-C.; Kim, P.; Joo, K.; Zhao, Z.; and Liu, Y.-H. 2023. Hong kong world: Leveraging structural regularity for line-based slam. IEEE TPAMI , 45(11): 13035– 13053. [74] Zhou, S.; Li, L.; Zhang, X.; Zhang, B.; Bai, S.; Sun, M.; Zhao, Z.; Lu, X.; and Chu, X. 2024. LiDAR-PTQ: Post-Training Quantization for Point Cloud 3D Object Detection. [75] Yu, Z.; and Chan, C. S. 2025. Yielding unblemished aes-thetics through a unified network for visual imperfections removal in generated images. AAAI , 39(9): 9716–9724. [76] Zhou, S.; Zhang, X.; Chu, X.; Zhang, B.; Zhao, Z.; and Lu, X. 2025. FastPillars: A Deployment-friendly Pillar-based 3D Detector. IEEE TCSVT .[77] Wang, H.; Lu, J.; and Zhang, F. 2026. EEO-TFV: Escape-Explore Optimizer for Web-Scale Time-Series Forecasting and Vision Analysis. arXiv preprint arXiv:2602.02551 .[78] Wang, H.; and Zhang, F. 2024. Computing nodes for plane data points by constructing cubic polynomial with con-straints. Computer Aided Geometric Design , 111: 102308. [79] Liu, J.; Wang, G.; Liu, Z.; Jiang, C.; Pollefeys, M.; and Wang, H. 2023. RegFormer: an efficient projection-aware transformer network for large-scale point cloud registration. In ICCV , 8451–8460. [80] Feng, C.; and Patras, I. 2023. MaskCon: Masked Contrastive Learning for Coarse-Labelled Dataset. In CVPR .[81] Wen, J.; Cui, J.; Zhao, Z.; Yan, R.; Gao, Z.; Dou, L.; and Chen, B. M. 2023. SyreaNet: A Physically Guided Under-water Image Enhancement Framework Integrating Synthetic and Real Images. In IEEE ICRA , 5177–5183. [82] Yu, Z.; Wang, J.; and Idris, M. Y. I. 2025. IIDM: Improved implicit diffusion model with knowledge distillation to es-timate the spatial distribution density of carbon stock in re-mote sensing imagery. KBS , 115131. [83] Song, Z.; Yu, J.; Chen, Y.-P. P.; and Yang, W. 2022. Trans-former tracking with cyclic shifting window attention. In 
+
+CVPR , 8791–8800. [84] Wang, Y.; Bi, J.; Ma, Y.; and Pirk, S. 2025. ASCD: Attention-Steerable Contrastive Decoding for Reducing Hallucination in MLLM. arXiv preprint arXiv:2506.14766 .[85] Yu, X.; Xu, C.; Chen, Z.; Zhang, Y.; Lu, S.; Yang, C.; Zhang, J.; Yan, S.; and Hu, X. 2025. Visual Document Understand-ing and Reasoning: A Multi-Agent Collaboration Frame-work with Agent-Wise Adaptive Test-Time Scaling. arXiv preprint arXiv:2508.03404 .[86] Song, Z.; Tang, Y.; Luo, R.; Ma, L.; Yu, J.; Chen, Y.-P. P.; and Yang, W. 2024. Autogenic language embedding for co-herent point tracking. In ACM MM , 2021–2030. [87] Zhang, F.; Chen, G.; Wang, H.; and Zhang, C. 2024. CF-DAN: Facial-expression recognition based on cross-fusion dual-attention network. Computational Visual Media , 10(3): 593–608. [88] Dong, H.; Jiang, K.; Ye, H.; Zhu, W.; Kang, Z.; and Song, G. 2026. NeuReasoner: Towards Explainable, Con-trollable, and Unified Reasoning via Mixture-of-Neurons. arXiv:2604.02972. [89] Feng, C.; Tzimiropoulos, G.; and Patras, I. 2024. CLIP-Cleaner: Cleaning Noisy Labels with CLIP. In ACM MM .[90] Hu, Y.; Song, Z.; Feng, N.; Luo, Y.; Yu, J.; Chen, Y.-P. P.; and Yang, W. 2025. SF2T: Self-supervised Fragment Finetuning of Video-LLMs for Fine-Grained Understand-ing. arXiv preprint arXiv:2504.07745 .[91] Zhang, Y.; Shaik, F. A.; Acharjee, S.; Khalid, F.; and Ous-salah, M. 2026. Towards Reliable Multimodal Disaster Severity Assessment through Preference Optimization and Explainable Vision-Language Reasoning. Reliability Engi-neering & System Safety , 112674. [92] Bi, J.; Yan, D.; Wang, Y.; Huang, W.; Chen, H.; Wan, G.; Ye, M.; Xiao, X.; Schuetze, H.; Tresp, V.; et al. 2025. CoT-Kinetics: A Theoretical Modeling Assessing LRM Reason-ing Process. arXiv preprint arXiv:2505.13408 .[93] Bi, J.; Wang, Y.; Yan, D.; Aniri; Huang, W.; Jin, Z.; Ma, X.; Hecker, A.; Ye, M.; Xiao, X.; Schuetze, H.; Tresp, V.; and Ma, Y. 2025. PRISM: Self-Pruning Intrinsic Selec-tion Method for Training-Free Multimodal Data Selection. arXiv:2502.12119. [94] Jiang, L.; Wang, X.; Zhang, F.; and Zhang, C. 2025. Trans-forming time and space: efficient video super-resolution with hybrid attention and deformable transformers. The Vi-sual Computer , 1–12. [95] Li, W.; Zhou, H.; Yu, J.; Song, Z.; and Yang, W. 2024. Coupled mamba: Enhanced multimodal fusion with coupled state space model. NeurIPS , 37: 59808–59832. [96] Meng, C.; Luo, J.; Yan, Z.; Yu, Z.; Fu, R.; Gan, Z.; and Ouyang, C. 2026. Tri-Subspaces Disentanglement for Mul-timodal Sentiment Analysis. CVPR .[97] Zhou, S.; Yuan, Z.; Yang, D.; Zhao, Z.; Hu, X.; Shi, Y.; Lu, X.; and Wu, Q. 2024. Information Entropy Guided Height-aware Histogram for Quantization-friendly Pillar Feature Encoder. arXiv preprint arXiv:2405.18734 .[98] Song, Z.; Yu, J.; Chen, Y.-P. P.; Yang, W.; and Wang, X. 2026. Hypergraph-State Collaborative Reasoning for Multi-Object Tracking. arXiv:2604.12665. [99] Dong, H.; Zhu, W.; Song, G.; and Wang, L. 2025. AuroRA: Breaking Low-Rank Bottleneck of LoRA with Nonlinear Mapping. In NeurIPS .[100] Radford, A.; Kim, J. W.; Hallacy, C.; Ramesh, A.; Goh, G.; Agarwal, S.; Sastry, G.; Askell, A.; Mishkin, P.; Clark, J.; et al. 2021. Learning transferable visual models from natural language supervision. In ICML , 8748–8763. PMLR. [101] Li, J.; Li, D.; Savarese, S.; and Hoi, S. 2023. Blip-2: Boot-strapping language-image pre-training with frozen image encoders and large language models. In ICML , 19730– 19742. PMLR. [102] Zhang, M.; Li, Z.; Chen, Z.; Fu, Z.; Zhu, X.; Nie, J.; Wei, Y.; and Hu, Y. 2026. Hint: Composed image retrieval with dual-path compositional contextualized network. arXiv preprint arXiv:2603.26341 .[103] Qiu, G.; Chen, Z.; Li, Z.; Huang, Q.; Fu, Z.; Song, X.; and Hu, Y. 2026. MELT: Improve Composed Image Re-trieval via the Modification Frequentation-Rarity Balance Network. arXiv preprint arXiv:2603.29291 .[104] Chen, Y.; Zheng, Z.; Ji, W.; Qu, L.; and Chua, T.-S. 2024. Composed image retrieval with text feedback via multi-grained uncertainty regularization. ICLR .[105] He, C.; Zhu, H.; Hu, P.; and Peng, X. 2024. Robust Vari-ational Contrastive Learning for Partially View-unaligned Clustering. In ACM MM , 4167–4176. [106] Pu, R.; Sun, Y.; Qin, Y.; Ren, Z.; Song, X.; Zheng, H.; and Peng, D. 2025. Robust Self-Paced Hashing for Cross-Modal Retrieval with Noisy Labels. In AAAI , volume 39, 19969– 19977. [107] Lu, S.; Zhou, Z.; Lu, J.; Zhu, Y.; and Kong, A. W.-K. 2024. Robust watermarking using generative priors against image editing: From benchmarking to advances. arXiv preprint arXiv:2410.18775 .[108] Sun, Y.; Li, Y.; Ren, Z.; Duan, G.; Peng, D.; and Hu, P. 2025. Roll: Robust noisy pseudo-label learning for multi-view clustering with noisy correspondence. In CVPR , 30732– 30741. [109] Feng, C.; Tzimiropoulos, G.; and Patras, I. 2022. SSR: An Efficient and Robust Framework for Learning with Un-known Label Noise. In BMVC .[110] Feng, C.; Tzimiropoulos, G.; and Patras, I. 2024. NoiseBox: Towards More Efficient and Effective Learning with Noisy Labels. IEEE TCSVT .[111] Xu, S.; Sun, Y.; Li, X.; Duan, S.; Ren, Z.; Liu, Z.; and Peng, D. 2025. Noisy label calibration for multi-view classifica-tion. In AAAI , volume 39, 21797–21805. [112] He, C.; Xue, D.; Li, S.; Hao, Y.; Peng, X.; and Hu, P. 2026. Bootstrapping Multi-view Learning for Test-time Noisy Correspondence. In CVPR .[113] Sun, Y.; Qin, Y.; Li, Y.; Peng, D.; Peng, X.; and Hu, P. 2024. Robust multi-view clustering with noisy correspon-dence. IEEE TKDE , 36(12): 9150–9162. [114] Feng, Y.; Zhu, H.; Peng, D.; Peng, X.; and Hu, P. 2023. ROAD: Robust unsupervised domain adaptation with noisy labels. In ACM MM , 7264–7273. [115] Ye, A.; Wang, B.; Ni, C.; Huang, G.; Zhao, G.; Li, H.; Li, H.; Li, J.; Lv, J.; Liu, J.; et al. 2026. GigaWorld-Policy: An Efficient Action-Centered World–Action Model. arXiv preprint arXiv:2603.17240 .[116] Ni, C.; Zhao, G.; Wang, X.; Zhu, Z.; Qin, W.; Chen, X.; Jia, G.; Huang, G.; and Mei, W. 2025. Recondreamer-rl: Enhancing reinforcement learning via diffusion-based scene reconstruction. arXiv preprint arXiv:2508.08170 .[117] Ni, C.; Zhao, G.; Wang, X.; Zhu, Z.; Qin, W.; Huang, G.; Liu, C.; Chen, Y.; Wang, Y.; Zhang, X.; et al. 2025. Re-condreamer: Crafting world models for driving scene recon-struction via online restoration. In CVPR , 1559–1569. [118] Huang, Z.; Yang, M.; Xiao, X.; Hu, P.; and Peng, X. 2024. Noise-robust vision-language pre-training with positive-negative learning. IEEE TPAMI .[119] Ventura, L.; Yang, A.; Schmid, C.; and Varol, G. 2024. CoVR-2: Automatic Data Construction for Composed Video Retrieval. IEEE TPAMI .[120] Lyu, S.; Tian, Z.; Ou, Z.; Zhu, Y.; Zhang, X.; Ha, Q.; Luo, H.; and Song, M. 2025. TSVC: Tripartite Learning with Semantic Variation Consistency for Robust Image-Text Re-trieval. In AAAI , volume 39, 19269–19277. [121] Hu, P.; Huang, Z.; Peng, D.; Wang, X.; and Peng, X. 2023. Cross-modal retrieval with partially mismatched pairs. IEEE TPAMI , 45(8): 9595–9610. [122] Qin, Y.; Chen, Y.; Peng, D.; Peng, X.; Zhou, J. T.; and Hu, P. 2024. Noisy-correspondence learning for text-to-image person re-identification. In CVPR , 27197–27206. [123] Ester, M.; Kriegel, H.-P.; Sander, J.; Xu, X.; et al. 1996. A density-based algorithm for discovering clusters in large spatial databases with noise. In KDD , volume 96, 226–231. [124] Huang, Z.; Niu, G.; Liu, X.; Ding, W.; Xiao, X.; Wu, H.; and Peng, X. 2021. Learning with noisy correspondence for cross-modal matching. NeurIPS , 34: 29406–29419. [125] Liu, Z.; Opazo, C. R.; Teney, D.; and Gould, S. 2021. Image Retrieval on Real-life Images with Pre-trained Vision-and-Language Models. In ICCV , 2105–2114. IEEE. [126] Suhr, A.; Zhou, S.; Zhang, A.; Zhang, I.; Bai, H.; and Artzi, Y. 2019. A Corpus for Reasoning About Natural Language Grounded in Photographs. In ACL .

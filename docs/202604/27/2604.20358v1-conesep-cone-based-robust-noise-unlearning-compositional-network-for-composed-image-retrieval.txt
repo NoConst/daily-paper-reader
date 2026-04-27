@@ -1,0 +1,1261 @@
+Title: ConeSep: Cone-based Robust Noise-Unlearning Compositional Network for Composed Image Retrieval
+
+URL Source: https://arxiv.org/pdf/2604.20358v1
+
+Published Time: Thu, 23 Apr 2026 00:42:43 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+# ConeSep: Cone-based Robust Noise-Unlearning Compositional Network for Composed Image Retrieval 
+
+## Zixu Li 1 Yupeng Hu 1∗ Zhiwei Chen 1 Mingyu Zhang 1 Zhiheng Fu 1 Liqiang Nie 21Shandong University 2Harbin Institute of Technology (Shenzhen) 
+
+{lizixu.cs,zivczw,fuzhiheng8,nieliqiang }@gmail.com; mingyuzhang@mail.sdu.edu.cn,huyupeng@sdu.edu.cn https://github.com/Lee-zixu/ConeSep/ “Brown dog sits            
+
+> on its bed.”
+> Modification Text
+> Clean Sample
+> Reference Image Target Image
+> “One dog sitting
+> on a bed looking
+> at the camera.”
+> Modification Text
+> Partial Match Sample
+> Reference Image Target Image
+> “has a salty shaker
+> in up -left side”
+> Modification Text
+> Hard Noisy Sample
+> Reference Image Target Image
+> Density
+
+0 10.5 
+
+Loss Value  
+
+> Wrong Division
+
+(b1) Modality 
+
+Suppression 
+
+(b2) Negative 
+
+Anchor Deficiency 
+
+(b3) Unlearning 
+
+Backlash 
+
+Opposition 
+
+Push 
+
+Ripple 
+
+Effect 
+
+(a) Training Samples in the NTC setting 
+
+(b) NTC Challenge Visualization  
+
+> Clean
+> NTC
+> Better Division
+> NTC
+
+Where to push? 
+
+> Clean
+> Push
+> Pull
+
+Figure 1. (a) illustrates examples of “Clean Sample”, “Partial Match Sample” and “Hard Noisy Sample” within the NTC scenario. (b) illustrates the three challenges that current CIR methods face in the NTC scenario, including (b1) Modality Suppression, (b2) Negative Anchor Deficiency, and (b3) Unlearning Backlash. 
+
+## Abstract 
+
+The Composed Image Retrieval (CIR) task provides a flex-ible retrieval paradigm via a reference image and modi-fication text, but it heavily relies on expensive and error-prone triplet annotations. This paper systematically inves-tigates the Noisy Triplet Correspondence (NTC) problem introduced by annotations. We find that NTC noise, par-ticularly “hard noise” (i.e., the reference and target im-ages are highly similar but the modification text is incor-rect), poses a unique challenge to existing Noise Corre-spondence Learning (NCL) methods because it breaks the traditional “small loss hypothesis”. We identify and eluci-date three key, yet overlooked, challenges in the NTC task, namely (C1) Modality Suppression , (C2) Negative Anchor  
+
+> ∗
+
+Corresponding Author: Yupeng Hu 
+
+Deficiency , and (C3) Unlearning Backlash . To address these challenges, we propose a Cone -based robu St nois E-unlearning com Positional network (ConeSep). Specifically, we first propose Geometric Fidelity Quantization , theoreti-cally establishing and practically estimating a noise bound-ary to precisely locate noisy correspondence. Next, we in-troduce Negative Boundary Learning , which learns a “di-agonal negative combination” for each query as its explicit semantic opposite-anchor in the embedding space. Finally, we design Boundary-based Targeted Unlearning , which models the noisy correction process as an optimal trans-port problem, elegantly avoiding Unlearning Backlash. Ex-tensive experiments on benchmark datasets (FashionIQ and CIRR) demonstrate that ConeSep significantly outperforms current state-of-the-art methods, which fully demonstrates the effectiveness and robustness of our method. 
+
+> arXiv:2604.20358v1 [cs.CV] 22 Apr 2026
+
+## 1. Introduction 
+
+Composed Image Retrieval (CIR) allows users to retrieval target image (tar) using a reference image (ref) and a mod-ification text (mod) , thereby achieving flexible image re-trieval [1–5] and gaining attention in computer vision [6– 16], semantic understanding [17–28] and multimodal learn-ing [29–44]. However, the performance of CIR highly re-lies on high-quality (ref, mod, tar) triplet data. Obtain-ing such data is costly and challenging due to annotation expenses [45, 46]. Both the subjective bias from manual annotation and the hallucination effects introduced by us-ing LVLMs [47–62] can lead to semantic inconsistency be-tween the modification text (mod) and the (ref, tar) image pair. Li et al. [1] recently define this problem systemati-cally as Noisy Triplet Correspondence (NTC), which aims to train robust CIR models in noisy environments. The NTC problem is intrinsically more complex than the widely studied Noisy Correspondence Learning (NCL) in other fields, particularly Noisy Dual Correspondence (NDC) [63–68]. Unlike NDC’s simple pair mismatch (image-text or video-text), NTC features a composite noise structure as shown in Figure 1(a), including partial match-ing (the mod matches only the ref or tar ) and hard noise (high ref/tar visual similarity despite an incorrect mod ). This unique noise structure makes it difficult for tradi-tional NDC methods, which rely on the “small-loss hypoth-esis” [1, 68], to effectively separate the noise. Hard noisy samples, in particular, may exhibit a small loss value due to the strong visual similarity between ref and tar , causing them to be incorrectly classified as clean samples. Existing NCL methods, including both the pioneering work in the NTC domain [1] and mature techniques in the NDC domain [68, 69], all demonstrate fundamental limitations when addressing NTC. Most of them follow the “identification-correction/suppression” paradigm. First, they rely on a coarse-grained mixed metric (such as a mixed loss or structural similarity) to partition clean and noisy data [1, 68, 70]. Then, they either correct the noisy samples (e.g., by generating pseudo labels [1, 71]) or suppress them (e.g., by using robust loss functions [69, 72]). However, we argue that this paradigm exposes three key, yet overlooked challenges within the NTC problem. 
+
+C1: Modality Suppression. In CIR, the query is com-posed of dense visual features ( ref ) and sparse semantic in-structions ( mod ). In hard noise triplets, the strong visual similarity between ( ref, tar ) tends to dominate the com-posed features, thereby suppressing the mod ’s weak mis-match signal. As shown in Figure 1 (b1), this phenomenon leads to a Coarse-grained Metric , making methods that rely on the mixed loss value to distinguish noise (e.g., TME’s GMM classifier) highly susceptible to misclassifying this hard noise as a clean sample. Consequently, these samples escape filtering and compromise model training. 
+
+C2: Negative Anchor Deficiency. The difficulty in identifying “hard noise” in C1 exposes a more general prob-lem: Even if some hard noise is successfully identified by chance, how should we handle this type of noise, which possesses a significant semantic gap? Common correction strategies attempt to pull back the noisy modification to-wards some pseudo-ground-truth direction, but the effec-tiveness of such correction is questionable and may even lead to semantic confusion. We argue that a more reason-able strategy might be Targeted Unlearning , which involves actively pushing the model away from the semantic direc-tion of that noisy modification. However, this immediately introduces a new challenge: where should the model be pushed away to? As shown in Figure 1 (b2), existing CIR frameworks (including TME) generally focus only on posi-tive alignment, thus lacking a structured negative semantic anchor or boundary to push away from. 
+
+C3: Unlearning Backlash. Even if we resolve C2 by defining a negative anchor for hard noisy samples and at-tempt to push them away during training, we must rec-ognize that the metric space is continuous and locally crowded. As shown in Figure 1(b3), this targeted unlearn-ing or push-away operation may produce a “ripple effect”, causing collateral damage to the representations of clean samples in the vicinity. This presents a fundamental trade-off that must be overcome for robust NTC learning: How can one execute precise unlearning while simultaneously avoiding damage to “healthy tissue”? To systematically address the three aforementioned chal-lenges, we require a feature space that enables fine-grained perception (for C1), structured repulsion (for C2), and avoids backlash (for C3). This requires us to not only define negative anchors but also to have a clear seman-tic decision boundary. Inspired by this, we propose a 
+
+Cone -based robu St nois E-unlearning com Positional net-work (ConeSep), which consists of three logically progres-sive modules: (a) Geometric Fidelity Quantization (GFQ) ,which mitigates the impact of modality suppression (C1) on noise determination through noise boundary estimation; (b) Negative Boundary Learning (NBL) , which resolves the negative anchor deficiency problem of C2 by learning a di-agonal negative combination ; (c) Boundary-based Targeted Unlearning (BTU) , which models the correction process as an optimal transport problem, elegantly circumventing the unlearning backlash problem of C3. Detailed descriptions are provided in Sec. 3, Methodology .In summary, our contributions include: • We identify and systematically articulate triple challenges of NTC problem in CIR, including modality suppression, negative anchor deficiency, and unlearning backlash. • We propose ConeSep, a novel three-stage framework based on Cone-space Geometry, which provides an inno-vative solution for the NTC problem. • Extensive experiments on two CIR benchmark datasets demonstrate that our proposed ConeSep significantly out-performs current SOTA methods under various noise ra-tios, demonstrating its superiority. 
+
+## 2. Related Work 
+
+CIR with Noisy Correspondence. Composed Image Re-trieval (CIR), valued for capturing complex user inten-tions [1, 2, 48], has evolved from early fusion networks [73– 75] to modern Vision Language Pretraining (VLP) models like CLIP [76], BLIP [77], and BLIP-2 [78]. Research on CIR is expected to contribute to various applications, such as semantic understanding [79–86], multimodal re-trieval [87–100]. However, most studies assume accurate triplet correspondence. In reality, large-scale datasets con-tain significant Noisy Triplet Correspondence (NTC) from collection and annotation errors. NTC is more complex than traditional noisy label problems [68] and severely impacts robustness. While recent work addresses NTC via sample selection or realignment [1], these methods only focus on discriminative robustness during new knowledge acquisi-tion. They crucially fail to handle noisy samples that model has already learned, limiting performance. 
+
+Machine Unlearning. Machine Unlearning (MU) aims to modify a model to remove specific data’s influence, emu-lating retraining from scratch [101–104]. Due to the high cost of exact unlearning, research focuses on efficient ap-proximate methods [105, 106]. MU research falls into two categories. First, Unimodal Unlearning targets specific im-age classes or data points [107, 108] or uses Gradient As-cent (GA) in LLMs to forget harmful knowledge [109–113]. These methods forcibly push away the feature representa-tions of targeted samples. Second, Multimodal Unlearning 
+
+is a more nascent field [114, 115], addressing cross-modal categories or generative models [116], but is often limited by the complexities of modality heterogeneity. A key issue is that current methods, such as Gradient Ascent, rely on local, non-targeted “push away” operations. This vulner-ability leads to “Unlearning BackLash,” where correcting one error damages knowledge of surrounding clean sam-ples. In contrast, our proposed ConeSep avoids this blind “push away.” It uses optimal transport to find a smooth, op-timal path, shifting the probability distribution from a noisy sample to a newly defined inverse semantic boundary. This achieves targeted unlearning of hard noise without drastic feature space perturbations, thereby fundamentally circum-venting unlearning backlash. 
+
+## 3. Methodology 
+
+As a core innovation, our proposed ConeSep is designed to construct a closed-loop system capable of actively per-ceiving, structurally modeling, and precisely “unlearning” noise. As shown in Figure 2, ConeSep consists of three log-ically modules, namely: (a) Geometric Fidelity Quantiza-tion (GFQ, detailed in Section 3.2), (b) Negative Boundary Learning (NBL, detailed in Section 3.3), and (c) Boundary-based Targeted Unlearning (BTU, detailed in Section 3.4). In this section, we first provide the problem definition and them elaborate on each module of ConeSep. 
+
+3.1. Problem Formulation 
+
+Composed Image Retrieval (CIR) is a task designed to retrieve the target image that matches a multimodal query [117–121]. However, CIR datasets in practical appli-cations often contain annotation noise, a situation referred to as Noisy Triplet Correspondence (NTC) . We follow the experimental setup of TME [1] and simulate noisy scenar-ios by sampling subsets based on a noise rate σ and ran-domly shuffling the samples. Given a set of triplets with NTC, T = {⟨ xr , x m, x t⟩n}Nn=1 , our goal is to learn a ro-bust embedding function G, which maps the multimodal query (xr , x m) and its corresponding target image xt into a shared metric space such, denoted as G(xr , x m) → G (xt).
+
+3.2. Geometric Fidelity Quantization (GFQ) 
+
+To address the challenge of modality suppression, we de-sign the Geometric Fidelity Quantization (GFQ) module. This module is based on the theory of noise boundary and utilizes the geometric separability of the cone space to explicitly localize the geometric noise boundary, thereby quantifying the matching fidelity of each sample. 
+
+Feature Extraction. Following previous works [1, 48], we utilize the Q-Former from BLIP-2 [78] to extract the mul-timodal composed feature Fc and the target image feature 
+
+Ft, formalized as follows,        
+
+> Fc=Pc(Q-F (Φ I(xr),ΦT(xm))) ,Ft=Pt(Q-F (Φ I(xt))) ,(1)
+
+where Fc, Ft ∈ RQ×D are the multimodal composed fea-ture and target feature, respectively. Q-F is the Q-Former, Q
+
+is the number of learnable queries in the Q-Former, and D
+
+is the embedding dimension. ΦI and ΦT are the image en-coder and text tokenizer, respectively, and Pc and Pt are the composed query mapping layer and the target image map-ping layer, respectively. xr , xm, and xt are the reference image, modification text, and the corresponding target im-age, respectively. 
+
+Fidelity Quantization. To mitigate the issue of inaccurate noise judgment caused by modality suppression, we first identify a boundary that can accurately distinguish noise samples and then quantize the fidelity of the training sam-ples. Specifically, we employ a random sampling method to estimate the similarity boundary B. Specifically, we per-form K Gaussian samplings xGr,k , x Gt,k ∼ N (0 , 1) for the reference image and the target image, and randomly sam-ple the modification text xGm,k within the batch. Then, we (b) Negative Boundary Learning (NBL) 
+
+(c) Boundary -based Targeted 
+
+Unlearning (BTU) 
+
+(a) Geometric Fidelity Quantization (GFQ)    
+
+> Q-Former
+> Visual
+> Encoder
+> Visual
+> Encoder
+> Tokenizer
+> Candidate Image
+> Reference Image
+> “Shows mobile
+> intended for a
+> baby instead of
+> for adults.”
+> Modification Text
+> Training Batch
+> Q-Former
+
+𝐅 !
+
+𝐅 "
+
+ctex  
+
+> cross -section
+> Frequency
+> Sims of NTC Samples
+> 0
+> Frequency
+> Sims of Clean Samples
+> 0
+> Sims of Clean Samples
+> Sims of NTC Samples
+> 0Frequency
+> Cross -section
+
+How can I separate 
+
+NTC samples? Boundary Calculation                 
+
+> Gaussian Sampling
+> Gaussian  Ref.
+> Random
+> Text
+> Gaussian  Tar. Compose
+> Geometric Shift (GS)
+> There must be values to
+> separate samples.
+> Fidelity Quantization
+> 𝐛 =Sim −GS !∗
+> 1−Sim −GS !
+> Sims of NTC Samples
+> Sims of Clean Samples
+> Separate
+> Learnable Query Clean Samples
+> 0
+> Firstly, I need to learn
+> the CIR knowledge ℒ!"#$%&
+> sim (𝐅 ',𝐅 &)
+
+𝐅 !
+
+𝐅 "
+
+Pull 
+
+CIR Knowledge Learning    
+
+> sim (𝐅 ",𝐅 #)sim (𝐅 $,𝐅 #)
+
+c
+
+> Sinkhorn
+> OT
+> Unlearning
+> Label
+> ℒ$(
+
+Where is the 
+
+negative composition ?  
+
+> Negative Query
+> Ref. Img .Mod. Text.
+> Q-Former
+> Diagonal Negative
+> Composition
+> Negative Input
+
+𝐅 !
+
+> Target -oriented Learning
+
+𝐅 !
+
+𝐅 "
+
+> ℒ)*&+!
+
+-1
+
+-1
+
+-1
+
+-1
+
+1 1 1
+
+1 11
+
+1 1 1
+
+1 1 1       
+
+> “I push the negative
+> direction”
+> Query -oriented Learning
+> “I must know the
+> boundary”
+> [sim (𝐅 !,𝐅 ")−upper ]#
+> +[Lower −sim (𝐅 !,𝐅 ")]#
+> ℒ!"#$%
+> Opposition  Push
+
+𝐅 !
+
+𝐅 #
+
+𝐅 "   
+
+> ℒ!"#$%
+> I still need to keep
+> the negative
+> composition.
+> But, I've learnt some NTC samples,
+> and I need to unlearn them.
+
+Targeted Unlearning 
+
+C
+
+N
+
+C
+
+N
+
+C
+
+N
+
+C
+
+N    
+
+> Separate
+> sim (𝐅 ",𝐅 #)sim (𝐅 $,𝐅 #)
+> Original
+> Sims
+> Negative
+> Boundary
+> Sims of NTC Samples
+> Sims of Clean Samples
+> 0
+> Unlearn
+> Set
+> Negative
+> Boundary Path
+> Positive
+> Alignment Path
+> ℒ!"#$%&
+> learn the CIR knowledge
+
+Figure 2. The proposed ConeSep consists of three primary modules: (a) Geometric Fidelity Quantization, (b) Negative Boundary Learning, and (c) Boundary-based Targeted Unlearning. In (a), we visualize the similarity cone effect, where the x and y axes denote the similarity scores of clean samples and NTC samples, respectively, and the z axis shows the frequency distribution of these similarity values. The light green region in the figure forms a distinctly cone-shaped space. 
+
+perform feature extraction on these samples via Eq.(1) and calculate their average cosine similarity as the estimation of boundary B, formulated as, 
+
+B=
+
+PKj=1 s(Pc(Q-F (Φ I(xGr,k ),ΦT(xGm,k ))) , Pt(Q-F (Φ I(xGt,k )))) 
+
+K ,
+
+(2) 
+
+where s(·) is the cosine similarity, and the remaining sym-bols share the same definitions as in Eq.(1). Based on the boundary B, we define the following fidelity measure func-tion F(Fc, Ft), which quantifies the fidelity of a sample be-ing a matching sample, formulated as, 
+
+F(Fc,Ft)=( ReLU (sct −B)) 2 ·(ReLU (sct −B)−1) , (3) where ReLU (·)=[ ·]+ and sct =cos( Fc, Ft). A larger value of F(Fc, Ft) indicates that the sample is more likely to be a clean sample. Finally, we set a fidelity threshold ω to divide the batch samples into a high fidelity clean set Tclean =
+
+{⟨ xr , x m, x t⟩b|F (Fc,b , Ft,b ) ≥ ω} and a low fidelity noise set Tnoisy = {⟨ xr , x m, x t⟩b|F (Fc,b , Ft,b ) < ω }.
+
+3.3. Negative Boundary Learning (NBL) 
+
+To address the challenge of missing negative anchors, we introduce the Negative Boundary Learning (NBL) mod-ule. Specifically, we propose a dual path learning strat-egy: Positive Alignment Path is designed to the standard CIR paradigm, and the Negative Boundary Learning Path 
+
+is dedicated to constructing structured negative boundaries. The design of these two paths is presented below. 
+
+Positive Alignment Path. First, we design this path to en-sure that the model consistently learns the core paradigm of CIR, which is promoting the composed feature Fc closer to its corresponding target image feature Ft for clean samples. Inspired by RCL [69], we adopt the Robust Contrastive Loss to reduce the influence of negative samples during the alignment process, thereby robustly pushing the composed feature closer to the target feature, formulated as, 
+
+Lrobust = − 1
+
+B
+
+BX
+
+i,j ̸ =i
+
+log(1 − exp  s(Fci , Ftj /τ PBj=1 exp  s(Fci , Ftj /τ  ), (4) 
+
+where τ is the temperature coefficient, B is the batch size, 
+
+s(·) is the cosine similarity function. Fic and Fit are the i-th composed feature and target image feature, respectively. 
+
+Negative Boundary Path. Then, we construct the this path to build a Diagonal Negative Composition Fneg for each composed query, which represents the semantic opposite of the query in the metric space, to serve as an orientation guide for pushing away noise boundaries. Specifically, we introduce a set of learnable negative prompt Pneg ∈ RQ×D
+
+and, similar to Eq.( 1), formulate the negative composed fea-ture Fneg i.e., Diagonal Negative Composition , as follows, 
+
+Fneg = Pc(Q-F (Pneg , ΦI(xr ),ΦT(xm))) . (5) Subsequently, we optimize the construction of the Diag-onal Negative Composition by focusing on moving it away from both the target feature and the composed feature. 
+
+Target-oriented Learning. This aims to shape Fneg as the “opposite” of Ft. Inspired by reverse matching strategy of Sigmoid Loss [122], we define a binary target matrix T,where Tij = 1 (when i = j) and Tij = −1 (when i̸ = j). The objective is that s(Fineg , Fjt ) approximates the inverse target −Tij . This strategy ensures that Diagonal Negative Composition Fneg moves away from its corresponding tar-get ( i = j) and close to all non-matching target images (i̸ = j). Thus, it becomes the opposite of corresponding query’s semantics in metric space, formulated as follows,         
+
+> Linter =
+> P
+> i∈T clean
+> PBj=1 log(1+ e(Tij ·s(Fineg ,Fjt)/τ ))
+> |T clean | · B.(6)
+
+Query-oriented Learning. Furthermore, the Diagonal Negative Composition Fneg should also be semantically op-posite to corresponding original composed feature Fc. We employ a relaxed similarity boundary that constrains simi-larity s(Fc, Fneg ) between Fc and Fneg to fall within a pre-set interval [α1, α 2] (where α1 is mean of similarities less than zero within batch samples, and α2 is the mean of simi-larities greater than zero within batch samples). This causes similarity to hover around 0, achieving an effect where two vectors are orthogonally distant, formulated as follows,       
+
+> Lintra =
+> P
+> i∈T clean [ReLU (sn+α1)+ ReLU (−α2−sn)]
+> |T clean |,(7)
+
+where sn = cos( Fic, Fineg ). Finally, the objective function for the NBL module is obtained as follows, 
+
+Θ∗ = arg min  
+
+> Θ
+
+(Lrank + ζLintra + νLinter ), (8) where Θ∗ represents the parameters of the NBL module be-ing optimized, and ζ and ν are hyperparameters. It is note-worthy that the objective function presented above is uti-lized only for N epochs during the initial warm-up phase. 
+
+3.4. Boundary-based Targeted Unlearning (BTU) 
+
+To avoid the “ripple effect” generated during the process of pushing away noise from harming the clean sample features in the space, we design the Boundary-based Targeted Un-learning (BTU) module. This module utilizes the diagonal negative composition Fneg learned by NBL as an anchor, and it performs precise targeted unlearning through Opti-mal Transport (OT) to prevent the “unlearning backlash”. Specifically, we utilize the low-fidelity noise set Tnoisy 
+
+obtained from the GFQ module as the objective for targeted unlearning. Simultaneously, we model the computation of the rationally forgotten label distribution as an B × 2B Op-timal Transport problem. For this purpose, we construct the joint cost matrix C = [ C+|C−], which considers the cost from any in-batch sample Fic to all “positive targets” (i.e., target image Fjt ) and “negative boundaries” (i.e., diagonal negative composition Fjneg ), where the costs C+ 
+
+> ij
+
+and C−
+
+> ij
+
+are formulated as follows, 
+
+C+ 
+
+> ij
+
+= 1 − s(Fic, Fjt ), C− 
+
+> ij
+
+= 1 − s(Fic, Fjneg ). (9) To avoid the unlearning process from harming neighbor-ing clean samples, we use the mask matrix M ∈ RB×2B to precisely sever specific transport paths. (1) For low-fidelity noise samples Tnoisy , we block their path flowing to the cor-responding positive target ( j=i); (2) For high-fidelity clean samples Tclean , we block their path flowing to the corre-sponding negative boundary ( j=i+B) to protect their posi-tive alignment. Formally, we set the mask value Mij for a 
+
+blocked path to 1 and the value for an unblocked path to 0.This mask M is subsequently used to generate the fi-nal targeted unlearning cost matrix Cmasked . We achieve the severing of blocked paths ( Mij = 1) by apply-ing an extremely large cost ( ∞), specifically defined as 
+
+[Cmasked ]ij = [ C]ij + Mij · ∞ . Based on this, our ob-jective is to solve for an optimal transport plan P ∈ RB×2B
+
+that minimizes the overall targeted transport cost from the composed feature Fc to the target image feature Ft and the negative boundary Fneg . Formally, this entropy-regularized OT objective is defined as, 
+
+min  
+
+> P∈Π( u,v)
+
+s(P, Cmasked ) − ϵH (P), (10) where s(·) is the cosine similarity function, P is the trans-port plan, H(P) is the entropy of P, Cmasked is the masked 
+
+B × 2B cost matrix, and ϵ is the entropy regularization pa-rameter. Π( u, v) represents the set of all valid transport plans that satisfy the source marginal distribution u ∈ RB
+
+and the target marginal distribution v ∈ R2B . This ob-jective function is quickly solvable through the efficient Sinkhorn-Knopp algorithm [127], iteratively finding the op-timal transport plan P∗.Subsequently, to preserve a strong supervisory signal and mitigate neighbor sample damage, we construct a smooth soft label Y which collectively targets forgetting and for-ward learning. The Y integrates the global optimal plan 
+
+P∗ from optimal transport (OT) and the original hard label 
+
+L ∈ RB×2B . The original hard label L contains ones on the diagonal, but for a row i in the set of noisy samples Tnoisy ,
+
+Li,i is set to zero and Li,i +B is set to one. The smooth soft label Y is formulated as follows, 
+
+Y = γ · P + (1 − γ) · L, (11) where γ is the balancing hyperparameter. Finally, we em-ploy the Kullback-Leibler (KL) divergence to define the tar-geted forgetting loss Lul , which is formulated as follows, 
+
+Lul = KL (log[ s(Fc, Ft), s (Fneg , Ft)] || Y). (12) Ultimately, we still require the model to learn the paradigm knowledge of CIR while maintaining the learning of negative composition. Thus, we integrate Lrobust (Eq.(4)) and Lintra (Eq.(7)) to obtain the final optimization objective of ConeSep as follows, 
+
+Ψ∗ = arg min  
+
+> Ψ
+
+(Lrobust + κLul + ζLintra ) , (13) where Ψ∗ is the optimization parameters of ConeSep, and 
+
+κ and ζ are hyperparameters. Table 1. Performance comparison on the FashionIQ validation set in terms of R@K(%). The best and sub-optimal results are highlighted in bold and underline, respectively.                                                                                                                                                                                                                                                                              
+
+> Noise Methods Dress Shirt Toptee Average
+> R@10 R@50 R@10 R@50 R@10 R@50 R@10 R@50 AVG. SSN [123] (AAAI’24) 34.36 60.78 38.13 61.83 44.26 69.05 38.92 63.89 51.40 CALA [124] (SIGIR’24) 42.38 66.08 46.76 68.16 50.93 73.42 46.69 69.22 57.96 SPRC [48] (ICLR’24) 49.18 72.43 55.64 73.89 59.35 78.58 54.92 74.97 64.85 0% TME [1] (CVPR’25) 49.73 71.69 56.43 74.44 59.31 78.94 55.15 75.02 65.09 HABIT [125] (AAAI’26) 49.99 72.38 56.62 74.68 59.51 78.53 55.38 75.20 65.29 INTENT [126] (AAAI’26) 50.32 72.10 56.32 74.93 59.28 78.45 55.31 75.16 65.24
+> ConeSep (Ours) 50.96 73.02 56.98 75.22 58.80 79.40 55.58 75.88 65.73
+> SSN [123] (AAAI’24) 22.61 45.56 27.87 48.58 31.82 55.28 27.43 49.81 38.62 CALA [124] (SIGIR’24) 29.05 51.36 35.28 56.23 36.05 58.24 33.46 55.28 44.37 SPRC [48] (ICLR’24) 39.81 62.22 48.58 66.29 50.48 70.58 46.29 66.36 56.33 20% TME [1] (CVPR’25) 49.03 70.35 55.84 73.16 57.22 78.23 54.03 73.91 63.97 HABIT [125] (AAAI’26) 49.63 71.34 55.67 73.19 58.14 78.32 54.48 74.28 64.38 INTENT [126] (AAAI’26) 49.32 71.43 55.32 73.57 58.01 78.46 54.22 74.49 64.36
+> ConeSep (Ours) 50.23 72.19 56.28 74.45 58.29 78.38 54.93 75.01 64.97
+> SSN [123] (AAAI’24) 15.27 33.71 23.36 41.61 22.79 42.94 20.47 39.42 29.95 CALA [124] (SIGIR’24) 20.77 40.95 29.69 46.57 27.03 46.81 24.83 44.78 34.80 SPRC [48] (ICLR’24) 35.94 57.16 42.25 61.63 44.98 64.76 41.06 61.19 51.12 50% TME [1] (CVPR’25) 46.26 68.27 53.09 71.88 55.07 76.59 51.47 72.25 61.86 HABIT [125] (AAAI’26) 47.33 69.71 53.72 72.55 56.51 77.00 52.52 73.09 62.80
+> INTENT [126] (AAAI’26) 47.99 71.24 52.78 72.48 56.79 76.23 52.52 73.32 62.92
+> ConeSep (Ours) 48.39 71.34 54.56 73.25 57.22 77.87 53.39 74.15 63.77
+> SSN [123] (AAAI’24) 11.16 25.24 16.98 30.72 17.03 32.64 15.05 29.53 22.29 CALA [124] (SIGIR’24) 14.28 30.59 19.73 35.82 19.48 36.10 17.83 34.41 26.00 SPRC [48] (ICLR’24) 28.41 50.77 36.21 54.37 35.90 59.06 33.51 54.03 43.77 80% TME [1] (CVPR’25) 41.45 64.35 47.30 68.20 51.25 73.23 46.67 68.60 57.63 HABIT [125](AAAI’26) 42.04 65.20 50.12 69.77 52.92 73.61 48.36 69.53 58.94 INTENT [126] (AAAI’26) 42.07 65.58 50.38 69.41 53.09 73.91 48.51 69.63 59.07
+> ConeSep (Ours) 43.33 66.01 51.23 70.35 53.19 74.55 49.25 70.30 59.77
+
+## 4. Experiments 
+
+This section presents the experiments conducted to evaluate the ConeSep and the corresponding analyses. Following the previous work [1, 126, 128], all ablation studies and param-eter sensitivity analyses are conducted under a noise rate of 
+
+σ = 0 .2.
+
+4.1. Experimental Settings 
+
+Datasets. Our experimental evaluation is conducted on two CIR benchmarks, including fashion-domain dataset Fash-ionIQ [45] and open-domain dataset CIRR [46]. 
+
+Evaluation Metrics. To evaluate the retrieval performance, we employ the widely-used Recall@K (R@K) as the core evaluation standard. For FashionIQ, we follow its standard metrics [45], reporting R@10 and R@50 for each of the three categories ( Dresses, Shirts, Tops&Tees ). For CIRR, we adopt R@ k (k=1, 5, 10 , 50 ) and R sub @k (k=1, 2, 3). 
+
+Implementation Details. Following previous works [1, 48], our ConeSep uses the BLIP-2 [78] model as its base architecture. ConeSep is trained using the AdamW opti-mizer with an initial learning rate of 1e − 5 for CIRR and 
+
+2e − 5 for FashionIQ, and a batch size of 128 . The number of random samples K = 4 and the temperature coefficient τ
+
+= 0.07 . The fidelity threshold ω=0.5, balancing parameter 
+
+γ = 0 .7, and loss hyperparameters {ζ, ν, κ }=0 .5. All ex-periments are conducted on one NVIDIA A40 GPU for 20 
+
+epochs. 
+
+4.2. Performance Comparison 
+
+To systematically evaluate the robustness and generaliza-tion capability of ConeSep in the NTC scenario, we con-duct comprehensive comparative experiments on the Fash-ionIQ and CIRR benchmarks, comparing ConeSep with ex-isting traditional CIR baselines and SOTA robust models. As shown in Table 1 and Table 2, our analysis reveals two main findings: 1) Traditional CIR methods (e.g., SSN [123], CALA [124], SPRC [48]) are highly sensitive to noise, and their performance declines sharply in high-noise en-vironments. Robust methods significantly outperform tra-ditional methods, and the performance gap widens as noise increases. This highlights the instability of traditional meth-ods in the NTC scenario and emphasizes the necessity of de-veloping robust models. 2) ConeSep exhibits the strongest robustness under all noise settings, comprehensively outper-forming all SOTA robust baselines, including HABIT [125], INTENT [126], and TME [1]. Notably, this performance advantage widens as the noise rate increases: on FashionIQ, ConeSep achieves gains over HABIT of 0.92 % (at 20% noise), 1.54 % (at 50% noise), and 1.41% on the AVG met-ric. A consistent pattern is observed on the CIRR dataset, with an improvement of + 0.69 % in the Avg(R@5, R sub @1) metric at 80% noise. These performance gains are attributed to the precise quantification of matching fidelity by Geo-metric Fidelity Quantization (GFQ), the structured seman-tic boundaries constructed by Negative Boundary Learning (NBL), and the precise targeted unlearning performed by Table 2. Performance comparison on the CIRR test set in terms of R@K(%) and R sub @K(%). The best and second-best results are highlighted in bold and underline, respectively. 
+
+Noise Methods R@K Rsub @K Avg(R@5, R sub @1) 
+
+K=1 K=5 K=10 K=50 K=1 K=2 K=3 SSN [123] (AAAI’24) 43.91 77.25 86.48 97.45 71.76 88.63 95.54 74.51 CALA [124] (SIGIR’24) 49.11 81.21 89.59 98.00 76.27 91.04 96.46 78.74 SPRC [48] (ICLR’24) 51.96 82.12 89.74 97.69 80.65 92.31 96.60 81.39 0% TME [1] (CVPR’25) 53.42 82.99 90.24 98.15 81.04 92.58 96.94 82.01 HABIT [125] (AAAI’26) 52.71 82.64 90.63 98.19 80.99 92.77 97.00 81.82 INTENT [126] (AAAI’26) 53.37 83.16 90.73 98.22 80.24 92.37 96.89 81.70 
+
+ConeSep (Ours) 53.06 83.45 90.60 98.34 81.23 92.62 97.24 82.34 
+
+SSN [123] (AAAI’24) 34.02 65.90 75.78 91.33 66.92 85.90 93.45 66.41 CALA [124] (SIGIR’24) 41.33 72.70 82.84 94.34 71.66 88.15 94.94 72.18 SPRC [48] (ICLR’24) 45.90 75.86 83.52 93.37 78.10 91.40 96.05 76.98 20% TME [1] (CVPR’25) 51.35 81.01 88.53 97.81 78.46 91.25 96.39 79.74 HABIT [125] (AAAI’26) 51.68 81.02 89.24 97.81 78.20 91.66 96.75 79.61 INTENT [126] (AAAI’26) 51.25 81.36 90.02 98.05 77.95 91.40 96.46 79.66 
+
+ConeSep (Ours) 52.29 82.19 89.98 98.19 78.66 91.76 96.75 80.43 
+
+SSN [123] (AAAI’24) 25.93 53.71 63.40 82.10 62.10 82.27 91.57 57.90 CALA [124] (SIGIR’24) 36.10 66.12 77.76 92.10 68.12 85.66 93.59 67.12 SPRC [48] (ICLR’24) 39.93 66.00 73.59 86.48 75.81 89.21 95.37 70.90 50% TME [1] (CVPR’25) 48.48 78.94 87.28 96.99 76.48 90.07 95.83 77.71 HABIT [125] (AAAI’26) 50.32 79.63 88.34 97.06 76.84 90.60 96.27 78.87 
+
+INTENT [126] (AAAI’26) 49.78 79.64 88.99 97.37 77.18 90.41 96.00 78.41 
+
+ConeSep (Ours) 51.28 80.46 88.46 97.49 77.04 91.04 96.60 78.75 SSN [123] (AAAI’24) 20.48 43.98 54.27 74.80 56.48 77.20 89.54 50.23 CALA [124] (SIGIR’24) 31.52 61.49 72.60 89.86 64.34 83.52 92.60 62.92 SPRC [48] (ICLR’24) 29.95 51.25 58.51 73.86 70.22 86.05 93.21 60.74 80% TME [1] (CVPR’25) 46.31 75.78 84.89 95.83 73.37 88.02 94.89 74.58 HABIT [125] (AAAI’26) 47.93 76.84 85.95 95.90 74.87 89.08 95.21 75.86 INTENT [126] (AAAI’26) 47.90 78.13 87.04 96.47 73.81 89.18 95.54 75.97 
+
+ConeSep (Ours) 48.00 78.53 87.01 97.40 74.22 89.52 95.42 76.38 
+
+Boundary-based Targeted Unlearning (BTU). These three components work synergistically to enhance the model’s discriminative power and robustness against hard noise dur-ing the dynamic optimization process. 
+
+Table 3. Ablation study on FashionIQ and CIRR datasets.                                                                                 
+
+> D# Deriv. FashionIQ-Avg CIRR-Avg R@10 R@50 R@K Rsub @K
+> (a) Geometric Fidelity Quantization (GFQ)
+> 1w/o random target 54.25 74.45 79.01 88.23 2w/o random reference 54.16 74.07 80.02 88.26 3w/o random mod 54.06 74.62 79.42 88.48 4w/o boundary 53.69 74.78 80.14 88.33 5w/o Fidelity 53.42 74.09 79.90 88.20
+> (b) Negative Boundary Learning (NBL)
+> 6w/o neg-tar y 53.98 74.96 79.74 88.16 7w/o neg-tar n 54.20 74.88 79.74 88.02 8w/o neg-tar 53.62 74.40 79.74 88.06 9w/o neg-query 54.29 74.35 79.94 87.91 10 w/o neg-prompt 54.77 74.49 78.94 87.95
+> (c) Boundary-based Targeted Unlearning (BTU)
+> 11 w/o negative 54.38 74.87 79.67 87.81 12 w/o OT 54.01 74.63 79.66 88.04 13 w/o Unlearn 53.13 74.02 79.72 87.75 14 w/o rank 52.31 73.39 79.00 87.03
+> ConeSep (Ours) 54.93 75.01 80.66 89.06
+
+4.3. Ablation Studies 
+
+To evaluate the efficacy of each innovative component in ConeSep , we conduct a series of comprehensive ablation studies on the FashionIQ and CIRR datasets in Table 3. We divide these variants into three groups: 
+
+G1: Geometric Fidelity Quantization Ablation. D#(1): w/o random tar , D#(2): w/o random ref , and D#(3): w/o random mod remove the three types of samples used to estimate the noise boundary B, respectively. D#(4): w/o boundary removes the boundary B from the fidelity calcu-lation (Eq.(3)). D#(5): w/o Fidelity completely removes the fidelity measure function F (Eq.(3)). G2: Negative Boundary Learning Ablation. D#(6): w/o neg-tar y (sets 
+
+T to all 1s), D#(7): w/o neg-tar n (sets T to all −1s), and 
+
+D#(8): w/o neg-tar (sets T to all 0s) verify the impact of different matching strategies in Target-Oriented Learning. 
+
+D#(9): w/o neg-query removes the Query-oriented Learn-ing (Lintra ). D#(10): w/o neg-prompt removes the core negative prompt vector ( Pneg ) used for learning the Diago-nal Negative Composition ( Fneg ). G3: Boundary-based Targeted Unlearning Ablation. D#(11): w/o negative 
+
+disables the effect of the Diagonal Negative Composition (Fneg ) on Optimal Transport. D#(12): w/o OT removes the Optimal Transport constraint. D#(13): w/o Unlearn re-moves the targeted forgetting loss function ( Lul ). D#(14): w/o rank removes the robust contrastive loss ( Lrobust ). We draw the following key conclusions from Table 3: 
+
+1) The integrity of the GFQ module is crucial, a fact val-idated by our ablation study. Systematically removing its core components, whether the random sampling strat-egy for the noise boundary B (D#1-D#3 ), the boundary’s participation in the fidelity calculation ( D#4 ), or the en-tire fidelity measure function F (D#5 ), results in a consis-tent downward trend across all performance metrics. This strongly indicates each component of GFQ is indispensable for its core design goal of penetrating modality suppres-sion. 2) The NBL module’s structural integrity is essential, as all ablation variants ( D#6-D#10 ) uniformly underper-form the full model. The performance drops from remov-ing either Target-oriented Learning (D#6-D#8 ) or Query-oriented Learning (D#9 ) confirms the value of NBL’s dual-path constraint for constructing structured negative bound-aries. Notably, the ablation in ( D#10 ) exhibits the most severe performance drop in this group, particularly on the CIRR dataset. This finding unequivocally demonstrates that explicitly learning the Diagonal Negative Composition as a dedicated negative anchor is central to properly anchoring the robust semantic space. 3) The mechanisms of the BTU module are highly synergistic. The removal of the founda-tional Robust Contrastive Loss ( Lrobust ) ( D#14 ) incurs the most significant performance drop among all variants, con-firming its fundamental role in suppressing noise and en-suring retrieval accuracy. Concurrently, removing the mod-ule’s specialized correction components—such as disabling the influence of Fneg on OT ( D#11 ), Optimal Transport it-self ( D#12 ), or the dedicated targeted unlearning loss ( Lul )(D#13 ), also causes clear performance degradation. This indicates that all parts of the BTU mechanism are mutually supportive; the Lrobust foundation and the specialized cor-rective elements (OT, Lul , Fneg guidance) are interlocking and collectively form core of targeted unlearning process. 
+
+4.4. Hyper-parameter sensitivity 
+
+We evaluate the parameter sensitivity of two key hyperpa-rameters ω and κ, as shown in Figure 3. a) GFQ fidelity threshold ω. As shown in subplot (a), the model perfor-mance improves as the value of ω increases, peaks at 0.5,and subsequently begins to decline. This trend indicates that excessively low ω values cause excessive noise samples to be incorrectly classified into the clean set ( Tclean ), which interferes with the core alignment learning. Conversely, ex-cessively high ω values cause excessive clean samples to be incorrectly classified into the noise set ( Tnoisy ), leading them to be excessively unlearned by the BTU module. b) BTU targeted forgetting loss weight κ. As shown in sub-plot (b), the model performance steadily increases as the κ
+
+weight increases, peaks at 0.5, and subsequently begins to decline. This trend confirms the necessity of the targeted forgetting loss ( Lul ) weight κ. A weight that is too low re-sults in insufficient correction for hard noise. Conversely, a weight that is too high produces over-correction when un-learning noisy samples, resulting in Unlearning Backlash, which affects the knowledge of surrounding clean samples. 0.2 0.4 0.5 0.6 0.8         
+
+> (a) Fidelity threshold ω
+> 64.7
+> 64.8
+> 64.9
+> FashionIQ Avg.
+> FashionIQ Avg.
+> CIRR Avg.
+> 0.1 0.3 0.5 0.7 0.9 1.1
+> (b) The parameter of Lul
+> 64.0
+> 64.5
+> 65.0
+> FashionIQ Avg.
+> FashionIQ Avg.
+> CIRR Avg.
+> 79.0
+> 79.5
+> 80.0
+> 80.5
+> CIRR Avg.
+> 79.0
+> 79.5
+> 80.0
+> 80.5
+> CIRR Avg.
+
+Figure 3. Sensitivity to (a) Fidelity threshold ω and (b) κ of Lul .
+
+4.5. Case Study 
+
+Figure 4 visually demonstrates ConeSep’s retrieval effec-tiveness, comparing its Top-5 results against the SOTA ro-bust model TME. In the FashionIQ example (Figure 4(a)), ConeSep successfully retrieves the Top-1 target image matching fine-grained composed semantic requirements (e.g., a lighter color, a solid body ), whereas TME over-relies on the reference image features. In the CIRR example (Figure 4(b)), ConeSep’s Top-1 result accurately captures complex spatial relationships, which TME fails to process. This improved performance is attributed to ConeSep’s ro-bust framework, which leverages cone effect geometry and targeted unlearning to mitigate noise from the NTC setting. This enhances the model’s precision in responding to fine-grained textual constraints without interference from irrele-vant reference features. FashionIQ  Multimodal Query   
+
+> Retrieve
+> “is plain blue and
+> more patterned at the
+> neckline and Is lighter
+> blue.”
+> Top -1Top -5Retrieval Results
+> ConeSep TME
+> CIRR
+> Multimodal Query
+> Retrieve
+> “Place a brown stool
+> to the left in front of
+> the cabinet.”
+> Top -1Top -5Retrieval Results
+> ConeSep TME
+
+Figure 4. Case Study on FashionIQ and CIRR. 
+
+## 5. Conclusion 
+
+In this paper, we investigated the NTC problem within the CIR task. We revealed that existing methods, relying on coarse-grained scalar metrics, struggle to address the three challenges of NTC, including Modality Suppression , Neg-ative Anchor Deficiency , and Unlearning Backlash . To ad-dress this problem, we proposed ConeSep. It constructed a closed-loop system via its three-stage components, uti-lizing geometric boundary and diagonal negative composi-tion to achieve precise perception and targeted “unlearning” of noise, while leveraging optimal transport to circumvent the unlearning backlash problem. Extensive experiments on two mainstream CIR benchmarks demonstrated that Cone-Sep significantly outperformed current state-of-the-art tech-niques across various noise ratios. ConeSep: Cone-based Robust Noise-Unlearning Compositional Network for Composed Image Retrieval 
+
+# Supplementary Material 
+
+This is the appendix of “ConeSep: Cone-based Robust Noise-Unlearning Compositional Network for Composed Image Retrieval”. • Appendix A : Sinkhorn-Knopp Algorithm for Targeted Unlearning • Appendix B : Datasets • Appendix C : Additional Quantitative Analyses 
+
+– Appendix C.1 : Efficiency Evaluation Analysis 
+
+– Appendix C.2 : Quantitative Analysis of Diagonal Negative Composition 
+
+– Appendix C.3 : Comparison of Sample Set Partition Purity 
+
+– Appendix C.4 : Additional Hyperparameter Analysis • Appendix D : Additional Ablation Study 
+
+– Appendix D.1 GFQ Sampling Ablation Studies • Appendix E : Algorithm of Training Procedure • Appendix F : More Qualitative Results 
+
+– Appendix F.1 : Qualitative Analyses of Diagonal Neg-ative Composition 
+
+– Appendix F.2 : NTC Identification Analysis 
+
+– Appendix F.3 : More Case Study 
+
+## A. Sinkhorn-Knopp Algorithm for Targeted Unlearning 
+
+In Section 3.4 of the main text, we formulate the boundary-based targeted unlearning as an entropy-regularized Opti-mal Transport (OT) problem (Eq. 10). Here, we provide the detailed derivation of the solution using the Sinkhorn-Knopp algorithm. 
+
+Problem Definition. We aim to find the optimal trans-port plan P∗ ∈ RB×2B that minimizes the transport cost regarding Cmasked while maximizing entropy. Following the notation in the main text, the objective is: 
+
+P∗ = arg min  
+
+> P∈Π( u,v)
+
+s(P, Cmasked ) − ϵH (P), (1) where s(P, Cmasked ) = ⟨P, Cmasked ⟩ =P 
+
+> ij
+
+Pij [Cmasked ]ij represents the total transport cost. The feasible set Π( u, v) is defined by the marginal constraints: 
+
+Π( u, v) = {P ∈ RB×2B 
+
+> +
+
+| P1 2B = u, P⊤1B = v}, (2) where u ∈ RB and v ∈ R2B are the source and tar-get marginal distributions (typically uniform, i.e., u = 
+
+> 1
+> B
+
+1B , v = 12B 12B ). 
+
+Lagrangian and Gibbs Kernel. To solve this con-strained optimization problem, we introduce Lagrange mul-tipliers α ∈ RB and β ∈ R2B for the marginal constraints. The Lagrangian is given by: 
+
+L(P, α, β) = X
+
+> ij
+
+Pij Cij + ϵ X
+
+> ij
+
+Pij (log Pij − 1) + α⊤(P1 − u) + β⊤(P⊤1 − v).
+
+(3) Taking the derivative with respect to Pij and setting it to zero: 
+
+∂L
+
+∂Pij 
+
+= Cij + ϵ log Pij + αi + βj = 0 . (4) Solving for Pij , we obtain the form of the optimal solution: 
+
+P∗ 
+
+> ij
+
+= exp 
+
+
+
+− αi
+
+ϵ
+
+
+
+exp 
+
+
+
+− Cij 
+
+ϵ
+
+
+
+exp 
+
+
+
+− βj
+
+ϵ
+
+
+
+. (5) We define the Gibbs Kernel matrix K as Kij =exp( −[Cmasked ]ij /ϵ ). By letting the scaling vectors be 
+
+ai = exp( −αi/ϵ ) and bj = exp( −βj /ϵ ), the optimal plan factorizes into: 
+
+P∗ = diag (a)Kdiag (b). (6) 
+
+Iterative Scaling Updates. The unknown scaling vec-tors a and b must be determined such that P∗ satisfies the marginal constraints. Substituting the factorization into the constraints yields: 
+
+a ⊙ (Kb ) = u, b ⊙ (K⊤a) = v. (7) These equations are solved via the Sinkhorn-Knopp fixed-point iteration. In each step t, we update: 
+
+a(t+1) ← uKb (t) , (8) 
+
+b(t+1) ← vK⊤a(t+1) , (9) where division is element-wise. The algorithm typically converges within 10-20 iterations. The final smooth trans-port plan P∗ is then used as the soft target Y (Eq. 11) to guide the targeted unlearning. 
+
+## B. Datasets 
+
+We evaluate the performance of ConeSep on two widely recognized benchmarks. The detailed descriptions are as follows: • FashionIQ [45] is a premier CIR benchmark dedicated to the fashion domain. It comprises 77,684 high-resolution fashion images and 30,134 annotated triplets. These triplets are explicitly categorized into three distinct sub-sets: Dresses , Shirts , and Tops&Tees . The primary chal-lenge of this dataset lies in its modification texts, which focus on describing fine-grained visual attribute manipu-lations (e.g., “change to V-neck” or “denser stripes”), re-quiring the model to capture subtle semantic differences. • CIRR [46] is a large-scale, open-domain benchmark with images derived from the classic NLVR2 [129] dataset. It contains a total of 21,552 unique images and 36,554 an-notated triplets. In contrast to FashionIQ, CIRR presents distinct challenges: (1) its images depict complex real-world scenes containing multiple objects; (2) the modi-fication texts involve not only attribute changes but also diverse compositional logic such as spatial relationships and object addition/deletion. Furthermore, to mitigate the issue of false negatives, CIRR provides a specific candi-date subset for each query during evaluation. 
+
+## C. Additional Quantitative Analysis 
+
+C.1. Efficiency Evaluation Analysis 
+
+To comprehensively evaluate the feasibility and cost-effectiveness of the model in practical scenarios, we em-ployed multi-dimensional evaluation metrics in Table 4 to conduct a detailed comparison of various methods. Specif-ically, FLOPs(G) quantifies the theoretical computational complexity during a single forward pass, while Param-eters(M) reflects the model’s parameter size and stor-age footprint. Regarding time and resource dimensions, 
+
+Test time(s/sample) records the average latency for pro-cessing a single query sample during inference, directly correlating with the real-world deployment experience; 
+
+Train Time(s/iteration) measures the time cost per iter-ation during training; and GPU Memory(MiB) indicates the peak GPU memory usage under a fixed batch size, reflecting hardware entry barriers. Furthermore, we in-corporate FashionIQ-Avg and CIRR-Avg as core perfor-mance indicators to comprehensively assess the Efficiency-Performance Trade-off. Comparative analysis based on the aforementioned met-rics demonstrates that ConeSep achieves improvements in both inference efficiency and retrieval performance while maintaining a comparable parameter scale and computa-tional load. Regarding model complexity, ConeSep ’s pa-rameter count ( 915 .69 M) and FLOPs ( 411 .51 G) are com-parable to the ordinary baseline SPRC and the robust base-line TME, indicating that the performance gains do not stem from a blind expansion of model scale. Notably, ConeSep exhibits superior efficiency during the inference phase, with a single-sample test time of only 0.0091 sec-onds. Benefiting from our core modules (GFQ, NBL, BTU) applying constraints solely during training without par-ticipating in inference calculations, ConeSep ’s inference speed is slightly faster than SPRC ( 0.011 s) and approxi-mately 13 .6× faster than TME ( 0.124 s). Regarding train-ing overhead, although introducing robustness constraints results in higher GPU memory usage ( 25807 MiB) and it-eration time ( 5.15 s) for ConeSep compared to the simple SPRC, our training efficiency is improved by approximately 
+
+34 .5% compared to the robust counterpart TME. Cru-cially, ConeSep exchanges reasonable training resources for significant performance returns, achieving the best re-trieval accuracy on both benchmark datasets (FashionIQ-Avg= 64 .97 %, CIRR-Avg= 80 .43 %). In summary, ConeSep successfully unifies SOTA-level robustness with inference efficiency, demonstrating substantial value for real-world deployment. 
+
+C.2. Quantitative Analysis of Diagonal Negative Composition 
+
+In order to further verify whether the “Diagonal Negative Composition” ( Fneg ) constructed by the Negative Bound-ary Learning (NBL) module truly serves as an effective negative anchor, we perform quantitative analyses on its geometric separability from the original composed feature (Fc). Specifically, we calculate the cosine similarity dis-tribution for all sample pairs (Fc, Fneg ) on the FashionIQ validation set and visualize it as a histogram and a Kernel Density Estimation (KDE) curve, as shown in Figure 5. Ob-serving this figure, we find that the similarity values exhibit extremely high concentration. The similarities for the vast majority of samples are tightly distributed within the narrow range of [0 , 0.1] , and the distribution peak significantly ap-proaches 0. This statistical result strongly demonstrates that 
+
+Fneg maintains a strictly Approximate Orthogonality rela-tionship with Fc in the high dimensional feature space. This phenomenon is consistent with the constraint optimization objective that we design through Lintra in the methodology section (Section 3.3), which is to force the learned negative anchor to be orthogonal to the query in terms of semantic direction. This orthogonality ensures that Fneg neither con-tains the query’s effective semantics (thus avoiding the loss of positive knowledge) nor overlaps with the target image features, thereby successfully constructing a clear, indepen-dent structured boundary that provides precise directional guidance for the Targeted Unlearning (BTU) module. 
+
+C.3. Comparison of Sample Set Partition Purity 
+
+In Section 3.2, we propose the Geometric Fidelity Quanti-zation (GFQ) module, which aims to distinguish the high-fidelity clean set ( Tclean ) from the low-fidelity noisy set (Tnoisy ) by estimating geometric noise boundaries. How-ever, our subsequent Boundary-based Targeted Unlearning Table 4. Comparison of computational complexity and efficiency among SPRC, TME, and ConeSep with its ablation variants.                                        
+
+> Type Method FLOPs(G) Parameters(M) GPU Memory(MiB) Test time(s/sample) Train Time(s/iteration) FashionIQ-Avg CIRR-Avg Ordinary SPRC 413.38 915.69 24478(bs=128) 0.011 2.624(bs=128) 56.33 76.98 Robust TME 405.2 915.68 12405(bs=128) 0.124 7.858(bs=128) 63.97 79.74
+> ConeSep (Ours) 411.51 915.69 25807(bs=128) 0.0091 5.15(bs=128) 64.97 80.43 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
+> Similarity Value
+> 0
+> 5
+> 10
+> 15
+> 20
+> Density
+> Histogram
+> KDE
+
+Figure 5. Visualization of the cosine similarity distribution be-tween the composed feature Fc and the learned diagonal negative composition Fneg . The distribution is highly concentrated around 0, indicating an orthogonal relationship. 
+
+(BTU) module does not directly treat the filtered Tclean 
+
+as absolute Ground Truth. Instead, it employs an optimal transport (OT) based soft correction mechanism. The core premise of this design is that, constrained by the “Modality Suppression” challenge, a portion of “hard noise” samples are theoretically inevitable within Tclean . These hard noise samples are instances where the reference image and the target image exhibit high visual similarity, but the modifi-cation text is incorrect. To validate this premise and simul-taneously evaluate the efficacy of our filtering strategy com-pared to existing methods, we conduct an in-depth quanti-tative analyses of the purity of Tclean in this section. Since real-world datasets lack Ground Truth annotations for Noisy Triplet Correspondence (NTC), we conduct ex-periments on the FashionIQ and CIRR datasets using syn-thetic noise settings based on σ ∈ { 0.2, 0.5, 0.8}. This setup allows us to precisely track which samples are arti-ficially injected noise. Figure 6 intuitively illustrates the composition of the sample set identified by the model as high fidelity. The blue region represents the genuinely clean samples that are correctly identified (Real Positive), while the pink region represents the noise triplets that are incor-rectly classified as clean samples (Wrong Positive, i.e., hard noise). The upper part of the figure shows the performance of our ConeSep at different noise rates, and the lower part shows the performance of TME [1], the current state-of-the-art robust baseline model. By observing Figure 6, we clearly find a significant dif-ference in noise resistance between ConeSep (upper part) CIRR-æ = 0 .2 FashionIQ-æ = 0 .2 CIRR-æ = 0 .5 FashionIQ-æ = 0 .5 CIRR-æ = 0 .8 FashionIQ-æ = 0 .8 
+
+> 100
+> 80
+> 60
+> 40
+> 20
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Percentage in  Tclean  (%)
+> Real Positive Wrong Positive
+> TME  ConeSep
+
+Figure 6. Quantitative analyses and comparison of the internal purity of the Tclean set. This figure demonstrates the composi-tion of the ”high-fidelity” set selected by the model under differ-ent initial noise rates σ. The blue bars (Real Positive) represent the genuine clean samples correctly identified, while the pink bars (Wrong Positive) represent the hard noise mistakenly classified as clean samples. The upper part shows our ConeSep model, and the lower part shows the TME baseline model. A smaller proportion of the pink area indicates a higher purity of the selected set. The results show that ConeSep maintains a high purity even under high noise and significantly outperforms TME. 
+
+and the baseline method TME (lower part). TME exhibits noticeable performance degradation in high-noise environ-ments. In the σ = 0 .8 setting, the pink region in its filtered set expands, even approaching the proportion of the blue region on FashionIQ. This indicates that the Gaussian Mix-ture Model (GMM) upon which TME relies cannot effec-tively distinguish samples that are visually similar but se-mantically inconsistent when facing substantial hard noise. In contrast, our ConeSep demonstrates superior robustness. Benefiting from the effective penetration of geometric noise boundary against Modality Suppression, the blue region re-mains dominant in ConeSep’s filtering results, even under extremely high noise interference. This strongly proves the effectiveness of the GFQ module in decouple features and noise identification, and the purity of its filtered samples is significantly better than existing SOTA methods. Although ConeSep’s filtering purity is clearly superior to others, a small amount of pink residue is still observable in the figure. This objectively reflects the inherent challenge of “hard noise” in the NTC task: some samples are dif-0.1 0.3 0.5 0.7 0.9 1.1 
+
+(a) The parameter ζ of Lintra      
+
+> 63.5
+> 64.0
+> 64.5
+> 65.0
+> FashionIQ Avg.
+> FashionIQ Avg.
+> CIRR Avg.
+> 0.1 0.3 0.5 0.7 0.9 1.1
+
+(b) The parameter ν of Linter     
+
+> 64.2
+> 64.4
+> 64.6
+> 64.8
+> 65.0
+> FashionIQ Avg.
+> FashionIQ Avg.
+> CIRR Avg.
+> 0.1 0.3 0.5 0.7 0.9
+
+(c) The balancing parameter γ
+
+> 64.4
+> 64.6
+> 64.8
+> 65.0
+> FashionIQ Avg.
+> FashionIQ Avg.
+> CIRR Avg. 79.0
+> 79.5
+> 80.0
+> 80.5
+> CIRR Avg.
+> 79.0
+> 79.5
+> 80.0
+> 80.5
+> CIRR Avg.
+> 79.0
+> 79.5
+> 80.0
+> 80.5
+> CIRR Avg.
+
+Figure 7. Sensitivity analysis of hyperparameters on FashionIQ and CIRR datasets: (a) the intra-modal loss weight ζ, (b) the inter-modal loss weight ν, and (c) the balancing parameter γ.
+
+ficult to be completely “hard” cut off by any filter due to their extremely high visual similarity. This observation pro-vides solid empirical evidence for the Boundary-based Tar-geted Unlearning (BTU) module designed in Section 3.4. Precisely because we recognize that Hard Filtering cannot theoretically achieve 100% perfection, we do not directly treat Tclean as absolute Ground Truth. Instead, we intro-duce an optimal transport-based soft correction mechanism. This mechanism robustly tolerates and handles the residual impurities that are unavoidable during the filtering stage, thereby maximizing the reduction of the risk of overfitting the residual noise while utilizing the clean sample informa-tion, achieving training robustness in a noisy environment. 
+
+C.4. Additional Hyperparameter Analysis 
+
+In this section, we further discuss the parameter sensitiv-ity of three additional crucial hyperparameters in ConeSep: the intra-modal loss weight ζ and inter-modal loss weight 
+
+ν within the NBL module, and the balancing parameter γ
+
+within the BTU module. We evaluate the impact of these parameters on the FashionIQ and CIRR datasets, and the results are illustrated in Figure 7. 
+
+a) Intra-modal loss weight ζ. As shown in subplot (a), the model performance exhibits a trend of increasing ini-tially and then decreasing as the value of ζ increases, peak-ing at 0.5. ζ controls the weight of Lintra , a loss designed to constrain the similarity between the composed feature Fc
+
+and its diagonal negative composition Fneg , ensuring they remain orthogonal in the metric space. When ζ is too low, the model fails to effectively shape Fneg as the opposite of the query semantics, resulting in a blurred negative bound-ary. Conversely, when ζ is too high, the enforced orthogonal constraint may distort the geometric structure of the feature space, thereby interfering with the core retrieval paradigm learning in the Positive Alignment Path. 
+
+b) Inter-modal loss weight ν. As shown in subplot (b), the model achieves optimal performance at ν = 0 .5. ν regu-lates the weight of Linter , which is responsible for pushing 
+
+Fneg away from its corresponding target image Ft through 
+
+Target-oriented Learning . This trend indicates that a mod-erate ν value facilitates the construction of a high-quality Diagonal Negative Composition, serving as an effective di-rectional guide. However, an excessively high ν causes the optimization process to over-focus on constructing the neg-ative boundary, distracting the model from pulling positive pairs closer via Lrank , thus compromising the final retrieval accuracy. 
+
+c) The balancing parameter γ. As shown in subplot (c), the model performance improves steadily as γ increases from 0.1 to 0.7, followed by a decline. γ balances the global optimal plan P derived from Optimal Transport (OT) and the original hard label L when constructing the smooth soft label Y. A lower γ implies that the model over-relies on the hard label L, ignoring the geometric structural informa-tion provided by OT, which leads to a lack of smoothness in the unlearning process. On the other hand, an overly high 
+
+γ may weaken the explicit “targeted unlearning” instruction for noisy samples inherent in the hard labels (i.e., the strong supervisory signal in L where the diagonal for noisy sam-ples is set to 0), resulting in insufficient correction strength for the noise. 
+
+## D. Additional Ablation Study 
+
+D.1. GFQ Sampling Ablation Studies 
+
+Effectiveness of Gaussian Sampling Strategy. Impact of Boundary Sampling Strategies. To strictly validate the the-oretical premise of our Geometric Fidelity Quantization , we conduct a comprehensive comparison of boundary estima-tion strategies on both FashionIQ and CIRR datasets. As shown in Table 5 and Table 6, we compare our Gaussian strategy with three alternatives: (1) w/ Empirical , which derives the boundary from the shuffled training batch; (2) 
+
+w/ Uniform Dist , which samples vectors from a bounded Uniform distribution; and (3) w/ Laplace Dist , which sam-ples from a Laplace distribution characterized by sharper peaks and heavier tails. The results across both benchmarks consistently demon-strate that ConeSep (Gaussian) yields the best performance (e.g., 65.31% Avg on FashionIQ and 80.43% Avg on CIRR). Specifically, w/ Empirical exhibits performance degradation due to the high variance of mini-batch statistics, which leads to unstable boundary estimation. Furthermore, while w/ Laplace Dist. generally outperforms w/ Uniform Table 5. Ablation study on different sampling strategies for boundary estimation on FashionIQ ( σ=0.2). 
+
+Strategy Dress Shirt Toptee Average R@10 R@50 R@10 R@50 R@10 R@50 R@10 R@50 AVG. w/ Empirical 49.55 72.10 55.02 74.35 57.50 77.05 54.02 74.50 64.26 w/ Uniform Dist 49.21 71.85 54.86 74.01 57.33 76.82 53.80 74.22 64.01 w/ Laplace Dist 49.80 72.45 55.15 74.20 57.65 77.20 54.20 74.62 64.41 
+
+ConeSep (Gaussian) 50.23 72.19 56.28 74.45 58.29 78.38 54.93 75.01 64.97 
+
+> Table 6. Ablation study on different sampling strategies for boundary estimation on CIRR ( σ=0.2).
+
+Strategy R@K Rsub @K Avg K=1 K=5 K=10 K=50 K=1 K=2 K=3 w/ Empirical 51.65 81.50 89.45 97.80 77.55 91.20 96.45 79.85 w/ Uniform Dist 51.30 81.25 89.10 97.65 77.20 90.95 96.30 79.65 w/ Laplace Dist 51.95 81.85 89.70 98.05 77.90 91.45 96.60 80.15 
+
+ConeSep (Gaussian) 52.29 82.19 89.98 98.19 78.66 91.76 96.75 80.43 
+
+Dist. by better approximating the central tendency of high-dimensional features, it still falls short of the Gaussian strat-egy. This empirical evidence confirms that the aggregated deep embeddings asymptotically converge to a Gaussian distribution. Consequently, our Gaussian sampling strategy provides the most accurate and stable geometric estimation for the noise boundary in the metric space. 
+
+Number of Random Samples K of GFQ. Figure 8 illus-trates the impact of the number of random samples K on the model’s performance. As K increases from 1 to 4, we observe a consistent improvement in retrieval accuracy on both FashionIQ and CIRR datasets. This trend validates that a single sample ( K = 1 ) is insufficient to robustly estimate the geometric noise boundary B, as it is susceptible to ran-dom fluctuations in the high-dimensional space. Increasing 
+
+K allows for a more accurate approximation of the bound-ary’s expectation, thereby stabilizing the Fidelity Quantiza-tion process. However, the performance saturates and ex-hibits a slight decline when K exceeds 4. This suggests that 
+
+K = 4 provides a sufficient statistical sample to capture the distribution characteristics of the noise boundary. Further increasing K yields diminishing returns and may lead to an overly smoothed boundary estimation that lacks the flexi-bility to handle specific hard samples, while also incurring unnecessary computational overhead. Therefore, we adopt 
+
+K = 4 as the optimal setting to balance estimation stability and computational efficiency. 
+
+## E. Algorithm of Training Procedure 
+
+To support the methodology discussion in the main text and comprehensively display the implementation logic of ConeSep , we provide detailed training algorithm pseu-docode in Algorithm 1 . This training process constructs a closed-loop optimization system that organically integrates Geometric Fidelity Quantization (GFQ), Negative Bound-1 2 4 8 16 
+
+Number of Random Samples K 
+
+> 63.25
+> 63.50
+> 63.75
+> 64.00
+> 64.25
+> 64.50
+> 64.75
+> 65.00
+> FashionIQ Avg.
+> FashionIQ Avg.
+> CIRR Avg. 77.5
+> 78.0
+> 78.5
+> 79.0
+> 79.5
+> 80.0
+> 80.5
+> CIRR Avg.
+> Figure 8. Sensitivity analysis of the number of random samples on FashionIQ and CIRR datasets.
+
+ary Learning (NBL), and Boundary-based Targeted Un-learning (BTU) into a unified training pipeline. The execution of the algorithm initiates with a feature extraction and perception phase, where the model utilizes Gaussian random sampling to dynamically estimate the ge-ometric noise boundary B. This process quantifies the matching fidelity of samples and explicitly partitions the current batch into a high-fidelity clean set Tclean and a low-fidelity noisy set Tnoisy . Subsequently, the training ad-heres to a progressive dual-stage strategy. During the ini-tial warm-up phase (the first N Epochs), the algorithm fo-cuses on the construction of the NBL path. By optimiz-ing the Target-oriented and Query-oriented loss functions, the model constructs a robust “Diagonal Negative Compo-sition” Fneg for each query to serve as a semantic anchor. Upon the establishment of the boundaries, the process tran-sitions smoothly to the joint optimization phase based on BTU. In this phase, the algorithm employs a specifically designed mask matrix M, which blocks the positive path of noisy samples while preserving the negative path of clean samples, to solve the entropy-regularized optimal transport problem. This operation generates smooth soft labels Y to execute precise Targeted Unlearning. Ultimately, the entire framework undergoes end-to-end updates by jointly mini-mizing the Robust Contrastive Loss, Query-oriented Learn-ing loss, and targeted forgetting loss. Consequently, the model achieves robust and accurate Composed Image Re-trieval (CIR) within complex Noisy Triplet Correspondence (NTC) environments. 
+
+## F. More Qualitative Results 
+
+F.1. Qualitative Analyses of Diagonal Negative Composition 
+
+To intuitively verify whether our proposed “Diagonal Nega-tive Composition” ( Fneg ) truly learns the semantic opposi-tion required as a “negative anchor”, we conduct visualized comparative retrieval experiments. Specifically, for a given query ⟨xr , x m⟩, we use the positive composed feature Fc
+
+generated by the model and the Diagonal Negative Compo-sition Fneg to perform nearest neighbor searches in the re-trieval gallery and display the Top-5 retrieval results. In this context, the “semantic opposition” we define does not re-fer to completely unrelated random images but specifically refers to a semantic state that violates or ignores the instruc-tions of the modification text xm. For example, if the xm
+
+instruction is “change to red”, then “keeping the original blue” or “wrong green” constitutes “hard negative” seman-tics that are not only visually confusing but also logically contrary to the instruction. As shown in Figure 9, the visualization results clearly reveal the significant differences in semantic direction be-tween Fneg and Fc. In the case of FashionIQ (top row), the reference image is a black tight dress, and the modi-fication text requires changing it to “red, looser, and with shorter sleeves”. Observing the retrieval results reveals that the results of Fc accurately align with the target semantics, and the Top-5 images are all red dresses conforming to the description. In sharp contrast, the results retrieved using 
+
+Fneg mainly consist of black dresses with similar styles. This indicates that Fneg successfully captures the semantic state of “ignoring text instructions”, which implies retain-ing the visual features of the reference image such as the black color while failing to execute the color conversion. This state represents the most typical “hard noise” in the Noisy Triplet Correspondence (NTC) problem, character-ized by visual similarity but semantic mismatch, and serves as the direction that the model aims to “push away” in the Boundary-based Targeted Unlearning (BTU) module. 
+
+Algorithm 1 Training Procedure of ConeSep 
+
+Input : Reference image xr , target image t, modification text ym.
+
+Parameters : Total epochs Ntotal , NBL epochs N , Learn-ing Rate η, Fidelity threshold ω, Loss weights ( ζ, κ, ν, γ ). 
+
+Output : Fine-tuned model parameters Ψ∗.
+
+Require: Training Dataset D, Batch size B. 
+
+> 1:
+
+Initialize all model components Ψ. 
+
+> 2:
+
+for epoch = 1 to Ntotal do  
+
+> 3:
+
+for batch B in D do  
+
+> 4:
+
+// 1. Feature Extraction and Fidelity Quantiza-tion  
+
+> 5:
+
+Compute Composed Query Feature Fc and Target Feature Ft. 
+
+> 6:
+
+Compute Similarity S and Quantify Fidelity 
+
+F(Fc, Ft). 
+
+> 7:
+
+Separate batch into Tclean (F ≥ ω) and Tnoisy 
+
+(F < ω ).  
+
+> 8:
+
+if epoch ≤ N then  
+
+> 9:
+
+// 2. Phase I: Negative Boundary Learning (NBL)  
+
+> 10:
+
+Compute Diagonal Negative Composition fea-ture Fneg . 
+
+> 11:
+
+Compute Robust Contrastive Loss Lrobust . 
+
+> 12:
+
+Compute Query-oriented loss( Lintra ) and Target-oriented ( Linter ).  
+
+> 13:
+
+Compute NBL Joint Objective: LN BL =
+
+Lrobust + ζLintra + νLinter . 
+
+> 14:
+
+Update model parameters Θ using ∇ΘLN BL . 
+
+> 15:
+
+else  
+
+> 16:
+
+// 3. Phase II: Boundary-based Targeted Un-learning (BTU)  
+
+> 17:
+
+// Optimal Transport for Unlearning  
+
+> 18:
+
+Compute Cost Matrix C and Mask Matrix M
+
+using features Fc, Ft, Fneg . 
+
+> 19:
+
+Solve Masked Entropy-Regularized OT prob-lem for optimal transport plan P∗. 
+
+> 20:
+
+Construct Smooth Soft Label Y (using P∗ and Hard Label L).  
+
+> 21:
+
+Compute Targeted Unlearning Loss Lul (using 
+
+KL (LogitM atrix || Y)).  
+
+> 22:
+
+// Joint Optimization  
+
+> 23:
+
+Compute Robust Contrastive Loss Lrobust and 
+
+Lintra . 
+
+> 24:
+
+Compute BTU Joint Objective: Ψ∗ = Lrobust +
+
+κLul + ζLintra . 
+
+> 25:
+
+Update model parameters Ψ using ∇ΘLBT U . 
+
+> 26:
+
+end if  
+
+> 27:
+
+end for  
+
+> 28:
+
+end for  
+
+> 29:
+
+Return Trained model parameters Ψ∗In the case of CIRR (bottom row), the reference image shows two monkeys, and the text instruction is “more mon-keys”. The retrieval results of Fc correctly point to images of monkey groups containing multiple monkeys, which re-flects an understanding of the semantics regarding quantity increase. However, the retrieval results of Fneg show single monkeys or very few monkeys, which directly constitutes a semantic reversal of the instruction “more” in terms of quantity relationships. This phenomenon further confirms that Fneg is not a random vector in the feature space but a structured “reverse signpost” with explicit semantic direc-tion. By explicitly constructing and utilizing it as a negative boundary, ConeSep employs the Boundary-based Targeted Unlearning (BTU) module to define a clear boundary within the continuous metric space. Consequently, this achieves precise repulsion and unlearning of noise patterns without damaging neighboring clean samples. 
+
+F.2. NTC Identification Analysis 
+
+As shown in Figure 10, we present the discrimination of ConeSep on Clean and Noisy triplets under NTC scenar-ios, along with the Fidelity scores calculated by the Ge-ometric Fidelity Quantization (GFQ) module. The results demonstrate that ConeSep is able to accurately distinguish between clean and noisy matches, outputting reasonable fi-delity estimates, thereby exhibiting strong discriminative capability in overcoming Modality Suppression. Specifically, the green area on the left highlights triplets identified as Clean by ConeSep , which are generally as-signed high fidelity scores. For example, in the top-left case, both the reference and target images depict fluffy dogs, with the modification text “Pomeranian is sitting on a white sur-face instead of a gray one”. ConeSep assigns a high fidelity estimation of 0.249, accurately reflecting that it captures the fine-grained semantic change of the background surface without being confused by the visual similarity of the dogs. Similarly, in the third row on the left, for the query “has both shoulders covered and is black and is v necked”, ConeSep correctly associates the reference red dress with the target black dress, assigning a high score of 0.247, indicating pre-cise alignment with complex attribute modifications. In contrast, the red areas in the middle and right columns display Noisy Correspondence, which are given noticeably lower fidelity scores. For instance, the example at the top of the middle column shows a reference image of a dog and a target image of a smoothie, with the text “Blend the fruits into a drink”. This represents a clear cross-category seman-tic mismatch, and ConeSep correctly classifies it as noise, with a fidelity of only 0.063. More importantly, ConeSep effectively identifies Hard Noise where visual similarity might mask semantic inconsistency. In the top-right ex-ample, both the reference and target images depict indoor room scenes (high visual similarity), but the text describes “Two puppy dogs playing together”. Despite the strong vi-sual correlation between the images, ConeSep successfully overcomes the Modality Suppression caused by visual dom-inance, assigning an extremely low fidelity score of 0.011 due to the complete textual misalignment. Overall, this visualization strongly supports ConeSep ’s capability for accurate Geometric Fidelity Quantization of triplets in NTC settings. ConeSep not only identifies se-mantically consistent samples but also reliably assigns low scores to various types of noise (including subtle Hard Noise) by explicitly locating the geometric noise bound-ary. Such fine-grained geometric discrimination effectively provides high-quality signals for the subsequent Boundary-based Targeted Unlearning (BTU), thereby significantly en-hancing the model’s robustness. 
+
+F.3. More Case Study 
+
+To further comprehensively evaluate the effectiveness of ConeSep in handling Noisy Triplet Correspondence (NTC) and complex semantic modification tasks, this section pro-vides extended qualitative case studies on the FashionIQ and CIRR benchmark datasets. We present a comparison of the Top-5 retrieval results between ConeSep and the current SOTA robust baseline, TME, in Figure 11 and Figure 12. The images outlined in blue represent the ground-truth (GT) targets, whose recall rankings intuitively reflect the retrieval accuracy and robustness of the models. 
+
+Analysis of Success Cases. Figure 11 illustrates the re-trieval results on the FashionIQ dataset, which emphasizes fine-grained attribute modifications. The comparative re-sults clearly reveal the significant advantage of ConeSep in overcoming “Modality Suppression”. In cases (a) and (b), the user instructions require changing the color (to 
+
+dark blue ) or the pattern (to striped ) of the reference im-age. The TME model exhibits strong “visual inertia”, with its retrieval results often retaining the textual logo or the original style of the reference image, leading to seman-tic mismatch. In contrast, ConeSep precisely decouples visual features from textual instructions, retrieving targets that match descriptions like “ solid dark blue ” or “ striped scoop neck ”. Furthermore, when facing the complex multi-attribute instruction in case (c) involving “ lighter color ”, “long sleeves ”, and “ floral patterns ”, ConeSep demon-strates exceptional compositional reasoning capability. It accurately hits the target that satisfies all constraints simul-taneously, whereas TME remains dominated by the dark vi-sual features of the reference image, failing to effectively execute the color transformation instruction. Similarly, Figure 12 presents results on the CIRR dataset, which involves more drastic semantic spans and spatial rela-tionship reasoning. In case (a), the query requests changing “muffins ” to a “ vegetable platter ”. Due to the immense dif-ference in visual features, traditional methods are prone to FashionIQ  Multimodal Query   
+
+> Retrieve
+> “is red more loose
+> fitting dress and is
+> orange and has
+> shorter sleeves. ”
+
+## Top -1 Top -5Retrieval Results 
+
+> 𝐅 𝒄 𝐅 𝒏𝒆𝒈
+> CIRR
+
+## Multimodal Query  
+
+> Retrieve
+> “more monkeys”
+
+## Top -1 Top -5Retrieval Results               
+
+> 𝐅 𝒄 𝐅 𝒏𝒆𝒈 Figure 9. Visualization of retrieval results using the composed feature Fcand the diagonal negative composition Fneg .Top (FashionIQ):
+> While Fccorrectly retrieves red dresses following the text instruction, Fneg retrieves black dresses that retain the reference visual semantics but violate the modification logic. Bottom (CIRR): Fcretrieves images with “more monkeys”, whereas Fneg retrieves images with fewer or single monkeys, effectively capturing the semantic opposite of the instruction.
+
+failure. TME retrieves mashed potatoes visually similar to muffins at the Top-1 rank, remaining trapped by the visual appearance of the reference image; conversely, ConeSep successfully bridges the semantic gap, retrieving the correct vegetable category. In cases (b) and (c), whether it is the object category transition from “ sofa ” to “ bed ”, or the dy-namic action modification from “ holding fish ” to “ walking out of water ”, ConeSep accurately captures the core seman-tic changes. This further confirms that our proposed Geo-metric Fidelity Quantization (GFQ) strategy can effectively identify and suppress hard noise interference that is visu-ally similar but semantically mismatched, thereby guiding the model to focus on critical semantic information within the modification text. 
+
+In-depth Analysis of Failure Cases. Although ConeSep exhibits strong robustness, retrieval misses can still occur in certain extreme scenarios. We conducted an in-depth analysis of typical “failure cases” in Figure 11(d) and Fig-ure 12(d) and found that these cases actually reflect the “False Negative” challenge present in the current CIR eval-uation system, which conversely corroborates the strong se-mantic understanding capability of ConeSep . Specifically, in case (d) of FashionIQ, the instruction re-quires changing a “ floral top ” to one that is “ longer, grey, flowing, and plain ”. Although ConeSep failed to recall the GT at Top-1 (the GT is at Top-3), observing its Top-1 and Top-2 results reveals that they are perfect “ grey plain long tops ”, which fully comply with the text description visually and semantically. In contrast, TME’s results are mixed with garments containing pink patterns, clearly suffering from residual interference from the reference image. Similarly, in case (d) of CIRR, the core instruction is “ add a loving friend ” (i.e., adding a dog). The Top-5 results of ConeSep all display scenes of “ two dogs ” interacting, demonstrat-ing extremely high semantic consistency. However, TME’s results waver between “ single dog ” and “ two dogs ”, indi-cating its failure to stably capture the instruction regarding quantity change. In summary, these so-called “failure cases” reveal that ConeSep actually generates retrieval results that are more aligned with human intent than the Baseline. The semantic consistency demonstrated by the model in the Top-k candi-date list is attributed to the negative boundary constructed by the Negative Boundary Learning (NBL) module and the targeted unlearning mechanism of the Boundary-based Tar-geted Unlearning (BTU) module. This enables the model to ” Pomeranian is sitting on a white        
+
+> surface instead of a gray one.”
+> Fidelity:0.249
+> “Blend the fruits into a drink ”
+> Fidelity:0.063
+> “Two puppy dogs playing together on
+> the grass .”
+> Fidelity:0.011
+> “White fuzzy animal sits by the food bowl ”
+> Fidelity:0.243
+> “show pencil cases instead of flyers .”
+> Fidelity:0.000
+> “has shorter sleeves with a different pattern
+> and more revealing and shorter sleeves”
+> Fidelity: 0.000
+> “has both shoulders covered and is
+> black and is v necked and black”
+> Fidelity:0.247
+> “solid color and is longer and solid
+> yellow ”
+> Fidelity:0.238
+> “The dog is sitting on a garage .”
+> Fidelity:0.053
+> “is short sleeved and solid black and
+> has belts ”
+> Fidelity: 0.021
+> “the shirt has a color with long sleeves and
+> white in color and has long sleeves”
+> Fidelity:0.074
+> “is a black dress and is black and long
+> sleeve ”
+> Fidelity: 0.000
+
+Figure 10. Visualization of NTC Identification Analysis. We display the discrimination between Clean (Left) and Noisy (Middle/Right) triplets by ConeSep in the NTC scenario, along with the Fidelity scores computed by the Geometric Fidelity Quantization (GFQ) mod-ule. ConeSep successfully distinguishes clean samples (assigned high fidelity scores, e.g., 0.249) from noisy ones. Notably, it effectively overcomes Modality Suppression in “Hard Noise” cases (e.g., Top-Right: visually similar rooms but mismatched text “Two puppy dogs”), assigning them extremely low fidelity scores (e.g., 0.011). This precise geometric differentiation provides high-quality signals for the sub-sequent Boundary-based Targeted Unlearning (BTU) .
+
+firmly “push away” erroneous visual features from the ref-erence image (e.g., floral patterns, single dog) and precisely align with the user’s true modification intent. This not only proves the robustness of ConeSep in dealing with seman-tic uncertainty but also suggests directions for improvement in CIR dataset annotation and evaluation metrics for future work. Multimodal Query 
+
+Retrieve 
+
+“is more plain and 
+
+darker blue and is a 
+
+plain.” 
+
+Top -1 Top -5Retrieval Results 
+
+> ConeSep TME
+
+Multimodal Query 
+
+Retrieve 
+
+“has stripes and a 
+
+scoop neck and is 
+
+striped and crew 
+
+necked.” 
+
+Top -1 Top -5Retrieval Results 
+
+> ConeSep TME
+
+Multimodal Query 
+
+Retrieve 
+
+“is lighter and has 
+
+longer sleeves and has 
+
+long sleeves with floral 
+
+patterns.” 
+
+Top -1 Top -5Retrieval Results 
+
+> ConeSep TME
+
+Multimodal Query 
+
+Retrieve 
+
+“is longer and grey 
+
+and Is more flowing 
+
+and plain.” 
+
+Top -1 Top -5Retrieval Results 
+
+> ConeSep TME
+
+# (a) 
+
+# (b) 
+
+# (c) 
+
+# (d) Figure 11. Additional retrieval comparisons on FashionIQ . ConeSep accurately follows fine-grained attribute changes (e.g., patterns, sleeve lengths), while TME often suffers from visual inertia from the reference image. Multimodal Query 
+
+Retrieve 
+
+“the target is a dish 
+
+of vegetables mixed.” 
+
+Top -1 Top -5Retrieval Results 
+
+> ConeSep TME
+
+Multimodal Query 
+
+Retrieve 
+
+“Put white pillows 
+
+on the bed.” 
+
+Top -1 Top -5Retrieval Results 
+
+> ConeSep TME
+
+Multimodal Query 
+
+Retrieve 
+
+“Remove the fish in 
+
+mouth, different 
+
+species of penguin, 
+
+walking out of water.” 
+
+Top -1 Top -5Retrieval Results 
+
+> ConeSep TME
+
+Multimodal Query 
+
+Retrieve 
+
+“Keep the dog still 
+
+and add a loving 
+
+friend.” 
+
+Top -1 Top -5Retrieval Results 
+
+> ConeSep TME
+
+# (a) 
+
+# (c) 
+
+# (d) 
+
+# (b) Figure 12. Additional retrieval comparisons on CIRR . ConeSep demonstrates superior capability in handling large semantic shifts (e.g., Muffin → Vegetable) and complex spatial/action modifications, whereas TME struggles to break away from the reference image’s visual dominance. References 
+
+[1] Shuxian Li, Changhao He, Xiting Liu, Joey Tianyi Zhou, Xi Peng, and Peng Hu. Learning with noisy triplet corre-spondence for composed image retrieval. In CVPR , pages 19628–19637, 2025. 2, 3, 6, 7 [2] Haokun Wen, Xian Zhang, Xuemeng Song, Yinwei Wei, and Liqiang Nie. Target-guided composed image retrieval. In ACM MM , pages 915–923, 2023. 3 [3] Mingyu Zhang, Zixu Li, Zhiwei Chen, Zhiheng Fu, Xi-aowei Zhu, Jiajia Nie, Yinwei Wei, and Yupeng Hu. Hint: Composed image retrieval with dual-path compositional contextualized network. arXiv preprint arXiv:2603.26341 ,2026. [4] Guozhi Qiu, Zhiwei Chen, Zixu Li, Qinlei Huang, Zhiheng Fu, Xuemeng Song, and Yupeng Hu. Melt: Improve com-posed image retrieval via the modification frequentation-rarity balance network. arXiv preprint arXiv:2603.29291 ,2026. [5] Zixu Li, Yupeng Hu, Zhiwei Chen, Qinlei Huang, Guozhi Qiu, Zhiheng Fu, and Meng Liu. Retrack: Evidence-driven dual-stream directional anchor calibration network for com-posed video retrieval. In AAAI , pages 23373–23381, 2026. 2[6] Qianyun Yang, Peizhuo Lv, Yingjiu Li, Shengzhi Zhang, Yuxuan Chen, Zhiwei Chen, Zixu Li, and Yupeng Hu. Erase: Bypassing collaborative detection of ai counterfeit via comprehensive artifacts elimination. IEEE TDSC , pages 1–18, 2026. 2 [7] Zikai Song, Junqing Yu, Yi-Ping Phoebe Chen, and Wei Yang. Transformer tracking with cyclic shifting window attention. In CVPR , pages 8791–8800, 2022. [8] Xi Xiao, Yunbei Zhang, Xingjian Li, Tianyang Wang, Xiao Wang, Yuxiang Wei, Jihun Hamm, and Min Xu. Visual instance-aware prompt tuning. In ACM MM , pages 2880– 2889. Association for Computing Machinery, Inc, 2025. [9] Zhenyu Yu, Mohd Yamani Idna Idris, Pei Wang, and Rizwan Qureshi. Dinov3-powered multi-task foundation model for quantitative remote sensing estimation. AAAI ,40(48):41455–41456, 2026. [10] Zequn Xie, Chuxin Wang, Yeqiang Wang, Sihang Cai, Shulei Wang, and Tao Jin. Chat-driven text generation and interaction for person retrieval. In EMNLP , pages 5259– 5270, 2025. [11] Zikai Song, Run Luo, Junqing Yu, Yi-Ping Phoebe Chen, and Wei Yang. Compact transformer tracker with correla-tive masked modeling. In AAAI , pages 2321–2329, 2023. [12] Yang Tian, Fan Liu, Jingyuan Zhang, Yupeng Hu, Liqiang Nie, et al. Core-mmrag: Cross-source knowledge recon-ciliation for multimodal rag. In ACL , pages 32967–32982, 2025. [13] Kai Cui, Shenghao Liu, Wei Feng, Xianjun Deng, Liangbin Gao, Minmin Cheng, Hongwei Lu, and Laurence T Yang. Correlation-aware cross-modal attention network for fash-ion compatibility modeling in ugc systems. ACM ToMM ,2024. [14] Peiguang Jing, Kai Cui, Weili Guan, Liqiang Nie, and Yut-ing Su. Category-aware multimodal attention network for fashion compatibility modeling. IEEE TMM , 25:9120– 9131, 2023. [15] Peiguang Jing, Kai Cui, Jing Zhang, Yun Li, and Yuting Su. Multimodal high-order relationship inference network for fashion compatibility modeling in internet of multimedia things. IEEE IoT , 11(1):353–365, 2024. [16] Yiyang Jiang, Guangwu Qian, Jiaxin Wu, Qi Huang, Qing Li, Yongkang Wu, and Xiao-Yong Wei. Self-paced learning for images of antinuclear antibodies. IEEE TMI , 2025. 2 [17] Tongxi Wang. Fbs: Modeling native parallel reading inside a transformer. arXiv preprint arXiv:2601.21708 , 2026. 2 [18] Tongxi Wang, Zhuoyang Xia, Xinran Chen, and Shan Liu. Tracking drift: Variation-aware entropy scheduling for non-stationary reinforcement learning. arXiv preprint arXiv:2601.19624 , 2026. [19] Haonan Dong, Wenhao Zhu, Guojie Song, and Liang Wang. AuroRA: Breaking low-rank bottleneck of loRA with non-linear mapping. In NeurIPS , 2025. [20] Yangliu Hu, Zikai Song, Na Feng, Yawei Luo, Junqing Yu, Yi-Ping Phoebe Chen, and Wei Yang. Sf2t: Self-supervised fragment finetuning of video-llms for fine-grained under-standing. arXiv preprint arXiv:2504.07745 , 2025. [21] Zequn Xie, Boyun Zhang, Yuxiao Lin, and Tao Jin. Delving deeper: Hierarchical visual perception for robust video-text retrieval. arXiv preprint arXiv:2601.12768 , 2026. [22] Wenyuan Zhang, Xinghua Zhang, Haiyang Yu, Shuaiyi Nie, Bingli Wu, Juwei Yue, Tingwen Liu, and Yongbin Li. Expseek: Self-triggered experience seeking for web agents, 2026. [23] Xi Xiao, Chenrui Ma, Yunbei Zhang, Chen Liu, Zhuxu-anzi Wang, Yanshu Li, Lin Zhao, Guosheng Hu, Tianyang Wang, and Hao Xu. Not all directions matter: Toward struc-tured and task-aware low-rank adaptation. arXiv preprint arXiv:2603.14228 , 2026. [24] Xiaoxu Ma, Runhao Li, and Zhenyu Weng. Mutual learning for hashing: Unlocking strong hash functions from weak supervision, 2025. [25] Yunbo Long, Jiaquan Zhang, Xi Chen, and Alexandra Brin-trup. Topological federated clustering via gravitational po-tential fields under local differential privacy. AAAI , 40(28): 24044–24051, 2026. [26] Jiaye Lin, Yifu Guo, Yuzhen Han, Sen Hu, Ziyi Ni, Licheng Wang, Mingguang Chen, Hongzhang Liu, Ronghao Chen, Yangfan He, et al. Se-agent: Self-evolution trajectory op-timization in multi-step reasoning with llm-based agents. 
+
+arXiv preprint arXiv:2508.02085 , 2025. [27] Zikai Song, Junqing Yu, Yi-Ping Phoebe Chen, Wei Yang, and Xinchao Wang. Hypergraph-state collaborative reason-ing for multi-object tracking, 2026. [28] Zheng Liu, Mengjie Liu, Jingzhou Chen, Jingwei Xu, Bin Cui, Conghui He, and Wentao Zhang. Fusion: Fully inte-gration of vision-language representations for deep cross-modal understanding. arXiv preprint arXiv:2504.09925 ,2025. 2 [29] Zequn Xie. Conquer: Context-aware representation with query enhancement for text-based person search. arXiv preprint arXiv:2601.18625 , 2026. 2 [30] Yuanjun Zhang, Fuzel Ahamed Shaik, Suvojit Acharjee, Fahad Khalid, and Mourad Oussalah. Towards reliable mul-timodal disaster severity assessment through preference op-timization and explainable vision-language reasoning. Re-liability Engineering & System Safety , page 112674, 2026. [31] Qianyun Yang, Zhiwei Chen, Yupeng Hu, Zixu Li, Zhi-heng Fu, and Liqiang Nie. Stable: Efficient hybrid nearest neighbor search via magnitude-uniformity and cardinality-robustness. arXiv preprint arXiv:2604.01617 , 2026. [32] Wenbing Li, Hang Zhou, Junqing Yu, Zikai Song, and Wei Yang. Coupled mamba: Enhanced multimodal fusion with coupled state space model. NeurIPS , 37:59808–59832, 2024. [33] Zheng Liu, Hao Liang, Xijie Huang, Wentao Xiong, Qin-han Yu, Linzhuang Sun, Chong Chen, Conghui He, Bin Cui, and Wentao Zhang. Synthvlm: High-efficiency and high-quality synthetic data for vision language models. 
+
+arXiv preprint arXiv:2407.20756 , 3, 2024. [34] Chunlei Meng, Jiabin Luo, Zhenglin Yan, Zhenyu Yu, Rong Fu, Zhongxue Gan, and Chun Ouyang. Tri-subspaces dis-entanglement for multimodal sentiment analysis. CVPR ,2026. [35] Zikai Song, Run Luo, Lintao Ma, Ying Tang, Yi-Ping Phoebe Chen, Junqing Yu, and Wei Yang. Tempo-ral coherent object flow for multi-object tracking. In AAAI ,pages 6978–6986, 2025. [36] Xiaoxu Ma, Xiangbo Zhang, and Zhenyu Weng. Stable and explainable personality trait evaluation in large language models with internal activations, 2026. [37] Mengdi Li, Jiaye Lin, Xufeng Zhao, Wenhao Lu, Peilin Zhao, Stefan Wermter, and Di Wang. Curriculum-rlaif: Curriculum alignment with reinforcement learning from ai feedback. arXiv preprint arXiv:2505.20075 , 2025. [38] Zequn Xie, Xin Liu, Boyun Zhang, Yuxiao Lin, Sihang Cai, and Tao Jin. Hvd: Human vision-driven video rep-resentation learning for text-video retrieval. arXiv preprint arXiv:2601.16155 , 2026. [39] Yunyao Zhang, Zikai Song, Hang Zhou, Wenfeng Ren, Yi-Ping Phoebe Chen, Junqing Yu, and Wei Yang. ga −
+
+s3: Comprehensive social network simulation with group agents. In ACL Findings , pages 8950–8970, 2025. [40] Honglin Lin, Chonghan Qin, Zheng Liu, Qizhi Pei, Yu Li, Zhanping Zhong, Xin Gao, Yanfeng Wang, Conghui He, and Lijun Wu. Scientific image synthesis: Benchmark-ing, methodologies, and downstream utility. arXiv preprint arXiv:2601.17027 , 2026. [41] Yang Tian, Fan Liu, Jingyuan Zhang, Wei Bi, Yu-peng Hu, and Liqiang Nie. Open multimodal retrieval-augmented factual image generation. arXiv preprint arXiv:2510.22521 , 2025. [42] Yiyang Jiang, Wengyu Zhang, Xulu Zhang, Xiao-Yong Wei, Chang Wen Chen, and Qing Li. Prior knowledge in-tegration via llm encoding and pseudo event regulation for video moment retrieval. In ACM MM , pages 7249–7258, 2024. [43] Mingzhu Xu, Chenglong Yu, Zexuan Li, Haoyu Tang, Yu-peng Hu, and Liqiang Nie. Hdnet: A hybrid domain network with multi-scale high-frequency information en-hancement for infrared small target detection. IEEE TGRS ,2025. [44] Zhenyu Yu, Jinnian Wang, and Mohd Yamani Idna Idris. Iidm: Improved implicit diffusion model with knowledge distillation to estimate the spatial distribution density of car-bon stock in remote sensing imagery. KBS , page 115131, 2025. 2 [45] Hui Wu, Yupeng Gao, Xiaoxiao Guo, Ziad Al-Halah, Steven Rennie, Kristen Grauman, and Rogerio Feris. Fash-ion iq: A new dataset towards retrieving images by natural language feedback. In CVPR , pages 11307–11317, 2021. 2, 6 [46] Zheyuan Liu, Cristian Rodriguez-Opazo, Damien Teney, and Stephen Gould. Image retrieval on real-life images with pre-trained vision-and-language models. In ICCV , pages 2125–2134, 2021. 2, 6 [47] Matan Levy, Rami Ben-Ari, Nir Darshan, and Dani Lischinski. Data roaming and quality assessment for com-posed image retrieval. In Proceedings of the AAAI confer-ence on artificial intelligence , pages 2991–2999, 2024. 2 [48] Xinxing Xu, Yong Liu, Salman Khan, Fahad Khan, Wang-meng Zuo, Rick Siow Mong Goh, Chun-Mei Feng, et al. Sentence-level prompts benefit composed image retrieval. In ICLR , 2024. 3, 6, 7 [49] Zheng Liu, Mengjie Liu, Siwei Wen, Mengzhang Cai, Bin Cui, Conghui He, and Wentao Zhang. From uniform to het-erogeneous: Tailoring policy optimization to every token’s nature. arXiv preprint arXiv:2509.16591 , 2025. [50] Zikai Song, Ying Tang, Run Luo, Lintao Ma, Junqing Yu, Yi-Ping Phoebe Chen, and Wei Yang. Autogenic language embedding for coherent point tracking. In ACM MM , pages 2021–2030, 2024. [51] Zheng Liu, Honglin Lin, Chonghan Qin, Xiaoyang Wang, Xin Gao, Yu Li, Mengzhang Cai, Yun Zhu, Zhanping Zhong, Qizhi Pei, et al. Chartverse: Scaling chart reason-ing via reliable programmatic synthesis from scratch. arXiv preprint arXiv:2601.13606 , 2026. [52] Kehan Jiang, Haonan Dong, Zhaolu Kang, Zhengzhou Zhu, and Guojie Song. Foe: Forest of errors makes the first so-lution the best in large reasoning models, 2026. [53] Yujun Wang, Jinhe Bi, Yunpu Ma, and Soeren Pirk. Ascd: Attention-steerable contrastive decoding for reducing hallu-cination in mllm. arXiv preprint arXiv:2506.14766 , 2025. [54] Xiaoliang Fu, Jiaye Lin, Yangyi Fang, Binbin Zheng, Chaowen Hu, Zekai Shao, Cong Qin, Lu Pan, Ke Zeng, and Xunliang Cai. Maspo: Unifying gradient utilization, prob-ability mass, and signal reliability for robust and sample-efficient llm reasoning. arXiv preprint arXiv:2602.17550 ,2026. [55] Yunyao Zhang, Xinglang Zhang, Junxi Sheng, Wenbing Li, Junqing Yu, Yi-Ping Phoebe Chen, Wei Yang, and Zikai Song. Semantic-aware logical reasoning via a semiotic framework, 2026. [56] Honglin Lin, Zheng Liu, Yun Zhu, Chonghan Qin, Juekai Lin, Xiaoran Shang, Conghui He, Wentao Zhang, and Li-jun Wu. Mmfinereason: Closing the multimodal reason-ing gap via open data-centric methods. arXiv preprint arXiv:2601.21821 , 2026. [57] Jinhe Bi, Danqi Yan, Yifan Wang, Wenke Huang, Haokun Chen, Guancheng Wan, Mang Ye, Xun Xiao, Hinrich Schuetze, Volker Tresp, et al. Cot-kinetics: A theoretical modeling assessing lrm reasoning process. arXiv preprint arXiv:2505.13408 , 2025. [58] Jinhe Bi, Yifan Wang, Danqi Yan, Aniri, Wenke Huang, Zengjie Jin, Xiaowen Ma, Artur Hecker, Mang Ye, Xun Xiao, Hinrich Schuetze, Volker Tresp, and Yunpu Ma. Prism: Self-pruning intrinsic selection method for training-free multimodal data selection, 2025. [59] Wei Chen, Liangmin Wu, Yunhai Hu, Zhiyuan Li, Zhiyuan Cheng, Yicheng Qian, Lingyue Zhu, Zhipeng Hu, Lu-oyi Liang, Qiang Tang, et al. Autoneural: Co-designing vision-language models for npu inference. arXiv preprint arXiv:2512.02924 , 2025. [60] Yuan Sun, Xu Wang, Dezhong Peng, Zhenwen Ren, and Xiaobo Shen. Hierarchical hashing learning for image set classification. IEEE TIP , 32:1732–1744, 2023. [61] Zhenyu Yu, MOHD YAMANI IDNA IDRIS, Pei Wang, and Rizwan Qureshi. Cotextor: Training-free modular multi-lingual text editing via layered disentanglement and depth-aware fusion. In NeurIPS , 2025. [62] Zixi Wang, Yubo Huang, Jingzehua Xu, Jinzhu Wei, Shuai Zhang, and Xin Lai. Multi-modal gradual domain osmosis: Stepwise dynamic learning with batch matching for gradual domain adaptation. In ACM MM , page 8959–8967, New York, NY, USA, 2025. Association for Computing Machin-ery. 2 [63] Yuan Sun, Yang Qin, Yongxiang Li, Dezhong Peng, Xi Peng, and Peng Hu. Robust multi-view clustering with noisy correspondence. IEEE TKDE , 36(12):9150–9162, 2024. 2 [64] Honglin Yuan, Yuan Sun, Fei Zhou, Jing Wen, Shihua Yuan, Xiaojian You, and Zhenwen Ren. Prototype match-ing learning for incomplete multi-view clustering. IEEE TIP , 34:828–841, 2025. [65] Xingfeng Li, Yuangang Pan, Yuan Sun, Quansen Sun, Yinghui Sun, Ivor W Tsang, and Zhenwen Ren. Incom-plete multi-view clustering with paired and balanced dy-namic anchor learning. IEEE TMM , 27:1486–1497, 2024. [66] Yang Qin, Yuan Sun, Dezhong Peng, Joey Tianyi Zhou, Xi Peng, and Peng Hu. Cross-modal active complementary learning with self-refining correspondence. NeurIPS , 36: 24829–24840, 2023. [67] Xingfeng Li, Yinghui Sun, Quansen Sun, Zhenwen Ren, and Yuan Sun. Cross-view graph matching guided anchor alignment for incomplete multi-view clustering. Informa-tion Fusion , 100:101941, 2023. [68] Xu Zhang, Hao Li, and Mang Ye. Negative pre-aware for noisy cross-modal matching. In Proceedings of the AAAI Conference on Artificial Intelligence , pages 7341– 7349, 2024. 2, 3 [69] Peng Hu, Zhenyu Huang, Dezhong Peng, Xu Wang, and Xi Peng. Cross-modal retrieval with partially mismatched pairs. IEEE TPAMI , 45(8):9595–9610, 2023. 2, 4 [70] Liliang Ye, Yunyao Zhang, Yafeng Wu, Yi-Ping Phoebe Chen, Junqing Yu, Wei Yang, and Zikai Song. Mvp: Win-ning solution to smp challenge 2025 video track. arXiv preprint arXiv:2507.00950 , 2025. 2 [71] Zhongtian Fu, Kefei Song, Luping Zhou, and Yang Yang. Noise-aware image captioning with progressively exploring mismatched words. In AAAI , pages 12091–12099, 2024. 2 [72] Yang Qin, Yingke Chen, Dezhong Peng, Xi Peng, Joey Tianyi Zhou, and Peng Hu. Noisy-correspondence learning for text-to-image person re-identification. In 
+
+CVPR , pages 27197–27206, 2024. 2 [73] Zhiwei Chen, Yupeng Hu, Zixu Li, Zhiheng Fu, Haokun Wen, and Weili Guan. Hud: Hierarchical uncertainty-aware disambiguation network for composed video retrieval. In 
+
+ACM MM , page 6143–6152, 2025. 3 [74] Yupeng Hu, Zixu Li, Zhiwei Chen, Qinlei Huang, Zhi-heng Fu, Mingzhu Xu, and Liqiang Nie. Refine: Com-posed video retrieval via shared and differential semantics enhancement. ACM ToMM , 2026. [75] Haokun Wen, Xuemeng Song, Xin Yang, Yibing Zhan, and Liqiang Nie. Comprehensive linguistic-visual composition network for image retrieval. In ACM SIGIR , pages 1369– 1378, 2021. 3 [76] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learn-ing transferable visual models from natural language super-vision. In ICML , pages 8748–8763. PMLR, 2021. 3 [77] Junnan Li, Dongxu Li, Caiming Xiong, and Steven Hoi. Blip: Bootstrapping language-image pre-training for uni-fied vision-language understanding and generation. In 
+
+ICML , pages 12888–12900. PMLR, 2022. 3 [78] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In 
+
+ICML , pages 19730–19742. PMLR, 2023. 3, 6 [79] Chenglin Li, Qianglong Chen, Zhi Li, Feng Tao, Yicheng Li, Hao Chen, Fei Yu, and Yin Zhang. Optimizing instruc-tion synthesis: Effective exploration of evolutionary space with tree search. arXiv preprint arXiv:2410.10392 , 2024. 3 [80] Kai Cheng, Xiaoxi Qi, Zhiyuan Cheng, Longying Lai, and Xuan Liu. Regime-dependent volatility dynamics: Evidence from time-series analysis. Available at SSRN 6321958 , 2026. [81] Keyang Zhong, Junlin Xie, Hefeng Wu, Haofeng Li, and Guanbin Li. Collaborative multi-agent scripts generation for enhancing imperfect-information reasoning in murder mystery games, 2026. [82] Peiyang Liu. Unsupervised corrupt data detection for text training. ESWA , 248:123335, 2024. [83] Haonan Dong, Kehan Jiang, Haoran Ye, Wenhao Zhu, Zhaolu Kang, and Guojie Song. Neureasoner: Towards ex-plainable, controllable, and unified reasoning via mixture-of-neurons, 2026. [84] Chenglin Li, Qianglong Chen, Zhi Li, Feng Tao, and Yin Zhang. Videocogqa: A controllable benchmark for evalu-ating cognitive abilities in video-language models. arXiv preprint arXiv:2411.09105 , 2024. [85] Hua Wang, Jinghao Lu, and Fan Zhang. Eeo-tfv: Escape-explore optimizer for web-scale time-series forecasting and vision analysis. arXiv preprint arXiv:2602.02551 , 2026. [86] Zhenyu Yu and Chee Seng Chan. Yielding unblemished aesthetics through a unified network for visual imperfec-tions removal in generated images. AAAI , 39(9):9716– 9724, 2025. 3 [87] Peiyang Liu, Wei Ye, Xiangyu Xi, Tong Wang, Jinglei Zhang, and Shikun Zhang. Not all synonyms are created equal: Incorporating similarity of synonyms to enhance word embeddings. In IJCNN , pages 1–8. IEEE, 2020. 3 [88] Peiyang Liu, Xi Wang, Sen Wang, Wei Ye, Xiangyu Xi, and Shikun Zhang. Improving embedding-based large-scale re-trieval via label enhancement. In EMNLP Findings , pages 133–142, 2021. [89] Xi Xiao, Yunbei Zhang, Lin Zhao, Yiyang Liu, Xiaoying Liao, Zheda Mai, Xingjian Li, Xiao Wang, Hao Xu, Jihun Hamm, et al. Prompt-based adaptation in large-scale vision models: A survey. arXiv preprint arXiv:2510.13219 , 2025. [90] Yuyuan Li, Chaochao Chen, Yizhao Zhang, Weiming Liu, Lingjuan Lyu, Xiaolin Zheng, Dan Meng, and Jun Wang. Ultrare: Enhancing receraser for recommendation unlearn-ing via error decomposition. NeurIPS , 36:12611–12625, 2023. [91] Zhenlong Yuan, Xiangyan Qu, Chengxuan Qian, Rui Chen, Jing Tang, Lei Sun, Xiangxiang Chu, Dapeng Zhang, Yi-wei Wang, Yujun Cai, et al. Video-star: Reinforcing open-vocabulary action recognition with tools. arXiv preprint arXiv:2510.08480 , 2025. [92] Fan Zhang, Zhiwei Gu, and Hua Wang. Decoding with structured awareness: integrating directional, frequency-spatial, and structural attention for medical image segmen-tation. In AAAI , pages 12421–12429, 2026. [93] Fan Zhang, Gongguan Chen, Hua Wang, Jinjiang Li, and Caiming Zhang. Multi-scale video super-resolution trans-former with polynomial approximation. IEEE TCSVT , 33 (9):4496–4506, 2023. [94] Fan Zhang, Gongguan Chen, Hua Wang, and Caiming Zhang. Cf-dan: Facial-expression recognition based on cross-fusion dual-attention network. CVM , 10(3):593–608, 2024. [95] Jinhe Bi, Yujun Wang, Haokun Chen, Xun Xiao, Artur Hecker, Volker Tresp, and Yunpu Ma. Llava steering: Vi-sual instruction tuning with 500x fewer parameters through modality linear representation-steering. In ACL , pages 15230–15250, 2025. [96] Yue Wang, Tianfan Fu, Yinlong Xu, Zihan Ma, Hongxia Xu, Bang Du, Yingzhou Lu, Honghao Gao, Jian Wu, and Jintai Chen. Twin-gpt: digital twins for clinical trials via large language model. ACM ToMM , 2024. [97] Zhenyu Yu, Mohd Yamani Idna Idris, and Pei Wang. Vi-sualizing our changing earth: A creative ai framework for democratizing environmental storytelling through satellite imagery. In NeurIPS , 2025. [98] Jingzehua Xu, Guanwen Xie, Xinqi Wang, Yimian Ding, and Shuai Zhang. Usv-auv collaboration framework for un-derwater tasks under extreme sea conditions. In ICASSP ,pages 1–5, 2025. [99] Yuyuan Li, Yizhao Zhang, Weiming Liu, Xiaohua Feng, Zhongxuan Han, Chaochao Chen, and Chenggang Yan. Multi-objective unlearning in recommender systems via preference guided pareto exploration. IEEE TSC , 2025. [100] Yao Lu, Wen Yang, Yunzhe Zhang, Zuohui Chen, Jinyin Chen, Qi Xuan, Zhen Wang, and Xiaoniu Yang. Under-standing the dynamics of dnns using graph modularity. In 
+
+ECCV , pages 225–242. Springer, 2022. 3 [101] Yinzhi Cao and Junfeng Yang. Towards making systems forget with machine unlearning. In 2015 IEEE symposium on security and privacy , pages 463–480. IEEE, 2015. 3 [102] Shuang Zeng, Dekang Qi, Xinyuan Chang, Feng Xiong, Shichao Xie, Xiaolong Wu, Shiyi Liang, Mu Xu, and Xing Wei. Janusvln: Decoupling semantics and spatiality with dual implicit memory for vision-language navigation. arXiv preprint arXiv:2509.22548 , 2025. [103] Shuang Zeng, Xinyuan Chang, Mengwei Xie, Xinran Liu, Yifan Bai, Zheng Pan, Mu Xu, and Xing Wei. Futuresight-drive: Thinking visually with spatio-temporal cot for au-tonomous driving. arXiv preprint arXiv:2505.17685 , 2025. [104] Mengwei Xie, Shuang Zeng, Xinyuan Chang, Xinran Liu, Zheng Pan, Mu Xu, and Xing Wei. Seqgrowgraph: Learn-ing lane topology as a chain of graph expansions. In ICCV ,pages 27166–27175, 2025. 3 [105] Aditya Golatkar, Alessandro Achille, and Stefano Soatto. Eternal sunshine of the spotless net: Selective forgetting in deep networks. In CVPR , pages 9304–9312, 2020. 3 [106] Sifan Zhou, Shuo Wang, Zhihang Yuan, Mingjia Shi, Yuzhang Shang, and Dawei Yang. Gsq-tuning: Group-shared exponents integer in fully quantized training for llms on-device fine-tuning. In ACL Findings , pages 22971– 22988, 2025. 3 [107] Chongyu Fan, Jiancheng Liu, Yihua Zhang, Eric Wong, Dennis Wei, and Sijia Liu. Salun: Empowering machine unlearning via gradient-based weight saliency in both im-age classification and generation. In ICLR , 2024. 3 [108] Jack Foster, Stefan Schoepf, and Alexandra Brintrup. Fast machine unlearning without retraining through selective synaptic dampening. In AAAI , pages 12043–12051, 2024. 3[109] Lingzhi Wang, Tong Chen, Wei Yuan, Xingshan Zeng, Kam-Fai Wong, and Hongzhi Yin. Kga: A general machine unlearning framework based on knowledge gap alignment. In ACL , pages 13264–13276, 2023. 3 [110] Zhenlong Yuan, Xiangyan Qu, Jing Tang, Rui Chen, Lei Sun, Ruidong Chen, Hongwei Yu, Chengxuan Qian, Xi-angxiang Chu, Shuo Li, et al. What if agents could imagine? reinforcing open-vocabulary hoi comprehen-sion through generation. arXiv preprint arXiv:2602.11499 ,2026. [111] Zhenlong Yuan, Jing Tang, Jinguo Luo, Rui Chen, Chengx-uan Qian, Lei Sun, Xiangxiang Chu, Yujun Cai, Dapeng Zhang, and Shuo Li. Autodrive-r2: Incentivizing reasoning and self-reflection capacity for vla model in autonomous driving. arXiv preprint arXiv:2509.01944 , 2025. [112] Linling Jiang, Xin Wang, Fan Zhang, and Caiming Zhang. Transforming time and space: efficient video super-resolution with hybrid attention and deformable transform-ers. The Visual Computer , pages 1–12, 2025. [113] Yao Lu, Yutao Zhu, Yuqi Li, Dongwei Xu, Yun Lin, Qi Xuan, and Xiaoniu Yang. A generic layer pruning method for signal modulation recognition deep learning models. 
+
+IEEE TCCN , 11(4):2123–2134, 2024. 3 [114] Alexey Kravets and Vinay Namboodiri. Zero-shot class un-learning in clip with synthetic samples. In WACV , pages 6456–6464, 2025. 3 [115] Alexey Kravets and Vinay P Namboodiri. Zero-shot clip class forgetting via text-image space adaptation. TMLR ,2025. 3 [116] Gong Zhang, Kai Wang, Xingqian Xu, Zhangyang Wang, and Humphrey Shi. Forget-me-not: Learning to forget in text-to-image diffusion models. In CVPR , pages 1755– 1764, 2024. 3 [117] Zhiheng Fu, Zixu Li, Zhiwei Chen, Chunxiao Wang, Xuemeng Song, Yupeng Hu, and Liqiang Nie. Pair: Complementarity-guided disentanglement for composed image retrieval. In ICASSP , pages 1–5. IEEE, 2025. 3 [118] Qinlei Huang, Zhiwei Chen, Zixu Li, Chunxiao Wang, Xuemeng Song, Yupeng Hu, and Liqiang Nie. Me-dian: Adaptive intermediate-grained aggregation network for composed image retrieval. In ICASSP , pages 1–5. IEEE, 2025. [119] Zixu Li, Zhiwei Chen, Haokun Wen, Zhiheng Fu, Yupeng Hu, and Weili Guan. Encoder: Entity mining and modi-fication relation binding for composed image retrieval. In 
+
+AAAI , pages 5101–5109, 2025. [120] Zhiwei Chen, Yupeng Hu, Zixu Li, Zhiheng Fu, Xuemeng Song, and Liqiang Nie. Offset: Segmentation-based focus shift revision for composed image retrieval. In ACM MM ,page 6113–6122, 2025. [121] Zixu Li, Zhiheng Fu, Yupeng Hu, Zhiwei Chen, Haokun Wen, and Liqiang Nie. Finecir: Explicit parsing of fine-grained modification semantics for composed image re-trieval. https://arxiv.org/abs/2503.21309 , 2025. 3 [122] Xiaohua Zhai, Basil Mustafa, Alexander Kolesnikov, and Lucas Beyer. Sigmoid loss for language image pre-training. In ICCV , pages 11975–11986, 2023. 4 [123] Xingyu Yang, Daqing Liu, Heng Zhang, Yong Luo, Chaoyue Wang, and Jing Zhang. Decomposing semantic shifts for composed image retrieval. In AAAI , pages 6576– 6584, 2024. 6, 7 [124] Xintong Jiang, Yaxiong Wang, Mengjian Li, Yujiao Wu, Bingwen Hu, and Xueming Qian. Cala: Complementary association learning for augmenting comoposed image re-trieval. In ACM SIGIR , pages 2177–2187, 2024. 6, 7 [125] Zixu Li, Yupeng Hu, Zhiwei Chen, Shiqi Zhang, Qinlei Huang, Zhiheng Fu, and Yinwei Wei. Habit: Chrono-synergia robust progressive learning framework for com-posed image retrieval. In AAAI , pages 6762–6770, 2026. 6, 7[126] Zhiwei Chen, Yupeng Hu, Zhiheng Fu, Zixu Li, Jiale Huang, Qinlei Huang, and Yinwei Wei. Intent: Invariance and discrimination-aware noise mitigation for robust com-posed image retrieval. In AAAI , pages 20463–20471, 2026. 6, 7 [127] Marco Cuturi. Sinkhorn distances: Lightspeed computation of optimal transport. NeurIPS , 26, 2013. 5 [128] Zhiheng Fu, Yupeng Hu, Qianyun Yang, Shiqi Zhang, Zhi-wei Chen, and Zixu Li. Air-know: Arbiter-calibrated knowledge-internalizing robust network for composed im-age retrieval. arXiv preprint arXiv:2604.19386 , 2026. 6 [129] Alane Suhr, Stephanie Zhou, Ally Zhang, Iris Zhang, Hua-jun Bai, and Yoav Artzi. A corpus for reasoning about natural language grounded in photographs. In ACL , pages 6418–6428, 2019. 2

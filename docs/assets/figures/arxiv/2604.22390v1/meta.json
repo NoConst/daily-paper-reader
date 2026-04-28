@@ -1,0 +1,102 @@
+{
+  "version": 2,
+  "extractor": "pdffigures2",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-001.webp",
+      "caption": "Table 5 Performance and efficiency comparison with SOTA image matching methods4. Methods are evaluated at an inference resolution of 322× 322. Metrics are measured on a single NVIDIA RTX A6000 GPU. For the image matching baselines, re-ranking is performed by sorting candidates based on RANSAC inliers.",
+      "page": 15,
+      "index": 1,
+      "width": 454,
+      "height": 376
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-002.webp",
+      "caption": "Fig. 8 Visualization of local feature matching in the reranking stage. (a) shows the w/o Discriminative Region Guidance, while (b) displays w/ Discriminative Region Guidance.",
+      "page": 15,
+      "index": 2,
+      "width": 431,
+      "height": 352
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-003.webp",
+      "caption": "Fig. 7 Visualization of local feature correspondences in the re-ranking stage. (a) represents results w/o Discriminative Region Guidance (DRG), while (b) shows results of FoL w/ DRG. (c) presents the results of FoL++, which demonstrates superior feature matching performance compared to FoL. Red •, Blue •, and Green • denote low, medium, and high similarity matching points, respectively, where similarity increases from • → • → •.",
+      "page": 15,
+      "index": 3,
+      "width": 902,
+      "height": 273
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-004.webp",
+      "caption": "Fig. 1 Comprehensive evaluation of the proposed FoL++ framework. (a) Visual comparison between standard matching (top) and our discriminative region-guided matching (bottom), showing the effective suppression of mismatches in irrelevant backgrounds. (b) Trade-off analysis demonstrating that FoL++ achieves optimal performance across all metrics. All methods are evaluated on an NVIDIA A100 GPU at 322× 322 resolution, except EffoVPR (504× 504). (c) Radar chart illustrating that our FoL++ consistently exhibits the strongest overall performance in both the global and re-ranking stages.",
+      "page": 2,
+      "index": 4,
+      "width": 946,
+      "height": 326
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-005.webp",
+      "caption": "Fig. 2 Overview of the FoL++ training pipeline. The DINOv2 backbone extracts patch tokens, which are aggregated via Sinkhorn optimal assignment to form a robust global descriptor Dg . In parallel, a lightweight decoder recovers high-resolution local features Dl. Meanwhile, the Reliability Estimation Branch generates a spatial reliability map R, which is fused with the global assignment mask Ma to yield the final discriminative mask M. Local features are optimized via weakly supervised pseudo-correspondences. The entire framework is trained end-to-end by jointly minimizing LSA, LSCE , LPC , LMS .",
+      "page": 7,
+      "index": 5,
+      "width": 946,
+      "height": 425
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-006.webp",
+      "caption": "Fig. 3 Architectural comparisons between our previous work FoL and our proposed FoL++. In FoL, the core design consists of a multi-head attention layer combined with a feature aggregation branch. In contrast, FoL++ replaces the multi-head attention layer with a lightweight Reliability Estimation Branch.",
+      "page": 7,
+      "index": 6,
+      "width": 448,
+      "height": 306
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-007.webp",
+      "caption": "Fig. 6 Illustration of Dynamic Top-k Candidate Selection. The query image (center) is compared with two database images using global feature similarity. The left image, with a similarity Sg1 above the threshold Sk, is deemed a \"Good\" match and undergoes local processing, while the right image, with a similarity Sg2 below Sk, bypasses local processing.",
+      "page": 10,
+      "index": 7,
+      "width": 448,
+      "height": 325
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-008.webp",
+      "caption": "Table 3 A further performance comparison on more datasets. The Image Resolution Is 224× 224 in Training and 322× 322 in Inference. † marks two-stage methods.",
+      "page": 13,
+      "index": 8,
+      "width": 456,
+      "height": 491
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-009.webp",
+      "caption": "Table 2 Comparison with SoTA methods on VPR benchmarks. ’Res’ indicates that all methods are evaluated at 322× 322 resolution. Red bold and blue bold denote the best and second-best results, respectively. † marks two-stage methods.",
+      "page": 13,
+      "index": 9,
+      "width": 946,
+      "height": 490
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-010.webp",
+      "caption": "Fig. 10 The Visualization of Weakly Supervised Learning. Patches that are sufficiently discriminative and belong to the same cluster are used as weakly supervised training sample pairs.",
+      "page": 17,
+      "index": 10,
+      "width": 898,
+      "height": 255
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-011.webp",
+      "caption": "Table 6 Evaluation results of FoL, SelaVPR++, and FoL++ on five datasets. All methods use the ViT-B backbone and are evaluated at 322× 322 resolution.",
+      "page": 16,
+      "index": 11,
+      "width": 941,
+      "height": 296
+    },
+    {
+      "url": "assets/figures/arxiv/2604.22390v1/fig-012.webp",
+      "caption": "Fig. 9 Reliability map and discriminative mask. (a) Input scene. (b) Sinkhorn-based salient region mask. (c) REB’s reliability heatmap. (d) Final discriminative mask, guiding local matching toward stable regions.",
+      "page": 16,
+      "index": 12,
+      "width": 452,
+      "height": 279
+    }
+  ]
+}

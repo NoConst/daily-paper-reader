@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "extractor": "pdffigures2",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2604.27045v1/fig-001.webp",
+      "caption": "Figure 1: Dual-Stream memory architecture featuring narrative and clinical streams, a delta-based extraction system, and a reconciliation engine for discrepancy characterization and downstream action.",
+      "page": 6,
+      "index": 1,
+      "width": 902,
+      "height": 587
+    },
+    {
+      "url": "assets/figures/arxiv/2604.27045v1/fig-002.webp",
+      "caption": "Table 1: Memory extraction quality across 26 patients (675 hybrid sessions, 951 groundtruth events). Recall measures the fraction of GT events captured fully or partially in the memory state. Faithfulness and deduplication are scored 1–5 by an LLM transcript judge.",
+      "page": 11,
+      "index": 2,
+      "width": 648,
+      "height": 236
+    },
+    {
+      "url": "assets/figures/arxiv/2604.27045v1/fig-003.webp",
+      "caption": "Figure 2: Hybrid transcript construction pipeline. (A) Real UIC coaching transcripts are deterministically segmented into 432 sessions, while patient-matched FHIR R4 bundles are used to generate 243 synthetic reconciliation scenarios via a two-call pipeline that separates dialogue generation (with FHIR access) from groundtruth memory extraction (transcript only). (B) Real and synthetic sessions are interleaved chronologically per patient, producing 26 hybrid transcripts with 675 total sessions and 951 ground-truth memory events. Real sessions carry expected memory annotations; synthetic sessions additionally carry reconciliation ground truth (severity, safety flag, FHIR resource references).",
+      "page": 10,
+      "index": 3,
+      "width": 902,
+      "height": 510
+    },
+    {
+      "url": "assets/figures/arxiv/2604.27045v1/fig-004.webp",
+      "caption": "Table 3: Detection rate by FHIR resource type. All seven resource types in the ground truth are covered, with AllergyIntolerance and Immunization achieving perfect detection in isolation.",
+      "page": 13,
+      "index": 4,
+      "width": 636,
+      "height": 254
+    },
+    {
+      "url": "assets/figures/arxiv/2604.27045v1/fig-005.webp",
+      "caption": "Table A.1: Qualitative examples of end-to-end pipeline behavior. The success case shows a medication discrepancy correctly detected with precise FHIR citation. The failure case shows extraction losing safety-critical details, causing the engine to miss a documented allergy conflict.",
+      "page": 19,
+      "index": 5,
+      "width": 858,
+      "height": 658
+    },
+    {
+      "url": "assets/figures/arxiv/2604.27045v1/fig-006.webp",
+      "caption": "Table 2: Reconciliation performance on 243 synthetic scenarios using ground-truth memories (Dimension 2) versus extracted memories from the full pipeline (Dimension 3). The delta column quantifies the error cascade from upstream extraction. 95% bootstrap confidence intervals in brackets.",
+      "page": 12,
+      "index": 6,
+      "width": 914,
+      "height": 254
+    }
+  ]
+}

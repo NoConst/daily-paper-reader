@@ -6,187 +6,128 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-30
-- 运行时间：2026-04-30 20:31:00 UTC
+- 最新运行日期：2026-05-01
+- 运行时间：2026-05-01 20:35:55 UTC
 - 运行状态：成功
-- 本次总论文数：55
-- 精读区：44
+- 本次总论文数：35
+- 精读区：24
 - 速读区：11
 
 ### 今日简报（AI）
-今日深挖 55 篇 AI 顶尖论文，重点攻克智能体记忆构建与多智能体协作系统。
-满分研究揭示了模式约束生成对智能体记忆的关键作用，并展示了多智能体在表格数据特征生成上的突破。
-建议优先关注如何利用结构化记忆提升大模型在复杂长程任务中的逻辑一致性。
-- 详情：[/202604/30/README](/202604/30/README)
+- 今日共生成 35 篇推荐（精读 24 篇，速读 11 篇）
+- 精读：《TEMA: Anchor the Image, Follow the Text for Multi-Modification Composed Image Retrieval》（10.0/10）, 《TEMA: Anchor the Image, Follow the Text for Multi-Modification Composed Image Retrieval》（10.0/10）
+- 速读：《ResRank: Unifying Retrieval and Listwise Reranking via End-to-End Joint Training with Residual Passage Compression》（8.5/10）, 《All That Glitters Is Not Audio: Rethinking Text Priors and Audio Reliance in Audio-Language Evaluation》（8.5/10）, 《Tuna-2: Pixel Embeddings Beat Vision Encoders for Multimodal Understanding and Generation》（8.5/10）
+- 这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。
+- 详情：[/202605/01/README](/202605/01/README)
 
 ### 精读区论文标签
-1. [To Know is to Construct: Schema-Constrained Generation for Agent Memory](/202604/30/2604.20117v1-to-know-is-to-construct-schema-constrained-generation-for-agent-memory)  
+1. [TEMA: Anchor the Image, Follow the Text for Multi-Modification Composed Image Retrieval](/202605/01/2604.21806v1-tema-anchor-the-image-follow-the-text-for-multi-modification-composed-image-retrieval)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：智能体记忆的模式约束生成
-2. [Memory-Augmented LLM-based Multi-Agent System for Automated Feature Generation on Tabular Data](/202604/30/2604.20261v1-memory-augmented-llm-based-multi-agent-system-for-automated-feature-generation-on-tabular-data)  
+   evidence：多修改组合图像检索 (CIR)
+2. [TEMA: Anchor the Image, Follow the Text for Multi-Modification Composed Image Retrieval](/202605/01/2604.21806v2-tema-anchor-the-image-follow-the-text-for-multi-modification-composed-image-retrieval)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：用于自动特征生成的记忆增强型LLM多智能体系统
-3. [FSFM: A Biologically-Inspired Framework for Selective Forgetting of Agent Memory](/202604/30/2604.20300v1-fsfm-a-biologically-inspired-framework-for-selective-forgetting-of-agent-memory)  
+   evidence：提出用于多修改组合图像检索的TEMA架构并引入新数据集。
+3. [Memanto: Typed Semantic Memory with Information-Theoretic Retrieval for Long-Horizon Agents](/202605/01/2604.22085v1-memanto-typed-semantic-memory-with-information-theoretic-retrieval-for-long-horizon-agents)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：智能体记忆的选择性遗忘
-4. [FSFM: A Biologically-Inspired Framework for Selective Forgetting of Agent Memory](/202604/30/2604.20300v2-fsfm-a-biologically-inspired-framework-for-selective-forgetting-of-agent-memory)  
+   evidence：为持久化自主智能体引入了使用语义记忆和信息论检索的通用记忆层。
+4. [GraphPlanner: Graph Memory-Augmented Agentic Routing for Multi-Agent LLMs](/202605/01/2604.23626v1-graphplanner-graph-memory-augmented-agentic-routing-for-multi-agent-llms)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：智能体记忆的选择性遗忘框架
-5. [UniCVR: From Alignment to Reranking for Unified Zero-Shot Composed Visual Retrieval](/202604/30/2604.20318v1-unicvr-from-alignment-to-reranking-for-unified-zero-shot-composed-visual-retrieval)  
+   evidence：提出了一种用于多智能体大语言模型的异构图记忆增强代理路由，重点关注记忆利用。
+5. [From Soliloquy to Agora: Memory-Enhanced LLM Agents with Decentralized Debate for Optimization Modeling](/202605/01/2604.25847v1-from-soliloquy-to-agora-memory-enhanced-llm-agents-with-decentralized-debate-for-optimization-modeling)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：用于图像和视频的统一零样本组合视觉检索框架
-6. [ConeSep: Cone-based Robust Noise-Unlearning Compositional Network for Composed Image Retrieval](/202604/30/2604.20358v1-conesep-cone-based-robust-noise-unlearning-compositional-network-for-composed-image-retrieval)  
+   evidence：该论文提出了一个带有读写记忆库的模块化智能体框架，以增强大语言模型智能体。
+6. [OCR-Memory: Optical Context Retrieval for Long-Horizon Agent Memory](/202605/01/2604.26622v1-ocr-memory-optical-context-retrieval-for-long-horizon-agent-memory)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：研究组合图像检索中的噪声三元组对应问题
-7. [Ask Only When Needed: Proactive Retrieval from Memory and Skills for Experience-Driven Lifelong Agents](/202604/30/2604.20572v1-ask-only-when-needed-proactive-retrieval-from-memory-and-skills-for-experience-driven-lifelong-agents)  
+   evidence：提出了一种利用视觉模态进行长程经验保留的自主LLM智能体记忆框架。
+7. [When Continual Learning Moves to Memory: A Study of Experience Reuse in LLM Agents](/202605/01/2604.27003v1-when-continual-learning-moves-to-memory-a-study-of-experience-reuse-in-llm-agents)  
    标签：评分：10.0/10、query:cir-ml
-   evidence：终身智能体从结构化经验库中进行主动检索
-8. [MiMIC: Mitigating Visual Modality Collapse in Universal Multimodal Retrieval While Avoiding Semantic Misalignment](/202604/30/2604.21326v1-mimic-mitigating-visual-modality-collapse-in-universal-multimodal-retrieval-while-avoiding-semantic-misalignment)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：缓解多模态检索中的视觉模态坍缩
-9. [AEL: Agent Evolving Learning for Open-Ended Environments](/202604/30/2604.21725v1-ael-agent-evolving-learning-for-open-ended-environments)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：智能体记忆检索策略及将过去经验转化为行为
-10. [TEMA: Anchor the Image, Follow the Text for Multi-Modification Composed Image Retrieval](/202604/30/2604.21806v1-tema-anchor-the-image-follow-the-text-for-multi-modification-composed-image-retrieval)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：多修改组合图像检索（CIR）数据集和架构
-11. [TEMA: Anchor the Image, Follow the Text for Multi-Modification Composed Image Retrieval](/202604/30/2604.21806v2-tema-anchor-the-image-follow-the-text-for-multi-modification-composed-image-retrieval)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：多修改组合图像检索及新基准数据集
-12. [Aligning Dense Retrievers with LLM Utility via DistillationAligning Dense Retrievers with LLM Utility via Distillation](/202604/30/2604.22722v1-aligning-dense-retrievers-with-llm-utility-via-distillationaligning-dense-retrievers-with-llm-utility-via-distillation)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：通过蒸馏使密集检索器与大模型效用对齐
-13. [GraphPlanner: Graph Memory-Augmented Agentic Routing for Multi-Agent LLMs](/202604/30/2604.23626v1-graphplanner-graph-memory-augmented-agentic-routing-for-multi-agent-llms)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：多智能体大语言模型的图记忆增强代理路由
-14. [Combating Visual Neglect and Semantic Drift in Large Multimodal Models for Enhanced Cross-Modal Retrieval](/202604/30/2604.25273v1-combating-visual-neglect-and-semantic-drift-in-large-multimodal-models-for-enhanced-cross-modal-retrieval)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：在跨模态检索中对抗视觉模态忽略和语义漂移
-15. [OCR-Memory: Optical Context Retrieval for Long-Horizon Agent Memory](/202604/30/2604.26622v1-ocr-memory-optical-context-retrieval-for-long-horizon-agent-memory)  
-   标签：评分：10.0/10、query:cir-ml
-   evidence：用于长程智能体记忆的光学上下文检索
-16. [From Recall to Forgetting: Benchmarking Long-Term Memory for Personalized Agents](/202604/30/2604.20006v1-from-recall-to-forgetting-benchmarking-long-term-memory-for-personalized-agents)  
+   evidence：该论文研究了记忆增强型大语言模型智能体及其经验重用机制。
+8. [AEL: Agent Evolving Learning for Open-Ended Environments](/202605/01/2604.21725v1-ael-agent-evolving-learning-for-open-ended-environments)  
    标签：评分：9.5/10、query:cir-ml
-   evidence：个性化智能体长期记忆基准测试
-17. [EngramaBench: Evaluating Long-Term Conversational Memory with Structured Graph Retrieval](/202604/30/2604.21229v1-engramabench-evaluating-long-term-conversational-memory-with-structured-graph-retrieval)  
+   evidence：用于记忆检索策略的智能体进化学习框架
+9. [StructMem: Structured Memory for Long-Horizon Behavior in LLMs](/202605/01/2604.21748v1-structmem-structured-memory-for-long-horizon-behavior-in-llms)  
    标签：评分：9.5/10、query:cir-ml
-   evidence：大语言模型助手的长期对话记忆基准
-18. [StructMem: Structured Memory for Long-Horizon Behavior in LLMs](/202604/30/2604.21748v1-structmem-structured-memory-for-long-horizon-behavior-in-llms)  
+   evidence：长程智能体的结构增强分层记忆框架
+10. [Aligning Dense Retrievers with LLM Utility via DistillationAligning Dense Retrievers with LLM Utility via Distillation](/202605/01/2604.22722v1-aligning-dense-retrievers-with-llm-utility-via-distillationaligning-dense-retrievers-with-llm-utility-via-distillation)  
    标签：评分：9.5/10、query:cir-ml
-   evidence：用于长期对话智能体的结构化记忆
-19. [Memanto: Typed Semantic Memory with Information-Theoretic Retrieval for Long-Horizon Agents](/202604/30/2604.22085v1-memanto-typed-semantic-memory-with-information-theoretic-retrieval-for-long-horizon-agents)  
+   evidence：该论文提出了一个通过将嵌入与大语言模型效用对齐来实现高性能密集向量检索的框架。
+11. [Majorization-Guided Test-Time Adaptation for Vision-Language Models under Modality-Specific Shift](/202605/01/2604.24602v1-majorization-guided-test-time-adaptation-for-vision-language-models-under-modality-specific-shift)  
    标签：评分：9.5/10、query:cir-ml
-   evidence：用于持久、多会话自主智能体的通用记忆层
-20. [MMEB-V3: Measuring the Performance Gaps of Omni-Modality Embedding Models](/202604/30/2604.23321v1-mmeb-v3-measuring-the-performance-gaps-of-omni-modality-embedding-models)  
+   evidence：模态特定偏移下视觉语言模型的测试时自适应
+12. [Interactive Episodic Memory with User Feedback](/202605/01/2604.24893v1-interactive-episodic-memory-with-user-feedback)  
    标签：评分：9.5/10、query:cir-ml
-   evidence：全模态嵌入模型的综合基准测试
-21. [ZenBrain: A Neuroscience-Inspired 7-Layer Memory Architecture for Autonomous AI Systems](/202604/30/2604.23878v1-zenbrain-a-neuroscience-inspired-7-layer-memory-architecture-for-autonomous-ai-systems)  
+   evidence：该论文引入了一项情境记忆任务，模型根据第一视角视频中的用户反馈来优化预测。
+13. [Hierarchical Long-Term Semantic Memory for LinkedIn's Hiring Agent](/202605/01/2604.26197v1-hierarchical-long-term-semantic-memory-for-linkedins-hiring-agent)  
    标签：评分：9.5/10、query:cir-ml
-   evidence：自主AI系统的多层记忆架构
-22. [Majorization-Guided Test-Time Adaptation for Vision-Language Models under Modality-Specific Shift](/202604/30/2604.24602v1-majorization-guided-test-time-adaptation-for-vision-language-models-under-modality-specific-shift)  
-   标签：评分：9.5/10、query:cir-ml
-   evidence：视觉语言模型的模态特定偏移和可靠性感知门控
-23. [Hierarchical Long-Term Semantic Memory for LinkedIn's Hiring Agent](/202604/30/2604.26197v1-hierarchical-long-term-semantic-memory-for-linkedins-hiring-agent)  
-   标签：评分：9.5/10、query:cir-ml
-   evidence：LLM智能体的长期语义记忆系统
-24. [EvoAgent: An Evolvable Agent Framework with Skill Learning and Multi-Agent Delegation](/202604/30/2604.20133v1-evoagent-an-evolvable-agent-framework-with-skill-learning-and-multi-agent-delegation)  
+   evidence：LLM 智能体的分层长期语义记忆
+14. [EngramaBench: Evaluating Long-Term Conversational Memory with Structured Graph Retrieval](/202605/01/2604.21229v1-engramabench-evaluating-long-term-conversational-memory-with-structured-graph-retrieval)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：智能体的三层记忆架构
-25. [EvoAgent: An Evolvable Agent Framework with Skill Learning and Multi-Agent Delegation](/202604/30/2604.20133v2-evoagent-an-evolvable-agent-framework-with-skill-learning-and-multi-agent-delegation)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：LLM智能体的三层记忆架构
-26. [AFMRL: Attribute-Enhanced Fine-Grained Multi-Modal Representation Learning in E-commerce](/202604/30/2604.20135v1-afmrl-attribute-enhanced-fine-grained-multi-modal-representation-learning-in-e-commerce)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于检索的细粒度多模态表示
-27. [Stateless Decision Memory for Enterprise AI Agents](/202604/30/2604.20158v1-stateless-decision-memory-for-enterprise-ai-agents)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：企业级AI智能体的无状态决策记忆
-28. [Dual-Cluster Memory Agent: Resolving Multi-Paradigm Ambiguity in Optimization Problem Solving](/202604/30/2604.20183v1-dual-cluster-memory-agent-resolving-multi-paradigm-ambiguity-in-optimization-problem-solving)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：优化智能体的记忆增强推理
-29. [Dual Causal Inference: Integrating Backdoor Adjustment and Instrumental Variable Learning for Medical VQA](/202604/30/2604.20306v1-dual-causal-inference-integrating-backdoor-adjustment-and-instrumental-variable-learning-for-medical-vqa)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：处理多模态数据中的跨模态混杂效应和固有偏差
-30. [Trust, Lies, and Long Memories: Emergent Social Dynamics and Reputation in Multi-Round Avalon with LLM Agents](/202604/30/2604.20582v1-trust-lies-and-long-memories-emergent-social-dynamics-and-reputation-in-multi-round-avalon-with-llm-agents)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：智能体保留跨游戏的先前交互记忆
-31. [Context Unrolling in Omni Models](/202604/30/2604.21921v1-context-unrolling-in-omni-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：统一多模态模型推理
-32. [Source-Modality Monitoring in Vision-Language Models](/202604/30/2604.22038v1-source-modality-monitoring-in-vision-language-models)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：研究视觉语言模型中的源模态监控与绑定
-33. [CGC: Compositional Grounded Contrast for Fine-Grained Multi-Image Understanding](/202604/30/2604.22498v1-cgc-compositional-grounded-contrast-for-fine-grained-multi-image-understanding)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：用于多图理解的组合定位对比学习
-34. [Federated Cross-Modal Retrieval with Missing Modalities via Semantic Routing and Adapter Personalization](/202604/30/2604.22885v1-federated-cross-modal-retrieval-with-missing-modalities-via-semantic-routing-and-adapter-personalization)  
+   evidence：评估长期对话记忆系统
+15. [Federated Cross-Modal Retrieval with Missing Modalities via Semantic Routing and Adapter Personalization](/202605/01/2604.22885v1-federated-cross-modal-retrieval-with-missing-modalities-via-semantic-routing-and-adapter-personalization)  
    标签：评分：9.0/10、query:cir-ml
    evidence：缺失模态下的联邦跨模态检索
-35. [ContextWeaver: Selective and Dependency-Structured Memory Construction for LLM Agents](/202604/30/2604.23069v1-contextweaver-selective-and-dependency-structured-memory-construction-for-llm-agents)  
+16. [ContextWeaver: Selective and Dependency-Structured Memory Construction for LLM Agents](/202605/01/2604.23069v1-contextweaver-selective-and-dependency-structured-memory-construction-for-llm-agents)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：LLM智能体的依赖结构化记忆构建
-36. [All That Glitters Is Not Audio: Rethinking Text Priors and Audio Reliance in Audio-Language Evaluation](/202604/30/2604.24401v1-all-that-glitters-is-not-audio-rethinking-text-priors-and-audio-reliance-in-audio-language-evaluation)  
+   evidence：为大语言模型智能体引入了一种依赖结构化记忆框架，以改进多步推理。
+17. [MMEB-V3: Measuring the Performance Gaps of Omni-Modality Embedding Models](/202605/01/2604.23321v1-mmeb-v3-measuring-the-performance-gaps-of-omni-modality-embedding-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：重新思考音频语言评估中的文本先验和音频依赖
-37. [MEG-RAG: Quantifying Multi-modal Evidence Grounding for Evidence Selection in RAG](/202604/30/2604.24564v1-meg-rag-quantifying-multi-modal-evidence-grounding-for-evidence-selection-in-rag)  
+   evidence：全模态嵌入模型基准，包括以智能体为中心的场景。
+18. [Spore: Efficient and Training-Free Privacy Extraction Attack on LLMs via Inference-Time Hybrid Probing](/202605/01/2604.23711v1-spore-efficient-and-training-free-privacy-extraction-attack-on-llms-via-inference-time-hybrid-probing)  
+   标签：评分：9.0/10、query:cir-ml
+   evidence：针对推理过程中大语言模型智能体记忆的隐私提取攻击
+19. [MEG-RAG: Quantifying Multi-modal Evidence Grounding for Evidence Selection in RAG](/202605/01/2604.24564v1-meg-rag-quantifying-multi-modal-evidence-grounding-for-evidence-selection-in-rag)  
    标签：评分：9.0/10、query:cir-ml
    evidence：多模态检索增强生成与证据选择
-38. [Interactive Episodic Memory with User Feedback](/202604/30/2604.24893v1-interactive-episodic-memory-with-user-feedback)  
+20. [Skill Retrieval Augmentation for Agentic AI](/202605/01/2604.24594v1-skill-retrieval-augmentation-for-agentic-ai)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：带有自然语言查询和用户反馈的情节记忆
-39. [Mitigating Shared-Private Branch Imbalance via Dual-Branch Rebalancing for Multimodal Sentiment Analysis](/202604/30/2604.25179v1-mitigating-shared-private-branch-imbalance-via-dual-branch-rebalancing-for-multimodal-sentiment-analysis)  
+   evidence：智能体AI从外部语料库动态检索技能
+21. [Beyond Accuracy: Benchmarking Cross-Task Consistency in Unified Multimodal Models](/202605/01/2604.25072v1-beyond-accuracy-benchmarking-cross-task-consistency-in-unified-multimodal-models)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：缓解多模态情感分析中的模态偏差证据
-40. [Instruction-Evidence Contrastive Dual-Stream Decoding for Grounded Vision-Language Reasoning](/202604/30/2604.25809v1-instruction-evidence-contrastive-dual-stream-decoding-for-grounded-vision-language-reasoning)  
+   evidence：统一多模态模型的一致性基准测试
+22. [Detecting Clinical Discrepancies in Health Coaching Agents: A Dual-Stream Memory and Reconciliation Architecture](/202605/01/2604.27045v1-detecting-clinical-discrepancies-in-health-coaching-agents-a-dual-stream-memory-and-reconciliation-architecture)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：解决VLM中的语言先验和模态偏差
-41. [From Soliloquy to Agora: Memory-Enhanced LLM Agents with Decentralized Debate for Optimization Modeling](/202604/30/2604.25847v1-from-soliloquy-to-agora-memory-enhanced-llm-agents-with-decentralized-debate-for-optimization-modeling)  
+   evidence：用于持久化大语言模型智能体的双流记忆架构
+23. [Learning When to Remember: Risk-Sensitive Contextual Bandits for Abstention-Aware Memory Retrieval in LLM-Based Coding Agents](/202605/01/2604.27283v1-learning-when-to-remember-risk-sensitive-contextual-bandits-for-abstention-aware-memory-retrieval-in-llm-based-coding-agents)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：具有读写记忆库的增强记忆LLM智能体
-42. [CacheRAG: A Semantic Caching System for Retrieval-Augmented Generation in Knowledge Graph Question Answering](/202604/30/2604.26176v1-cacherag-a-semantic-caching-system-for-retrieval-augmented-generation-in-knowledge-graph-question-answering)  
+   evidence：编程智能体记忆检索的风险敏感上下文多臂老虎机
+24. [Contextual Agentic Memory is a Memo, Not True Memory](/202605/01/2604.27707v1-contextual-agentic-memory-is-a-memo-not-true-memory)  
    标签：评分：9.0/10、query:cir-ml
-   evidence：将无状态规划器转变为持续学习者的语义缓存系统
-43. [Topology-Aware Representation Alignment for Semi-Supervised Vision-Language Learning](/202604/30/2604.26370v1-topology-aware-representation-alignment-for-semi-supervised-vision-language-learning)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：视觉语言表示对齐
-44. [AGEL-Comp: A Neuro-Symbolic Framework for Compositional Generalization in Interactive Agents](/202604/30/2604.26522v1-agel-comp-a-neuro-symbolic-framework-for-compositional-generalization-in-interactive-agents)  
-   标签：评分：9.0/10、query:cir-ml
-   evidence：交互式智能体组合泛化的神经符号框架
+   evidence：批判了当前的智能体记忆系统，并提出了查找与真正的基于权重的记忆之间的区别。
 
 ### 速读区论文标签
-1. [EmbodiedMidtrain: Bridging the Gap between Vision-Language Models and Vision-Language-Action Models via Mid-training](/202604/30/2604.20012v1-embodiedmidtrain-bridging-the-gap-between-vision-language-models-and-vision-language-action-models-via-mid-training)  
+1. [ResRank: Unifying Retrieval and Listwise Reranking via End-to-End Joint Training with Residual Passage Compression](/202605/01/2604.22180v1-resrank-unifying-retrieval-and-listwise-reranking-via-end-to-end-joint-training-with-residual-passage-compression)  
    标签：评分：8.5/10、query:cir-ml
-   evidence：桥接视觉语言模型与视觉语言动作模型
-2. [IMPACT-CYCLE: A Contract-Based Multi-Agent System for Claim-Level Supervisory Correction of Long-Video Semantic Memory](/202604/30/2604.20136v1-impact-cycle-a-contract-based-multi-agent-system-for-claim-level-supervisory-correction-of-long-video-semantic-memory)  
+   evidence：通过端到端联合训练统一检索和列表重排序
+2. [All That Glitters Is Not Audio: Rethinking Text Priors and Audio Reliance in Audio-Language Evaluation](/202605/01/2604.24401v1-all-that-glitters-is-not-audio-rethinking-text-priors-and-audio-reliance-in-audio-language-evaluation)  
    标签：评分：8.5/10、query:cir-ml
-   evidence：共享语义记忆的迭代断言级维护
-3. [Semantic Recall for Vector Search](/202604/30/2604.20417v1-semantic-recall-for-vector-search)  
+   evidence：该论文研究了多模态任务中的模态偏差，即模型依赖文本先验而非音频信号。
+3. [Tuna-2: Pixel Embeddings Beat Vision Encoders for Multimodal Understanding and Generation](/202605/01/2604.24763v1-tuna-2-pixel-embeddings-beat-vision-encoders-for-multimodal-understanding-and-generation)  
    标签：评分：8.5/10、query:cir-ml
-   evidence：评估向量检索中近似最近邻搜索质量的指标
-4. [Knowledge Capsules: Structured Nonparametric Memory Units for LLMs](/202604/30/2604.20487v1-knowledge-capsules-structured-nonparametric-memory-units-for-llms)  
+   evidence：使用像素嵌入进行理解和生成的统一多模态模型
+4. [Where Did It Go Wrong? Capability-Oriented Failure Attribution for Vision-and-Language Navigation Agents](/202605/01/2604.25161v1-where-did-it-go-wrong-capability-oriented-failure-attribution-for-vision-and-language-navigation-agents)  
    标签：评分：8.5/10、query:cir-ml
-   evidence：LLM的结构化非参数化记忆单元
-5. [Object Referring-Guided Scanpath Prediction with Perception-Enhanced Vision-Language Models](/202604/30/2604.20361v1-object-referring-guided-scanpath-prediction-with-perception-enhanced-vision-language-models)  
+   evidence：该论文将记忆能力作为视觉语言导航智能体的核心能力进行评估。
+5. [Source-Modality Monitoring in Vision-Language Models](/202605/01/2604.22038v1-source-modality-monitoring-in-vision-language-models)  
    标签：评分：7.5/10、query:cir-ml
-   evidence：提取并融合内在对齐的视觉和语言特征表示
-6. [From Stateless Queries to Autonomous Actions: A Layered Security Framework for Agentic AI Systems](/202604/30/2604.23338v1-from-stateless-queries-to-autonomous-actions-a-layered-security-framework-for-agentic-ai-systems)  
+   evidence：研究视觉语言模型如何将信息绑定到特定输入模态以及语义信号的作用。
+6. [ChangeQuery: Advancing Remote Sensing Change Analysis for Natural and Human-Induced Disasters from Visual Detection to Semantic Understanding](/202605/01/2604.22333v1-changequery-advancing-remote-sensing-change-analysis-for-natural-and-human-induced-disasters-from-visual-detection-to-semantic-understanding)  
    标签：评分：7.5/10、query:cir-ml
-   evidence：具有持久记忆的智能体AI系统安全框架
-7. [S2G-RAG: Structured Sufficiency and Gap Judging for Iterative Retrieval-Augmented QA](/202604/30/2604.23783v1-s2g-rag-structured-sufficiency-and-gap-judging-for-iterative-retrieval-augmented-qa)  
+   evidence：解决模态限制和场景偏差的统一多模态框架
+7. [Robust Audio-Text Retrieval via Cross-Modal Attention and Hybrid Loss](/202605/01/2604.23323v1-robust-audio-text-retrieval-via-cross-modal-attention-and-hybrid-loss)  
    标签：评分：7.5/10、query:cir-ml
-   evidence：具有证据记忆的迭代框架，用于多跳问答
-8. [Poster: ClawdGo: Endogenous Security Awareness Training for Autonomous AI Agents](/202604/30/2604.24020v1-poster-clawdgo-endogenous-security-awareness-training-for-autonomous-ai-agents)  
+   evidence：使用跨模态注意力和嵌入细化的多模态检索框架
+8. [A Parametric Memory Head for Continual Generative Retrieval](/202605/01/2604.23388v1-a-parametric-memory-head-for-continual-generative-retrieval)  
    标签：评分：7.5/10、query:cir-ml
-   evidence：针对记忆投毒的自主智能体安全意识训练
-9. [Coverage, Not Averages: Semantic Stratification for Trustworthy Retrieval Evaluation](/202604/30/2604.20763v1-coverage-not-averages-semantic-stratification-for-trustworthy-retrieval-evaluation)  
+   evidence：生成式信息检索与用于文档检索的参数化记忆机制
+9. [PASR: Pose-Aware 3D Shape Retrieval from Occluded Single Views](/202605/01/2604.22658v2-pasr-pose-aware-3d-shape-retrieval-from-occluded-single-views)  
    标签：评分：6.5/10、query:cir-ml
-   evidence：用于可靠检索评估的语义分层
-10. [ImageHD: Energy-Efficient On-Device Continual Learning of Visual Representations via Hyperdimensional Computing](/202604/30/2604.21280v1-imagehd-energy-efficient-on-device-continual-learning-of-visual-representations-via-hyperdimensional-computing)  
+   evidence：利用基础模型实现2D图像与3D形状之间的多模态对齐。
+10. [From Skill Text to Skill Structure: The Scheduling-Structural-Logical Representation for Agent Skills](/202605/01/2604.24026v2-from-skill-text-to-skill-structure-the-scheduling-structural-logical-representation-for-agent-skills)  
    标签：评分：6.5/10、query:cir-ml
-   evidence：使用内存高效的超维计算进行视觉表示的持续学习
-11. [Can QPP Choose the Right Query Variant? Evaluating Query Variant Selection for RAG Pipelines](/202604/30/2604.22661v1-can-qpp-choose-the-right-query-variant-evaluating-query-variant-selection-for-rag-pipelines)  
+   evidence：智能体技能和知识的显式表示，有助于更好的管理和推理
+11. [From Skill Text to Skill Structure: The Scheduling-Structural-Logical Representation for Agent Skills](/202605/01/2604.24026v3-from-skill-text-to-skill-structure-the-scheduling-structural-logical-representation-for-agent-skills)  
    标签：评分：6.5/10、query:cir-ml
-   evidence：检索和RAG流水线中的查询变体选择
+   evidence：智能体系统的技能知识显式表示
 
 
 <div class="dpr-home-promo-card">

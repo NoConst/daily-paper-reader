@@ -1,0 +1,416 @@
+Title: AFA: Identity-Aware Memory for Preventing Persona Confusion in Multi-User Dialogue
+
+URL Source: https://arxiv.org/pdf/2604.25022v1
+
+Published Time: Wed, 29 Apr 2026 00:15:40 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# AFA: Identity-Aware Memory for Preventing Persona Confusion in Multi-User Dialogue 
+
+# Mohammad Al-Ratrout, Pavan Ravva, Shayla Sharmin, Aditya Raikwar, Ju Young Shin, and Leila Barmaki 
+
+University of Delaware Grandfather 
+
+> Persona · history
+> Likes Gardening
+
+Shared Memory: 
+
+Likes Gardening (Grandfather) 
+
+Plays Guitar(Grandson) 
+
+Grandson 
+
+> Persona · history
+> Likes to play guitar
+
+What should I Do today? 
+
+I like to play with my guitar 
+
+What should I Do today? 
+
+Speaker ID Identity -aware 
+
+memory routing 
+
+> You should try practicing your
+> guitar chords
+
+Correct personalized response 
+
+> Grandson’s persona traits used
+> for Grandfather’s response
+
+Persona Leakage 
+
+Grandmother 
+
+> Persona · history
+> Likes to read books
+
+The problem: Persona Confusion (Baseline Shared Memory) 
+
+Grandson 
+
+Grandfather 
+
+Grandfather 
+
+Our Solution: Identity -Aware Routing (AFA) 
+
+Assistant 
+
+Assistant   
+
+> Since you enjoy gardening
+> why not check on your roses ?
+
+→
+
+Figure 1: AFA system overview. The Adaptive Friend Agent (AFA) processes spoken audio from multiple residents sharing a single device. Voice embeddings identify who is speaking (Speaker ID), while ASR transcribes what was said. The resolved User ID routes the query to that user’s isolated memory store, containing their persona attributes and conversation history, which is injected into the LLM prompt to generate a personalized response. Takeaway: Identity-aware routing is the critical component for preventing persona confusion, improving Persona Attribution Accuracy (PAA) from 35.7% to 61.3% over a no-routing baseline. 
+
+## Abstract 
+
+When multiple people share a single voice assistant, the system conflates their histories: one resident’s preferences can leak into another’s responses, eroding utility and trust. We call this failure mode persona confusion , and we show it is a measurable problem in today’s single-user dialogue systems when deployed in shared environments. We present the Adaptive Friend Agent (AFA), a mod-ular framework that combines voice-based speaker identification with per-user memory stores to enable identity-aware, personal-ized dialogue across multiple users. To support training and eval-uation, we construct PAT (Personalized Agent chaT), a synthetic dataset of 58,289 persona-grounded dialogue turns spanning 133 user profiles and 12 real-world scenarios. We evaluate AFA across five LLM back-ends in a standard response-quality benchmark, with a LLaMA-2-70B model fine-tuned on PAT achieving the highest overall performance. To directly measure persona confusion pre-vention, we introduce an interleaved multi-user evaluation protocol with a novel metric, Persona Attribution Accuracy (PAA), demon-strating that identity-aware routing improves PAA from 35.7% to 61.3%. Human evaluation confirms annotators perceive significantly higher personalization in routing-enabled responses. Our results establish that identity-aware user routing is the critical compo-nent for preventing persona confusion in multi-user conversational systems. Link to our code. 
+
+## Keywords 
+
+personalization, dialogue systems, multi-user interaction, speaker identification, smart environments 
+
+## 1 Introduction 
+
+When two residents share a voice assistant in a communal living en-vironment, the system can confuse them: the grandmother asking about her medication may receive a response shaped by her grand-son’s earlier gaming questions. We call this failure mode persona confusion , and it is not merely a technical error; it is a significant reliability risk. If a shared assistant attributes one resident’s social schedule, preferences, or history to another, the system’s utility and the user’s trust collapse. This risk is amplified in shared residential 
+
+> arXiv:2604.25022v1 [cs.HC] 27 Apr 2026 Al-Ratrout et al.
+
+spaces such as smart homes, communal living facilities, and shared workspaces, where multiple people routinely interact with the same device. However, existing dialogue agents often assume a single generic user or forget past interactions. Even state-of-the-art chatbots can produce inconsistent answers when users refer back to information from previous sessions [ 19 ]. These inconsistencies underscore the need for explicit long-term memory and user modeling. Prior work on personalized dialogue, such as PersonaChat [ 20 ] or multi-session chat [ 19 ], typically focuses on single-user personalization or fixed persona profiles, creating a gap in handling dynamic multi-user settings. Our proposed Adaptive Friend Agent (AFA) combines speaker identification with a memory-augmented large language model (LLM), allowing the assistant to retrieve and update each user’s per-sonalized memory over time. This integration enables AFA to gen-erate coherent, context-aware, and persona-consistent responses that reflect the evolving preferences of multiple residents across sessions. Our contributions are as follows: (1) We develop AFA, a conversational framework that integrates speaker identification, personalized memory retrieval, and LLM-based response generation to support multiple independent users within shared environments. (2) We construct PAT (Personalized Agent chaT), a large-scale synthetic dataset of 58,289 persona-grounded dialogue turns spanning 133 user profiles and 12 real-world scenarios. (3) We introduce a novel interleaved multi-user evaluation proto-col and the Persona Attribution Accuracy (PAA) metric, which directly measures persona confusion prevention while control-ling for topic bias, addressing a gap in existing personalization evaluations that rely on surface-level overlap metrics. Using this protocol alongside human evaluation, we demonstrate that identity-aware routing improves PAA from 35.7% to 61.3%, es-tablishing routing as the critical component for multi-user per-sonalization. 
+
+## 2 Related Work 2.1 Multi-User Personalization 
+
+Recent work has highlighted the importance of long-term memory and personalization in dialogue systems. Beyond Goldfish Mem-ory [ 19 ] introduced the Multi-Session Chat (MSC) dataset and showed that standard dialogue models struggle with long contexts spanning multiple sessions. They found that retrieval-augmented and summarization-based models outperform baselines on such data, indicating the importance of explicit memory. While MSC advanced long-term dialogue research, it is limited to repeated sessions between the same pair of speakers and does not address scenarios where multiple distinct users share a single system. This leaves persona confusion, the misattribution of one user’s informa-tion to another, unexplored. Our work addresses this gap by target-ing multi-user personalization with identity-aware routing. Multi-user AI personalization proposed a multi-agent system workflow to reconcile multiple users’ preferences in group settings [ 7]. We adopt a complementary approach, focusing on a single agent that adapts to each user individually via speaker recognition and per-user mem-ory, rather than coordinating among multiple agents. Moreover, MSC comprises human-human conversational data, while our PAT dataset captures human-AI interactions, which more closely reflects the deployment setting of a conversational assistant. Concurrent work by Fu et al. [ 4 ] introduces a persona-aware speech assistant for multi-party dialogue (PAChat) that unifies speech and speaker encoding within a fine-tuned LLM architec-ture. Our work differs in scope and methodology: (1) their system addresses identity-aware response generation within individual conversations, whereas AFA explicitly targets persistent per-user memory across multiple sessions with accumulating conversation history and profile evolution; (2) while their dataset contains multi-party group conversations in single sessions, our evaluation pro-tocol explicitly tests multi-user robustness through interleaved sequences where distinct users alternate turns with the system, directly measuring persona confusion across user switches; and (3) we introduce the Persona Attribution Accuracy (PAA) metric, which directly measures persona confusion prevention by control-ling for topic bias, complementing the standard NLG metrics used in prior evaluations. 
+
+## 2.2 Memory-Augmented Conversational Models 
+
+There is growing interest in equipping LLM-based chatbots with external memory modules to handle long-term context. Notable examples include MemoryBank [ 22 ], which stores and updates key memories of past dialogues, and MemoChat [ 12 ], which refines LLM instructions to use self-composed “memos” for consistent long-range conversation. These methods demonstrate that explicit memory structures can greatly improve response consistency and persona retention over long dialogues. AFA’s personalized memory operates on this principle but is specialized for individual users: we maintain a separate memory store for each user and retrieve relevant context when they speak, allowing the assistant to adapt its responses based on that user’s history rather than treating all interactions generically. 
+
+## 2.3 Persona and Profile-Grounded Dialogue 
+
+The role of persona in dialogue has been extensively explored since the introduction of PersonaChat [ 20 ], which demonstrated that conditioning a chatbot on a fixed persona leads to more engaging and coherent interactions. Following this, many datasets such as FoCus [ 8], MPChat [ 1], and PEC [ 21 ] have investigated persona-based conversations in varying domains. However, most persona-chat research assumes a static persona profile known in advance and focuses exclusively on single-user settings. Our work similarly leverages initial persona profiles but ex-tends the paradigm to multi-user environments, where the primary challenge shifts from persona quality to persona routing, ensuring the correct profile is applied to the correct user. This approach is conceptually related to retrieval-augmented personalization frame-works such as RAP [ 5 ], which store user-specific information in a structured memory and retrieve it during interaction. While RAP focuses on multimodal assistants that personalize tasks like im-age captioning and visual question answering, our system extends this paradigm to multi-user, voice-driven dialogue settings with simultaneous personalization across multiple speakers, a capability AFA: Identity-Aware Memory for Preventing Persona Confusion in Multi-User Dialogue 
+
+Table 1: PAT dataset summary statistics.        
+
+> Statistic Value
+> Total examples 58,289 Unique personas 133 Average prompt length (words) 481.71 Std. prompt length (words) 47.84 Average completion length (words) 76.41 Std. completion length (words) 14.70
+
+not addressed in prior single-user or visual-context personalization systems. 
+
+## 2.4 Speaker Identification 
+
+Speaker identification refers to the process of determining who is speaking from a group of known voices. Voice embeddings are nu-merical representations of a person’s unique vocal characteristics, allowing AI systems to distinguish one speaker from another. Mod-ern approaches use deep neural networks to extract embeddings that capture speaker-discriminative features. ECAPA-TDNN [ 3]introduced an architecture combining channel attention, propa-gation, and aggregation mechanisms, achieving state-of-the-art performance on the VoxCeleb benchmark [ 13 ]. SpeechBrain [ 16 ] is an open-source speech processing toolkit that provides pre-trained ECAPA-TDNN models for speaker verification and identification. In our framework, speaker identification serves as the entry point for user routing, enabling the system to retrieve the correct user’s memory and persona before generating a response. We validate this component’s reliability in Section 5.1. 
+
+## 3 PAT Dataset 
+
+We introduce the Personalized Agent chaT (PAT) dataset, which contains query-response pairs tailored to different personalities. This dataset supports training and evaluating personalized dia-logue agents in multi-user settings. Table 1 summarizes the dataset statistics. 
+
+## 3.1 Data Generation 
+
+To develop PAT, we used the MSC dataset [ 19 ] as a source of con-versational context. We selected a subset containing coherent multi-turn conversations with distinguishable personal traits, cleaned off-topic segments, and used GPT-4o to extract structured persona profiles. These profiles, combined with scenario contexts, were used to generate persona-grounded human-AI dialogue turns, which bet-ter reflect the target use case of AI assistants responding to users. Figure 2 illustrates the data generation pipeline. 
+
+## 3.2 Persona Extraction 
+
+We extracted personality traits from the MSC dataset using GPT-4o, organizing them into six distinct attribute categories: (1) Demographics : Nationality, age, gender, and language prefer-ence, providing a foundation for understanding the person’s background. (2) Career Information : Educational and career background, en-abling assessment of expertise and domain knowledge. 
+
+Table 2: GPT-4o evaluation of 300 PAT samples (1–5 scale).                               
+
+> Dimension Avg 12345
+> Relevance 4.72 0.3% 3.0% 2.7% 12.7% 81.3% Coherence 4.85 00.7% 2.0% 9.0% 88.3% Fluency 4.99 000.3% 0.3% 99.3% Helpfulness 4.21 02.7% 15.3% 40.0% 42.0%
+
+(3) Motivations and Values : Insight into motivations, belief sys-tems, and personal values, enabling the agent to align responses with the user’s perspectives. (4) Decision-Making Style : How an individual arrives at deci-sions through logical reasoning or emotional intuition. (5) Preferences : Communication styles, content formats, likes, and dislikes, enhancing user comfort and interactivity. (6) Emotional Triggers : Emotions and sensitivities that may in-fluence behavior, enabling the agent to avoid responses that cause discomfort. The extracted personality traits were organized by GPT-4o into cohesive persona descriptions, ensuring all categories are seam-lessly integrated into comprehensive, structured representations. 
+
+## 3.3 Personalized Query Generation 
+
+We generated question-response pairs that mimic real-life user in-teractions across 12 common scenarios: Project Planning, Language Learning, Job Interview Preparation, Story Development, Hobby Assistance, Personal Development, Emotional Support, Travel Plan-ning, Shopping Assistance, Content Creation, Relationship Advice, and Family Assistance. Using LLaMA-405B, we generated 40 persona-driven questions per scenario for each persona, structured to be contextually linked so that each successive query builds upon the previous one. Re-sponses were generated by the same model, integrated with a con-tinuously evolving database storing persona descriptions, scene contexts, and prior question-response pairs. Each prompt included the persona description, scenario context, past dialogue, and the current query to ensure continuity. This process produced 58,289 question-response pairs spanning all 133 personas. 
+
+## 3.4 Dataset Validation 
+
+To evaluate PAT quality, we adopted the LLM-as-a-judge method-ology inspired by G-Eval [ 11 ], which demonstrated that GPT-4o evaluations strongly correlate with human judgments on NLG tasks. We used GPT-4o [ 14 ] to rate a stratified random sample of 𝑁 = 300 
+
+dialogue samples across four dimensions using a 5-point Likert scale: relevance (4.72), coherence (4.85), fluency (4.99), and helpful-ness (4.21). These results, detailed in Table 2, validate the linguistic and structural quality of PAT. 
+
+## 3.5 Illustrative Example 
+
+To illustrate the structure of PAT, Table 3 presents a representative example. The AI assistant is guided by a rich persona, generating a response consistent with the persona’s values, communication style, and contextual needs. Al-Ratrout et al. Generation 
+
+MSC Dataset 
+
+Extraction 
+
+> Demographics
+> Career Info
+> Personality Traits
+> Motivation Values
+> Preferences
+> Emotional Triggers
+> Decision Making Style
+
+Persona Description 
+
+"I have a 
+
+passion for 
+
+painting..." 
+
+> A user wants to improve
+> painting skills with AI -
+> assisted lessons...
+
+Scene Generation 
+
+> "As an artist with a
+> passion for painting,
+> I express my creativity..."
+
+Personalized Scene with 
+
+respect to the persona 
+
+"How can I create 
+
+French -inspired 
+
+art...?" 
+
+Question Generation 
+
+> "You can start by exploring the
+> Impressionist movement, a
+> revolutionary art movement..."
+
+Response 
+
+> Prompt is given (Persona +
+> Scene + Question) as a base to
+> generate a response.
+
+Personalized Agent Chat 
+
+(PAT)  Dataset 
+
+Generation 
+
+Generation Generation 
+
+Generation 
+
+Personality Attributes 
+
+Figure 2: PAT data generation pipeline. Persona attributes and conversational context are extracted from MSC using GPT-4o, then used with LLaMA-405B to generate persona-grounded question-response pairs across 12 real-world scenarios. Step 1. Input Processing 
+
+Step 4. Respond and update based on new 
+
+information, including persona attributes and 
+
+recent chat dialogue. 
+
+Step 3. LLM Context Window 
+
+Step 2. Retrieve Vector Database   
+
+> Audio
+> Text transcribe
+> Voice identification
+> Embeddings
+> Query
+
+User Database         
+
+> GPT -4extract persona
+> User database User ID
+> Temporary file
+> Permanent file
+> Persona file
+> Conversation history
+> Persona attributes inf o
+> Concatenate LLM prompt Personalized response
+> Update
+> Store
+> Update Temp File
+
+Figure 3: AFA framework overview. The system processes audio input through speaker identification, retrieves user-specific persona and conversation history from a per-user vector database, and generates personalized responses that update the user’s profile for adaptive interaction. 
+
+Compared to PersonaChat [ 20 ], which involves two-human con-versations with fixed personas, MSC [ 19 ], which focuses on multi-session dialogue between the same speaker pair, and the concurrent work of PAChat [ 4], which captures multi-party group conversa-tions within single sessions, PAT focuses on dialogues between an AI assistant and distinct users with diverse persona profiles across multiple scenarios and sessions. Table 4 summarizes these differences. PAT is the only dataset that simultaneously supports human-AI interaction, multi-user testing, and multi-session conti-nuity, making it uniquely suited for training and evaluating multi-user personalized assistants. 
+
+## 4 AFA Architecture 
+
+AFA is a modular system that processes voice input, maintains per-user memory, and generates personalized text responses. Figure 3 summarizes the pipeline. The key components are described below. AFA: Identity-Aware Memory for Preventing Persona Confusion in Multi-User Dialogue 
+
+Table 3: Example of persona-aligned response generation in PAT.    
+
+> Persona Summary: Works at a non-profit supporting underprivileged youth; values empathy, community, and intellectual growth. Enjoys murder mysteries and ice cream; inspired by Martin Luther King Jr.; prefers collaborative decision-making and tactile experiences like physical books.
+> User Question: I’d also appreciate suggestions on where to buy these recom-mended titles; perhaps there are independent bookstores near me that could use my business.
+> Generated Response: You can find these titles at local independent bookstores in your area, which would not only enrich your reading experience but also support the community. To locate these hidden gems, you might check out online directories or ask fellow book lovers for recommendations. By choosing to shop at independent bookstores, you’re helping to foster a culture of reading and community engagement that’s vital for underprivileged youth.
+
+Table 4: Comparison of persona-grounded dialogue datasets. PAT uniquely combines multi-user testing, human-AI in-teraction, and multi-session continuity. Takeaway: No prior dataset simultaneously supports all three properties needed for evaluating multi-user personalized assistants over time. 
+
+Dataset Multi-user Human-AI Multi-Session 
+
+PersonaChat [20] ✗ ✗ ✗
+
+MSC [19] ✗ ✗ ✓
+
+PAChat [4] ✓ ✓ ✗
+
+PAT (ours) ✓ ✓ ✓
+
+## 4.1 Speaker Identification 
+
+The audio data passes through an Audio Identifier Module, which differentiates users based on their unique voice embeddings. We use SpeechBrain’s ECAPA-TDNN model [ 3, 16 ], which supports speaker recognition with state-of-the-art performance on VoxCeleb benchmarks [13]. The process begins by converting audio into voice embeddings and transcribing speech to text. These embeddings are stored in a DynamoDB instance, where each embedding is linked with a corresponding user ID. When a user speaks, their voice embeddings are compared against existing embeddings using cosine similarity. If a match is found, the system retrieves the associated user ID; otherwise, a new ID is assigned. This component serves as the entry point for identity-aware routing in the AFA pipeline. 
+
+## 4.2 Dynamic User Profile Store 
+
+The Dynamic User Profile Store manages historical conversations across multiple sessions for different users. We implement two types of tables for each user: a temporary table storing the last ten conversations for immediate context retrieval, and a permanent table containing summarized session histories. Once a user completes ten conversations, GPT-4o generates a summary of the session, which is stored permanently while the temporary table is cleared. This mechanism balances short-term context richness with storage efficiency, approximating natural session boundaries similar to a user’s daily interaction session. The summarization preserves conversational context and intent while reducing data requirements. 
+
+## 4.3 Persona Synchronizer 
+
+The Persona Synchronizer updates each user’s persona profile af-ter every interaction. After each user turn, GPT-4o is prompted to extract any new personality attributes from the user’s query across the six categories described in Section 3.2. The extracted attributes are then compared against the user’s existing persona profile: new information, such as previously unmentioned hobbies or preferences, is appended to the profile, while contradictory in-formation, such as a changed job or updated preferences, replaces the corresponding existing entry. The updated persona is stored in the user’s profile and used to condition the next response. In the constant persona setting, this update step is skipped, and the persona remains as initially established during onboarding. In the adaptive setting, the persona evolves continuously, enabling the system to reflect changes in the user’s preferences over extended deployments. 
+
+## 4.4 Adaptive Response Generator 
+
+The Adaptive Response Generator integrates multiple components to produce personalized responses. The transcribed query text is processed by both the Dynamic User Profile Store and the Persona Synchronizer. Query text embeddings are compared against stored database embeddings using cosine similarity, and the top-3 most relevant historical data points are extracted. Combined with the user persona and current query, this information is structured into a contextual prompt that ensures the generated response aligns with the user’s personality, motivations, and interaction history. 
+
+## 5 Experiments 
+
+We evaluate the AFA framework through four complementary assessments: speaker identification validation, response quality benchmarking across multiple LLM back-ends, a novel multi-user robustness evaluation, and human evaluation. 
+
+## 5.1 Speaker Identification Validation 
+
+Before evaluating the full framework, we validated the reliability of the speaker identification component that serves as the entry point for user routing. We generated synthetic voice profiles for five speakers (three male, two female) using ElevenLabs text-to-speech, with utterances drawn from the PAT dataset. Each speaker was enrolled with five utterances and tested on ten held-out utter-ances using SpeechBrain’s ECAPA-TDNN model [ 3, 16 ]. The system achieved 100% identification accuracy across all 50 test samples with an average cosine similarity of 0.858, confirming reliable user routing for downstream persona retrieval. 
+
+## 5.2 Response Quality Evaluation 
+
+We evaluated AFA with multiple LLM backends to assess the frame-work’s generalizability. For open-source models, we used LLaMA-2-70B [ 18 ] fine-tuned on the PAT dataset using LoRA [ 6] with rank 8, 
+
+𝛼 of 32, and dropout of 0.05, trained over 2 epochs with 8-bit quan-tization on AWS SageMaker. For closed-source models, we used GPT-4o, GPT-3.5, Claude, and Gemini-2.0 in zero-shot settings. Each model was tested under three persona configurations: no persona (response based solely on dialogue history), constant per-sona (fixed profile established during onboarding), and adaptive Al-Ratrout et al. 
+
+persona (profile that evolves dynamically based on user interac-tions). We measured similarity to ground truth responses using BLEU [ 15 ]and ROUGE [ 9], diversity using Distinct-1, and persona align-ment using Profile-Level and Attribute-Level coverage (P-Cover, A-Cover) [2, 10]. For a persona 𝑝 containing 𝑛 attributes {𝑎 1, 𝑎 2, . . . , 𝑎 𝑛 } and a generated response 𝑦 , attribute-level coverage is defined as: A-Cover (𝑦, 𝑝 ) = max   
+
+> 𝑎 𝑗 ∈𝑝
+
+(IDF-O (𝑦, 𝑎 𝑗 )) (1) where IDF-O represents the inverse document frequency weighted word overlap. Profile-level coverage aggregates across responses 
+
+𝑆 𝑟 :P-Cover (𝑆 𝑟 , 𝑝 ) = IDF-O (𝑆 𝑟 , 𝑝 ) (2) For retrieval, we used OpenAI’s text embedding model to encode historical conversations, applying cosine similarity to select the top-3 most relevant entries. We also experimented with top-5 and top-8 retrieval, but observed no significant improvement in response generation quality, so top-3 was selected as the optimal setting. Table 5 presents the results. The fine-tuned LLaMA-70B achieved the highest BLEU-1 (0.806) and ROUGE-1 (0.512) under the adap-tive persona setting. Similarly, GPT-4o saw a BLEU-1 increase from 0.748 to 0.798 ( ∼6.7%) with persona adaptation, demonstrating that persona conditioning enhances response specificity. Persona adap-tation quality, assessed through P-Cover and A-Cover, showed the fine-tuned LLaMA-70B achieving the highest values (P-Cover: 0.463, A-Cover: 0.425), indicating strong alignment between generated responses and persona attributes. The PAT dataset played a critical role in enabling the relatively lightweight LLaMA-70B model to exhibit strong persona adapta-tion. By providing diverse, well-structured persona-query-response pairs, PAT helped LLaMA-70B approach the performance of larger proprietary models on key personalization dimensions. This evaluation measures individual response quality by compar-ing generated responses against ground truth from the PAT dataset. It does not test multi-user routing; each response is evaluated inde-pendently for a single user. The multi-user robustness evaluation in Section 5.3 directly tests the system’s ability to maintain separate user contexts. 
+
+## 5.3 Multi-User Robustness Evaluation 
+
+While the response quality evaluation (Section 5.2) measures how well individual responses align with persona attributes, it does not directly test the system’s ability to maintain separate user contexts when multiple users interact with the same device. To address this critical gap, we introduce an interleaved multi-user evaluation protocol. 
+
+5.3.1 Evaluation Protocol. We constructed interleaved test sequences by selecting 15 pairs of users with distinct personas from the PAT test set. For each pair, we alternated their questions to simulate a shared environment where two residents speak to the same device in sequence: User A asks a question, then User B asks a question, then User A asks a follow-up to their own earlier question, and so on. Each user contributed 10 turns per sequence, producing 300 total evaluation turns. For each turn, the system must correctly route to the appropriate user’s persona and conversation history. We tested three conditions: 
+
+• No persona : No user identification or persona information; all users share a mixed conversation history. This simulates a con-ventional single-user assistant. 
+
+• Constant persona : Speaker identification correctly routes to each user’s profile, which is established once during onboarding (ex-tracted from MSC conversational data using GPT-4o) and re-mains fixed throughout all interactions. Conversation history is maintained separately per user. 
+
+• Adaptive persona : Identical to the constant persona setting at the start, the same initial profile extracted from MSC data, but the Persona Synchronizer updates the profile after each inter-action, enabling it to evolve over time. Conversation history is maintained separately per user. 
+
+5.3.2 Metrics. We introduce Persona Attribution Accuracy (PAA), which measures whether the system’s response shifts more toward the correct user’s persona than the wrong user’s, controlling for topic bias inherent in the question. For each response 𝑦 , we compute the persona lift toward persona 𝑝 as: lift (𝑦, 𝑝 ) = sim (𝑦, 𝑝 ) − sim (𝑦 𝑔𝑡 , 𝑝 ) (3) where sim denotes cosine similarity between sentence embeddings (all-MiniLM-L6-v2 [ 17 ]) and 𝑦 𝑔𝑡 is the ground truth response. Sub-tracting the ground truth similarity controls for topic bias: a ques-tion about cooking will naturally produce responses similar to a culinary persona regardless of personalization. A response is cor-rectly attributed when lift (𝑦, 𝑝 𝑐 ) > lift (𝑦, 𝑝 𝑤 ), where 𝑝 𝑐 and 𝑝 𝑤 are the correct and wrong user’s personas, respectively. PAA is the percentage of correctly attributed responses: PAA = 1
+
+𝑁 
+
+> 𝑁
+
+∑︁ 
+
+> 𝑖 =1
+
+⊮[lift (𝑦 𝑖 , 𝑝 𝑐 ) > lift (𝑦 𝑖 , 𝑝 𝑤 )] (4) We also report Persona Margin , the mean signed difference lift (𝑦, 𝑝 𝑐 )− 
+
+lift (𝑦, 𝑝 𝑤 ), where positive values indicate correct attribution. Addi-tionally, we compute Semantic A-Cover using sentence embeddings to measure semantic alignment between responses and persona attributes, complementing the lexical-overlap P-Cover and A-Cover metrics. 
+
+5.3.3 Results. Table 6 presents the multi-user evaluation results using GPT-4o as the LLM backend. Identity-aware routing produces a substantial improvement in persona attribution: PAA increases from 35.7% (no persona) to 60.3% (constant) and 61.3% (adaptive), representing a 25-percentage-point gain. Persona Margin shifts from −0.025 (indicating drift toward the wrong user’s persona) to 
+
++0.018 and +0.020 (indicating correct attribution), a sign reversal that demonstrates the system is actively personalizing toward the correct user. Semantic A-Cover shows a corresponding improve-ment from 0.371 to 0.425–0.431, confirming that responses become more semantically aligned with the intended user’s attributes. Importantly, BLEU-1 and ROUGE-1 remain comparable across all settings (0.300–0.312 and 0.417–0.429, respectively), indicating that routing and persona conditioning improve personalization without degrading general response quality. The no-persona setting simulates a conventional single-user as-sistant deployed in a shared environment: all conversation history AFA: Identity-Aware Memory for Preventing Persona Confusion in Multi-User Dialogue 
+
+Table 5: Response quality comparison across LLM backends and persona settings. Best results per column in bold.                                                                                                                                                                  
+
+> Model Persona P-Cov A-Cov BL-1 BL-2 BL-3 BL-4 RG-1 RG-2 RG-L Dist-1
+> Anthropic Claude w/o Persona .394 .304 .769 .687 .584 .493 .390 .102 .229 .810 Constant .408 .363 .764 .681 .578 .487 .374 .103 .228 .817 Adaptive .424 .410 .743 .668 .570 .481 .401 .105 .236 .792 Google Gemini w/o Persona .352 .392 .528 .475 .406 .348 .273 .084 .175 .863 Constant .331 .292 .574 .514 .438 .376 .277 .093 .184 .854 Adaptive .370 .352 .608 .545 .469 .405 .299 .098 .200 .851 OpenAI GPT-3.5 w/o Persona .333 .305 .546 .489 .416 .355 .242 .074 .159 .881 Constant .301 .379 .497 .443 .377 .322 .233 .068 .153 .890 Adaptive .353 .363 .590 .527 .448 .388 .256 .075 .168 .867 OpenAI GPT-4o w/o Persona .301 .294 .748 .663 .562 .478 .326 .097 .207 .847 Constant .305 .284 .777 .686 .581 .492 .324 .099 .213 .839 Adaptive .374 .306 .798 .705 .595 .502 .335 .097 .217 .831 LLaMA-70B (Ours) w/o Persona .420 .395 .782 .713 .595 .495 .415 .110 .229 .894
+> Constant .435 .406 .805 .734 .651 .580 .497 .245 .374 .777 Adaptive .463 .425 .806 .736 .656 .586 .512 .267 .364 .780
+
+Table 6: Multi-user interleaved evaluation (GPT-4o, 300 turns). PAA = Persona Attribution Accuracy. Margin = signed persona lift difference (positive = correct attribution). Take-away: Identity-aware routing improves PAA by 25 percentage points without degrading BLEU/ROUGE, showing personal-ization gain is achieved without response quality trade-off.  
+
+> Setting PAA
+
+↑ Margin ↑ S-ACov ↑ BL-1 RG-1   
+
+> No persona 35.7%
+
+−0.025 0.371 0.305 0.424 Constant 60.3% +0.018 0.425 0.300 0.417 Adaptive 61.3% +0.020 0.431 0.312 0.429 
+
+is pooled without user distinction, mirroring how conventional single-user dialogue systems behave when multiple people interact with the same device. The resulting PAA of 35.7%, below the 50% chance level for binary attribution, indicates that the system ac-tively drifts toward the wrong user’s persona. For instance, in one evaluation pair, User A (a rock music enthusiast) asked about cloth-ing style but received a response referencing “pastel hair colors and floral-inspired makeup”, details from User B’s earlier conver-sation about Easter hair dyeing. This cross-user contamination confirms that persona confusion is not merely a theoretical concern but a measurable failure mode that identity-aware routing directly prevents. The modest difference between constant and adaptive persona settings (60.3% vs. 61.3% PAA) indicates that in short interaction windows, having an accurate initial profile matters more than per-sona evolution. In practical deployments, initial profiles can be established during an onboarding process, providing reliable per-sonalization from the first interaction. The adaptive mechanism’s primary role is to maintain and enrich these profiles over extended use as user preferences evolve. 
+
+## 5.4 Qualitative Example of Multi-User Routing 
+
+Table 7 illustrates a representative interleaved scenario from our evaluation. When two users alternate turns on the same device, the speaker identification component determines who is speaking and retrieves that user’s persona and conversation history before 
+
+Table 7: Interleaved multi-user scenario. Two users alter-nate turns on a shared device. Without user routing, both responses are generic. With routing, User A’s response refer-ences their music career and British culture interests, while User B’s response connects to their coffee shop, despite nei-ther question mentioning these details.             
+
+> User A: Canadian musician, passionate about British culture.
+> User B: Late 20s, owns a coffee shop, drawn to urban art.
+> — Turn 15: User A (musician) asks —
+> What marketing channels should I leverage to promote my music and connect with fans?
+> Without routing: Use social media platforms like Instagram and TikTok to showcase your music. Engage with your audience through live streaming on Twitch or Facebook Live.
+> With routing: Tap into platforms like Instagram and TikTok for sharing clips. Engaging with music communities on Reddit and connecting with British music scenes online can also help build your fanbase.
+> – Turn 16: User B (coffee shop owner) asks —
+> Could you provide guidance on organizing workshops focused on traditional crafts-manship?
+> Without routing: Collaborate with local artisans who can serve as instructors. Select a suitable venue that accommodates hands-on activities and ensure it has the necessary tools.
+> With routing: Reach out to local artisans, inviting them to host workshops
+> in your coffee shop . This supports the community and enriches your customers’ experiences by offering hands-on learning.
+
+generating a response. Without this routing, the system treats all turns as coming from the same anonymous user and produces generic responses. With routing, each response draws on the correct user’s profile, producing personalization that goes beyond what the question alone reveals. 
+
+## 5.5 Human Evaluation 
+
+To validate that automatic metrics correspond to human perception of personalization, we conducted a human evaluation on a subset of the interleaved results. Two annotators independently rated 50 randomly sampled responses, 25 from the no-persona setting and 25 from the adaptive-persona setting, on a personalization scale of 1 (generic, could be for anyone) to 5 (deeply personalized). To mitigate Al-Ratrout et al. 
+
+Table 8: Human evaluation of personalization (1–5 Likert scale). 𝑁 =2 annotators, 50 items total. 
+
+Setting Personalization 𝑛 
+
+No persona 2.32 ± 0.66 25 Adaptive persona 3.70 ± 1.06 25 
+
+Inter-annotator agreement (within 1 pt): 72% 
+
+bias, annotators were shown the user’s profile, the question, and the response, without knowledge of which setting produced each response, and the presentation order was randomized. Annotators were instructed to assess whether the response connected to the user’s profile beyond what the question directly stated. As shown in Table 8, annotators rated adaptive-persona re-sponses substantially higher on perceived personalization (3.70 vs. 2.32 for no-persona, a difference of +1.38 on the 5-point scale; Welch’s 𝑡 = 5.52 , 𝑝 < 0.001 ), confirming the pattern observed in automatic metrics. Inter-annotator agreement within one point was 72%, indicating consistent judgment across raters. This hu-man evaluation validates that PAA and Semantic A-Cover capture meaningful differences in perceived personalization quality. 
+
+## 6 Discussion 
+
+Our results demonstrate that identity-aware routing , correctly identi-fying who is speaking and retrieving their specific profile, is the crit-ical component for multi-user personalization. The 25-percentage-point improvement in PAA from no-persona (35.7%) to constant persona (60.3%) establishes that user routing alone accounts for nearly all of the personalization gain. The additional improvement from constant to adaptive persona (60.3% to 61.3%) is marginal, indicating that persona evolution contributes minimally in short interaction windows. This decomposition reveals that the primary bottleneck in multi-user personalization is not the sophistication of the persona model, but whether the system knows who it is talking to. A natural question is whether the adaptive mechanism could construct a useful persona entirely from conversation, without an initial onboarding profile. We evaluated this cold-start scenario and found that after 20 turns of interaction, persona attribution accuracy reached only 41%, substantially below the 60% achieved with an onboarding profile from the first interaction. This confirms that in the target deployment setting of communal living facilities, where resident information is available through intake processes, providing an initial profile is necessary for reliable personalization. The speaker identification component achieved perfect accuracy on synthetic voice profiles, validating the front-end of the pipeline. The framework’s modular design allows this component to be up-graded independently as more robust models become available, or supplemented with additional identification signals such as facial recognition, proximity-based identification, or user login. The PAT dataset further demonstrated its value by enabling the fine-tuned LLaMA-70B to approach or exceed the performance of larger propri-etary models on personalization metrics, suggesting that targeted, persona-grounded training data can compensate for model scale in domain-specific applications. 
+
+Limitations. The current evaluation uses synthetic voices and the LLM-generated PAT dataset, which may introduce distributional differences from natural conversation. Real-world deployment with natural speech and acoustic variability remains an important area for future validation. 
+
+## 7 Conclusion and Future Work 
+
+We presented AFA, a modular architecture for personalized, identity-aware conversational support in shared multi-user environments such as smart homes, communal living facilities, and shared workspaces. Through comprehensive evaluation spanning speaker identification validation, response quality benchmarking across five LLM back-ends, a novel multi-user interleaved evaluation protocol, and human assessment, we demonstrated that identity-aware user routing is the critical factor for preventing persona confusion, improving persona attribution accuracy from 35.7% to 61.3%. Future work includes real-world deployment to evaluate performance with natural speech and acoustic variability, investigating multi-user conflict resolution for reconciling contradictory information across users, evaluating graceful degradation under speaker identification errors, and ex-ploring the framework’s applicability to other multi-user settings such as educational environments and collaborative workspaces. 
+
+Safe and Responsible Innovation Statement: Deploying con-versational agents in shared multi-user environments raises privacy concerns. AFA addresses these through data isolation: per-user vec-tor databases ensure that one user’s conversational history and personal information are not accessible when interacting with an-other user. Speaker recognition serves as a lightweight biometric layer, ensuring that personalized responses are triggered only by the correct individual. This study uses synthetic data (PAT) to avoid pri-vacy risks during development; future real-world deployments will require informed consent from all participants. While the Persona Synchronizer automatically replaces contradictory information in user profiles, longer-term risks remain. Stable preferences that be-come outdated without being explicitly contradicted, such as a hobby the user no longer enjoys but never mentions again, may persist indefinitely. Future iterations will incorporate mechanisms for periodic profile review and user-initiated corrections to address this gap. 
+
+## References              
+
+> [1] Jaewoo Ahn, Yeda Song, Sangdoo Yun, and Gunhee Kim. 2023. MPChat: Towards multimodal persona-grounded conversation. arXiv preprint arXiv:2305.17388
+> (2023). [2] Yucheng Cheng, Wei Liu, Kai Xu, Wenjun Hou, Yi Ouyang, Chee Tung Leong, Xiao Wu, and Yuxin Zheng. 2024. AutoPAL: Autonomous adaptation to users for personal AI companionship. arXiv preprint arXiv:2406.13960 (2024). [3] Brecht Desplanques, Jenthe Thienpondt, and Kris Demuynck. 2020. ECAPA-TDNN: Emphasized channel attention, propagation and aggregation in TDNN based speaker verification. In Proceedings of Interspeech . 3830–3834. [4] Dongjie Fu, Xize Cheng, Linjun Li, Xiaoda Yang, Lujia Yang, and Tao Jin. 2025. PAChat: Persona-Aware Speech Assistant for Multi-party Dialogue. In Proceed-ings of the 2025 Conference on Empirical Methods in Natural Language Processing .29325–29342. [5] Huijie Hao, Jing Han, Chaoqun Li, Yun-Fei Li, and Xiangyu Yue. 2025. RAP: Retrieval-augmented personalization for multimodal large language models. In
+> Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recogni-tion . 14538–14548. [6] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. 2021. LoRA: Low-rank adaptation of large language models. arXiv preprint arXiv:2106.09685 (2021).
+
+AFA: Identity-Aware Memory for Preventing Persona Confusion in Multi-User Dialogue 
+
+[7] Cheng Peng Lee, Joon Choi, and Bilge Mutlu. 2025. MAP: Multi-user personal-ization with collaborative LLM-powered agents. In Proceedings of the Extended Abstracts of the CHI Conference on Human Factors in Computing Systems . 1–11. [8] Seolhwa Lee, Jaehyung Lee, Chanjun Park, Sugyeong Eo, Hyeonseok Moon, Jaewook Seo, Jungseul Park, and Hee-Soo Lim. 2022. Focus on focus: Is focus focused on context, knowledge and persona?. In Proceedings of the 1st Workshop on Customized Chat Grounding Persona and Knowledge . 1–8. [9] Chin-Yew Lin. 2004. ROUGE: A package for automatic evaluation of summaries. In Text Summarization Branches Out . 74–81. [10] Zhaojiang Lin, Zihan Liu, Genta Indra Winata, Samuel Cahyawijaya, Andrea Madotto, Yejin Bang, Etsuko Ishii, and Pascale Fung. 2020. XPersona: Evaluating multilingual personalized chatbot. arXiv preprint arXiv:2003.07568 (2020). [11] Yang Liu, Dan Iter, Yichong Xu, Shuohang Wang, Ruochen Xu, and Chenguang Zhu. 2023. G-Eval: NLG evaluation using GPT-4 with better human alignment. 
+
+arXiv preprint arXiv:2303.16634 (2023). [12] Junru Lu, Siyu An, Mingbao Lin, Gabriele Pergola, Yulan He, Di Yin, Xin Sun, and Yu Wu. 2023. MemoChat: Tuning LLMs to use memos for consistent long-range open-domain conversation. arXiv preprint arXiv:2308.08239 (2023). [13] Arsha Nagrani, Joon Son Chung, Weidi Xie, and Andrew Zisserman. 2020. Vox-celeb: Large-scale speaker verification in the wild. Computer Speech & Language 
+
+60 (2020), 101027. [14] OpenAI. 2023. GPT-4 technical report. arXiv preprint arXiv:2303.08774 (2023). [15] Kishore Papineni, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2002. BLEU: a method for automatic evaluation of machine translation. In Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics . 311–318. [16] Mirco Ravanelli, Titouan Parcollet, Adel Moumen, Sylvain de Langen, Cem Subakan, Peter Plantinga, Yingzhi Wang, Pooneh Mousavi, Luca Della Libera, Artem Ploujnikov, et al . 2024. Open-source conversational AI with SpeechBrain 1.0. arXiv preprint arXiv:2407.00463 (2024). [17] Nils Reimers and Iryna Gurevych. 2019. Sentence-BERT: Sentence embeddings using Siamese BERT-networks. In Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing . 3982–3992. [18] Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yas-mine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhos-ale, et al . 2023. LLaMA 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288 (2023). [19] Jing Xu, Arthur Szlam, and Jason Weston. 2022. Beyond goldfish memory: Long-term open-domain conversation. In Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) . 5180–5197. [20] Saizheng Zhang, Emily Dinan, Jack Urbanek, Arthur Szlam, Douwe Kiela, and Jason Weston. 2018. Personalizing dialogue agents: I have a dog, do you have pets too?. In Proceedings of the 56th Annual Meeting of the Association for Compu-tational Linguistics . 2204–2213. [21] Peixiang Zhong, Chen Zhang, Hao Wang, Yong Liu, and Chunyan Miao. 2020. Towards persona-based empathetic conversational models. arXiv preprint arXiv:2004.12316 (2020). [22] Wanjun Zhong, Lianghong Guo, Qianhui Gao, He Ye, and Yanlin Wang. 2024. MemoryBank: Enhancing large language models with long-term memory. In 
+
+Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 38. 19724–19731.

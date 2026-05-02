@@ -1,0 +1,803 @@
+Title: Region Matters: Efficient and Reliable Region-Aware Visual Place Recognition
+
+URL Source: https://arxiv.org/pdf/2604.22390v1
+
+Published Time: Mon, 27 Apr 2026 00:42:05 GMT
+
+Number of Pages: 25
+
+Markdown Content:
+# Region Matters: Efficient and Reliable Region-Aware Visual Place Recognition 
+
+## Shunpeng Chen 1, Yukun Song 1, Changwei Wang 2, Rongtao Xu 3, Kexue Fu 2,Longxiang Gao 2, Li Guo 1, Ruisheng Wang 4, Shibiao Xu 1* 
+
+> 1
+
+School of Artificial Intelligence, Beijing University of Posts and Telecommunications, Beijing 100876, China. 
+
+> 2
+
+Key Laboratory of Computing Power Network and Information Security, Ministry of Education, Shandong Computer Science Center, Qilu University of Technology. 
+
+> 3
+
+Spatialtemporal AI. 
+
+> 4
+
+School of Architecture and Urban Planning, Guangdong-Hong Kong-Macau Joint Laboratory for Smart Cities, Shenzhen University, Shenzhen 518060, China. *Corresponding author(s). E-mail(s): shibiaoxu@bupt.edu.cn; 
+
+Abstract 
+
+Visual Place Recognition (VPR) determines a query image’s geographic location by matching it against geotagged databases. However, existing methods struggle with perceptual aliasing caused by irrelevant regions and inefficient re-ranking due to rigid candidate scheduling. To address these issues, we introduce FoL++, a method combining robust discriminative region modeling with adaptive re-ranking. Specifically, we propose a Reliability Estimation Branch to generate spatial reliability maps that explicitly model occlusion resistance. This representation is further optimized by two spatial alignment losses (SAL and SCEL) to effectively align features and highlight salient regions. For weakly supervised learning without manual annotations, a pseudo-correspondence strategy generates dense local feature supervision directly from aggregation clusters. Our Adaptive Candidate Scheduler dynamically resizes candidate pools based on global similarity. By weighting local matches by reliability and adaptively fusing global and local evidence, FoL++ surpasses traditional independent matching systems. Extensive experiments across seven benchmarks demonstrate that FoL++ achieves state-of-the-art performance with a lightweight memory footprint, improving inference speed by 40% over FoL. Code and models will be released (and merged with FoL) at https://github.com/chenshunpeng/FoL.  
+
+> Keywords: Visual Place Recognition, Discriminative Region Learning, Weakly Supervised Learning, Foundation models.
+
+# 1 Introduction 
+
+Visual Place Recognition (VPR), also known as geo-localization (Lu et al. 2024c; Liu et al. 2024; Ali-Bey et al. 2023a; Berton et al. 2022a), is essen-tial for various location-aware applications such as augmented reality (Middelberg et al. 2014), SLAM (Zou and Tan 2012; Zaffar et al. 2021), visual localization (Wenzel et al. 2025; Xu et al. 2024), and autonomous driving (Zou et al. 2025; Mao et al. 2023). Fundamentally, VPR addresses the question, “Where was this image captured?” 1                    
+
+> arXiv:2604.22390v1 [cs.CV] 24 Apr 2026 (b) Performance and Efficiency Comparison on DINOv2 -l(c) Evaluation on DINOv2 -b at 𝟑𝟐𝟐 ×𝟑𝟐𝟐 (a) Discriminative Region -Guided Local Matching
+> Tokyo24/7 Nordland
+> Nordland ∗
+> MSLS -val
+> Pitts30k -test
+> Pitts30k -test MSLS -val Nordland Tokyo24/7 Nordland ∗Fig. 1 Comprehensive evaluation of the proposed FoL++ framework. (a) Visual comparison between standard matching (top) and our discriminative region-guided matching (bottom), showing the effective suppression of mismatches in irrelevant backgrounds. (b) Trade-off analysis demonstrating that FoL++ achieves optimal performance across all metrics. All methods are evaluated on an NVIDIA A100 GPU at 322 ×322 resolution, except EffoVPR ( 504 ×504 ). (c) Radar chart illustrating that our FoL++ consistently exhibits the strongest overall performance in both the global and re-ranking stages.
+
+by enabling machines to infer geographic locations from visual cues. At its core, this involves determin-ing whether two images depict the same scene and precisely identifying matching key parts. Ideally, this process should mimic human intuition: we first identify sufficiently discriminative features in one image and search for corresponding ones in another, naturally ignoring non-salient features such as moving cars or changing foliage, while remain-ing unaffected by various noises or environmental conditions. This innate human ability raises an intriguing question: In the absence of depth or pose information, can neural networks learn robust key feature extraction from very limited supervision signals to indicate whether two images depict the same scene? However, realizing this in real-world scenarios is challenging. Street-level images often include dynamic elements like pedestrians and vehi-cles that obscure key landmarks (Warburg et al. 2020a). In addition, repetitive architectural pat-terns and drastic changes in viewpoint, introduce significant perceptual ambiguities (Berton et al. 2022a). These challenges are compounded by illu-mination variations from day to night and seasonal changes (Barbarani et al. 2023), highlighting the urgent need for robust feature representations that remain discriminative under diverse conditions. Earlier VPR methods leveraged handcrafted descriptors like SIFT (Lowe 2004), SURF (Bay et al. 2008), and ORB (Rublee et al. 2011) to extract discriminative features. These features were aggregated via techniques such as BoW (Angeli et al. 2008), FV (Jégou et al. 2010), GeM (Radenović et al. 2018), and NetVLAD (Arand-jelovic et al. 2016a), forming compact descriptors for retrieval-based localization. While traditional contrastive learning methods typically rely on hard sample mining, recent advances demonstrate that employing graded similarity supervision derived from camera pose priors can obviate the need for such mining strategies, improving data efficiency and training speed (Leyva-Vallina et al. 2023). Another alternative to bypass explicit pairwise comparisons is to frame VPR as a classification problem (Berton et al. 2022a, 2023; Trivigno et al. 2023). In this approach, place representations are learned by dividing the environment into spatial grids based on geographic coordinates, where each grid cell is assigned a unique class label, though its effectiveness hinges on large-scale training data. Recent advancements have adopted Visual Foundation Models (VFMs), such as DINOv2 (Oquab et al. 2023), for generating global image representations. By aggregating local features, these models yield semantically rich global descriptors (Keetha et al. 2023a; Lu et al. 2024b). However, relying solely on global features often neglects spatial geometric information, rendering the system susceptible to perceptual aliasing, particularly in challenging long-term and dynamic localization scenarios (Ali-bey et al. 2024). To address this limitation, the two-stage VPR paradigm (Hausler et al. 2021; Wang et al. 2022; Zhu et al. 2023) has gained significant 2traction. This approach first retrieves the top-k
+
+candidates from the database via global retrieval and subsequently re-ranks them using local feature matching, achieving performance improvements. While this hierarchical pipeline of “global retrieval followed by local verification” (Hausler et al. 2021; Sferrazza et al. 2025) effectively boosts recall rates, traditional geometric verification steps remain computationally prohibitive for large-scale applications (Noh et al. 2017; Wang et al. 2022). Moreover, existing re-ranking strategies, such as EffoVPR (Tzachor et al. 2025) and SelaVPR (Lu et al. 2024c), suffer from inefficiencies. Although they utilize multi-layer dense features or upsam-pled descriptors to ensure broad spatial coverage, they typically perform exhaustive matching across the entire representation without explicitly filtering out background noise. This lack of discriminative region selection inevitably wastes computational resources on irrelevant areas (see Fig. 1(a) and (b)). Furthermore, existing frameworks treat global similarity assessment and local verification as dis-connected components (Hausler et al. 2021; Zhu et al. 2023; Tzachor et al. 2025), leading to subopti-mal candidate ranking. Based on this analysis, we identify three core challenges inherent in current approaches: 1. Inadequate Spatial Reliability Modeling: 
+
+Traditional methods often lack explicit mecha-nisms to identify spatially stable regions against extreme viewpoint changes and severe occlu-sions. Although conceptually distinct, these challenges frequently compound, where severe viewpoint shifts naturally induce foreground occlusions. Failing to distinguish stable struc-tures from transient occluders causes severe perceptual aliasing, as confirmed in Fig. 1(a). 2. Limited Supervision Signals: The lack of correspondence annotations in standard VPR datasets hinders the development of robust local feature representations. Without fine-grained supervision, local descriptors fail to generalize effectively to real-world environments. 3. Static Scheduling Mechanisms: Existing computational pipelines rely on fixed thresh-olds for candidate selection and re-ranking. This static approach lacks the flexibility to adapt to dynamic variations in scene complexity, resulting in inefficient resource allocation. Despite the leading performance of our previous work, FoL (Wang et al. 2025) 1, it struggles when extreme viewpoint changes are compounded by severe occlusions (as illustrated in Fig. 1(a)), due to the lack of explicit fine-grained reliability model-ing for occlusion resilience, and incurs inefficiencies from static re-ranking mechanisms. We argue that robust global similarity should transcend simple candidate filtering to actively guide dynamic local matching; conversely, local matching reliability should provide implicit guidance to refine global representations. Unlike existing approaches that treat these stages as disconnected components, FoL++ bridges this gap by integrating global pri-ors, local details, and reliability assessments into a unified framework where they mutually reinforce one another. To address these challenges, FoL++ introduces an end-to-end unified framework. This framework features a Reliability Estimation Branch (REB) to generate spatial reliability maps that guide local matching, employs an Adaptive Candidate Scheduler for dynamic resource allocation dur-ing re-ranking, and utilizes a fusion mechanism to combine global and local evidence in the final similarity computation. The REB operates in par-allel with the DINOv2 backbone. The Adaptive Candidate Scheduler dynamically adjusts the can-didate pool size based on global similarity while applying reliability-aware re-ranking through local feature weights. This cross-stage fusion integrates these elements without requiring separate train-ing phases. Our principal contributions include: the introduction of LSA and LSCE to model dis-criminative local regions, while also generating weakly supervised pseudo-correspondences from global embeddings without pixel-level annotations to improve re-ranking performance; the proposal of the REB, which generates spatial reliability maps to explicitly model occlusion-resistant regions; the development of the Adaptive Candidate Scheduler for dynamic re-ranking, which reduces compu-tational costs by 40% while maintaining high accuracy; and the establishment of a cross-stage fusion mechanism that integrates global and local evidence into a unified similarity score, addressing the traditional separation of these components. 
+
+> 1Open-sourced at https://github.com/chenshunpeng/FoL
+
+3Our FoL++ introduces the following additional contributions (extending our prior FoL): 
+
+• Robust Discriminative Region Modeling :We propose the Reliability Estimation Branch to generate spatial reliability maps that explic-itly model occlusion resistance. Guided by Spatial Alignment Loss and Saliency Contrast Enhancement Loss, it prioritizes discriminative regions in low-texture urban environments and under extreme viewpoints, enhancing localiza-tion accuracy by focusing on robust feature correspondences. 
+
+• Adaptive Candidate Scheduling for Effi-cient Re-ranking : We introduce the Adap-tive Candidate Scheduler, which dynamically adjusts candidate pool sizes based on global similarity confidence and weights local matches using spatial reliability. This mechanism enables cross-stage fusion of global and local evidence, optimizing the matching system. It significantly reduces computational costs and improves infer-ence speed by 40% without sacrificing retrieval accuracy (see Fig. 1(b)). 
+
+• Unified Efficient Architecture and SOTA Performance : We propose a streamlined end-to-end framework that replaces FoL’s module-dependent attention layer with the lightweight REB and generates weakly supervised pseudo-correspondences. Finally, it integrates global and local features into a unified similarity score. Extensive experiments across seven benchmarks demonstrate that FoL++ achieves state-of-the-art performance (see Fig. 1(c)), while reducing GPU memory usage by up to 24% compared to the original FoL (see Fig. 1(b)). 
+
+# 2 Related work 
+
+The following section reviews recent advances in VPR, covering one-stage and two-stage approaches as well as methods that incorporate reliability-aware local feature learning. 
+
+## 2.1 One-Stage VPR 
+
+One-stage VPR methods generate global image rep-resentations by aggregating local features, either handcrafted (e.g., SURF (Bay et al. 2006)) or learned from deep networks such as CNNs, MLPs, and transformers (Sünderhauf et al. 2015; Noh et al. 2017; Naseer et al. 2017; Cao et al. 2020). NetVLAD (Arandjelovic et al. 2016b), a CNN-based approach, introduces a trainable VLAD layer for end-to-end feature aggregation, significantly improving retrieval performance. Benefiting from the rapid development of deep learning, a signif-icant body of work has begun to rely on deep features to solve the VPR problem, while also embedding feature aggregation modules into the model architecture to enhance representation abil-ity (Jin Kim et al. 2017; Leyva-Vallina et al. 2023). MixVPR (Ali-Bey et al. 2023b) learns a holistic global descriptor by iteratively mixing CNN fea-ture maps with a lightweight, all-MLP architecture, achieving highly competitive performance with significant efficiency. Transformer-based BoQ (Ali-bey et al. 2024) employs learnable global queries with cross-attention to dynamically aggregate features, demonstrating strong feature extrac-tion capabilities. Unlike the contrastive learning methods discussed above, another family of one-stage approaches treats VPR as a classification problem. CosPlace (Berton et al. 2022a) and EigenPlaces (Berton et al. 2023) assign images to location and view-based classes and train with cat-egorical cross-entropy loss. Divide&Classify (Triv-igno et al. 2023) avoids visual ambiguity by partitioning the map into non-adjacent cells, and can be integrated with retrieval pipelines for better performance. With the advent of visual foundation mod-els (VFMs), several methods have adopted DINOv2 (Oquab et al. 2023) as the backbone for VPR, achieving state-of-the-art performance (Liu et al. 2025b; Berton and Masone 2025). Any-Loc (Keetha et al. 2023a) achieves strong zero-shot universal VPR by aggregating features from the DINOv2 model, though its performance is inher-ently limited by the lack of fine-tuning for the VPR task. SALAD (Izquierdo and Civera 2024b) rein-terprets NetVLAD’s (Arandjelovic et al. 2016b) soft-assignment as an optimal transmission prob-lem, aggregating local features from DINOv2. SuperVLAD (Lu et al. 2024d) improves domain adaptability by removing cluster centers and reduc-ing clusters in NetVLAD. SALAD-CM (Izquierdo and Civera 2024a) enhances geographic awareness through CliqueMining, improving performance on dense datasets. ImAge (Lu et al. 2025b) eliminates the need for an explicit aggregator by inserting learnable aggregation tokens into the transformer backbone, leveraging the inherent self-attention 4mechanism to implicitly generate robust global descriptors. SAGE (Chen et al. 2026) dynami-cally constructs a geo-visual affinity graph during training for adaptive hard sample mining, and introduces a lightweight soft probing module to enhance discriminative local features before the final aggregation. However, these methods remain vulnerable to perceptual aliasing, as they rely solely on global features while neglecting spatial cues crit-ical for precise localization. In contrast, our FoL++ explicitly models discriminative spatial regions, which generates spatial confidence maps to focus attention on viewpoint-stable, informative areas. 
+
+## 2.2 Two-Stage VPR 
+
+Recent advancements in VPR have increasingly embraced two-stage retrieval strategies (Hausler and Milford 2020; Berton et al. 2021; Sferrazza et al. 2025; Shen et al. 2023, 2025), where database images are first ranked based on global feature similarity, followed by a re-ranking step utilizing spatially encoded local features. While methods like Patch-NetVLAD (Hausler et al. 2021) leverage multi-scale patches for re-ranking and TransVPR (Wang et al. 2022) employs transformer-based attention masks to filter dis-criminative regions, they suffer from inefficiencies in dense feature computation or rigid Top-K selection mechanisms. AANet (Lu et al. 2023) leverages a hierarchical approach that combines global feature aggregation for candidate retrieval with dynamic local feature alignment (DALF) for efficient re-ranking. DHE-VPR (Lu et al. 2024a) uses a transformer-based deep homogra-phy network with REI loss for efficient geometric verification. R2Former (Zhu et al. 2023) unifies retrieval and re-ranking via feature correlation analysis, yet its fixed pipeline lacks adaptability to dynamic environments. SelaVPR (Lu et al. 2024c) integrates adapters into DINOv2 for local feature extraction but introduces additional com-putational overhead. Revisit Anything (Garg et al. 2024) introduces segment-based retrieval using SuperSegments from SAM (Kirillov et al. 2023), enabling partial image matching under viewpoint variations. EffoVPR (Tzachor et al. 2025) lever-ages a foundation model’s internal CLS token for global retrieval and its self-attention layers for re-ranking. SelaVPR++ (Lu et al. 2025a) efficiently fine-tunes foundation models through lightweight parallel adapters and introduces a novel retrieval paradigm combining binary feature initial filter-ing with floating-point feature re-ranking. By designing a unified training protocol across mul-tiple datasets, it achieves better overall efficiency and performance. However, existing approaches suffer from (1) inefficient static candidate schedul-ing and (2) inadequate spatial modeling under extreme viewpoint changes and occlusions. FoL++ addresses these challenges with a reliability-aware paradigm, introducing a lightweight Reliability Estimation Branch to identify occlusion-resistant regions and an Adaptive Candidate Scheduler to optimize re-ranking depth based on similarity confidence and reliability. 
+
+## 2.3 Reliability-Aware Local Feature Learning 
+
+Local feature learning in computer vision contin-ues to grapple with challenges posed by occlusions, low-texture regions, and extreme viewpoint vari-ations (Lu and Ma 2025; Bellavia 2022; Liu and Dong 2024). Early work explored the use of reliability maps, computing metrics such as Average Precision (AP) to pinpoint highly discrim-inative regions (Revaud et al. 2019). Subsequent advancements integrated attention mechanisms for adaptive feature weighting (Wang et al. 2023), while some methods employed semantic segmenta-tion to suppress unreliable features (e.g., sky and moving objects), albeit at the cost of increased deployment complexity (Xue et al. 2023). More recent approaches have sought to enhance match-ing precision and efficiency by modeling spatial structures through multi-relational graphs (Zhang and Zhao 2024), capturing high-level context via topic modeling (Giang et al. 2024), or reformulat-ing dense geometric matching with paired masked image modeling (Zhu and Liu 2023). Other works have prioritized computational efficiency in dense matching but lacked explicit occlusion handling during reliability estimation (Lindenberger et al. 2023; Potje et al. 2024). Drawing inspiration from keypoint reliability estimation techniques in SLAM and Structure-from-Motion (SfM) (Potje et al. 2024), FoL++ incorporates a lightweight Reliabil-ity Estimation Branch that operates in parallel with the DINOv2 backbone. 53 Proposed Method 
+
+In this section, we introduce the FoL++ frame-work for two-stage VPR. At the core of our reliability-aware paradigm is the robust discrimi-native region modeling: we propose a lightweight Reliability Estimation Branch (REB) to gener-ate spatial reliability maps that explicitly model occlusion resistance. To optimize this represen-tation, two losses ( LSA and LSCE ) are intro-duced to enhance local contrast and discrimina-tive region learning (see Sections 3.1 and 3.2). Furthermore, we employ a weakly supervised pseudo-correspondence module that automatically generates pixel-level supervision by mining spa-tially consistent feature pairs from aggregation clusters (see Section 3.3). To boost inference effi-ciency and accuracy, our Efficient Re-ranking module leverages the discriminative region mask as a priori cue (see Section 3.4), while the Adap-tive Candidate Scheduler dynamically integrates global and local similarities (see Section 3.5). The framework is optimized end-to-end by a unified total loss function (see Section 3.6). 
+
+## 3.1 Network Architecture 
+
+As shown in Figure 2, an input image is first pro-cessed by a backbone network to extract features, which are then fed into two branches to gener-ate global and local descriptors, respectively. In particular, the global descriptor is obtained via fea-ture aggregation, while the local branch employs a lightweight decoder to produce high-resolution local details for subsequent re-ranking. 
+
+Feature Extraction. Following recent works (Keetha et al. 2023b), we adopt the transformer-based vision foundation model DINOv2 (Oquab et al. 2023) as our feature extractor. Given an input image I ∈ Rh×w×3, the extractor produces a feature map F comprising 
+
+n = h×w 
+
+> 14 2
+
+tokens ti ∈ RD, for i = 1 , . . . , n . This token set includes a learnable [cls] token that captures global context, as well as patch tokens that encode local details. 
+
+Global Feature Aggregation. To construct a compact global descriptor Dg from the token set F, we adopt the optimal assignment strat-egy proposed by SALAD (Izquierdo and Civera 2024b), based on the Sinkhorn algorithm (Cuturi 2013). Tokens are first assigned to M salient clusters using a score matrix S, where entries 
+
+si,j = exp (w⊤ 
+
+> j
+
+ti + bj ) represent the initial similar-ity between token ti and cluster j. By applying the Sinkhorn algorithm to S, we obtain the opti-mal assignment probability matrix P′, where its element p′ 
+
+> i,j
+
+denotes the probability of assigning the i-th token to the j-th cluster. An additional dustbin cluster (j = M + 1) is used to exclude irrelevant tokens. Let n denote the number of patch tokens, with n = Hp × Wp, where Hp and Wp are the patch-grid height and width, respectively. We first compute a token-wise saliency score by summing the assignment probabilities over all M salient clusters: 
+
+˜Ma(i) = 
+
+> M
+
+X
+
+> j=1
+
+p′ 
+
+> i,j
+
+, i = 1 , . . . , n. (1) Note that PMj=1 p′ 
+
+> i,j
+
+= 1 − p′ 
+
+> i,M +1
+
+, which reflects the probability that token i belongs to salient clus-ters rather than the dustbin. We then reshape 
+
+˜Ma ∈ Rn into the patch-grid dimensions to obtain the final spatial mask Ma ∈ RHp×Wp . Ma serves as a attention mechanism to focus on discriminative regions by suppressing irrelevant noise. 
+
+Local Feature Decoder. The local feature decoder, composed of two deconvolution layers and a ReLU activation, is lightweight and focuses on restoring fine-grained local details. 
+
+## 3.2 Reliable Discriminative Region Modeling 
+
+In FoL++, we design two losses, LSA and LSCE ,to model reliable discriminative regions. We seek to construct discriminative regions by utilizing the spatial information capturing capabilities readily available in feature extraction and global feature aggregation of VPR pipeline. To improve resource efficiency and match-ing reliability, we discard Me from our original FoL (Wang et al. 2025), which is resource-intensive and less reliable. Instead, we introduce a lightweight Reliability Estimation Branch (REB) running parallel to the DINOv2 backbone. Figure 3 illustrates the architectural distinctions between our previous work FoL and FoL++. Specifically, FoL relies on a multi-head attention layer and a fea-ture aggregation branch, whereas FoL++ employs 6projection 
+
+projection 
+
+projection 
+
+N 
+
+> Score matrix
+> projection
+> Sinkhorn
+
+Feature extraction  M
+
+Local 
+
+Feature Decoder 
+
+DINOv2 
+
+Backbone       
+
+> Dustbin cluster Cluster Sum
+> Image
+> cluster 1
+> cluster 2
+> cluster 3
+> cluster 4
+> tokens
+> Reliability
+> Estimation Branch
+
+Adaptive Candidate Scheduler 
+
+> [cls] token
+> projection
+
+𝑹 
+
+ℒ𝑆𝐶𝐸 ℒ𝑆𝐴  𝑓 𝑠𝑎𝑙 
+
+> 𝑓 𝑖𝑟𝑟
+> 𝑓 𝑠𝑎𝑙
+> 𝑝
+
+Fig. 2 Overview of the FoL++ training pipeline. The DINOv2 backbone extracts patch tokens, which are aggregated via Sinkhorn optimal assignment to form a robust global descriptor Dg . In parallel, a lightweight decoder recovers high-resolution local features Dl. Meanwhile, the Reliability Estimation Branch generates a spatial reliability map R, which is fused with the global assignment mask Ma to yield the final discriminative mask M. Local features are optimized via weakly supervised pseudo-correspondences. The entire framework is trained end-to-end by jointly minimizing LSA , LSCE , LP C , LM S .DINOv2 Tokens Feature Aggregation 
+
+> C
+> H
+> W
+> Decoder multi-head attention layer
+> ...
+> Select Flatten
+> DINOv2 Tokens Feature Aggregation Reliability Estimation Branch
+> C
+> H
+> W
+> ...
+> Discriminative Features Select Flatten
+> Decoder Discriminative Features
+> (a) Previous Work FoL (b) Our FoL++
+
+Fig. 3 Architectural comparisons between our previous work FoL and our proposed FoL++. In FoL, the core design consists of a multi-head attention layer combined with a feature aggregation branch. In contrast, FoL++ replaces the multi-head attention layer with a lightweight Reliability Estimation Branch. 
+
+REB alongside feature aggregation. Inspired by keypoint reliability estimation techniques from SLAM and SfM (Revaud et al. 2019; Xue et al. 2023), REB first merges intermediate represen-tations at three scales (1/8, 1/16, and 1/32) by bilinear upsampling and projection to a com-mon resolution of H/ 8 × W/ 8 × 64 , followed by element-wise summation. Following efficient designs (DeTone et al. 2018; Potje et al. 2024), we adopt this resolution to optimize the trade-off between spatial detail and efficiency. A convolu-tional fusion block, composed of three basic layers, then produces the final feature representation. An additional convolutional block regresses a spatial reliability map R ∈ RH/ 8×W/ 8, where each element represents the unconditional probability that the corresponding local feature can be matched reliably. Specifically, the salient region mask Ma, derived from the feature aggregation branch as detailed in Sec. 3.1, is integrated with R to produce the final discriminative mask. Consistent with the robust nature of salient features against appearance varia-tions (Potje et al. 2024; Cadar et al. 2024), we align 
+
+R to the spatial dimensions of Ma via interpola-tion and fuse them via element-wise multiplication, yielding the final discriminative mask: 
+
+M = R ⊙ Ma. (2) 
+
+Extraction-Aggregation Spatial Alignment Loss. We propose Extraction-Aggregation Spatial Alignment Loss (SAL) to achieve mutually reinforc-ing self-supervised learning by aligning the regions 
+
+R from the feature extractor with the regions 7Ma preserved by the feature aggregator. Specifi-cally, we align Ma and R via the Kullback-Leibler divergence (Van Erven and Harremos 2014): 
+
+LSA =
+
+> h×w
+
+X
+
+> i=1
+
+Mia log Mia
+
+Ri +
+
+> h×w
+
+X
+
+> i=1
+
+Ri log Ri
+
+Mia
+
+, (3) where i indexes over the h × w spatial positions. In practice, we found that direct alignment is challeng-ing due to the significant distributional differences between Ma and R.Therefore, we smooth Ma and R. Taking Ma
+
+as an example, each element is clipped at the 90th percentile of its corresponding row: 
+
+M(i,j ) 
+
+> a
+
+= min 
+
+
+
+M(i,j ) 
+
+> a
+
+, q 0.9
+
+
+
+M(i, :) 
+
+> a
+
+ 
+
+, (4) where q0.9
+
+
+
+M(i, :) 
+
+> a
+
+
+
+denotes the 90th percentile value of the i-th row in Ma. In other words, values in the top 10% of each row are truncated to the row-wise 90th-percentile threshold. Conceptually analogous to regularization strategies that prevent over-confidence (such as label smoothing (Wall et al. 2026; Zhou et al. 2026)), our experiments reveal that flattening the top-tier values encour-ages the network to distribute its attention more evenly across a broader set of reliable structural features rather than over-fitting to isolated points. Ultimately, this robust percentile-based truncation helps mitigate the influence of extreme activations and stabilizes the subsequent Kullback-Leibler divergence computation. 
+
+Saliency Contrast Enhancement Loss. We further introduce a Saliency Contrast Enhance-ment Loss (SCEL) to encourage the network to generate regions that are both reliable (i.e., pro-duce consistent and robust attention across images) and discriminative (i.e., are clearly differentiated from irrelevant interference). In our context, salient regions refer to the high-utility parts of the image that contain key structures and meaningful infor-mation (such as buildings or landmarks critical for visual place recognition), while irrelevant regions 
+
+comprise the less informative or distracting areas (such as sky, vegetation, or transient objects). To achieve this, we first reshape the feature map F, which contains the patch tokens extracted by the backbone, into a tensor F ∈ Rh×w×d
+
+matching the spatial dimensions of the mask M.𝑓𝑓 𝑠𝑠𝑠𝑠𝑠𝑠  𝑓𝑓 𝑖𝑖𝑖𝑖𝑖𝑖           
+
+> 𝑓𝑓 𝑠𝑠𝑠𝑠𝑠𝑠 𝑝𝑝
+> Pull
+> Push
+> Fig. 4 Illustration of the LSCE . The salient region descrip-tor fsal is pulled closer to the positive sample’s salient descriptor fpsal while being pushed away from the irrelevant region descriptor firr .
+
+Conceptually, to contrast different regions, we extract a condensed 1D representation for each region type, which we term a region descriptor . A region descriptor summarizes the holistic visual characteristics of either the salient or irrelevant areas within a single image. Specifically, the salient region descriptor fsal is obtained by performing an L2-normalized, mask-weighted spatial pooling over F:
+
+fsal =
+
+Ph×wi M(i) · F (i)
+
+Ph×wi M(i) · F (i)
+
+, (5) where ∥ · ∥ denotes the L2 norm. Similarly, the irrelevant region descriptor firr , which summarizes the background distraction features, is obtained by inverting the mask: 
+
+firr =
+
+Ph×wi (1 − M(i)) · F (i)
+
+Ph×wi (1 − M(i)) · F (i)
+
+. (6) Next, leveraging the triplet loss frame-work (Hermans et al. 2017), the LSCE is defined as: 
+
+LSCE = max 
+
+
+
+0, 1 −  fsal · f psal − fsal · firr 
+
+
+
+, (7) where f psal is the salient region descriptor of a pos-itive sample (i.e., another image from the same scene), as shown in Figure 2. Note that to ensure the network only optimizes the region mask M
+
+without altering the extracted features F, the gradient of F is truncated when computing LSCE .As illustrated in Figure 4, the LSCE encour-ages the model to “pull” fsal closer to f psal while 8“pushing” fsal away from firr , thereby reinforcing discriminative feature activation. Driven by LSCE ,the network is encouraged to generate a mask M
+
+that consistently highlights reliable and discrim-inative salient regions while clearly suppressing irrelevant interference. As a result, this enhances both global feature aggregation and local matching accuracy. 
+
+## 3.3 Weakly Supervised Local Feature Learning 
+
+Due to the lack of pixel-level correspondence labels in VPR datasets, existing two-stage methods can usually only supervise the final matching results, such as R2Former (Zhu et al. 2023)’s classifi-cation loss and CricaVPR (Lu et al. 2024b)’s mutual nearest neighbor loss. In FoL++, we exploit the clustering results of local features in the global aggregation stage to construct pseudo-correspondence ground truth, thereby enabling pixel-level supervision for local feature matching. 
+
+Algorithm 1 Pseudo-correspondence Ground Truth Construction  
+
+> 1:
+
+Input: Anchor image Ip features Fp, region map M, assignment matrix Sp; Positive image 
+
+Ip′ features Fp′ , assignment matrix Sp′ 
+
+> 2:
+
+Parameters: thr 1 = 0 .8, thr 2 = 0 .5, N = 12  
+
+> 3:
+
+Initialize: P = ∅. Rank patches in Fp
+
+descendingly via M. 
+
+> 4:
+
+while |P| < N and patches remain do  
+
+> 5:
+
+Pop top patch feature fp (index p) and get its cluster Cfp via Sp 
+
+> 6:
+
+Find Fp′ candidates matching Cfp via Sp′ 
+
+> 7:
+
+Let {fp′ 
+
+> 1th
+
+, f p′ 
+
+> 2th
+
+} be the top-2 candidates most similar to fp 
+
+> 8:
+
+Let similarity ratio r = sim (fp,f p′   
+
+> 2th )
+> sim (fp,f p′
+> 1th )
+> 9:
+
+if sim (fp, f p′ 
+
+> 1th
+
+) > thr 1 and r < thr 2
+
+then  
+
+> 10:
+
+P ← P ∪ { (p, p ′
+
+> 1th
+
+)} 
+
+> 11:
+
+end if  
+
+> 12:
+
+end while  
+
+> 13:
+
+Return: P
+
+Pseudo-correspondence Ground Truth Con-struction. As shown in Figure 5, each patch is assigned to a cluster during global feature aggre-gation, which implicitly encodes patch correspon-dences. Based on this observation, we build pseudo correspondences by selecting reliable patches from the anchor image and matching them with cluster-consistent candidates from the positive image. The detailed procedure is summarized in Algorithm 1. S                 
+
+> assign
+> pseudo-correspondence ground truth
+> :𝒇 𝒑 𝑪 𝒇 𝒑 𝑰 𝒑 ⊙ 𝑴
+> :𝒇 𝒑ᇱ 𝟏𝒕𝒉
+> 𝒔𝒊𝒎ሺ ,ሻ𝒔𝒊𝒎ሺ ,ሻ
+> 𝒔𝒊𝒎ሺ ,ሻ
+> 𝑰 𝒑ᇱ
+> :𝒇 𝒑ᇱ 𝟐𝒕𝒉
+> Fig. 5 Flowchart of the Weakly Supervised Local Feature Learning.
+
+Specifically, given an anchor image Ip, its dis-criminative region map M, and its assignment matrix Sp, we first rank patches by their acti-vation values in M. Then, we select the patch feature fp with the highest activation value and obtain its cluster index Cfp from Sp. Next, using the positive image’s assignment matrix Sp′ , we search for all patches assigned to Cfp in the pos-itive image Ip′ and select the top-2 candidates, denoted by fp′ 
+
+> 1th
+
+and fp′ 
+
+> 2th
+
+, according to their similarity to fp. If the best candidate satisfies the absolute similarity threshold and the ratio test, we accept the spatial index pair (p, p ′
+
+> 1th
+
+)
+
+as a valid pseudo-correspondence. This filtering strategy retains patches that are both distinctive and reliable, reducing ambiguous matches and improving intra-class feature consistency. To ensure the reliability of the generated pseudo-labels, we employ a dual-filtering mecha-nism within the selection process. Specifically, the absolute similarity threshold ( thr 1) acts as a rel-evance gate, enforcing high visual coherence to discard obviously unrelated or low-quality matches. Complementing this, the ratio test (controlled by 
+
+thr 2) functions as a uniqueness check, conceptually inspired by Lowe’s classic strategy in SIFT feature matching (Lowe 2004). By requiring the similarity ratio between the best and second-best matches to fall below thr 2, this criterion effectively eliminates ambiguous correspondences arising from repetitive architectural patterns. This combination guaran-tees that the retained matches are both visually 9consistent and discriminatively unique, providing robust supervision signals despite the absence of manual annotations. 
+
+Weakly Supervised Pseudo-correspondence Loss. 
+
+We obtain (Dpl , D p′ 
+
+> l
+
+) by sampling the network output dense local features Dl using the pseudo-correspondence (p, p ′
+
+). From this, LP C can be defined as: 
+
+LP C =
+
+P exp (sim (fpi , f p′
+
+> i
+
+)) · (1 − sim (Dpi 
+
+> l
+
+, D p′ 
+
+> i
+> l
+
+))) 
+
+P exp (sim (fpi , f p′
+
+> i
+
+)) .
+
+(8) Since no true ground truth is used, we use sim-ilarity as a confidence for evaluating the quality of labels to mitigate the negative impact of inac-curate labels on model training, hence LP C is a weakly supervised loss. 
+
+## 3.4 Efficient Re-ranking with Discriminative Region Guidance 
+
+We propose to accelerate and enhance the re-ranking process using the local regions mask M
+
+modeled in previous section as a priori information for local matching. First, we convert M into a binary matrix, where the top k positions in M are set to 1, and others to 0. This can be expressed as: 
+
+Mbin =
+
+(
+
+1 if index ∈ top k of M
+
+0 otherwise , (9) where k is set to the top 40% .Then, we interpolate Mbin and select the parts of the dense local features Dl where the mask is 1: 
+
+DM 
+
+> l
+
+= Dl[Mbin = 1] (10) Finally, we only perform nearest-neighbor local feature matching on DM 
+
+> l
+
+, which reduces the prob-ability of mismatching and improves the efficiency of matching due to the narrowed matching range. 
+
+## 3.5 Adaptive Candidate Scheduler and Cross-Stage Fusion 
+
+The Adaptive Candidate Scheduler framework inte-grates global and local visual information through Dynamic Top-k Candidate Selection, Reliability-Aware Local Matching (RALM), and Similarity Computation (SC). DCS dynamically adjusts the candidate pool size based on global similarity, reducing computations while preserving retrieval accuracy in complex scenarios. RALM refines local matches using spatial reliability maps, weighting mutual nearest neighbors based on the reliability of corresponding regions in both query and candi-date images. SC then fuses global and local scores through weighted summation, enabling a unified decision process that surpasses traditional methods relying on independent matching stages (Hausler et al. 2021; Lu et al. 2024c). DINO v2     
+
+> Database1 Database2 Query
+> 𝑆 𝑔1 𝑆 𝑔2
+> Good 𝑆 𝑘 Poor 𝑆 𝑘
+> Not Processed
+
+DINO v2  DINO v2          
+
+> Fig. 6 Illustration of Dynamic Top-k Candidate Selection. The query image (center) is compared with two database images using global feature similarity. The left image, with a similarity Sg1above the threshold Sk, is deemed a "Good" match and undergoes local processing, while the right image, with a similarity Sg2below Sk, bypasses local processing.
+
+3.5.1 Dynamic Top-k Candidate Selection (DCS) 
+
+Conventional methods often employ a fixed-size candidate pool for re-ranking (Hausler et al. 2021; Wang et al. 2022; Lu et al. 2024c; Tzachor et al. 2025). In contrast, DCS dynamically adjusts the number of candidates based on the confidence of the global similarity scores. As illustrated in Figure 6, the query image (center) is compared with two database images using global feature sim-ilarity. The left image, with a similarity Sg1 above the threshold Sk, is deemed a "Good" match and undergoes local processing, while the right image, with a similarity Sg2 below Sk, bypasses local 10 processing. Specifically, the candidate pool size is determined as follows: 
+
+k = min {⌊ α · P (Sq ) · (kmax − kmin ) + kmin ⌋ , k max } ,
+
+(11) where Sg = {Sg1, S g2, . . . , S gk max } represents the set of global similarity scores between the query and gallery images. The adaptive threshold Sq
+
+is computed as the mean of the top-k′ highest similarity scores: 
+
+Sq = 1
+
+k′
+
+> k′
+
+X
+
+> i=1
+
+Sg(i), (12) where Sg(i) denotes the i-th highest similarity score in Sg , and k′ is set to 60 as a fixed value. The percentile function P (Sq ) is defined as: 
+
+P (Sq ) = 1
+
+kmax 
+
+> kmax
+
+X
+
+> i=1
+
+I(Sg(i) ≤ Sq ), (13) where I(·) is an indicator function that returns 1 if Sg(i) ≤ Sq and 0 otherwise. The scaling factor 
+
+α controls the sensitivity of candidate pool size adjustment, while kmin and kmax define the lower and upper bounds of the candidate pool (30 and 100, respectively). By leveraging percentile-based ranking and robust score selection, DCS dynami-cally optimizes the candidate pool size based on the confidence of global similarity scores, ensuring a trade-off between computational efficiency and retrieval accuracy. 
+
+3.5.2 Reliability-Aware Local Matching (RALM) 
+
+RALM improves local similarity computation by weighting matches with spatial reliability. Local similarity is measured by counting the number of mutual nearest neighbor matches (Lu et al. 2024c). Given a query image q and a candidate image c, let f lq (i) be the i-th local feature in the query image and f lc(j) be the j-th local feature in the candidate image. The local feature similar-ity sqc (i, j ) between these features is computed, and the mutual nearest neighbor match set M is defined as 
+
+M =
+
+n
+
+(u, v ) u = arg max  
+
+> i
+
+sqc (i, v ),v = arg max  
+
+> j
+
+sqc (u, j )
+
+o
+
+.
+
+(14) To further refine the local similarity measure, a spatial reliability map R ∈ RH/ 8×W/ 8 is computed for each image, where each element represents the unconditional probability that the corresponding local feature is reliably matched. The reliability map does not replace local features in matching; instead, it modulates the contribution of each matched pair by emphasizing stable regions and suppressing unreliable ones. Since the resolution of R is lower than that of the local feature map, it is first upsampled via interpolation. The improved local similarity score is then defined as 
+
+Sl = X
+
+> (u,v )∈M
+
+q
+
+Rq (u) Rc(v), (15) where Rq (u) and Rc(v) denote the upsampled reli-ability values at the locations of the u-th and 
+
+v-th local features in the query and candidate images, respectively. This weighting mechanism modulates the contribution of established corre-spondences, penalizing matches in unstable regions while highlighting reliable landmarks. 
+
+3.5.3 Similarity Computation (SC) 
+
+The overall image similarity is computed by a lightweight late-fusion strategy that combines global retrieval evidence and reliability-weighted local verification: 
+
+Sfinal = γ S g + Sl, (16) where γ is a weighting factor used to balance the different score scales of the global similarity Sg
+
+and the improved local similarity Sl. This linear fusion is motivated by the complementary roles of the two scores: Sg provides coarse retrieval cues for candidate ranking, while Sl captures fine-grained geometric consistency during re-ranking. In our implementation, γ is selected on the Pitts30k-val. 
+
+## 3.6 Total Loss Function 
+
+Following previous works (Lu et al. 2024b; Ali-bey et al. 2024; Izquierdo and Civera 2024b), we 11 also use the multi-similarity loss (Wang et al. 2019) LM S with an online hard mining strategy to optimize the global features. To optimize the local features matching, we also adopt the mutual nearest neighbor local feature loss LM N N proposed in SelaVPR (Lu et al. 2024c). Combined with the techniques presented in the previous sections, the total loss can be defined as: 
+
+L = LM S + LM N N + LSCE + αLSA + βLP C , (17) where {α, β } are hyperparameters to adjust the magnitude of the different losses, consistent with FoL (Wang et al. 2025). 
+
+# 4 Experiments 
+
+## 4.1 Benchmarks and Performance Evaluation 
+
+We rigorously assess our models across a diverse array of VPR benchmarks, encompassing urban landscapes, seasonal dynamics, and expansive envi-ronments, as detailed in Table 1. Our primary evaluations focus on Pitts30k-test (Torii et al. 2013), MSLS-val (Warburg et al. 2020b), Nord-land (Sünderhauf et al. 2013), Tokyo24/7 (Torii et al. 2015), Nordland ⋆ (Sünderhauf et al. 2013), Pitts250k (Torii et al. 2013), and Eynsham (Cum-mins and Newman 2009; Berton et al. 2022b). 
+
+Pitts30k-test : Derived from Google Street View, this urban dataset includes significant view-point changes, moderate environmental variations, and minimal dynamic elements, serving as astandard test set for small-scale scenarios. 
+
+MSLS-val : A subset of the extensive Map-illary Street-Level Sequences dataset, containing 18,871 database images and 740 queries. It tests models under diverse conditions including weather, lighting, and dynamic objects. 
+
+Nordland : Captured from a train route across four seasons, this dataset focuses on suburban/-natural environments with strong seasonal and lighting changes but zero viewpoint variations, specifically assessing robustness to extreme appear-ance shifts. 
+
+Tokyo24/7 : Features 75,984 database images and 315 queries. The queries cover three dis-tinct daily times (Day, Sunset, Night), challenging models with extreme illumination, temporal, and moderate viewpoint shifts.                        
+
+> Table 1 A summary of benchmark datasets for evaluation.
+> Dataset Description Number Database Queries
+> Pitts30k-test GSV, urban (subset) 10,000 6,816 MSLS-val Mapillary subset 18,871 740 Nordland Train route, seasonal 27,592 27,592 Tokyo24/7 Urban, day-night 75,984 315 Nordland ⋆Train route, seasonal 27,592 2,760 Pitts250k GSV, urban (large-scale) 83,952 8,280 Eynsham Oxford, grayscale 23,935 23,935
+
+Nordland ⋆: A challenging cross-seasonal eval-uation protocol where a subset of 2,760 summer images is used as queries against the entire win-ter sequence (27,592 reference images), specifically testing the models’ capability to handle extreme seasonal appearance shifts. 
+
+Pitts250k : The large-scale version of the Pitts-burgh dataset (83,952 database images and 8,280 queries), enabling comprehensive evaluation of place recognition performance across expansive urban environments. 
+
+Eynsham : A grayscale dataset (23,935 queries and database images) captured along an Oxford route using a car-mounted camera. Its lack of color information and temporal variations provides a stringent benchmark for pure structural and geometric place recognition. We follow standard evaluation protocols 2 used in previous works (Berton et al. 2022c; Ali-bey et al. 2024; Hausler et al. 2021), assessing perfor-mance using Recall@N. For Pitts30k, Eynsham, Pitts250k, Tokyo24/7, and MSLS, retrieval cor-rectness is determined within a 25-meter threshold. For Nordland, evaluation is performed with a toler-ance of ±10 frames, effectively measuring retrieval accuracy under various challenging conditions. 
+
+## 4.2 Implementation Details 
+
+We initialize the backbone (ViT-B or ViT-L) with pre-trained DINOv2 weights, where the token dimensions are 768 for ViT-B and 1024 
+
+for ViT-L. Consistent with SALAD (Izquierdo and Civera 2024b) and SuperVLAD (Lu et al.  
+
+> 2We organize the evaluation following the Deep Visual Geo-Localization Benchmark (Berton et al. 2022c): https://github. com/gmberton/deep-visual-geo-localization-benchmark.
+
+12 Table 2 Comparison with SoTA methods on VPR benchmarks. ’Res’ indicates that all methods are evaluated at 322 × 322 
+
+resolution. Red bold and blue bold denote the best and second-best results, respectively. † marks two-stage methods. 
+
+Method Res Pitts30k-test MSLS-val Nordland Tokyo24/7 Nordland ⋆
+
+R@1 R@5 R@10 R@1 R@5 R@10 R@1 R@5 R@10 R@1 R@5 R@10 R@1 R@5 R@10 NetVLAD CVPR’16 322 81.9 91.2 93.7 53.1 66.5 71.1 6.4 10.1 12.5 60.6 68.9 74.6 32.6 47.1 53.3 Patch-NetVLAD CVPR’21 † 322 88.7 94.5 95.9 79.5 86.2 87.7 44.9 50.2 52.2 86.0 88.6 90.5 30.8 34.5 35.4 CosPlace CVPR’22 322 88.4 94.5 95.7 82.8 89.7 92.0 58.5 73.7 79.4 81.9 90.2 92.7 34.4 49.9 56.5 TransVPR CVPR’22 † 322 89.0 94.9 96.2 86.8 91.2 92.4 63.5 68.5 70.2 79.0 82.2 85.1 46.9 51.6 52.5 SelaVPR ICLR’24 322 90.2 96.1 97.1 87.7 95.8 96.6 72.3 89.4 94.4 81.9 94.9 96.5 43.8 63.1 71.1 MixVPR WACV’23 322 91.5 95.5 96.3 88.0 92.7 94.6 76.2 86.9 90.3 85.1 91.7 94.3 58.4 74.6 80.0 EigenPlaces ICCV’23 322 92.5 96.8 97.6 89.1 93.8 95.0 71.2 83.8 88.1 93.0 96.2 97.5 54.4 68.8 74.1 SelaVPR ICLR’24 † 322 92.8 96.8 97.7 90.8 96.4 97.2 87.3 93.8 95.6 94.0 96.8 97.5 63.0 77.6 81.4 SALAD CVPR’24 322 92.5 96.4 97.5 92.2 96.4 97.0 89.7 95.5 97.0 94.6 97.5 97.8 76.0 89.2 92.0 SALAD-CM ECCV’24 322 92.6 96.8 97.8 94.2 97.2 97.4 96.0 98.5 99.2 96.8 97.5 97.8 90.7 96.6 97.5 
+
+BoQ CVPR’24 322 93.7 97.1 97.9 93.8 96.8 97.0 90.6 96.0 97.5 98.1 98.1 98.7 81.3 92.5 94.8 SuperVLAD NIPS’24 322 95.0 97.4 98.2 92.2 96.6 97.4 91.0 96.4 97.7 95.6 97.8 98.1 75.1 89.5 93.0 EDTFormer TCSVT’25 322 93.4 97.0 97.9 92.0 96.6 97.2 88.3 95.3 97.0 97.1 98.1 98.4 73.1 86.7 90.1 MegaLoc CVPRW’25 322 94.1 97.3 98.2 93.5 97.0 97.8 94.2 97.9 98.6 96.5 98.1 99.7 88.1 95.6 97.0 ImAge NIPS’25 322 94.0 97.2 98.0 93.0 97.0 97.2 93.2 97.6 98.6 96.2 98.1 98.4 84.6 95.1 97.0 SAGE ICLR’26 322 93.4 97.0 97.9 93.4 97.3 97.6 94.1 98.0 98.8 97.1 98.4 99.1 86.7 95.9 97.0 FoL (global) 322 93.6 96.9 97.9 92.8 96.9 97.2 83.8 92.6 95.1 96.5 98.1 98.4 74.1 88.8 92.2 FoL † 322 93.9 96.9 98.1 90.1 95.7 96.9 87.9 94.8 96.6 97.1 97.8 98.7 80.8 92.0 94.7 FoL++ (global) 322 93.8 97.1 98.1 93.2 98.0 98.2 91.8 96.9 98.1 96.8 98.4 98.4 84.5 94.4 96.3 FoL++ † 322 94.7 97.4 98.1 94.1 97.8 98.1 96.1 98.6 99.2 98.1 99.1 99.1 89.7 96.7 97.8 
+
+Table 3 A further performance comparison on more datasets. The Image Resolution Is 224 × 224 in Training and 322 × 322 in Inference. † marks two-stage methods. 
+
+Method Pitts250k Eynsham R@1 R@5 R@10 R@1 R@5 R@10 
+
+ViT-B Architecture Single-Stage Methods 
+
+CricaVPR CVPR’24 95.6 98.9 99.5 91.6 95.0 95.8 SALAD CVPR’24 95.1 98.5 99.1 91.6 95.1 95.9 SALAD-CM ECCV’24 95.2 98.8 99.3 91.9 95.3 96.1 BoQ CVPR’24 96.6 99.1 99.5 92.2 95.6 96.4 EDTFormer TCSVT’25 95.9 98.8 99.3 92.2 95.5 96.4 ImAge NIPS’25 96.5 99.1 99.5 92.0 95.4 96.1 SAGE ICLR’26 95.7 98.6 99.2 92.3 95.8 96.5 
+
+Two-Stage Methods 
+
+FoL AAAI’25 † 96.1 99.1 99.5 91.3 95.1 96.1 SelaVPR++ TPAMI’25 † 95.9 98.6 99.2 92.3 95.6 96.5 FoL++ (global) 94.6 98.3 99.0 91.4 95.4 96.3 FoL++ † 95.7 98.6 99.2 92.1 95.7 96.6 
+
+ViT-L Architecture 
+
+FoL AAAI’25 † 96.8 99.0 99.4 91.7 95.4 96.4 SelaVPR ICLR’24 † 95.7 98.8 99.2 90.6 95.3 96.2 SelaVPR++ TPAMI’25 † 96.6 99.0 99.3 92.5 95.7 96.5 FoL++ (global) 95.6 98.8 99.2 91.6 95.6 96.5 FoL++ † 96.9 99.0 99.4 92.3 95.9 96.8 
+
+2024d), we freeze most of the pre-trained back-bone and directly fine-tune its last four trans-former layers. This straightforward strategy avoids introducing additional Parameter-Efficient Fine-Tuning (PEFT) modules (Chen et al. 2026) or Adapters (Lu et al. 2025a), while keeping our remaining task-specific modules learnable. In the feature extraction stage, the number of clusters M
+
+is set to 64 . In the re-ranking stage, the number of channels in the up-convolutional (up-conv) blocks are 256 and 128 , with a convolution kernel size of 
+
+3 × 3, stride= 2, and padding= 1. Following Super-Point (DeTone et al. 2018) and XFeat (Potje et al. 2024), we generate the spatial reliability map at H/ 8 × W/ 8 to balance spatial granularity and efficiency. The ViT architecture supports variable input sizes, provided images can be partitioned into 14 × 14 patches. The final image similarity is computed by fusing global and local scores with a hyperparameter γ = 1000 . To speed up training, we used 224 ×224 images but evaluated on 322 ×322 
+
+resolution. Training was conducted on a single A100 GPU, using GSV-Cities 3 as the training dataset, a curated dataset containing images from 23 cities collected from Google Street View (Ali-bey et al. 2022). The batch size is 60 , with each batch containing 4 images. The AdamW optimizer with a linear learning rate schedule was used, with a learning rate of 6e − 5 and a weight decay of 
+
+> 3Available at https://github.com/amaralibey/gsv-cities.
+
+13 9.5e − 9. The training converged after 5 epochs. To ensure experimental validity and optimize hyperpa-rameters, we monitored recall performance on the MSLS-val set. We follow mainstream works to use 
+
+25 meters as the threshold for a correct scene and report recall@k (k=1,5,10) as evaluation metrics (Lu et al. 2025a; Izquierdo and Civera 2024b). 
+
+## 4.3 Comparisons with state-of-the-art Methods 
+
+In this section, we compare the one-stage and two-stage results of our proposed FoL++ method with previous SoTA VPR methods. These meth-ods include various one-stage approaches that utilize global feature retrieval: NetVLAD (Arand-jelovic et al. 2016b), CosPlace (Berton et al. 2022a), MixVPR (Ali-Bey et al. 2023b), Eigen-Places (Berton et al. 2023), SALAD (Izquierdo and Civera 2024b), SALAD-CM (Izquierdo and Civera 2025), BoQ (Ali-bey et al. 2024), SuperVLAD (Lu et al. 2024d), EDTFormer (Jin et al. 2025), MegaLoc (Berton and Masone 2025), ImAge (Lu et al. 2025b), and SAGE (Chen et al. 2026). Addi-tionally, we compare our method with two-stage approaches that incorporate re-ranking: Patch-NetVLAD (Hausler et al. 2021), TransVPR (Wang et al. 2022), SelaVPR (Lu et al. 2024c), and SelaVPR++ (Lu et al. 2025a). Recent studies (i.e., SALAD, BoQ, SelaVPR++) as well as our FoL++ all employ the DINOv2 backbone for feature extraction, and different techniques are adopted to fine-tune the backbone for improved perfor-mance. In addition, SelaVPR performs fine-tuning on MSLS and further fine-tunes on Pitts30k, while EigenPlaces uses a large-scale dataset (SF-XL) constructed by CosPlace for training. Similar to SALAD, ImAge and SAGE, our method achieves highly competitive results. Table 2 presents the quantitative comparisons. Even at its global stage, our FoL++ method achieves highly competitive results against recent state-of-the-art single-stage methods like MegaLoc and SAGE. Notably, FoL++ (global) demonstrates a substantial improvement over the original FoL (global), particularly on the challenging Nordland and Nordland ⋆ datasets where the absolute R@1 jumps from 83.8% to 91.8% and 74.1% to 84.5%, respectively. On the Pitts30k dataset, FoL++ (global) surpasses top-performing methods like SelaVPR and BoQ. This strong performance is achieved with a compact feature dimension of 8,448 compared to BoQ’s 16,384, underscoring the effectiveness of our learned global representation. After re-ranking with local features, the complete FoL++ method demonstrates excep-tional performance. Importantly, our method exhibits significant gains over the baseline FoL in the re-ranking stage as well. For instance, FoL++ improves the absolute R@1 by 0.8%, 1.0%, and 8.2% compared to FoL on Pitts30k, Tokyo24/7, and Nordland, respectively. These results demonstrate our model’s robustness against diverse challenges, including variations in illumina-tion (Tokyo24/7), seasons (Nordland), viewpoints (Pitts30k), and dynamic conditions (MSLS). Subsequently, we further evaluate our method on two general-purpose datasets: Pitts250k, which is suitable for large-scale urban evaluations, and Eynsham, a challenging grayscale dataset. As shown in Table 3, when utilizing the ViT-L architecture, FoL++ achieves new state-of-the-art results across almost all metrics on both datasets. When specifically compared to the highly compet-itive SelaVPR++, FoL++ demonstrates superior performance in most cases, though SelaVPR++ retains a slight edge in the R@1 metric on Eyn-sham (92.5% vs 92.3%). Nevertheless, FoL++ still attains the highest R@5 and R@10 scores on Eyn-sham (reaching an impressive 96.8% for R@10) and completely outperforms all baselines on the large-scale Pitts250k. This consistent excellence in both the global and re-ranking stages underscores its superior localization capability in various complex scenarios. Efficiency is a crucial aspect when evaluating VPR methods. Table 4 compares the computa-tional complexity and memory footprint of various approaches. Notably, FoL++ achieves the lowest memory footprint (0.130GB) and the fastest run-time (0.031s) among all evaluated methods. Com-pared to our previous baseline, FoL, FoL++ further reduces the memory footprint from 0.171GB to 0.130GB and decreases the latency from 0.052s to 0.031s. Furthermore, while EffoVPR demon-strates highly competitive latency (0.035s), it requires nearly double the memory (0.254GB). Compared to SelaVPR (0.182GB, 0.060s), FoL++ is significantly faster and more memory-efficient. By exclusively matching discriminative regions, 
+
+> 4Evaluation code: https://github.com/gmberton/vismatch.
+
+14 Table 4 Memory footprint, latency, and performance comparison on Pitts30k and MSLS-Val. Evaluations are unified on an NVIDIA A100 GPU for fair comparison. Sub-columns under each dataset represent Recall@1 and Recall@5, respectively.                                                                            
+
+> Method Local Features Dim. Memory Footprint (GB) ↓Latency (s) ↓Device Test-Res Pitts30k-test MSLS-val R2Former CVPR’23 500 ×(128 + 3) 0.244 0.115 A100 322 ×322 91.1 95.2 89.7 95.0 SelaVPR ICLR’24 61 2×128 0.182 0.060 A100 322 ×322 92.8 96.8 90.8 96.4 EffoVPR ICLR’25 649 ×1024 0.254 0.035 A100 504 ×504 93.9 97.4 92.8 97.2
+> FoL 3500 ×128 0.171 0.052 A100 322 ×322 93.9 96.9 90.1 95.7 FoL++ 3500 ×128 0.130 0.031 A100 322 ×322 94.7 97.4 94.1 97.8
+
+(a) (b) (c) 
+
+Fig. 7 Visualization of local feature correspondences in the re-ranking stage. (a) represents results w/o Discriminative Region Guidance (DRG), while (b) shows results of FoL w/ DRG. (c) presents the results of FoL++ , which demonstrates superior feature matching performance compared to FoL . Red •, Blue •, and Green • denote low, medium, and high similarity matching points, respectively, where similarity increases from • → • → • .
+
+Table 5 Performance and efficiency comparison with SOTA image matching methods 4. Methods are evaluated at an inference resolution of 322 × 322 . Metrics are measured on a single NVIDIA RTX A6000 GPU. For the image matching baselines, re-ranking is performed by sorting candidates based on RANSAC inliers. 
+
+Method MSLS-val Matching R@1 R@5 R@10 Time (s) 
+
+Image Matching Methods 
+
+RDD+MNN CVPR’25 89.3 93.2 95.3 10.90 xFeat+MNN CVPR’24 86.6 92.7 94.4 2.788 
+
+SuperPoint+LG 85.4 93.9 95.5 4.209 RDD+LG 88.9 93.9 95.4 12.57 LoFTR CVPR’21 88.7 94.1 95.9 4.946 E-LoFTR CVPR’24 89.5 94.4 96.2 3.939 
+
+Two-Stage VPR Methods 
+
+SelaVPR ICLR’24 90.8 96.4 97.2 0.085 FoL 90.1 95.7 96.9 0.078 
+
+FoL++ 94.1 97.8 98.1 0.047 
+
+FoL++ significantly reduces redundant computa-tions while further improving retrieval accuracy. Figure 7 illustrates the re-ranking stage via visual analysis of matching points and their con-fidence levels. The results indicate that FoL++ generates a higher concentration of high-confidence matches (green dots) while markedly reducing matches from less informative regions, such as (a ) (b) 
+
+Fig. 8 Visualization of local feature matching in the re-ranking stage. (a) shows the w/o Discriminative Region Guidance, while (b) displays w/ Discriminative Region Guidance. 
+
+the sky and ground, compared to FoL. This selec-tive suppression of low-quality correspondences enhances both the robustness and precision of fea-ture matching. Figure 8 compares the effect of discriminative region guidance on local feature matching. Without this mechanism (Figure (a)), the matching process is overwhelmed by irrele-vant regions, yielding numerous low-confidence 15 Table 6 Evaluation results of FoL, SelaVPR++, and FoL++ on five datasets. All methods use the ViT-B backbone and are evaluated at 322 × 322 resolution. 
+
+Setting Pitts30k-test MSLS-val Nordland Tokyo24/7 Nordland ⋆ Avg. Type Test-Res Stage R@1 R@5 R@10 R@1 R@5 R@10 R@1 R@5 R@10 R@1 R@5 R@10 R@1 R@5 R@10 R@1 FoL ViT-B 322 × 322 Global 92.1 96.4 97.6 91.1 95.7 96.4 72.7 85.5 89.6 94.6 96.5 96.8 62.5 80.3 85.0 82.6 Rerank 93.1 96.9 97.7 91.5 96.2 96.8 85.4 92.7 94.8 97.5 98.1 98.4 78.2 90.2 92.9 89.1 SelaVPR++ TPAMI’25 
+
+ViT-B 322 × 322 Global 89.6 95.2 96.7 89.1 95.7 96.6 79.0 91.0 94.3 89.8 96.5 97.5 67.5 85.7 90.3 83.0 Rerank 93.2 96.6 97.6 94.3 97.2 97.3 94.9 97.8 98.4 97.5 99.0 99.0 87.0 95.3 96.6 93.4 FoL++ (Ours) ViT-B 322 × 322 Global 92.2 96.5 97.6 93.2 96.6 97.4 90.2 96.2 97.6 95.6 97.5 98.1 83.3 93.5 95.9 90.9 Rerank 93.3 96.9 97.9 93.4 97.0 97.6 95.1 98.2 98.8 97.8 98.1 98.4 89.1 96.5 97.6 93.7 (a)  (b)  (c)  (d)  
+
+> Fig. 9 Reliability map and discriminative mask. (a) Input scene. (b) Sinkhorn-based salient region mask. (c) REB’s reliability heatmap. (d) Final discriminative mask, guiding local matching toward stable regions.
+
+matches that degrade retrieval precision. In con-trast, with discriminative region guidance (Figure (b)), FoL++ selectively focuses on key features, such as structured architectural details, textured surfaces, or unique landmarks, thereby reducing mismatches and enhancing alignment reliability. Figure 9 visualizes the discriminative region modeling process, illustrating the difference between our proposed FoL++ and the original FoL framework across challenging scenarios, such as suspended streetlights, pole tops, and texture-less building segments (highlighted in red). As shown in column (b), the standard Sinkhorn-based mask, which relies on the baseline FoL approach, fails to capture these fine-grained or occlusion-prone regions. In contrast, the spatial reliability heatmap generated by the novel REB in FoL++ (c) explicitly models occlusion resilience, successfully highlighting these stable features. This mechanism produces the final discriminative mask (d) for      
+
+> Table 7 Ablation Study on Multiple Datasets. Evaluated at 322 ×322 resolution. Here DRG denotes the Efficient Re-ranking with Discriminative Region Guidance.
+
+Method Pitts30k-test MSLS-val Nordland R@1 R@5 R@1 R@5 R@1 R@5 Baseline 92.5 96.4 92.2 96.4 89.7 95.5 
+
++re-ranking 93.3 96.8 92.9 96.8 91.5 96.5 
+
++LSA 93.7 97.1 93.3 97.0 92.5 97.0 
+
++LSCE 93.9 97.1 93.5 97.1 93.2 97.3 
+
++LP C 94.2 97.2 93.8 97.3 94.0 97.7 
+
++DRG 94.7 97.4 94.1 97.8 96.1 98.6 
+
+FoL++, effectively guiding local matching toward reliable regions and improving localization per-formance under extreme viewpoint variations. As illustrated in Figure 10, during the global fea-ture aggregation phase, local feature patches are assigned to clusters based on their discrimina-tive properties. This clustering inherently encodes patch correspondence, which we utilize to construct pseudo-correspondence pairs for weakly supervised learning. Figure 11 presents a qualitative compar-ison between FoL++ and SoTA methods under extreme conditions. Whether facing viewpoint shifts (e.g., top-down vs. street-level views), drastic illumination changes (e.g., historical black-and-white versus modern nighttime scenes), seasonal transitions, or heavy occlusions caused by crowds or moving vehicles, FoL++ consistently achieves accurate matches. 
+
+## 4.4 Ablation Study 
+
+To comprehensively evaluate the performance of our proposed VPR re-ranking module, we 16 query positive query positive query positive Fig. 10 The Visualization of Weakly Supervised Learning. Patches that are sufficiently discriminative and belong to the same cluster are used as weakly supervised training sample pairs.                                             
+
+> Table 8 Ablation study of Dynamic Top-kCandidate Selection (DCS) vs. fixed k. Re-ranking time is measured in (s) and memory footprint in (GB). Both efficiency metrics report the average results evaluated on the Pitts30k-test dataset, tested on a single RTX 3090. Method Pitts30k-test MSLS-val Efficiency R@1 R@5 R@1 R@5 Re-rank ↓Mem ↓
+> Fixed k=10 93.6 96.6 93.1 96.9 0.63 1.30 Fixed k=30 94.0 96.9 93.4 97.2 1.90 3.90 Fixed k=50 94.3 97.1 93.8 97.5 3.16 6.50 Fixed k=75 94.4 97.3 94.0 97.5 4.74 9.75 Fixed k=100 94.5 97.3 93.9 97.6 6.32 13.0 DCS (Ours) 94.7 97.4 94.1 97.8 3.59 7.41
+
+compared FoL++ against state-of-the-art general-purpose image matching methods, including detector-based approaches (RDD (Chen et al. 2025), xFeat (Potje et al. 2024), Super-Point (DeTone et al. 2018)) and detector-free matchers (LoFTR (Sun et al. 2021), Efficient-LoFTR (Wang et al. 2024)). For these base-lines, re-ranking is performed by strictly applying RANSAC to count the number of geometric inliers between the query and top-retrieved candidates. As presented in Table 5, FoL++ significantly out-performs all image matching baselines in both retrieval accuracy and computational efficiency. In terms of accuracy, while methods like Efficient-LoFTR achieve competitive results (89.5% R@1 on MSLS-val), FoL++ surpasses this best-performing matcher by a clear margin of 4.6%. This indi-cates that our discriminative region modeling is more effective for place recognition than generic geometric verification. More importantly, FoL++ completes the matching process in only 0.047s, whereas the image matching baselines require anywhere from 2.788s to 12.57s. Furthermore, compared to previous specialized two-stage VPR methods like SelaVPR (0.085s) and our baseline FoL (0.078s), FoL++ achieves much higher accu-racy while nearly halving the computational time. Coupled with its robust accuracy, this improved efficiency suggests that FoL++ holds promising potential for large-scale, real-time visual place recognition applications. Table 6 details the performance of our FoL++, its predecessor FoL, and the recent state-of-the-art method SelaVPR++ across five datasets under a strictly controlled setting (ViT-B backbone evalu-ated at 322 ×322 resolution). At the global retrieval stage, FoL++ significantly outperforms both FoL and SelaVPR++. For instance, on the challeng-ing Nordland ⋆ dataset, our global R@1 reaches 83.3%, exceeding FoL (62.5%) and SelaVPR++ (67.5%) by a massive margin. This demonstrates that our region-aware training extracts much more robust global descriptors compared to existing methods. After the re-ranking stage, FoL++ con-sistently shows superior top-1 localization accuracy across most benchmarks. It achieves the highest R@1 on Pitts30k-test (93.3%), Nordland (95.1%), Tokyo24/7 (97.8%), and Nordland ⋆ (89.1%), out-performing the re-ranking results of SelaVPR++. Although SelaVPR++ exhibits strong perfor-mance on the MSLS-val dataset (achieving 94.3% R@1) and yields slightly higher R@5 and R@10 scores on Tokyo24/7, FoL++ remains highly com-petitive overall. By delivering the best R@1 per-formance on four out of five datasets, it highlights the effectiveness and broad generalization ability of our reliability-aware local matching mechanism. Table 7 presents the ablation results across multiple datasets. The baseline uses the SALAD model trained solely with the LM S loss. Applying 17 (a)  SALAD 
+
+> (CVPR 24)
+> FoL++
+> (Ours)
+> (b) CricaVPR
+> (CVPR 24)
+> (c) EigenPlaces
+> (ICCV 23)
+> (e) SFRS
+> (ECCV 20)
+> (f) NetVLAD
+> (CVPR 16)
+> (d) CosPlaces
+> (CVPR 22)
+> Query
+
+Fig. 11 Qualitative Results. FoL++ achieves consistent accuracy in VPR across extreme viewpoint changes, illumination variations, and historical grayscale images. Correct matches (green-bordered) outperform methods like SALAD and CricaVPR, whose incorrect matches are highlighted in red, demonstrating robustness under complex real-world conditions. Note: The visualization is generated by adapting the evaluation toolkit from https://github.com/gmberton/VPR-methods-evaluation. 
+
+Fig. 12 Ablation Study of the Hyperparameters thr 1,
+
+thr 2 and N on the MSLS-Val in the context of weakly supervised local feature learning. 
+
+re-ranking first effectively improves performance (e.g., R@1 on Pitts30k-test increases from 92.5% to 93.3%, and on Nordland from 89.7% to 91.5%). Adding LSA for discriminative region modeling pro-vides notable gains (+0.4% on Pitts30k-test and +1.0% on Nordland). LSCE contributes further spa-tial refinements (+0.2% on MSLS-val and +0.7% on Nordland). LP C continues to improve local fea-ture representations (+0.3% on both Pitts30k-test and MSLS-val). Finally, our proposed DRG (Effi-cient Re-ranking with Discriminative Region Guid-ance) achieves the best overall results. It notably yields a massive +2.1% absolute improvement on the challenging Nordland dataset (reaching 96.1% R@1) and establishes highly competitive perfor-mance on Pitts30k-test (94.7% R@1), all while reducing matching time compared to dense local feature methods. Table 8 compares our Dynamic Top-k Can-didate Selection (DCS) method with fixed top-k
+
+baselines. Unlike fixed k strategies, where blindly increasing the candidate pool size yields diminish-ing returns or even introduces noisy candidates that degrade performance (e.g., R@1 on MSLS-val slightly drops at k = 100 ), DCS dynamically filters out distracting candidates, achieving the highest accuracy across all metrics. Notably, while operat-ing at an efficiency level highly comparable to the fixed k = 50 baseline (with a re-ranking time of 3.59 s vs. 3.16 s), DCS significantly boosts the R@1 on Pitts30k-test from 94.3% to 94.7%. Further-more, compared to the aggressive k = 100 baseline, DCS reduces the re-ranking time by approximately 43% (from 6.32 s to 3.59 s) and substantially decreases memory usage from 13.0 GB to 7.41 GB. 18 These results confirm that the adaptive mechanism of DCS is not merely an efficiency optimization, but a crucial component to effectively suppress false positives, making it an optimal and scalable solution for large-scale image retrieval. Figure 12 presents the ablation study on the hyperparameters of our weakly supervised frame-work: similarity threshold thr 1, ratio test threshold 
+
+thr 2, and pseudo-label count N . As illustrated in the left plot, the configuration of thr 1 = 0 .8 and 
+
+thr 2 = 0 .5 achieves the highest Recall@1 (94.1%) on the MSLS-val dataset. Deviating from these optimal values degrades performance: thresholds that are too low or loose introduce low-confidence noise and repetitive structures, whereas overly high or strict thresholds excessively discard valid labels and diverse features. Similarly, the right plot shows that the performance peaks at N = 12 . A smaller 
+
+N restricts the diversity of the training signal, while an excessively large N degrades matching quality by introducing lower-quality candidates. To quantitatively assess the reliability of our weakly supervised strategy, we evaluate the gen-erated pseudo-labels against a proxy ground truth established by SuperPoint, LightGlue, and RANSAC. Since our pseudo-labels represent patch-level correspondences ( 14 × 14 pixels at 322 × 322 
+
+resolution), we approximate their spatial locations using patch centers. To reasonably account for this inherent spatial discretization, a match is considered valid if its epipolar distance to the oracle’s estimation is within 7 pixels (i.e., half the patch size). Under optimal hyperparameters (thr 1 = 0 .8, thr 2 = 0 .5, N = 12 ), 84.3% of the pseudo-labels from a random GSV-Cities subset satisfy this geometric constraint. Furthermore, a baseline using random intra-cluster matches yields a precision of only 62.5% under the same 7-pixel tolerance, confirming that our strategy captures genuine geometric alignments rather than overlaps. Moreover, to handle residual noise, our loss func-tion LP C employs a soft-weighting mechanism via the exp (sim (fpi , f ′ 
+
+> pi
+
+)) term, acting as a confidence gate to further suppress ambiguous matches. Table 9 compares the performance using differ-ent thresholds for binarizing the region mask M,where the top k% elements are set to 1 and the others to 0. Among the evaluated configurations, the 40% threshold (highlighted in red) yields the highest scores across all metrics on both datasets.                                                         
+
+> Table 9 Ablation on the threshold percentage for binarizing the region mask M. We vary the top percentage kused to set elements to 1. Threshold (%) Pitts30k-test MSLS-val R@1 R@5 R@10 R@1 R@5 R@10 20 92.5 96.6 97.5 93.1 96.9 97.2 30 94.3 97.1 97.9 93.9 97.6 97.8
+> 40 94.7 97.4 98.1 94.1 97.8 98.1
+> 50 94.2 97.2 98.0 93.5 97.3 97.7 60 93.8 96.9 97.9 93.8 97.4 97.4
+> Table 10 Ablation study of Reliability-Aware Local Matching (RALM) and Similarity Computation (SC). Method Our Strategies Pitts30k-test MSLS-val RALM SC R@1 R@5 R@10 R@1 R@5 R@10 FoL++ 94.2 97.0 97.8 93.7 97.3 97.5
+> ✓94.3 97.1 98.0 93.9 97.6 97.9
+> ✓94.5 97.2 98.0 93.8 97.4 97.7
+> ✓✓94.7 97.4 98.1 94.1 97.8 98.1
+
+Specifically, setting a lower threshold (e.g., 20%) results in a drop in accuracy (e.g., yielding 92.5% R@1 on Pitts30k-test), which can be attributed to the loss of critical spatial information. On the other hand, a higher threshold (e.g., 60%) also degrades the matching precision, due to the introduction of irrelevant background noise. Based on these empir-ical results, we adopt the 40% threshold for region binarization in our framework. Table 10 shows that both Reliability-Aware Local Matching (RALM) and Similarity Compu-tation (SC) can independently enhance retrieval performance over the baseline, offering comple-mentary benefits across different scenarios. For instance, on the challenging MSLS-val dataset, RALM plays a more prominent role, boosting the R@1 from 93.7% to 93.9%. On the other hand, on the Pitts30k-test dataset, SC provides a more substantial gain, improving the R@1 from 94.2% to 94.5%. Ultimately, the strongest performance is achieved by combining both RALM and SC. The full model attains 94.7% and 94.1% R@1 on Pitts30k-test and MSLS-val respectively, effectively surpassing all individual configurations. 
+
+# 5 Discussion 
+
+To address the flaws in traditional two-stage VPR pipelines, FoL++ introduces the Reliability 19 (a) SALAD     
+
+> (CVPR 24)
+> FoL++ (Ours) (b) CricaVPR
+> (CVPR 24)
+> (c) EigenPlaces
+> (ICCV 23)
+> (e) SFRS
+> (ECCV 20)
+> (f) NetVLAD
+> (CVPR 16)
+> Query (d) CosPlaces
+> (CVPR 22)
+> Ground Truth
+> Failure
+> cases Fig. 13 Failure cases caused by severe illumination changes, particularly day-to-night transitions. All evaluated methods, including ours, struggle under these extreme conditions.
+
+Estimation Branch to explicitly model occlusion resistance. Building on this, our Reliability-Aware Local Matching mechanism dynamically weights local correspondences, penalizing matches in unsta-ble regions while highlighting reliable landmarks. Furthermore, the Adaptive Candidate Sched-uler overcomes the computational bottlenecks of static re-ranking. This unified paradigm effectively bridges the gap between coarse global filtering and fine-grained local matching, establishing a scalable balance between accuracy and speed. Despite these systematic advancements, both our method and the broader VPR paradigm face inherent challenges. First, as performance on stan-dard benchmarks nears saturation, controversial and incorrect labels inherent in the datasets also exert a impact. Current evaluations depend on the task-defined geographic threshold (25 meters), which often ignores visual overlap and exacerbates this label ambiguity. Second, under extreme illu-mination variations, relying on a single foundation model’s architecture can still limit representation capacity when photometric cues vanish. To address these limitations and further advance the field, we suggest exploring the follow-ing four directions for future research: 
+
+• Feature Complementarity & Architectural Evolution: To combat benchmark saturation and illumination challenges, we suggest that future models could explore feature mixing from the latest vision architectures (Siméoni et al. 2025; Carion et al. 2026), leveraging complemen-tary representations to maintain robust spatial saliency across varying conditions. 
+
+• Pose-Aware Two-Stage Refinement: To focus on the geographic threshold, future frame-works could incorporate lightweight pose estima-tion during the local matching stage (Dong et al. 2025). This would provide metric-aware geomet-ric verification and handle distance threshold information more dynamically. 
+
+• Efficiency Scaling & Representation Refinement: To further push the boundaries of deployment efficiency, techniques such as multi-teacher knowledge distillation and learnable lin-ear projections for dimensionality reduction offer potential (Lu et al. 2024b). Additionally, using fine-grained local features to iteratively refine global descriptors could yield more expressive representations (Liu et al. 2025a). 
+
+• Data Generation & Novel Modalities: To overcome dataset biases, diffusion models can be utilized to construct pose-controllable, multi-view training sets. Furthermore, integrating interactive vision language models, or intro-ducing event streams for high dynamic-range scenarios, could expand VPR from a retrieval task into a context-aware navigational dialogue. 
+
+# 6 Conclusion 
+
+FoL++ provides an effective framework to address key challenges in VPR by introducing a reliability-aware discriminative region learning paradigm. Specifically, we propose the Reliability Estima-tion Branch (REB) to explicitly model occlu-sion resistance via spatial reliability maps. This representation is efficiently optimized by two spatial alignment losses (SAL and SCEL) to 20 highlight discriminative regions and mitigate per-ceptual aliasing. Additionally, the designed pseudo-correspondence strategy enables weakly super-vised local feature training without pixel-level annotations by leveraging global feature cluster consistency. Our Adaptive Candidate Scheduler dynamically adapts candidate pools and weights local matches via global similarity and spatial reli-ability, surpassing traditional independent systems. Extensive experiments across seven benchmarks demonstrate that FoL++ achieves SoTA perfor-mance with 94.7% R@1 on Pitts30k-test and 94.1% on MSLS-val. It maintains a memory footprint of only 0.13 GB and achieves 40% computational sav-ings compared to FoL. The proposed cross-stage fusion mechanism effectively bridges global and local visual evidence, delivering robust localization under extreme viewpoint changes, illumination variations, and occlusions, thereby establishing a scalable and reliable foundation for efficient VPR in complex urban environments. 
+
+# References 
+
+Ali-bey A, Chaib-draa B, Giguère P (2022) Gsv-cities: Toward appropriate supervised visual place recognition. Neurocomputing 513:194–203 Ali-Bey A, Chaib-draa B, Giguère P (2023a) Global proxy-based hard mining for visual place recognition. arXiv preprint arXiv:230214217 Ali-Bey A, Chaib-Draa B, Giguere P (2023b) Mixvpr: Feature mixing for visual place recogni-tion. In: Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision, pp 2998–3007 Ali-bey A, Chaib-draa B, Giguère P (2024) BoQ: A place is worth a bag of learnable queries. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 17794–17803 Angeli A, Filliat D, Doncieux S, et al (2008) Fast and incremental method for loop-closure detection using bags of visual words. IEEE transactions on robotics 24(5):1027–1037 Arandjelovic R, Gronat P, Torii A, et al (2016a) Netvlad: Cnn architecture for weakly supervised place recognition. In: CVPR, pp 5297–5307 Arandjelovic R, Gronat P, Torii A, et al (2016b) Netvlad: Cnn architecture for weakly super-vised place recognition. In: Proceedings of the IEEE conference on computer vision and pattern recognition, pp 5297–5307 Barbarani G, Mostafa M, Bayramov H, et al (2023) Are local features all you need for cross-domain visual place recognition? In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 6155–6165 Bay H, Tuytelaars T, Van Gool L (2006) Surf: Speeded up robust features. In: ECCV, pp 404– 417 Bay H, Ess A, Tuytelaars T, et al (2008) Speeded-up robust features (surf). Computer vision and image understanding 110(3):346–359 Bellavia F (2022) Sift matching by context exposed. IEEE transactions on pattern analysis and machine intelligence 45(2):2445–2457 Berton G, Masone C (2025) Megaloc: One retrieval to place them all. In: Proceedings of the Com-puter Vision and Pattern Recognition Confer-ence, pp 2861–2867 Berton G, Masone C, Paolicelli V, et al (2021) Viewpoint invariant dense matching for visual geolocalization. In: Proceedings of the IEEE/CVF International Conference on Com-puter Vision, pp 12169–12178 Berton G, Masone C, Caputo B (2022a) Rethink-ing visual geo-localization for large-scale appli-cations. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 4878–4888 Berton G, Mereu R, Trivigno G, et al (2022b) Deep visual geo-localization benchmark. In: Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 5396–5407 Berton G, Mereu R, Trivigno G, et al (2022c) Deep visual geo-localization benchmark. In: Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 5396–5407 21 Berton G, Trivigno G, Caputo B, et al (2023) Eigenplaces: Training viewpoint robust mod-els for visual place recognition. In: Proceedings of the IEEE/CVF International Conference on Computer Vision, pp 11080–11090 Cadar F, Potje G, Martins R, et al (2024) Lever-aging semantic cues from foundation vision models for enhanced local feature correspon-dence. In: Proceedings of the Asian Conference on Computer Vision, pp 1268–1283 Cao B, Araujo A, Sim J (2020) Unifying deep local and global features for image search. In: Euro-pean conference on computer vision, Springer, pp 726–743 Carion N, Gustafson L, Hu YT, et al (2026) SAM 3: Segment anything with concepts. In: The Four-teenth International Conference on Learning Representations Chen G, Fu T, Chen H, et al (2025) Rdd: Robust feature detector and descriptor using deformable transformer. In: Proceedings of the Computer Vision and Pattern Recognition Conference, pp 6394–6403 Chen S, Wang C, Xu R, et al (2026) SAGE: Spatial-visual adaptive graph exploration for efficient visual place recognition. In: The Four-teenth International Conference on Learning Representations Cummins M, Newman P (2009) Highly scalable appearance-only slam-fab-map 2.0. In: Robotics: Science and systems, Seattle, USA, p 17 Cuturi M (2013) Sinkhorn distances: Lightspeed computation of optimal transport. Advances in neural information processing systems 26 DeTone D, Malisiewicz T, Rabinovich A (2018) Superpoint: Self-supervised interest point detec-tion and description. In: CVPR, pp 224–236 Dong S, Wang S, Liu S, et al (2025) Reloc3r: Large-scale training of relative camera pose regression for generalizable, fast, and accurate visual local-ization. In: Proceedings of the Computer Vision and Pattern Recognition Conference, pp 16739– 16752 Garg K, Puligilla SS, Kolathaya S, et al (2024) Revisit anything: Visual place recognition via image segment retrieval. In: European Confer-ence on Computer Vision, Springer, pp 326–343 Giang KT, Song S, Jo S (2024) Topicfm+: Boost-ing accuracy and efficiency of topic-assisted feature matching. IEEE Transactions on Image Processing Hausler S, Milford M (2020) Hierarchical multi-process fusion for visual place recognition. In: 2020 IEEE International Conference on Robotics and Automation (ICRA), IEEE, pp 3327–3333 Hausler S, Garg S, Xu M, et al (2021) Patch-netvlad: Multi-scale fusion of locally-global descriptors for place recognition. In: Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 14141–14152 Hermans A, Beyer L, Leibe B (2017) In defense of the triplet loss for person re-identification. arXiv preprint arXiv:170307737 Izquierdo S, Civera J (2024a) Close, but not there: Boosting geographic distance sensitiv-ity in visual place recognition. In: European Conference on Computer Vision, Springer, pp 240–257 Izquierdo S, Civera J (2024b) Optimal trans-port aggregation for visual place recognition. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Izquierdo S, Civera J (2025) Close, but not there: Boosting geographic distance sensitivity in visual place recognition. In: Computer Vision – ECCV 2024. Springer Nature Switzerland, Cham, pp 240–257 Jégou H, Douze M, Schmid C, et al (2010) Aggre-gating local descriptors into a compact image representation. In: CVPR, pp 3304–3311 Jin T, Lu F, Hu S, et al (2025) Edtformer: An efficient decoder transformer for visual place recognition. IEEE Transactions on Circuits and Systems for Video Technology 22 Jin Kim H, Dunn E, Frahm JM (2017) Learned contextual feature reweighting for image geo-localization. In: Proceedings of the IEEE Con-ference on Computer Vision and Pattern Recog-nition, pp 2136–2145 Keetha N, Mishra A, Karhade J, et al (2023a) Any-loc: Towards universal visual place recognition. IEEE Robotics and Automation Letters Keetha N, Mishra A, Karhade J, et al (2023b) Any-loc: Towards universal visual place recognition. IEEE Robotics and Automation Letters Kirillov A, Mintun E, Ravi N, et al (2023) Segment anything. In: Proceedings of the IEEE/CVF international conference on computer vision, pp 4015–4026 Leyva-Vallina M, Strisciuglio N, Petkov N (2023) Data-efficient large scale place recognition with graded similarity supervision. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 23487–23496 Lindenberger P, Sarlin PE, Pollefeys M (2023) Lightglue: Local feature matching at light speed. In: Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision, pp 17627–17638 Liu B, Fu Y, Lu F, et al (2024) Npr: Nocturnal place recognition using nighttime translation in large-scale training procedures. IEEE Journal of Selected Topics in Signal Processing 18(3):368– 379 Liu B, Chen H, Guo S, et al (2025a) Embodied-place: Learning mixture-of-features with embod-ied constraints for visual place recognition. arXiv preprint arXiv:250613133 Liu B, Zhang P, He L, et al (2025b) Superplace: The renaissance of classical feature aggregation for visual place recognition in the era of founda-tion models. arXiv preprint arXiv:250613073 Liu Y, Dong Q (2024) Descriptor distillation: A teacher-student-regularized framework for learn-ing local descriptors. International Journal of Computer Vision 132(9):3787–3805 Lowe DG (2004) Distinctive image features from scale-invariant keypoints. International Journal of Computer Vision 60(2):91–110 Lu F, Zhang L, Dong S, et al (2023) Aanet: Aggre-gation and alignment network with semi-hard positive sample mining for hierarchical place recognition. In: 2023 IEEE International Con-ference on Robotics and Automation (ICRA), IEEE, pp 11771–11778 Lu F, Dong S, Zhang L, et al (2024a) Deep homog-raphy estimation for visual place recognition. In: Proceedings of the AAAI Conference on Artificial Intelligence, pp 10341–10349 Lu F, Lan X, Zhang L, et al (2024b) Cricavpr: Cross-image correlation-aware representation learning for visual place recognition. In: Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Lu F, Zhang L, Lan X, et al (2024c) Towards seam-less adaptation of pre-trained models for visual place recognition. In: The Twelfth International Conference on Learning Representations Lu F, Zhang X, Ye C, et al (2024d) Super-vlad: Compact and robust image descriptors for visual place recognition. Advances in Neural Information Processing Systems 37:5789–5816 Lu F, Jin T, Lan X, et al (2025a) Selavpr++: Towards seamless adaptation of foundation models for efficient place recognition. IEEE Transactions on Pattern Analysis and Machine Intelligence Lu F, Jin T, Ye C, et al (2025b) Towards implicit aggregation: Robust image representation for place recognition in the transformer era. In: The Annual Conference on Neural Information Processing Systems Lu Y, Ma J (2025) Feature matching via graph clus-tering with local affine consensus. International Journal of Computer Vision 133(5):2259–2286 Mao J, Shi S, Wang X, et al (2023) 3d object detection for autonomous driving: A comprehen-sive survey. International Journal of Computer Vision 131(8):1909–1963 23 Middelberg S, Sattler T, Untzelmann O, et al (2014) Scalable 6-dof localization on mobile devices. In: Computer Vision–ECCV 2014: 13th European Conference, Zurich, Switzerland, September 6-12, 2014, Proceedings, Part II 13, Springer, pp 268–283 Naseer T, Oliveira GL, Brox T, et al (2017) Semantics-aware visual localization under chal-lenging perceptual conditions. In: 2017 IEEE International Conference on Robotics and Automation (ICRA), IEEE, pp 2614–2620 Noh H, Araujo A, Sim J, et al (2017) Large-scale image retrieval with attentive deep local features. In: ICCV, pp 3456–3465 Oquab M, Darcet T, Moutakanni T, et al (2023) Dinov2: Learning robust visual features without supervision. Transactions on Machine Learning Research Potje G, Cadar F, Araujo A, et al (2024) Xfeat: Accelerated features for lightweight image matching. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 2682–2691 Radenović F, Tolias G, Chum O (2018) Fine-tuning cnn image retrieval with no human annota-tion. IEEE transactions on pattern analysis and machine intelligence 41(7):1655–1668 Revaud J, De Souza C, Humenberger M, et al (2019) R2d2: Reliable and repeatable detector and descriptor. Advances in neural information processing systems 32 Rublee E, Rabaud V, Konolige K, et al (2011) Orb: An efficient alternative to sift or surf. In: ICCV, pp 2564–2571 Sferrazza D, Berton G, Trivigno G, et al (2025) To match or not to match: Revisiting image matching for reliable visual place recognition. In: Proceedings of the Computer Vision and Pattern Recognition Conference, pp 2849–2860 Shen Y, Zhou S, Fu J, et al (2023) Structvpr: Distill structural knowledge with weighting samples for visual place recognition. In: CVPR, pp 11217– 11226 Shen Y, Zhou S, Fu J, et al (2025) Structvpr++: Distill structural and semantic knowledge with weighting samples for visual place recognition. IEEE Transactions on Pattern Analysis and Machine Intelligence Siméoni O, Vo HV, Seitzer M, et al (2025) Dinov3. arXiv preprint arXiv:250810104 Sun J, Shen Z, Wang Y, et al (2021) Loftr: Detector-free local feature matching with trans-formers. In: CVPR, pp 8922–8931 Sünderhauf N, Neubert P, Protzel P (2013) Are we there yet? challenging SeqSLAM on a 3000 km journey across all four seasons. In: Workshop on Long-Term Autonomy, IEEE International Con-ference on Robotics and Automation (ICRA) Sünderhauf N, Shirazi S, Dayoub F, et al (2015) On the performance of convnet features for place recognition. In: 2015 IEEE/RSJ international conference on intelligent robots and systems (IROS), IEEE, pp 4297–4304 Torii A, Sivic J, Pajdla T, et al (2013) Visual place recognition with repetitive structures. In: IEEE/CVF International Conference on Com-puter Vision and Pattern Recognition (CVPR), pp 883–890 Torii A, Arandjelovic R, Sivic J, et al (2015) 24/7 place recognition by view synthesis. In: Proceed-ings of the IEEE conference on computer vision and pattern recognition, pp 1808–1817 Trivigno G, Berton G, Aragon J, et al (2023) Divide&classify: Fine-grained classification for city-wide visual place recognition. In: 2023 IEEE/CVF International Conference on Com-puter Vision (ICCV), IEEE, pp 11108–11118 Tzachor I, Lerner B, Levy M, et al (2025) EffoVPR: Effective foundation model utilization for visual place recognition. In: The Thirteenth Interna-tional Conference on Learning Representations Van Erven T, Harremos P (2014) Rényi divergence and kullback-leibler divergence. IEEE Transac-tions on Information Theory 60(7):3797–3820 24 Wall C, Wang L, Rizk R, et al (2026) Winsor-cam: Human-tunable visual explanations from deep networks via layer-wise winsorization. IEEE Transactions on Pattern Analysis and Machine Intelligence Wang C, Xu R, Lu K, et al (2023) Attention weighted local descriptors. IEEE Transactions on Pattern Analysis and Machine Intelligence 45(9):10632–10649 Wang C, Chen S, Song Y, et al (2025) Focus on local: Finding reliable discriminative regions for visual place recognition. In: Proceedings of the AAAI Conference on Artificial Intelligence, pp 7536–7544 Wang R, Shen Y, Zuo W, et al (2022) Transvpr: Transformer-based place recognition with multi-level attention aggregation. In: CVPR, pp 13648– 13657 Wang X, Han X, Huang W, et al (2019) Multi-similarity loss with general pair weighting for deep metric learning. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp 5022–5030 Wang Y, He X, Peng S, et al (2024) Efficient loftr: Semi-dense local feature matching with sparse-like speed. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp 21666–21675 Warburg F, Hauberg S, Lopez-Antequera M, et al (2020a) Mapillary street-level sequences: A dataset for lifelong place recognition. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp 2626–2635 Warburg F, Hauberg S, López-Antequera M, et al (2020b) Mapillary street-level sequences: A dataset for lifelong place recognition. In: IEEE/CVF International Conference on Com-puter Vision and Pattern Recognition (CVPR), pp 2626–2635 Wenzel P, Yang N, Wang R, et al (2025) 4seasons: Benchmarking visual slam and long-term local-ization for autonomous driving in challenging conditions. International Journal of Computer Vision 133(4):1564–1586 Xu S, Chen S, Xu R, et al (2024) Local fea-ture matching using deep learning: A survey. Information Fusion 107:102344 Xue F, Budvytis I, Cipolla R (2023) Sfd2: Semantic-guided feature detection and descrip-tion. In: Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recogni-tion, pp 5206–5216 Zaffar M, Garg S, Milford M, et al (2021) VPR-Bench: An open-source visual place recognition evaluation framework with quantifiable view-point and appearance change. International Journal of Computer Vision (IJCV) pp 1–39 Zhang Y, Zhao X (2024) Mesa: Matching every-thing by segmenting anything. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pp 20217–20226 Zhou Y, Li H, Cheng ZQ, et al (2026) Max-sup: Overcoming representation collapse in label smoothing. In: The Thirty-ninth Annual Confer-ence on Neural Information Processing Systems Zhu S, Liu X (2023) Pmatch: Paired masked image modeling for dense geometric matching. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp 21909–21918 Zhu S, Yang L, Chen C, et al (2023) R2former: Unified retrieval and reranking transformer for place recognition. In: CVPR, pp 19370–19380 Zou D, Tan P (2012) Coslam: Collaborative visual slam in dynamic environments. IEEE transactions on pattern analysis and machine intelligence 35(2):354–366 Zou J, Liao B, Zhang Q, et al (2025) Mim4d: Masked modeling with multi-view video for autonomous driving representation learning. International Journal of Computer Vision 133(9):6074–6087 25

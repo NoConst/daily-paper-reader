@@ -1,0 +1,1461 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-05-03T20:19:08.618313+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 64,
+    "deep_cap": 6,
+    "deep_selected": 26,
+    "quick_candidates": 97,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2604.23069v1",
+      "source": "arxiv",
+      "title": "ContextWeaver: Selective and Dependency-Structured Memory Construction for LLM Agents",
+      "abstract": "Large language model (LLM) agents often struggle in long-context interactions. As the agent accumulates more interaction history, context management approaches such as sliding window and prompt compression may omit earlier structured information that later steps rely on. Recent retrieval-based memory systems surface relevant content but still overlook the causal and logical structure needed for multi-step reasoning. We introduce ContextWeaver, a selective and dependency-structured memory framework that organizes an agent's interaction trace into a graph of reasoning steps and selects the relevant context for future actions. Unlike prior context management approaches, ContextWeaver supports: (1) dependency-based construction and traversal that link each step to the earlier steps it relies on; (2) compact dependency summarization that condenses root-to-step reasoning paths into reusable units; and (3) a lightweight validation layer that incorporates execution feedback. On the SWE-Bench Verified and Lite benchmarks, ContextWeaver improves performance over a sliding-window baseline in pass@1, while reducing reasoning steps and token usage. Our observations suggest that modeling logical dependencies provides a stable and scalable memory mechanism for LLM agents that use tools.",
+      "authors": [
+        "Yating Wu",
+        "Yuhao Zhang",
+        "Sayan Ghosh",
+        "Sourya Basu",
+        "Anoop Deoras",
+        "Jun Huan",
+        "Gaurav Gupta"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-24T23:39:49+00:00",
+      "link": "https://arxiv.org/pdf/2604.23069v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "dependency-structured memory construction for LLM agents",
+      "llm_evidence_cn": "大语言模型智能体的依赖结构化记忆构建",
+      "llm_evidence": "大语言模型智能体的依赖结构化记忆构建",
+      "canonical_evidence": "大语言模型智能体的依赖结构化记忆构建",
+      "llm_tldr_en": "ContextWeaver organizes agent interaction traces into a dependency graph for better long-context memory.",
+      "llm_tldr_cn": "ContextWeaver将智能体交互轨迹组织为依赖图，以优化长上下文记忆管理。",
+      "llm_tldr": "ContextWeaver将智能体交互轨迹组织为依赖图，以优化长上下文记忆管理。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.23878v1",
+      "source": "arxiv",
+      "title": "ZenBrain: A Neuroscience-Inspired 7-Layer Memory Architecture for Autonomous AI Systems",
+      "abstract": "Despite a century of empirical memory research, existing AI agent memory systems rely on system-engineering metaphors (virtual-memory paging, flat LLM storage, Zettelkasten notes), none integrating principles of consolidation, forgetting, and reconsolidation.   We present ZenBrain, a multi-layer memory architecture integrating fifteen neuroscience models. It implements seven memory layers (working, short-term, episodic, semantic, procedural, core, cross-context) orchestrated by nine foundational algorithms (Two-Factor Synaptic Model, vmPFC-coupled FSRS, Simulation-Selection sleep, Bayesian confidence, and five more) plus six new Predictive Memory Architecture (PMA) components: a four-channel NeuromodulatorEngine, prediction-error-gated ReconsolidationEngine, TripleCopyMemory with divergent decay, four-dimensional PriorityMap with amygdala fast-path, StabilityProtector (NogoA/HDAC3 analogue), and MetacognitiveMonitor for bias detection.   The 15-algorithm ablation reveals a cooperative survival network: under stress, 9 of 15 algorithms become individually critical (delta-Q up to -93.7%, Wilcoxon, 10 seeds, alpha=0.005). Simulation-Selection sleep achieves 37% stability improvement (p<0.005) with 47.4% storage reduction. TripleCopyMemory retains S(t)=0.912 at 30 days; PriorityMap reaches NDCG@10=0.997.   Multi-layer routing beats a flat single-layer baseline by 20.7% F1 on LoCoMo (p<0.005) and 19.5% on MemoryArena (p=0.015). On LongMemEval-500, ZenBrain holds the highest mean rank on all 12 system-judge cells (4 systems x 3 LLM judges), three-judge mean J=0.545 vs letta=0.485, a-mem=0.414, mem0=0.394; all 9 pair-wise contrasts clear Bonferroni (alpha=0.05/18, min p=6.2e-31, d in [0.18, 0.52]). Under LongMemEval's binary judge, ZenBrain reaches 91.3% of oracle accuracy at 1/106th the per-query token budget. Open-source with 11,589 automated test cases.",
+      "authors": [
+        "Alexander Bering"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-04-26T20:39:19+00:00",
+      "link": "https://arxiv.org/pdf/2604.23878v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "multi-layer memory architecture for AI agents",
+      "llm_evidence_cn": "AI智能体的多层记忆架构",
+      "llm_evidence": "AI智能体的多层记忆架构",
+      "canonical_evidence": "AI智能体的多层记忆架构",
+      "llm_tldr_en": "Presents ZenBrain, a neuroscience-inspired 7-layer memory system for autonomous AI agents.",
+      "llm_tldr_cn": "介绍了ZenBrain，一种受神经科学启发的自主AI智能体七层记忆系统。",
+      "llm_tldr": "介绍了ZenBrain，一种受神经科学启发的自主AI智能体七层记忆系统。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Memory-Augmented Agents.",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.26197v1",
+      "source": "arxiv",
+      "title": "Hierarchical Long-Term Semantic Memory for LinkedIn's Hiring Agent",
+      "abstract": "Large Language Model (LLM) agents are increasingly used in real-world products, where personalized and context-aware user interactions are essential. A central enabler of such capabilities is the agent's long-term semantic memory system, which extracts implicit and explicit signals from noisy longitudinal behavioral data, stores them in a structured form, and supports low-latency retrieval. Building industrial-grade long-term memory for LLM agents raises five challenges: scalability, low-latency retrieval, privacy constraints, cross-domain generalizability, and observability. We introduce the Hierarchical Long-Term Semantic Memory (HLTM) framework, which organizes textual data into a schema-aligned memory tree that captures semantic knowledge at multiple levels of granularity, enabling scalable ingestion, privacy-aware storage, low-latency retrieval, and transparent provenance; HLTM further incorporates an adaptation mechanism to generalize across diverse use cases. Extensive evaluations on LinkedIn's Hiring Assistant show that HLTM improves answer correctness and retrieval F1 significantly by more than 10%, while significantly advancing the Pareto frontier between query and indexing latency. HLTM has been deployed in LinkedIn's Hiring Assistant to power core personalization features in production hiring workflows.",
+      "authors": [
+        "Zhentao Xu",
+        "Shangjing Zhang",
+        "Emir Poyraz",
+        "Yvonne Li",
+        "Ye Jin",
+        "Xie Lu",
+        "Xiaoyang Gu",
+        "Karthik Ramgopal",
+        "Praveen Kumar Bodigutla",
+        "Xiaofeng Wang"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.LG"
+      ],
+      "published": "2026-04-29T00:53:52+00:00",
+      "link": "https://arxiv.org/pdf/2604.26197v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "long-term semantic memory for LLM agents",
+      "llm_evidence_cn": "大模型智能体的长期语义记忆",
+      "llm_evidence": "大模型智能体的长期语义记忆",
+      "canonical_evidence": "大模型智能体的长期语义记忆",
+      "llm_tldr_en": "Introduces HLTM, a hierarchical long-term semantic memory framework for industrial-grade LLM agents.",
+      "llm_tldr_cn": "引入HLTM，一个用于工业级大模型智能体的分层长期语义记忆框架。",
+      "llm_tldr": "引入HLTM，一个用于工业级大模型智能体的分层长期语义记忆框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.26622v1",
+      "source": "arxiv",
+      "title": "OCR-Memory: Optical Context Retrieval for Long-Horizon Agent Memory",
+      "abstract": "Autonomous LLM agents increasingly operate in long-horizon, interactive settings where success depends on reusing experience accumulated over extended histories. However, existing agent memory systems are fundamentally constrained by text-context budgets: storing or revisiting raw trajectories is prohibitively token-expensive, while summarization and text-only retrieval trade token savings for information loss and fragmented evidence. To address this limitation, we propose Optical Context Retrieval Memory (OCR-Memory), a memory framework that leverages the visual modality as a high-density representation of agent experience, enabling retention of arbitrarily long histories with minimal prompt overhead at retrieval time. Specifically, OCR-Memory renders historical trajectories into images annotated with unique visual identifiers. OCR-Memory retrieves stored experience via a \\emph{locate-and-transcribe} paradigm that selects relevant regions through visual anchors and retrieves the corresponding verbatim text, avoiding free-form generation and reducing hallucination. Experiments on long-horizon agent benchmarks show consistent gains under strict context limits, demonstrating that optical encoding increases effective memory capacity while preserving faithful evidence recovery.",
+      "authors": [
+        "Jinze Li",
+        "Yang Zhang",
+        "Xin Yang",
+        "Jiayi Qu",
+        "Jinfeng Xu",
+        "Shuo Yang",
+        "Junhua Ding",
+        "Edith Cheuk-Han Ngai"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-29T12:49:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.26622v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "optical context retrieval for long-horizon agent memory",
+      "llm_evidence_cn": "用于长程智能体记忆的光学上下文检索",
+      "llm_evidence": "用于长程智能体记忆的光学上下文检索",
+      "canonical_evidence": "用于长程智能体记忆的光学上下文检索",
+      "llm_tldr_en": "Proposes OCR-Memory, using visual modality as a high-density representation for long-horizon agent experience.",
+      "llm_tldr_cn": "提出OCR-Memory，利用视觉模态作为智能体长程经验的高密度表示。",
+      "llm_tldr": "提出OCR-Memory，利用视觉模态作为智能体长程经验的高密度表示。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27003v1",
+      "source": "arxiv",
+      "title": "When Continual Learning Moves to Memory: A Study of Experience Reuse in LLM Agents",
+      "abstract": "Memory-augmented LLM agents offer an appealing shortcut to continual learning: rather than updating model parameters, they accumulate experience in external memory, seemingly sidestepping the stability-plasticity dilemma of parametric learning. We show that this challenge does not disappear but resurfaces at the memory level. Under a limited context window, old and new experiences compete during retrieval, relocating the continual-learning bottleneck from parameter updates to memory access. To study this phenomenon, we introduce a (k,v) framework that disentangles two fundamental design axes of external memory: how experience is represented and how it is organized for retrieval. Across sequential-task experiments in ALFWorld and BabyAI, we find that abstract procedural memories transfer more reliably than detailed trajectories, while negative transfer disproportionately harms the hard cases. Moreover, finer-grained memory organization is not universally beneficial: designs that yield strong forward transfer can simultaneously induce severe forgetting. Together, these results reveal that external memory does not resolve the continual-learning problem; it reshapes it into a problem of memory representation and retrieval design.",
+      "authors": [
+        "Qisheng Hu",
+        "Quanyu Long",
+        "Wenya Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-04-29T04:48:02+00:00",
+      "link": "https://arxiv.org/pdf/2604.27003v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "experience reuse and external memory in LLM agents",
+      "llm_evidence_cn": "LLM智能体中的经验重用和外部记忆",
+      "llm_evidence": "LLM智能体中的经验重用和外部记忆",
+      "canonical_evidence": "LLM智能体中的经验重用和外部记忆",
+      "llm_tldr_en": "Studies how external memory in LLM agents affects continual learning and experience retrieval.",
+      "llm_tldr_cn": "研究LLM智能体中的外部记忆如何影响持续学习和经验检索。",
+      "llm_tldr": "研究LLM智能体中的外部记忆如何影响持续学习和经验检索。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.23626v1",
+      "source": "arxiv",
+      "title": "GraphPlanner: Graph Memory-Augmented Agentic Routing for Multi-Agent LLMs",
+      "abstract": "LLM routing has achieved promising results in integrating the strengths of diverse models while balancing efficiency and performance. However, to support more realistic and challenging applications, routing must extend into agentic LLM settings, where task planning, multi-round cooperation among heterogeneous agents, and memory utilization are indispensable. To address this gap, we propose GraphPlanner, a heterogeneous graph memory-augmented agentic router for multi-agent LLMs that generates routing workflows for each query and supports both inductive and transductive inference. GraphPlanner formulates workflow generation as a Markov Decision Process (MDP), where at each step it selects both the LLM backbone and the agent role, including Planner, Executor, and Summarizer. By leveraging a heterogeneous graph, denoted as GARNet, to capture interaction memories among queries, agents, and responses, GraphPlanner integrates historical memory and workflow memory into richer state representations. The entire pipeline is optimized with reinforcement learning, jointly improving task-specific performance and computational efficiency. We evaluate GraphPlanner across 14 diverse LLM tasks and demonstrate that: (1) GraphPlanner outperforms strong single-round and multi-round routers, improving accuracy by up to 9.3% while reducing GPU cost from 186.26 GiB to 1.04 GiB; (2) GraphPlanner generalizes robustly to unseen tasks and LLMs, exhibiting strong zero-shot capabilities; and (3) GraphPlanner effectively leverages historical memories, supporting both inductive and transductive inference for more adaptive routing. Our code for GraphPlanner is released at https://github.com/ulab-uiuc/GraphPlanner.",
+      "authors": [
+        "Tao Feng",
+        "Haozhen Zhang",
+        "Zijie Lei",
+        "Peixuan Han",
+        "Jiaxuan You"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-26T09:38:32+00:00",
+      "link": "https://arxiv.org/pdf/2604.23626v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.5,
+      "llm_evidence_en": "graph memory-augmented agentic routing for multi-agent LLMs",
+      "llm_evidence_cn": "用于多智能体LLM的图记忆增强智能体路由",
+      "llm_evidence": "用于多智能体LLM的图记忆增强智能体路由",
+      "canonical_evidence": "用于多智能体LLM的图记忆增强智能体路由",
+      "llm_tldr_en": "Proposes GraphPlanner, a memory-augmented router that uses graph structures to manage multi-agent task planning.",
+      "llm_tldr_cn": "提出GraphPlanner，一种利用图结构管理多智能体任务规划的记忆增强路由。",
+      "llm_tldr": "提出GraphPlanner，一种利用图结构管理多智能体任务规划的记忆增强路由。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Memory-Augmented Agents.",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.24602v1",
+      "source": "arxiv",
+      "title": "Majorization-Guided Test-Time Adaptation for Vision-Language Models under Modality-Specific Shift",
+      "abstract": "Vision-language models transfer well in zero-shot settings, but at deployment the visual and textual branches often shift asymmetrically. Under this condition, entropy-based test-time adaptation can sharpen the fused posterior while increasing error, because an unreliable modality may still dominate fusion. We study this failure mode through a majorization view of multimodal posteriors and cast adaptation as a constrained de-mixing problem on the fused prediction. Based on this view, we propose MG-MTTA, which keeps the backbone frozen and updates only a lightweight gate or adapter. The objective combines fused-posterior entropy minimization with a reliability-aware gate prior built from anchor-based modality consistency and cross-modal conflict. Our analysis gives conditions under which entropy reduction preserves the correct ranking and a threshold that characterizes modality-dominance failure. On the ImageNet-based benchmark, MG-MTTA improves top-1 accuracy from 57.97 to 66.51 under semantics-preserving textual shift and from 21.68 to 26.27 under joint visual-textual shift, while remaining competitive in the visual-only benchmark. These results show that multimodal test-time adaptation should control modality reliability, not just prediction entropy.",
+      "authors": [
+        "Lixian Chen",
+        "Mingxuan Huang",
+        "Yanhui Chen",
+        "Junyi Lin",
+        "Yang Shi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-27T15:29:35+00:00",
+      "link": "https://arxiv.org/pdf/2604.24602v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.5,
+      "llm_evidence_en": "test-time adaptation for modality-specific shift in VLMs",
+      "llm_evidence_cn": "视觉语言模型中针对特定模态偏移的测试时自适应",
+      "llm_evidence": "视觉语言模型中针对特定模态偏移的测试时自适应",
+      "canonical_evidence": "视觉语言模型中针对特定模态偏移的测试时自适应",
+      "llm_tldr_en": "Proposes MG-MTTA to handle asymmetric modality shifts in vision-language models during deployment.",
+      "llm_tldr_cn": "提出MG-MTTA，用于处理视觉语言模型在部署过程中的非对称模态偏移。",
+      "llm_tldr": "提出MG-MTTA，用于处理视觉语言模型在部署过程中的非对称模态偏移。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Modality Bias",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27283v1",
+      "source": "arxiv",
+      "title": "Learning When to Remember: Risk-Sensitive Contextual Bandits for Abstention-Aware Memory Retrieval in LLM-Based Coding Agents",
+      "abstract": "Large language model (LLM)-based coding agents increasingly rely on external memory to reuse prior debugging experience, repair traces, and repository-local operational knowledge. However, retrieved memory is useful only when the current failure is genuinely compatible with a previous one; superficial similarity in stack traces, terminal errors, paths, or configuration symptoms can lead to unsafe memory injection. This paper reframes issue-memory use as a selective, risk-sensitive control problem rather than a pure top-k retrieval problem. We introduce RSCB-MC, a risk-sensitive contextual bandit memory controller that decides whether an agent should use no memory, inject the top resolution, summarize multiple candidates, perform high-precision or high-recall retrieval, abstain, or ask for feedback. The system stores reusable issue knowledge through a pattern-variant-episode schema and converts retrieval evidence into a fixed 16-feature contextual state capturing relevance, uncertainty, structural compatibility, feedback history, false-positive risk, latency, and token cost. Its reward design penalizes false-positive memory injection more strongly than missed reuse, making non-injection and abstention first-class safety actions. In deterministic smoke-scale artifacts, RSCB-MC obtains the strongest non-oracle offline replay success rate, 62.5%, while maintaining a 0.0% false-positive rate. In a bounded 200-case hot-path validation, it reaches 60.5% proxy success with 0.0% false positives and a 331.466 microseconds p95 decision latency. The results show that, for coding-agent memory, the key question is not only which memory is most similar, but whether any retrieved memory is safe enough to influence the debugging trajectory.",
+      "authors": [
+        "Mehmet Iscan"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-04-30T00:32:53+00:00",
+      "link": "https://arxiv.org/pdf/2604.27283v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.5,
+      "llm_evidence_en": "risk-sensitive contextual bandits for memory retrieval in LLM-based coding agents",
+      "llm_evidence_cn": "用于LLM编程智能体记忆检索的风险敏感上下文多臂老虎机",
+      "llm_evidence": "用于LLM编程智能体记忆检索的风险敏感上下文多臂老虎机",
+      "canonical_evidence": "用于LLM编程智能体记忆检索的风险敏感上下文多臂老虎机",
+      "llm_tldr_en": "Introduces a controller to decide when LLM agents should retrieve memory to avoid unsafe or irrelevant injections.",
+      "llm_tldr_cn": "引入一种控制器，决定LLM智能体何时应检索记忆，以避免不安全或无关的注入。",
+      "llm_tldr": "引入一种控制器，决定LLM智能体何时应检索记忆，以避免不安全或无关的注入。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Memory-Augmented Agents.",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.23321v1",
+      "source": "arxiv",
+      "title": "MMEB-V3: Measuring the Performance Gaps of Omni-Modality Embedding Models",
+      "abstract": "Multimodal embedding models aim to map heterogeneous inputs, such as text, images, videos, and audio, into a shared semantic space. However, existing methods and benchmarks remain largely limited to partial modality coverage, making it difficult to systematically evaluate full-modality representation learning. In this work, we take a step toward the full-modality setting. We introduce MMEB-V3, a comprehensive benchmark that evaluates embeddings across text, image, video, audio, as well as agent-centric scenarios. To enable more fine-grained diagnosis, we further construct OmniSET (Omni-modality Semantic Equivalence Tuples), where semantically equivalent instances are represented across modalities, allowing us to disentangle semantic similarity from modality effects. Through experiments on MMEB-V3, we conduct a systematic analysis of full-modality embeddings and identify three key findings: (1) models often fail to retrieve the intended target modality; (2) cross-modal retrieval is highly asymmetric and dominated by query-modality bias; and (3) instruction-induced shifts are either insufficient or misaligned with the target modality, and therefore do not reliably improve retrieval. These results indicate that current multimodal embeddings are not yet capable of reliably enforcing modality constraints specified by instructions, and consequently fail to exhibit consistent modality-aware retrieval behavior. We hope MMEB-V3 provides a useful benchmark for understanding and diagnosing these limitations, and for guiding future research on full-modality embeddings.",
+      "authors": [
+        "Haohang Huang",
+        "Xuan Lu",
+        "Mingyi Su",
+        "Xuan Zhang",
+        "Ziyan Jiang",
+        "Ping Nie",
+        "Kai Zou",
+        "Tomas Pfister",
+        "Wenhu Chen",
+        "Wei Zhang",
+        "Xiaoyu Shen",
+        "Rui Meng"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-04-25T14:15:05+00:00",
+      "link": "https://arxiv.org/pdf/2604.23321v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Omni-modality embedding models and benchmarks for multimodal representation learning",
+      "llm_evidence_cn": "全模态嵌入模型及多模态表示学习基准",
+      "llm_evidence": "全模态嵌入模型及多模态表示学习基准",
+      "canonical_evidence": "全模态嵌入模型及多模态表示学习基准",
+      "llm_tldr_en": "Introduces MMEB-V3, a benchmark for evaluating omni-modality embeddings across text, image, video, and audio.",
+      "llm_tldr_cn": "引入MMEB-V3基准，用于评估文本、图像、视频和音频等全模态嵌入性能。",
+      "llm_tldr": "引入MMEB-V3基准，用于评估文本、图像、视频和音频等全模态嵌入性能。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.23711v1",
+      "source": "arxiv",
+      "title": "Spore: Efficient and Training-Free Privacy Extraction Attack on LLMs via Inference-Time Hybrid Probing",
+      "abstract": "With the wide adoption of personal AI assistants such as OpenClaw, privacy leakage in user interaction contexts with large language model (LLM) agents has become a critical issue. Existing privacy attacks against LLMs primarily target training data, while research on inference-time contextual privacy risks in LLM agent memory remains limited. Moreover, prior methods often incur high attack costs, requiring multiple queries or relying on white-box assumptions, which limits their practicality in real-world deployments. To address these issues, we propose a training-free privacy extraction attack targeting LLM agent memory, which we name \\textsc{Spore}. \\textsc{Spore} is compatible with both black-box and gray-box settings. In the black-box setting, \\textsc{Spore} can efficiently extract a small candidate set via a single query to recover the original private information. In the gray-box setting, \\textsc{Spore} allows the attacker to leverage multi-ranked tokens for more accurate and faster privacy extraction. We provide an information-theoretic analysis of \\textsc{Spore} and show that it achieves high query efficiency with substantial per query information leakage. Experiments on multiple frontier LLMs show that \\textsc{Spore} outperforms attack success rate over existing state-of-the-art (SOTA) schemes. It also maintains low attack cost and remains stable across different model parameter settings. We further evaluate the robustness of \\textsc{Spore} against existing defense mechanisms. Our results show that \\textsc{Spore} consistently bypasses both detection and strong safety alignment, demonstrating resilient performance in diverse defensive settings and real-world safety threats.",
+      "authors": [
+        "Yu Cui",
+        "Ruiqing Yue",
+        "Hang Fu",
+        "Sicheng Pan",
+        "Zhuoyu Sun",
+        "Baohan Huang",
+        "Haibin Zhang",
+        "Cong Zuo",
+        "Licheng Wang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-04-26T13:54:15+00:00",
+      "link": "https://arxiv.org/pdf/2604.23711v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "privacy extraction attack targeting LLM agent memory",
+      "llm_evidence_cn": "针对大语言模型智能体记忆的隐私提取攻击",
+      "llm_evidence": "针对大语言模型智能体记忆的隐私提取攻击",
+      "canonical_evidence": "针对大语言模型智能体记忆的隐私提取攻击",
+      "llm_tldr_en": "Introduces Spore, a training-free attack to extract private information from LLM agent memory.",
+      "llm_tldr_cn": "提出Spore，一种无需训练的攻击方法，用于从LLM智能体记忆中提取隐私信息。",
+      "llm_tldr": "提出Spore，一种无需训练的攻击方法，用于从LLM智能体记忆中提取隐私信息。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.24039v1",
+      "source": "arxiv",
+      "title": "AgenticCache: Cache-Driven Asynchronous Planning for Embodied AI Agents",
+      "abstract": "Embodied AI agents increasingly rely on large language models (LLMs) for planning, yet per-step LLM calls impose severe latency and cost. In this paper, we show that embodied tasks exhibit strong plan locality, where the next plan is largely predictable from the current one. Building on this, we introduce AgenticCache, a planning framework that reuses cached plans to avoid per-step LLM calls. In AgenticCache, each agent queries a runtime cache of frequent plan transitions, while a background Cache Updater asynchronously calls the LLM to validate and refine cached entries. Across four multi-agent embodied benchmarks, AgenticCache improves task success rate by 22% on average across 12 configurations (4 benchmarks x 3 models), reduces simulation latency by 65%, and lowers token usage by 50%. Cache-based plan reuse thus offers a practical path to low-latency, low-cost embodied agents. Code is available at https://github.com/hojoonleokim/MLSys26_AgenticCache.",
+      "authors": [
+        "Hojoon Kim",
+        "Yuheng Wu",
+        "Thierry Tambe"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-04-27T04:51:15+00:00",
+      "link": "https://arxiv.org/pdf/2604.24039v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Introduces a runtime cache for frequent plan transitions in embodied agents",
+      "llm_evidence_cn": "为具身智能体引入了频繁计划转换的运行时缓存",
+      "llm_evidence": "为具身智能体引入了频繁计划转换的运行时缓存",
+      "canonical_evidence": "为具身智能体引入了频繁计划转换的运行时缓存",
+      "llm_tldr_en": "Introduces AgenticCache to reuse cached plans, reducing latency and cost for embodied AI agents.",
+      "llm_tldr_cn": "引入AgenticCache以重用缓存计划，降低具身AI智能体的延迟和成本。",
+      "llm_tldr": "引入AgenticCache以重用缓存计划，降低具身AI智能体的延迟和成本。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.24401v1",
+      "source": "arxiv",
+      "title": "All That Glitters Is Not Audio: Rethinking Text Priors and Audio Reliance in Audio-Language Evaluation",
+      "abstract": "Large Audio-Language Models show consistent performance gains across speech and audio benchmarks, yet high scores may not reflect true auditory perception. If a model can answer questions without processing the acoustic signal, the benchmark fails as a measure of auditory understanding. We present a diagnostic framework using two axes: text prior, which measures answerability from text and general knowledge alone, and audio reliance, which assesses actual dependency on the acoustic signal. Evaluating eight LALMs across three benchmarks, we find that models retain 60-72% of their full audio scores even without any audio input. Moreover, among items that require audio, only 3.0-4.2% need the complete audio clip; the majority can be resolved using localized fragments. These findings challenge the assumption that benchmark performance equals robust audio understanding, and we conclude with practical guidelines for improving evaluation reliability and benchmark design.",
+      "authors": [
+        "Leonardo Haw-Yang Foo",
+        "Chih-Kai Yang",
+        "Chen-An Li",
+        "Ke-Han Lu",
+        "Hung-yi Lee"
+      ],
+      "primary_category": "cs.SD",
+      "categories": [
+        "cs.SD",
+        "cs.AI",
+        "cs.CL",
+        "eess.AS"
+      ],
+      "published": "2026-04-27T12:25:18+00:00",
+      "link": "https://arxiv.org/pdf/2604.24401v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Rethinking text priors and audio reliance in audio-language evaluation",
+      "llm_evidence_cn": "重新思考音频语言评估中的文本先验和音频依赖",
+      "llm_evidence": "重新思考音频语言评估中的文本先验和音频依赖",
+      "canonical_evidence": "重新思考音频语言评估中的文本先验和音频依赖",
+      "llm_tldr_en": "Diagnoses modality bias in audio-language models by measuring reliance on text priors versus acoustic signals.",
+      "llm_tldr_cn": "通过衡量对文本先验与声学信号的依赖，诊断音频语言模型中的模态偏差。",
+      "llm_tldr": "通过衡量对文本先验与声学信号的依赖，诊断音频语言模型中的模态偏差。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Modality Bias",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.24893v1",
+      "source": "arxiv",
+      "title": "Interactive Episodic Memory with User Feedback",
+      "abstract": "In episodic memory with natural language queries (EM-NLQ), a user may ask a question (e.g., \"Where did I place the mug?\") that requires searching a long egocentric video, captured from the user's perspective, to find the moment that answers it. However, queries can be ambiguous or incomplete, leading to incorrect responses. Current methods ignore this key aspect and address EM-NLQ in a one-shot setup, limiting their applicability in real-world scenarios. In this work, we address this gap and introduce the Episodic Memory with Questions and Feedback task (EM-QnF). Here, the user can provide feedback on the model's initial prediction or add more information (e.g., \"Before this. I'm looking for the big blue mug not the white one\"), helping the model refine its predictions interactively. To this end, we collect datasets for feedback-based interaction and propose a lightweight training scheme that avoids expensive sequential optimization. We also introduce a plug-and-play Feedback ALignment Module (FALM) that enables existing EM-NLQ models to incorporate user feedback effectively. Our approach significantly improves over the state of the art on three challenging benchmarks and is better than or competitive with commercial large vision-language models while remaining efficient. Evaluation with human-generated feedback shows that it generalizes well to real-world scenarios.",
+      "authors": [
+        "Nikesh Subedi",
+        "Loris Bazzani",
+        "Ziad Al-Halah"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-27T18:19:58+00:00",
+      "link": "https://arxiv.org/pdf/2604.24893v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "episodic memory with natural language queries and feedback",
+      "llm_evidence_cn": "带有自然语言查询和反馈的情境记忆",
+      "llm_evidence": "带有自然语言查询和反馈的情境记忆",
+      "canonical_evidence": "带有自然语言查询和反馈的情境记忆",
+      "llm_tldr_en": "Introduces EM-QnF task for interactive episodic memory refinement in egocentric video agents.",
+      "llm_tldr_cn": "为第一视角视频智能体引入EM-QnF任务，实现交互式情境记忆优化。",
+      "llm_tldr": "为第一视角视频智能体引入EM-QnF任务，实现交互式情境记忆优化。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.25022v1",
+      "source": "arxiv",
+      "title": "AFA: Identity-Aware Memory for Preventing Persona Confusion in Multi-User Dialogue",
+      "abstract": "When multiple people share a single voice assistant, the system conflates their histories: one resident's preferences can leak into another's responses, eroding utility and trust. We call this failure mode persona confusion, and we show it is a measurable problem in today's single-user dialogue systems when deployed in shared environments. We present the Adaptive Friend Agent (AFA), a modular framework that combines voice-based speaker identification with per-user memory stores to enable identity-aware, personalized dialogue across multiple users. To support training and evaluation, we construct PAT (Personalized Agent chaT), a synthetic dataset of 58,289 persona-grounded dialogue turns spanning 133 user profiles and 12 real-world scenarios. We evaluate AFA across five LLM back-ends in a standard response-quality benchmark, with a LLaMA-2-70B model fine-tuned on PAT achieving the highest overall performance. To directly measure persona confusion prevention, we introduce an interleaved multi-user evaluation protocol with a novel metric, Persona Attribution Accuracy (PAA), demonstrating that identity-aware routing improves PAA from 35.7% to 61.3%. Human evaluation confirms annotators perceive significantly higher personalization in routing-enabled responses. Our results establish that identity-aware user routing is the critical component for preventing persona confusion in multi-user conversational systems.",
+      "authors": [
+        "Mohammad Al-Ratrout",
+        "Pavan Uttej Ravva",
+        "Shayla Sharmin",
+        "Aditya Raikwar",
+        "Ju Young Shin",
+        "Roghayeh Leila Barmaki"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-04-27T21:55:03+00:00",
+      "link": "https://arxiv.org/pdf/2604.25022v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "per-user memory stores for identity-aware personalized dialogue",
+      "llm_evidence_cn": "用于身份感知个性化对话的用户专属存储记忆",
+      "llm_evidence": "用于身份感知个性化对话的用户专属存储记忆",
+      "canonical_evidence": "用于身份感知个性化对话的用户专属存储记忆",
+      "llm_tldr_en": "Introduces AFA, a framework using per-user memory to prevent persona confusion in multi-user dialogue.",
+      "llm_tldr_cn": "引入AFA框架，通过用户专属记忆防止多用户对话中的人格混淆。",
+      "llm_tldr": "引入AFA框架，通过用户专属记忆防止多用户对话中的人格混淆。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Memory-Augmented Agents.",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.25179v1",
+      "source": "arxiv",
+      "title": "Mitigating Shared-Private Branch Imbalance via Dual-Branch Rebalancing for Multimodal Sentiment Analysis",
+      "abstract": "Multimodal Sentiment Analysis (MSA) requires integrating language, acoustic, and visual signals without sacrificing modality-specific sentiment evidence. Existing methods mainly improve either shared-private decomposition or cross-modal interaction. Although effective, both ultimately depend on how shared and modality-specific evidence is organized before prediction. We observe that, under standard shared-private pipelines, modality heterogeneity often induces a branch-imbalance process: dominant shared patterns accumulate in the shared branch, yielding redundant and modality-biased evidence, while repeated interaction and rigid alignment gradually leak shared information into modality-specific channels and weaken discriminative private representations. As a result, the complementarity between shared and private representations is reduced, limiting robust sentiment reasoning. To address this issue, we propose the Dual-Branch Rebalancing Framework (DBR) on top of a standard multimodal decoupling stage. In the shared branch, a Temporal-Structural Factorization (TSF) module disentangles temporal evolution from structural dependencies and adaptively integrates them to reduce shared redundancy. In the private branch, an Anchor-Guided Private Routing (AGPR) module preserves discriminative modality-specific patterns while allowing controlled cross-modal borrowing. A Bidirectional Rebalancing Fusion (BRF) module then reunifies the two regularized branches in a context-aware manner for final prediction. Extensive experiments on CMU-MOSI, CMU-MOSEI, and MIntRec demonstrate that DBR consistently outperforms the compared baselines. Further analyses show that these improvements come from coordinated mitigation of branch imbalance.",
+      "authors": [
+        "Chunlei Meng",
+        "Jiabin Luo",
+        "Pengbin Feng",
+        "Zhenglin Yan",
+        "Chengyin Hu",
+        "Zhongxue Gan",
+        "Chun Ouyang"
+      ],
+      "primary_category": "cs.MM",
+      "categories": [
+        "cs.MM"
+      ],
+      "published": "2026-04-28T03:37:40+00:00",
+      "link": "https://arxiv.org/pdf/2604.25179v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Addresses modality-biased evidence and branch imbalance in multimodal analysis",
+      "llm_evidence_cn": "解决了多模态分析中的模态偏差证据和分支不平衡问题",
+      "llm_evidence": "解决了多模态分析中的模态偏差证据和分支不平衡问题",
+      "canonical_evidence": "解决了多模态分析中的模态偏差证据和分支不平衡问题",
+      "llm_tldr_en": "Introduces Dual-Branch Rebalancing to mitigate modality bias and shared-private branch imbalance in sentiment analysis.",
+      "llm_tldr_cn": "引入双分支重平衡机制，以减轻情感分析中的模态偏差和共享-私有分支不平衡。",
+      "llm_tldr": "引入双分支重平衡机制，以减轻情感分析中的模态偏差和共享-私有分支不平衡。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Modality Bias",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.25273v1",
+      "source": "arxiv",
+      "title": "Combating Visual Neglect and Semantic Drift in Large Multimodal Models for Enhanced Cross-Modal Retrieval",
+      "abstract": "Despite significant progress in Unified Multimodal Retrieval (UMR) powered by Large Multimodal Models (LMMs), existing embedding methods primarily focus on sample-level objectives via contrastive learning while overlooking the crucial subject-level semantics. This limitation hinders the model's ability to group semantically coherent subjects in complex multimodal queries, manifesting as semantic alignment deviation--where models fail to accurately localize salient text-referred regions in visual content. Moreover, without explicit guidance to model salient visual subjects, LMMs tend to over-rely on textual cues, resulting in visual modality neglect and suboptimal utilization of visual knowledge. To this end, we propose Salient Subject-Aware Multimodal Embedding (SSA-ME), a novel framework designed to enhance fine-grained representation learning through saliency-aware modeling. SSA-ME leverages LMMs and visual experts to identify and emphasize salient visual concepts in image-text pairs, and introduces a saliency-guided objective to better align cross-modal attention with semantically meaningful regions. Additionally, a feature regeneration module recalibrates visual features based on the derived saliency maps, ensuring a balanced and semantically coherent integration across modalities. Extensive experiments show that our method achieves state-of-the-art performance on the MMEB benchmark, demonstrating that incorporating subject-level modeling substantially improves multimodal retrieval. Comprehensive qualitative analyses further illustrate the interpretability and effectiveness of our approach.",
+      "authors": [
+        "Guosheng Zhang",
+        "Linkai Liu",
+        "Keyao Wang",
+        "Haixiao Yue",
+        "Zhiwen Tan",
+        "Xiao Tan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-28T06:29:27+00:00",
+      "link": "https://arxiv.org/pdf/2604.25273v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "combating visual modality neglect and semantic drift",
+      "llm_evidence_cn": "对抗视觉模态忽略和语义漂移",
+      "llm_evidence": "对抗视觉模态忽略和语义漂移",
+      "canonical_evidence": "对抗视觉模态忽略和语义漂移",
+      "llm_tldr_en": "Addresses modality bias and semantic alignment in multimodal models for enhanced cross-modal retrieval.",
+      "llm_tldr_cn": "解决多模态模型中的模态偏差和语义对齐问题，以增强跨模态检索。",
+      "llm_tldr": "解决多模态模型中的模态偏差和语义对齐问题，以增强跨模态检索。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Modality Bias",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.25847v1",
+      "source": "arxiv",
+      "title": "From Soliloquy to Agora: Memory-Enhanced LLM Agents with Decentralized Debate for Optimization Modeling",
+      "abstract": "Optimization modeling underpins real-world decision-making in logistics, manufacturing, energy, and public services, but reliably solving such problems from natural-language requirements remains challenging for current large language models (LLMs). In this paper, we propose \\emph{Agora-Opt}, a modular agentic framework for optimization modeling that combines decentralized debate with a read-write memory bank. Agora-Opt allows multiple agent teams to independently produce end-to-end solutions and reconcile them through an outcome-grounded debate protocol, while memory stores solver-verified artifacts and past disagreement resolutions to support training-free improvement over time. This design is flexible across both backbones and methods: it reduces base-model lock-in, transfers across different LLM families, and can be layered onto existing pipelines with minimal coupling. Across public benchmarks, Agora-Opt achieves the strongest overall performance among all compared methods, outperforming strong zero-shot LLMs, training-centric approaches, and prior agentic baselines. Further analyses show robust gains across backbone choices and component variants, and demonstrate that decentralized debate offers a structural advantage over centralized selection by enabling agents to refine candidate solutions through interaction and even recover correct formulations when all initial candidates are flawed. These results suggest that reliable optimization modeling benefits from combining collaborative cross-checking with reusable experience, and position Agora-Opt as a practical and extensible foundation for trustworthy optimization modeling assistance. Our code and data are available at https://github.com/CHIANGEL/Agora-Opt.",
+      "authors": [
+        "Jianghao Lin",
+        "Zi Ling",
+        "Chenyu Zhou",
+        "Tianyi Xu",
+        "Ruoqing Jiang",
+        "Zizhuo Wang",
+        "Dongdong Ge"
+      ],
+      "primary_category": "math.OC",
+      "categories": [
+        "math.OC",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-04-28T16:53:37+00:00",
+      "link": "https://arxiv.org/pdf/2604.25847v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Memory-enhanced LLM agents with a read-write memory bank",
+      "llm_evidence_cn": "带有读写存储库的增强记忆大模型智能体",
+      "llm_evidence": "带有读写存储库的增强记忆大模型智能体",
+      "canonical_evidence": "带有读写存储库的增强记忆大模型智能体",
+      "llm_tldr_en": "Proposes Agora-Opt, a multi-agent framework using a memory bank to improve optimization modeling performance.",
+      "llm_tldr_cn": "提出Agora-Opt，一个利用存储库提升优化建模性能的多智能体框架。",
+      "llm_tldr": "提出Agora-Opt，一个利用存储库提升优化建模性能的多智能体框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Memory-Augmented Agents.",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.26521v1",
+      "source": "arxiv",
+      "title": "Grounding vs. Compositionality: On the Non-Complementarity of Reasoning in Neuro-Symbolic Systems",
+      "abstract": "Compositional generalization remains a foundational weakness of modern neural networks, limiting their robustness and applicability in domains requiring out-of-distribution reasoning. A central, yet unverified, assumption in neuro-symbolic AI is that compositional reasoning will emerge as a byproduct of successful symbol grounding. This work presents the first systematic empirical analysis to challenge this assumption by disentangling the contributions of grounding and reasoning. To operationalize this investigation, we introduce the Iterative Logic Tensor Network ($i$LTN), a fully differentiable architecture designed for multi-step deduction. Using a formal taxonomy of generalization -- probing for novel entities, unseen relations, and complex rule compositions -- we demonstrate that a model trained solely on a grounding objective fails to generalize. In contrast, our full $i$LTN, trained jointly on perceptual grounding and multi-step reasoning, achieves high zero-shot accuracy across all tasks. Our findings provide conclusive evidence that symbol grounding, while necessary, is insufficient for generalization, establishing that reasoning is not an emergent property but a distinct capability that requires an explicit learning objective.",
+      "authors": [
+        "Mahnoor Shahid",
+        "Hannes Rothe"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CV",
+        "cs.LG",
+        "cs.LO"
+      ],
+      "published": "2026-04-29T10:41:30+00:00",
+      "link": "https://arxiv.org/pdf/2604.26521v1",
+      "tags": [
+        "keyword:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "compositional generalization and reasoning in neuro-symbolic systems",
+      "llm_evidence_cn": "神经符号系统中的组合泛化与推理",
+      "llm_evidence": "神经符号系统中的组合泛化与推理",
+      "canonical_evidence": "神经符号系统中的组合泛化与推理",
+      "llm_tldr_en": "Analyzes the relationship between symbol grounding and compositional reasoning in neuro-symbolic AI.",
+      "llm_tldr_cn": "分析了神经符号AI中符号落地与组合推理之间的关系，挑战了传统假设。",
+      "llm_tldr": "分析了神经符号AI中符号落地与组合推理之间的关系，挑战了传统假设。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Compositional Learning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.26522v1",
+      "source": "arxiv",
+      "title": "AGEL-Comp: A Neuro-Symbolic Framework for Compositional Generalization in Interactive Agents",
+      "abstract": "Large Language Model (LLM)-based agents exhibit systemic failures in compositional generalization, limiting their robustness in interactive environments. This work introduces AGEL-Comp, a neuro-symbolic AI agent architecture designed to address this challenge by grounding actions of the agent. AGEL-Comp integrates three core innovations: (1) a dynamic Causal Program Graph (CPG) as a world model, representing procedural and causal knowledge as a directed hypergraph; (2) an Inductive Logic Programming (ILP) engine that synthesizes new Horn clauses from experiential feedback, grounding symbolic knowledge through interaction; and (3) a hybrid reasoning core where an LLM proposes a set of candidate sub-goals that are verified for logical consistency by a Neural Theorem Prover (NTP). Together, these components operationalize a deduction--abduction learning cycle: enabling the agent to deduce plans and abductively expand its symbolic world model, while a neural adaptation phase keeps its reasoning engine aligned with new knowledge. We propose an evaluation protocol within the \\texttt{Retro Quest} simulation environment to probe for compositional generalization scenarios to evaluate our AGEL agent. Our findings clearly indicate the better performance of our AGEL model over pure LLM-based models. Our framework presents a principled path toward agents that build an explicit, interpretable, and compositionally structured understanding of their world.",
+      "authors": [
+        "Mahnoor Shahid",
+        "Hannes Rothe"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG",
+        "cs.LO",
+        "cs.MA",
+        "cs.SC"
+      ],
+      "published": "2026-04-29T10:42:02+00:00",
+      "link": "https://arxiv.org/pdf/2604.26522v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "compositional generalization in interactive agents",
+      "llm_evidence_cn": "交互式智能体中的组合泛化",
+      "llm_evidence": "交互式智能体中的组合泛化",
+      "canonical_evidence": "交互式智能体中的组合泛化",
+      "llm_tldr_en": "A neuro-symbolic framework addressing compositional generalization failures in LLM-based agents.",
+      "llm_tldr_cn": "一种解决基于大语言模型的智能体在组合泛化方面失败的神经符号框架。",
+      "llm_tldr": "一种解决基于大语言模型的智能体在组合泛化方面失败的神经符号框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Compositional Learning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27045v1",
+      "source": "arxiv",
+      "title": "Detecting Clinical Discrepancies in Health Coaching Agents: A Dual-Stream Memory and Reconciliation Architecture",
+      "abstract": "As Large Language Model (LLM) agents transition from single-session tools to persistent systems managing longitudinal healthcare journeys, their memory architectures face a critical challenge: reconciling two imperfect sources of truth. The patient's evolving self-report is current but prone to recall bias, while the Electronic Health Record (EHR) is medically validated but frequently stale. General-purpose agent memory systems optimize for coherence by overwriting older facts with the user's latest statement, a pattern that risks safety failures when applied to clinical data. We introduce a Dual-Stream Memory Architecture that strictly separates the patient narrative from the structured clinical record (FHIR), governed by a dedicated Reconciliation Engine that evaluates every extracted memory against the patient's FHIR profile and classifies discrepancies by type, severity, and the specific FHIR resources involved. We evaluate this architecture on 26 patients across 675 longitudinal wellness coaching sessions, using a hybrid dataset that interleaves real provider-patient transcripts with synthetic, FHIR-grounded clinical scenarios. In isolated testing, the engine detects 84.4% of designed clinical discrepancies with 86.7% safety-critical recall. By coupling extraction and reconciliation evaluation on the same data, we directly quantify a 13.6% error cascade, tracing the degradation to clinical details lost during memory extraction from unstructured conversation rather than to downstream classification errors. These findings establish that validating patient-reported memories against clinical records is both feasible and necessary for safe deployment of longitudinal health agents.",
+      "authors": [
+        "Samuel L Pugh",
+        "Eric Yang",
+        "Alexander Muir Sutherland",
+        "Alessandra Breschi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-04-29T17:59:28+00:00",
+      "link": "https://arxiv.org/pdf/2604.27045v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Dual-stream memory architecture for health coaching agents",
+      "llm_evidence_cn": "健康指导智能体的双流记忆架构",
+      "llm_evidence": "健康指导智能体的双流记忆架构",
+      "canonical_evidence": "健康指导智能体的双流记忆架构",
+      "llm_tldr_en": "Introduces a dual-stream memory architecture to reconcile patient reports with clinical records in agents.",
+      "llm_tldr_cn": "引入双流记忆架构，用于协调智能体中的患者报告与临床记录。",
+      "llm_tldr": "引入双流记忆架构，用于协调智能体中的患者报告与临床记录。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Memory-Augmented Agents.",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27340v1",
+      "source": "arxiv",
+      "title": "Investigating More Explainable and Partition-Free Compositionality Estimation for LLMs: A Rule-Generation Perspective",
+      "abstract": "Compositional generalization tests are often used to estimate the compositionality of LLMs. However, such tests have the following limitations: (1) they only focus on the output results without considering LLMs' understanding of sample compositionality, resulting in explainability defects; (2) they rely on dataset partition to form the test set with combinations unseen in the training set, suffering from combination leakage issues. In this work, we propose a novel rule-generation perspective for compositionality estimation for LLMs. It requires LLMs to generate a program as rules for dataset mapping and provides estimates of the compositionality of LLMs using complexity-based theory. The perspective addresses the limitations of compositional generalization tests and provides a new way to analyze the compositionality characterization of LLMs. We conduct experiments and analysis of existing advanced LLMs based on this perspective on a string-to-grid task, and find various compositionality characterizations and compositionality deficiencies exhibited by LLMs.",
+      "authors": [
+        "Ziyao Xu",
+        "Cong Wang",
+        "Houfeng Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-04-30T02:33:13+00:00",
+      "link": "https://arxiv.org/pdf/2604.27340v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Rule-generation perspective for compositionality estimation in LLMs",
+      "llm_evidence_cn": "大模型组合性评估的规则生成视角",
+      "llm_evidence": "大模型组合性评估的规则生成视角",
+      "canonical_evidence": "大模型组合性评估的规则生成视角",
+      "llm_tldr_en": "Proposes a novel rule-generation method to estimate the compositional generalization abilities of LLMs.",
+      "llm_tldr_cn": "提出一种新的规则生成方法，用于评估大语言模型的组合泛化能力。",
+      "llm_tldr": "提出一种新的规则生成方法，用于评估大语言模型的组合泛化能力。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Compositional Learning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27695v1",
+      "source": "arxiv",
+      "title": "EviMem: Evidence-Gap-Driven Iterative Retrieval for Long-Term Conversational Memory",
+      "abstract": "Long-term conversational memory requires retrieving evidence scattered across multiple sessions, yet single-pass retrieval fails on temporal and multi-hop questions. Existing iterative methods refine queries via generated content or document-level signals, but none explicitly diagnoses the evidence gap, namely what is missing from the accumulated retrieval set, leaving query refinement untargeted. We present EviMem, combining IRIS (Iterative Retrieval via Insufficiency Signals), a closed-loop framework that detects evidence gaps through sufficiency evaluation, diagnoses what is missing, and drives targeted query refinement, with LaceMem (Layered Architecture for Conversational Evidence Memory), a coarse-to-fine memory hierarchy supporting fine-grained gap diagnosis. On LoCoMo, EviMem improves Judge Accuracy over MIRIX on temporal (73.3% to 81.6%) and multi-hop (65.9% to 85.2%) questions at 4.5x lower latency. Code: https://github.com/AIGeeksGroup/EviMem.",
+      "authors": [
+        "Yuyang Li",
+        "Yime He",
+        "Zeyu Zhang",
+        "Dong Gong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-04-30T10:37:04+00:00",
+      "link": "https://arxiv.org/pdf/2604.27695v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "long-term conversational memory and iterative retrieval",
+      "llm_evidence_cn": "长期对话记忆与迭代检索",
+      "llm_evidence": "长期对话记忆与迭代检索",
+      "canonical_evidence": "长期对话记忆与迭代检索",
+      "llm_tldr_en": "Presents EviMem, a framework for long-term conversational memory using iterative retrieval and evidence gap diagnosis.",
+      "llm_tldr_cn": "提出EviMem，一个通过迭代检索和证据差距诊断实现长期对话记忆的框架。",
+      "llm_tldr": "提出EviMem，一个通过迭代检索和证据差距诊断实现长期对话记忆的框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27707v1",
+      "source": "arxiv",
+      "title": "Contextual Agentic Memory is a Memo, Not True Memory",
+      "abstract": "Current agentic memory systems (vector stores, retrieval-augmented generation, scratchpads, and context-window management) do not implement memory: they implement lookup. We argue that treating lookup as memory is a category error with provable consequences for agent capability, long-term learning, and security. Retrieval generalizes by similarity to stored cases; weight-based memory generalizes by applying abstract rules to inputs never seen before. Conflating the two produces agents that accumulate notes indefinitely without developing expertise, face a provable generalization ceiling on compositionally novel tasks that no increase in context size or retrieval quality can overcome, and are structurally vulnerable to persistent memory poisoning as injected content propagates across all future sessions. Drawing on Complementary Learning Systems theory from neuroscience, we show that biological intelligence solved this problem by pairing fast hippocampal exemplar storage with slow neocortical weight consolidation, and that current AI agents implement only the first half. We formalize these limitations, address four alternative views, and close with a co-existence proposal and a call to action for system builders, benchmark designers, and the memory community.",
+      "authors": [
+        "Binyan Xu",
+        "Xilin Dai",
+        "Kehuan Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-04-30T10:54:56+00:00",
+      "link": "https://arxiv.org/pdf/2604.27707v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "critique of current agentic memory systems and their generalization limits",
+      "llm_evidence_cn": "对当前智能体记忆系统及其泛化限制的批判",
+      "llm_evidence": "对当前智能体记忆系统及其泛化限制的批判",
+      "canonical_evidence": "对当前智能体记忆系统及其泛化限制的批判",
+      "llm_tldr_en": "Argues that current agent memory is merely lookup and identifies fundamental limits in compositional tasks.",
+      "llm_tldr_cn": "认为当前的智能体记忆仅是查找，并指出了其在组合任务中的根本局限。",
+      "llm_tldr": "认为当前的智能体记忆仅是查找，并指出了其在组合任务中的根本局限。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27724v1",
+      "source": "arxiv",
+      "title": "Iterative Multimodal Retrieval-Augmented Generation for Medical Question Answering",
+      "abstract": "Medical retrieval-augmented generation (RAG) systems typically operate on text chunks extracted from biomedical literature, discarding the rich visual content (tables, figures, structured layouts) of original document pages. We propose MED-VRAG, an iterative multimodal RAG framework that retrieves and reasons over PMC document page images instead of OCR'd text. The system pairs ColQwen2.5 patch-level page embeddings with a sharded MapReduce LLM filter, scaling to ~350K pages while keeping Stage-1 retrieval under 30 ms via an offline coarse-to-fine index (C=8 centroids per page, ANN over centroids, exact two-way scoring on the top-R shortlist). A vision-language model (VLM) then iteratively refines its query and accumulates evidence in a memory bank across up to 3 reasoning rounds, with a single iteration costing ~15.9 s and the full three-round pipeline ~47.8 s on 4xA100. Across four medical QA benchmarks (MedQA, MedMCQA, PubMedQA, MMLU-Med), MEDVRAG reaches 78.6% average accuracy. Under controlled comparison with the same Qwen2.5-VL-32B backbone, retrieval contributes a +5.8 point gain over the no-retrieval baseline; we also note a +1.8 point edge over MedRAG + GPT-4 (76.8%), with the caveat that this is a cross-paper rather than head-to-head comparison. Ablations isolate +1.0 from page-image vs text-chunk retrieval, +1.5 from iteration, and +1.0 from the memory bank.",
+      "authors": [
+        "Xupeng Chen",
+        "Binbin Shi",
+        "Chenqian Le",
+        "Jiaqi Zhang",
+        "Kewen Wang",
+        "Ran Gong",
+        "Jinhan Zhang",
+        "Chihang Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-04-30T11:16:07+00:00",
+      "link": "https://arxiv.org/pdf/2604.27724v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multimodal retrieval-augmented generation with iterative reasoning and evidence accumulation",
+      "llm_evidence_cn": "具有迭代推理和证据积累的多模态检索增强生成",
+      "llm_evidence": "具有迭代推理和证据积累的多模态检索增强生成",
+      "canonical_evidence": "具有迭代推理和证据积累的多模态检索增强生成",
+      "llm_tldr_en": "Develops an iterative multimodal RAG framework for medical QA using page-level retrieval.",
+      "llm_tldr_cn": "开发了一个用于医学问答的迭代多模态RAG框架，采用页面级检索。",
+      "llm_tldr": "开发了一个用于医学问答的迭代多模态RAG框架，采用页面级检索。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、智能体记忆机制及模态偏差和密集检索相关论文, especially work that connects or combines: a; Memory-Augmented Agents.; Compositional Learning; Composed Image Retrieval (CIR) methods and benchmarks; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; Dense Retrieval; Modality Bias; State of the art methods in composed image retrieval and multimodal learning; Agent Memory.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27906v1",
+      "source": "arxiv",
+      "title": "From Unstructured Recall to Schema-Grounded Memory: Reliable AI Memory via Iterative, Schema-Aware Extraction",
+      "abstract": "Persistent AI memory is often reduced to a retrieval problem: store prior interactions as text, embed them, and ask the model to recover relevant context later. This design is useful for thematic recall, but it is mismatched to the kinds of memory that agents need in production: exact facts, current state, updates and deletions, aggregation, relations, negative queries, and explicit unknowns. These operations require memory to behave less like search and more like a system of record.   This paper argues that reliable external AI memory must be schema-grounded. Schemas define what must be remembered, what may be ignored, and which values must never be inferred. We present an iterative, schema-aware write path that decomposes memory ingestion into object detection, field detection, and field-value extraction, with validation gates, local retries, and stateful prompt control. The result shifts interpretation from the read path to the write path: reads become constrained queries over verified records rather than repeated inference over retrieved prose.   We evaluate this design on structured extraction and end-to-end memory benchmarks. On the extraction benchmark, the judge-in-the-loop configuration reaches 90.42% object-level accuracy and 62.67% output accuracy, above all tested frontier structured-output baselines. On our end-to-end memory benchmark, xmemory reaches 97.10% F1, compared with 80.16%-87.24% across the third-party baselines. On the application-level task, xmemory reaches 95.2% accuracy, outperforming specialised memory systems, code-generated Markdown harnesses, and customer-facing frontier-model application harnesses. The results show that, for memory workloads requiring stable facts and stateful computation, architecture matters more than retrieval scale or model strength alone.",
+      "authors": [
+        "Alex Petrov",
+        "Alexander Gusak",
+        "Denis Mukha",
+        "Dima Korolev"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-04-30T14:14:02+00:00",
+      "link": "https://arxiv.org/pdf/2604.27906v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "reliable external AI memory for agents",
+      "llm_evidence_cn": "可靠的智能体外部AI记忆",
+      "llm_evidence": "可靠的智能体外部AI记忆",
+      "canonical_evidence": "可靠的智能体外部AI记忆",
+      "llm_tldr_en": "Proposes schema-grounded memory for AI agents to handle facts and states beyond simple search.",
+      "llm_tldr_cn": "为AI智能体提出基于图谱的记忆机制，以处理超越简单搜索的事实和状态。",
+      "llm_tldr": "为AI智能体提出基于图谱的记忆机制，以处理超越简单搜索的事实和状态。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27932v1",
+      "source": "arxiv",
+      "title": "Dynamic Cluster Data Sampling for Efficient and Long-Tail-Aware Vision-Language Pre-training",
+      "abstract": "The computational cost of training a vision-language model (VLM) can be reduced by sampling the training data. Previous work on efficient VLM pre-training has pointed to the importance of semantic data balance, adjusting the distribution of topics in the data to improve VLM accuracy. However, existing efficient pre-training approaches may disproportionately remove rare concepts from the training corpus. As a result, \\emph{long-tail concepts} remain insufficiently represented in the training data and are not effectively captured during training. In this work, we introduce a \\emph{dynamic cluster-based sampling approach (DynamiCS)} that downsamples large clusters of data and upsamples small ones. The approach is dynamic in that it applies sampling at each epoch. We first show the importance of dynamic sampling for VLM training. Then, we demonstrate the advantage of our cluster-scaling approach, which maintains the relative order of semantic clusters in the data and emphasizes the long-tail. This approach contrasts with current work, which focuses only on flattening the semantic distribution of the data. Our experiments show that DynamiCS reduces the computational cost of VLM training and provides a performance advantage for long-tail concepts.",
+      "authors": [
+        "Mingliang Liang",
+        "Zhuoran Liu",
+        "Arjen P. de Vries",
+        "Martha Larson"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-30T14:33:23+00:00",
+      "link": "https://arxiv.org/pdf/2604.27932v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "efficient and long-tail-aware vision-language pre-training",
+      "llm_evidence_cn": "高效且关注长尾分布的视觉语言预训练",
+      "llm_evidence": "高效且关注长尾分布的视觉语言预训练",
+      "canonical_evidence": "高效且关注长尾分布的视觉语言预训练",
+      "llm_tldr_en": "Proposes DynamiCS, a cluster-based sampling approach to improve long-tail concept representation in VLP.",
+      "llm_tldr_cn": "提出DynamiCS，一种基于聚类的采样方法，旨在改进VLP中的长尾概念表示。",
+      "llm_tldr": "提出DynamiCS，一种基于聚类的采样方法，旨在改进VLP中的长尾概念表示。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Vision-Language Pre-training (VLP) techniques and models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2604.23338v1",
+      "source": "arxiv",
+      "title": "From Stateless Queries to Autonomous Actions: A Layered Security Framework for Agentic AI Systems",
+      "abstract": "Agentic AI systems face security challenges that stateless large language models do not. They plan across extended horizons, maintain persistent memory, invoke external tools, and coordinate with peer agents. Existing security analyses organize threats by attack type (prompt injection, jailbreaking), but provide no principled model of which architectural component is vulnerable or over what timescale the threat manifests. This paper makes five contributions. First, we introduce the Layered Attack Surface Model (LASM), a seven-layer framework that maps threats to distinct architectural components: Foundation, Cognitive, Memory, Tool Execution, Multi-Agent Coordination, Ecosystem, and Governance, the accountability and observability layer that spans the stack analogously to the network management plane. Second, we introduce attack temporality as an orthogonal analytical dimension with four classes: Instantaneous (T1), Session-Persistent (T2), Cross-Session Cumulative (T3), and Sub-Session-Stack, Non-Session-Bounded (T4). Third, through a systematic review of 94 papers (2021--2025), we show that the most dangerous emerging threats concentrate at the intersection of high-layer attacks (L5--L7) and slow-burn temporality (T3--T4): covert agent collusion, long-term memory poisoning, MCP supply-chain compromise, and alignment failure that manifests as an insider threat with no external adversary. Only 8 of 120 paper-cell assignments (7%) fall in this zone. Fourth, we propose a cross-layer defense taxonomy spanning all seven LASM layers and all four temporality classes, exposing which threat classes existing defenses leave unaddressed. Fifth, we survey evaluation benchmarks, identify five research gaps in the under-studied high-layer, slow-burn zone, and argue that agentic security must be treated as a distributed systems problem embedded in an adversarial ecosystem.",
+      "authors": [
+        "Kexin Chu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.LG"
+      ],
+      "published": "2026-04-25T14:57:15+00:00",
+      "link": "https://arxiv.org/pdf/2604.23338v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.5,
+      "llm_evidence_en": "security framework for agentic AI systems with persistent memory",
+      "llm_evidence_cn": "具有持久记忆的智能体AI系统安全框架",
+      "llm_evidence": "具有持久记忆的智能体AI系统安全框架",
+      "canonical_evidence": "具有持久记忆的智能体AI系统安全框架",
+      "llm_tldr_en": "Presents a layered security framework for agentic AI, specifically addressing the memory architectural component.",
+      "llm_tldr_cn": "提出智能体AI的分层安全框架，专门针对记忆架构组件进行分析。",
+      "llm_tldr": "提出智能体AI的分层安全框架，专门针对记忆架构组件进行分析。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Memory-Augmented Agents.",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.23323v1",
+      "source": "arxiv",
+      "title": "Robust Audio-Text Retrieval via Cross-Modal Attention and Hybrid Loss",
+      "abstract": "Audio-text retrieval enables semantic alignment between audio content and natural language queries, supporting applications in multimedia search, accessibility, and surveillance. However, current state-of-the-art approaches struggle with long, noisy, and weakly labeled audio due to their reliance on contrastive learning and large-batch training. We propose a novel multimodal retrieval framework that refines audio and text embeddings using a cross-modal embedding refinement module combining transformer-based projection, linear mapping, and bidirectional attention. To further improve robustness, we introduce a hybrid loss function blending cosine similarity, $\\mathcal{L}_{1}$, and contrastive objectives, enabling stable training even under small-batch constraints. Our approach efficiently handles long-form and noisy audio (SNR 5 to 15) via silence-aware chunking and attention-based pooling. Experiments on benchmark datasets demonstrate improvements over prior methods.",
+      "authors": [
+        "Meizhu Liu",
+        "Matthew Rowe",
+        "Amit Agarwal",
+        "Michael Avendi",
+        "Yassi Abbasi",
+        "Hitesh Laxmichand Patel",
+        "Paul Li",
+        "Kyu J. Han",
+        "Tao Sheng",
+        "Sujith Ravi",
+        "Dan Roth"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.SD"
+      ],
+      "published": "2026-04-25T14:17:56+00:00",
+      "link": "https://arxiv.org/pdf/2604.23323v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.5,
+      "llm_evidence_en": "Multimodal retrieval framework for semantic alignment between audio and text",
+      "llm_evidence_cn": "用于音频和文本语义对齐的多模态检索框架",
+      "llm_evidence": "用于音频和文本语义对齐的多模态检索框架",
+      "canonical_evidence": "用于音频和文本语义对齐的多模态检索框架",
+      "llm_tldr_en": "Proposes a robust audio-text retrieval framework using cross-modal attention and a hybrid loss function.",
+      "llm_tldr_cn": "提出了一种利用跨模态注意力和混合损失函数的鲁棒音频-文本检索框架。",
+      "llm_tldr": "提出了一种利用跨模态注意力和混合损失函数的鲁棒音频-文本检索框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.23912v1",
+      "source": "arxiv",
+      "title": "Gromov-Wasserstein Methods for Multi-View Relational Embedding and Clustering",
+      "abstract": "Learning low-dimensional representations from multi-view relational data is challenging when underlying geometries differ across views. We propose Bary-GWMDS, a Gromov-Wasserstein-based method that operates directly on distance matrices to learn a consensus embedding preserving shared relational structure. By leveraging intrinsic distances, the approach naturally handles nonlinear distortions across views. We also introduce Mean-GWMDS-C, a clustering-oriented formulation that averages distance matrices and learns reduced-support representations via a consensus Gromov-Wasserstein transport. Experiments on synthetic and real-world datasets show that the proposed framework yields stable and geometrically meaningful embeddings.",
+      "authors": [
+        "Rafael Pereira Eufrazio",
+        "Eduardo Fernandes Montesuma",
+        "Charles Casimiro Cavalcante"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-04-26T23:23:12+00:00",
+      "link": "https://arxiv.org/pdf/2604.23912v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.5,
+      "llm_evidence_en": "multi-view relational embedding and representation learning",
+      "llm_evidence_cn": "多视图关系嵌入与表示学习",
+      "llm_evidence": "多视图关系嵌入与表示学习",
+      "canonical_evidence": "多视图关系嵌入与表示学习",
+      "llm_tldr_en": "Proposes a Gromov-Wasserstein method for multi-view relational embedding to preserve shared structure across views.",
+      "llm_tldr_cn": "提出一种基于Gromov-Wasserstein的多视图关系嵌入方法，旨在保留跨视图的共享结构。",
+      "llm_tldr": "提出一种基于Gromov-Wasserstein的多视图关系嵌入方法，旨在保留跨视图的共享结构。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.23374v1",
+      "source": "arxiv",
+      "title": "Ghost in the Agent: Redefining Information Flow Tracking for LLM Agents",
+      "abstract": "Autonomous Large Language Model (LLM) agents are increasingly deployed to conduct complex tasks by interacting with external tools, APIs, and memory stores. However, processing untrusted external data exposes these agents to severe security threats, such as indirect prompt injection and unauthorized tool execution. Securing these systems requires effective information flow tracking. Yet, traditional taint analysis that is designed for program memory states fundamentally fails when applied to LLMs, where data propagation is governed by probabilistic natural language reasoning. In this paper, we present NeuroTaint, the first comprehensive taint tracking framework tailored for the unique information flow characteristics of LLM agents. Our key insight is that taint propagation in LLM agents must be understood not only as explicit content transfer, but also as semantic transformation, causal influence on decisions, and cross-session persistence through memory. NeuroTaint therefore audits execution traces offline to reconstruct provenance from untrusted sources to privileged sinks using semantic evidence, causal reasoning, and persistent context tracking, rather than relying on exact string matches or pre-defined source-sink paths alone. Extensive evaluation using TaintBench, our 400-scenario benchmark spanning 20 real-world agent frameworks, shows that NeuroTaint substantially outperforms FIDES, an information-flow-control (IFC)-style baseline for LLM agents, in source-sink propagation detection. We further show that NeuroTaint remains effective on established agent-security benchmarks, including InjecAgent and ToolEmu, while operating offline with modest additional auditing cost.",
+      "authors": [
+        "Yuandao Cai",
+        "Wensheng Tang",
+        "Cheng Wen",
+        "Shengchao Qin"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-04-25T16:39:16+00:00",
+      "link": "https://arxiv.org/pdf/2604.23374v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.5,
+      "llm_evidence_en": "information flow tracking for LLM agents interacting with memory stores",
+      "llm_evidence_cn": "与记忆库交互的LLM智能体的信息流跟踪",
+      "llm_evidence": "与记忆库交互的LLM智能体的信息流跟踪",
+      "canonical_evidence": "与记忆库交互的LLM智能体的信息流跟踪",
+      "llm_tldr_en": "NeuroTaint tracks information flow in LLM agents to secure interactions with tools and memory stores.",
+      "llm_tldr_cn": "NeuroTaint跟踪LLM智能体中的信息流，以确保与工具和记忆库交互的安全。",
+      "llm_tldr": "NeuroTaint跟踪LLM智能体中的信息流，以确保与工具和记忆库交互的安全。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Agent Memory",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.23336v1",
+      "source": "arxiv",
+      "title": "Efficient Rationale-based Retrieval: On-policy Distillation from Generative Rerankers based on JEPA",
+      "abstract": "Unlike traditional fact-based retrieval, rationale-based retrieval typically necessitates cross-encoding of query-document pairs using large language models, incurring substantial computational costs. To address this limitation, we propose Rabtriever, which independently encodes queries and documents, while providing comparable cross query-document comprehension capabilities to rerankers. We start from training a LLM-based generative reranker, which puts the document prior to the query and prompts the LLM to generate the relevance score by log probabilities. We then employ it as the teacher of an on-policy distillation framework, with Rabtriever as the student to reconstruct the teacher's contextual-aware query embedding. To achieve this effect, Rabtriever is first initialized from the teacher, with parameters frozen. The Joint-Embedding Predictive Architecture (JEPA) paradigm is then adopted, which integrates a lightweight, trainable predictor between LLM layers and heads, projecting the query embedding into a new hidden space, with the document embedding as the latent vector. JEPA then minimizes the distribution difference between this projected embedding and the teacher embedding. To strengthen the sampling efficiency of on-policy distillation, we also add an auxiliary loss on the reverse KL of LLM logits, to reshape the student's logit distribution. Rabtriever optimizes the teacher's quadratic complexity on the document length to linear, verified both theoretically and empirically. Experiments show that Rabtriever outperforms different retriever baselines across diverse rationale-based tasks, including empathetic conversations and robotic manipulations, with minor accuracy degradation from the reranker. Rabtriever also generalizes well on traditional retrieval benchmarks such as MS MARCO and BEIR, with comparable performance to the best retriever baseline.",
+      "authors": [
+        "Teng Chen",
+        "Sheng Xu",
+        "Feixiang Guo",
+        "Xiaoyu Wang",
+        "Qingqing Gu",
+        "Hongyan Li",
+        "Luo Ji"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-04-25T14:45:33+00:00",
+      "link": "https://arxiv.org/pdf/2604.23336v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.5,
+      "llm_evidence_en": "efficient rationale-based retrieval via distillation from generative rerankers",
+      "llm_evidence_cn": "通过生成式重排序器蒸馏实现高效的基于理由的检索",
+      "llm_evidence": "通过生成式重排序器蒸馏实现高效的基于理由的检索",
+      "canonical_evidence": "通过生成式重排序器蒸馏实现高效的基于理由的检索",
+      "llm_tldr_en": "Develops Rabtriever for efficient retrieval by distilling knowledge from LLM-based generative rerankers.",
+      "llm_tldr_cn": "通过从基于LLM的生成式重排序器中蒸馏知识，开发了Rabtriever以实现高效检索。",
+      "llm_tldr": "通过从基于LLM的生成式重排序器中蒸馏知识，开发了Rabtriever以实现高效检索。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Dense Retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.25000v1",
+      "source": "arxiv",
+      "title": "Toward a Science of Intent: Closure Gaps and Delegation Envelopes for Open-World AI Agents",
+      "abstract": "Recent work has framed intelligence in verifiable tasks as reducing time-to-solution through learned structure and test-time search, while systems work has explored learned runtimes in which computation, memory and I/O migrate into model state. These perspectives do not explain why capable models remain difficult to deploy in open institutions. We propose intent compilation: the transformation of partially specified human purpose into inspectable artifacts that bind execution. The relevant deployment distinction is closed-world solver versus open-world agent. In closed worlds, a checker is largely given; in open worlds, verification is distributed across semantic, evidentiary, procedural and institutional dimensions. Weformalize this residual openness as a closure-gap vector, define delegation envelopes as pre-authorized regions of action space, distinguish misclosure from undersearch, and outline benchmark metrics for testing when closure interventions outperform additional inference-time search.",
+      "authors": [
+        "Maximiliano Armesto",
+        "Christophe Kolb"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-04-27T21:00:41+00:00",
+      "link": "https://arxiv.org/pdf/2604.25000v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.5,
+      "llm_evidence_en": "Discusses memory and model state migration for open-world AI agents",
+      "llm_evidence_cn": "讨论了开放世界AI智能体的记忆和模型状态迁移",
+      "llm_evidence": "讨论了开放世界AI智能体的记忆和模型状态迁移",
+      "canonical_evidence": "讨论了开放世界AI智能体的记忆和模型状态迁移",
+      "llm_tldr_en": "Proposes intent compilation to bridge the gap between human purpose and execution in open-world AI agents.",
+      "llm_tldr_cn": "提出了意图编译，旨在弥合开放世界AI智能体中人类意图与执行之间的差距。",
+      "llm_tldr": "提出了意图编译，旨在弥合开放世界AI智能体中人类意图与执行之间的差距。",
+      "llm_tags": [
+        "query:cir-ml:composite"
+      ],
+      "matched_query_tag": "query:cir-ml:composite",
+      "matched_query_text": "Papers central to 查找组合图像检索、智能体记忆机制及模态偏差和密集检索相关论文, especially work that connects or combines: a; Memory-Augmented Agents.; Compositional Learning; Composed Image Retrieval (CIR) methods and benchmarks; Foundations and advances in multimodal machine learning; Vision-Language Pre-training (VLP) techniques and models; Dense Retrieval; Modality Bias; State of the art methods in composed image retrieval and multimodal learning; Agent Memory.",
+      "matched_requirement_id": "req-composite-cir-ml",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.23665v1",
+      "source": "arxiv",
+      "title": "HAC: Parameter-Efficient Hyperbolic Adaptation of CLIP for Zero-Shot VQA",
+      "abstract": "Recent advances in representation learning have shown that hyperbolic geometry can offer a more expressive alternative to the Euclidean embeddings used in CLIP models, capturing hierarchical structures and leading to better-organized representations. However, current hyperbolic CLIP variants are trained entirely from scratch, which is computationally expensive and resource-intensive. In this work, we propose HAC (Hyperbolic Adaptation of CLIP), a parameter-efficient framework that enables pretrained CLIP models to transition into hyperbolic space via lightweight fine-tuning. We apply HAC to Visual Question Answering (VQA), where models must interpret visual elements and align them with textual queries. Notably, HAC's training is performed on a dataset with no overlap with any VQA benchmark, resulting in a strict zero-shot evaluation paradigm that underscores HAC's task-agnostic adaptability. We evaluate HAC across a diverse suite of VQA benchmarks spanning General, Reasoning, and OCR categories. Both HAC-S (small) and HAC-B (medium) consistently surpass Euclidean baselines and prior hyperbolic approaches, with HAC-B delivering up to a +1.9 point average improvement over CLIP-B on reasoning-intensive tasks. Our code is available at https://github.com/fdibiton/HAC",
+      "authors": [
+        "Francesco Dibitonto",
+        "Cigdem Beyan",
+        "Vittorio Murino"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-26T11:43:51+00:00",
+      "link": "https://arxiv.org/pdf/2604.23665v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.5,
+      "llm_evidence_en": "Parameter-efficient adaptation of CLIP for multimodal VQA",
+      "llm_evidence_cn": "针对多模态VQA的CLIP参数高效适配",
+      "llm_evidence": "针对多模态VQA的CLIP参数高效适配",
+      "canonical_evidence": "针对多模态VQA的CLIP参数高效适配",
+      "llm_tldr_en": "Proposes a parameter-efficient framework to adapt pretrained CLIP models into hyperbolic space for better VQA.",
+      "llm_tldr_cn": "提出一种参数高效框架，将预训练CLIP模型转换至双曲空间以提升VQA性能。",
+      "llm_tldr": "提出一种参数高效框架，将预训练CLIP模型转换至双曲空间以提升VQA性能。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Vision-Language Pre-training (VLP) techniques and models",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.23388v1",
+      "source": "arxiv",
+      "title": "A Parametric Memory Head for Continual Generative Retrieval",
+      "abstract": "Generative information retrieval (GenIR) consolidates retrieval into a single neural model that decodes document identifiers (docids) directly from queries. While this model-as-index paradigm offers architectural simplicity, it is poorly suited to dynamic document collections. Unlike modular systems, where indexes are easily updated, GenIR's knowledge is parametrically encoded in its weights; consequently, standard adaptation methods such as full and parameter-efficient fine-tuning can induce catastrophic forgetting. We show that sequential adaptation improves retrieval on newly added documents but substantially degrades performance on earlier slices, exposing a pronounced stability-plasticity trade-off. To address this, we propose post-adaptation memory tuning (PAMT), a memory-only stabilization stage that augments an adapted model with a modular parametric memory head (PMH). PAMT freezes the backbone and attaches a product-key memory with fixed addressing. During prefix-trie constrained decoding, decoder hidden states sparsely query PMH to produce residual corrections in hidden space; these corrections are mapped to score adjustments via the frozen output embedding matrix, computed only over trie-valid tokens. This guides docid generation while keeping routing and backbone parameters fixed. To limit cross-slice interference, PAMT updates only a fixed budget of memory values selected using decoding-time access statistics, prioritizing entries frequently activated by the current slice and rarely used in prior sessions. Experiments on MS MARCO and Natural Questions under sequential, disjoint corpus increments show that PAMT substantially improves retention on earlier slices with minimal impact on retrieval performance for newly added documents, while modifying only a sparse subset of memory values per session.",
+      "authors": [
+        "Kidist Amde Mekonnen",
+        "Yubao Tang",
+        "Maarten de Rijke"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-04-25T17:38:51+00:00",
+      "link": "https://arxiv.org/pdf/2604.23388v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.5,
+      "llm_evidence_en": "Generative information retrieval and parametric memory tuning for document retrieval",
+      "llm_evidence_cn": "生成式信息检索与用于文档检索的参数化记忆微调",
+      "llm_evidence": "生成式信息检索与用于文档检索的参数化记忆微调",
+      "canonical_evidence": "生成式信息检索与用于文档检索的参数化记忆微调",
+      "llm_tldr_en": "Proposes memory tuning to solve catastrophic forgetting in generative retrieval for dynamic collections.",
+      "llm_tldr_cn": "提出记忆微调方法，解决动态集合生成式检索中的灾难性遗忘问题。",
+      "llm_tldr": "提出记忆微调方法，解决动态集合生成式检索中的灾难性遗忘问题。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Dense Retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2604.26409v1",
+      "source": "arxiv",
+      "title": "Sparsity as a Key: Unlocking New Insights from Latent Structures for Out-of-Distribution Detection",
+      "abstract": "Sparse Autoencoders (SAEs) have demonstrated significant success in interpreting Large Language Models (LLMs) by decomposing dense representations into sparse, semantic components. However, their potential for analyzing Vision Transformers (ViTs) remains largely under-explored. In this work, we present the first application of SAEs to the ViT [CLS] token for out-of-distribution (OOD) detection, addressing the limitation of existing methods that rely on entangled feature representations. We propose a novel framework utilizing a Top-k SAE to disentangle the dense [CLS] features into a structured latent space. Through this analysis, we reveal that in-distribution (ID) data exhibits consistent, class-specific activation patterns, which we formalize as Class Activation Profiles (CAPs). Our study uncovers a key structural invariant: while ID samples preserve a stable pattern within CAPs, OOD samples systematically disrupt this structure. Leveraging this insight, we introduce a scoring function based on the divergence of core energy profiles to quantify the deviation from ideal activation profiles. Our method achieves strong results on the FPR95 metric, critical for safety-sensitive applications across multiple benchmarks, while also achieving competitive AUROC. Overall, our findings demonstrate that the sparse, disentangled features revealed by SAEs can serve as a powerful, interpretable tool for robust OOD detection in vision models.",
+      "authors": [
+        "Ahyoung Oh",
+        "Wonseok Shin",
+        "Songkuk Kim"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-04-29T08:23:38+00:00",
+      "link": "https://arxiv.org/pdf/2604.26409v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 6.5,
+      "llm_evidence_en": "disentangling dense features in Vision Transformers",
+      "llm_evidence_cn": "解构视觉Transformer中的密集特征",
+      "llm_evidence": "解构视觉Transformer中的密集特征",
+      "canonical_evidence": "解构视觉Transformer中的密集特征",
+      "llm_tldr_en": "Uses Sparse Autoencoders to interpret ViT latent structures for out-of-distribution detection.",
+      "llm_tldr_cn": "使用稀疏自编码器解释ViT潜空间结构，用于分布外检测。",
+      "llm_tldr": "使用稀疏自编码器解释ViT潜空间结构，用于分布外检测。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Foundations and advances in multimodal machine learning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2604.24020v1",
+      "source": "arxiv",
+      "title": "Poster: ClawdGo: Endogenous Security Awareness Training for Autonomous AI Agents",
+      "abstract": "Autonomous AI agents deployed on platforms such as OpenClaw face prompt injection, memory poisoning, supply-chain attacks, and social engineering, yet existing defences address only the platform perimeter, leaving the agent's own threat judgement entirely untrained. We present ClawdGo, a framework for endogenous security awareness training: we teach the agent to recognise and reason about threats from the inside, at inference time, with no model modification. Four contributions are introduced: TLDT (Three-Layer Domain Taxonomy) organises 12 trainable dimensions across Self-Defence, Owner-Protection, and Enterprise-Security layers; ASAT (Autonomous Security Awareness Training) is a self-play loop where the agent alternates attacker, defender, and evaluator roles under weakest-first curriculum scheduling; CSMA (Cross-Session Memory Accumulation) compounds skill gains via a four-layer persistent memory architecture and Axiom Crystallisation Promotion (ACP); and SACP (Security Awareness Calibration Problem) formalises the precision-recall tradeoff introduced by endogenous training. Live experiments show weakest-first ASAT raises average TLDT score from 80.9 to 96.9 over 16 sessions, outperforming uniform-random scheduling by 6.5 points and covering 11 of 12 dimensions. CSMA retains the full gain across sessions; cold-start ablation recovers only 2.4 points, leaving a 13.6-point gap. E-mode generates 32 TLDT-conformant scenarios covering all 12 dimensions. SACP is observed when a heavily trained agent classifies a legitimate capability assessment as prompt injection (30/160).",
+      "authors": [
+        "Jiaqi Li",
+        "Yang Zhao",
+        "Bin Sun",
+        "Yang Yu",
+        "Jian Chang",
+        "Lidong Zhai"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-04-27T04:09:27+00:00",
+      "link": "https://arxiv.org/pdf/2604.24020v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 8.5,
+      "llm_evidence_en": "security awareness training for autonomous agents and memory poisoning",
+      "llm_evidence_cn": "自主智能体的安全意识培训及记忆投毒防御",
+      "llm_evidence": "自主智能体的安全意识培训及记忆投毒防御",
+      "canonical_evidence": "自主智能体的安全意识培训及记忆投毒防御",
+      "llm_tldr_en": "Presents ClawdGo, a framework for training autonomous agents to recognize internal security threats.",
+      "llm_tldr_cn": "介绍ClawdGo，一个训练自主智能体识别内部安全威胁的框架。",
+      "llm_tldr": "介绍ClawdGo，一个训练自主智能体识别内部安全威胁的框架。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Memory-Augmented Agents.",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2604.24334v1",
+      "source": "arxiv",
+      "title": "Reducing Redundancy in Retrieval-Augmented Generation through Chunk Filtering",
+      "abstract": "Standard Retrieval-Augmented Generation (RAG) chunking methods often create excessive redundancy, increasing storage costs and slowing retrieval. This study explores chunk filtering strategies, such as semantic, topic-based, and named-entity-based methods in order to reduce the indexed corpus while preserving retrieval quality. Experiments are conducted on multiple corpora. Retrieval performance is evaluated using a token-based framework based on precision, recall, and intersection-over-union metrics. Results indicate that entity-based filtering can reduce vector index size by approximately 25% to 36% while maintaining high retrieval quality close to the baseline. These findings suggest that redundancy introduced during chunking can be effectively reduced through lightweight filtering, improving the efficiency of retrieval-oriented components in RAG pipelines.",
+      "authors": [
+        "Daria Berdyugina",
+        "Anaëlle Cohen",
+        "Yohann Rioual"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-04-27T11:23:39+00:00",
+      "link": "https://arxiv.org/pdf/2604.24334v1",
+      "tags": [
+        "keyword:CIR ML",
+        "query:CIR ML"
+      ],
+      "llm_score": 7.5,
+      "llm_evidence_en": "reducing redundancy in dense vector index for RAG",
+      "llm_evidence_cn": "减少RAG密集向量索引中的冗余",
+      "llm_evidence": "减少RAG密集向量索引中的冗余",
+      "canonical_evidence": "减少RAG密集向量索引中的冗余",
+      "llm_tldr_en": "Explores chunk filtering strategies to reduce vector index size while maintaining retrieval quality.",
+      "llm_tldr_cn": "探索块过滤策略，在保持检索质量的同时减小向量索引大小。",
+      "llm_tldr": "探索块过滤策略，在保持检索质量的同时减小向量索引大小。",
+      "llm_tags": [
+        "query:cir-ml"
+      ],
+      "matched_query_tag": "query:cir-ml",
+      "matched_query_text": "Dense Retrieval",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
